@@ -55,7 +55,7 @@ export function ResultCard({
     <article
       data-title={series.title}
       onClick={() => onFlip(series.title)}
-      className="h-[446px] [perspective:1100px] cursor-pointer"
+      className="h-[421px] [perspective:1100px] cursor-pointer"
     >
       <div
         className={[
@@ -70,7 +70,7 @@ export function ResultCard({
             flipped ? "opacity-0 pointer-events-none z-[1]" : "opacity-100 pointer-events-auto z-[2]",
           ].join(" ")}
         >
-          <div className="relative h-[320px] border-b-[length:var(--border-base)] border-b-[var(--ink)] bg-[var(--fill)] overflow-hidden">
+          <div className="relative h-[295px] border-b-[length:var(--border-base)] border-b-[var(--ink)] bg-[var(--fill)] overflow-hidden">
             {hasImage ? (
               <Image
                 src={series.coverImageUrl as string}
