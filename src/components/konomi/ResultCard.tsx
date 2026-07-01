@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { scoreSeries, streamsFor } from "@/lib/konomi/scoring";
 import type { ResultEntry } from "@/lib/konomi/types";
 import { DiceIcon, LockClosedIcon, LockOpenIcon } from "./icons";
@@ -10,7 +11,6 @@ const ICON_BTN =
 
 interface ResultCardProps {
   entry: ResultEntry;
-  rank: number;
   index: number;
   selectedTags: string[];
   filledCount: number;
@@ -25,7 +25,6 @@ interface ResultCardProps {
 
 export function ResultCard({
   entry,
-  rank,
   index,
   selectedTags,
   filledCount,
@@ -47,6 +46,7 @@ export function ResultCard({
   const scoreLabel = perfect ? "PERFECT" : `${score}/${filledCount}`;
   const swapDisabled = locked || !canSwap;
   const streams = streamsFor(series.title);
+  const hasImage = Boolean(series.coverImageUrl);
   // year/eps come from AniList and can genuinely be null (e.g. unreleased
   // media) — omit whichever part is missing instead of rendering "null".
   const meta = [series.year ?? "TBA", series.eps != null ? `${series.eps} EP` : null].filter(Boolean).join(" · ");
@@ -55,7 +55,7 @@ export function ResultCard({
     <article
       data-title={series.title}
       onClick={() => onFlip(series.title)}
-      className="h-[293px] [perspective:1100px] cursor-pointer"
+      className="h-[446px] [perspective:1100px] cursor-pointer"
     >
       <div
         className={[
@@ -70,21 +70,27 @@ export function ResultCard({
             flipped ? "opacity-0 pointer-events-none z-[1]" : "opacity-100 pointer-events-auto z-[2]",
           ].join(" ")}
         >
-          <div className="relative h-[114px] border-b-[length:var(--border-base)] border-b-[var(--ink)] bg-[var(--fill)] bg-[radial-gradient(var(--muted)_1.4px,transparent_1.5px)] [background-size:8px_8px] flex items-center justify-center overflow-hidden">
-            <span className="font-display text-[length:var(--text-cover)] text-[var(--primary)] opacity-85 leading-none">
-              {series.title[0]}
-            </span>
-            <div className="absolute top-[var(--space-md)] right-[var(--space-md)] font-mono text-[length:var(--text-2xs)] tracking-[var(--tracking-2xl)] text-[var(--primary)] bg-[var(--surface)] border-[length:var(--border-hair)] border-[var(--ink)] px-[var(--space-sm)] py-[var(--space-xs)]">
-              COVER
-            </div>
-            <div
-              className={[
-                "absolute bottom-[var(--space-md)] left-[var(--space-md)] font-display text-[length:var(--text-sm)] tracking-[var(--tracking-lg)] border-[length:var(--border-thin)] border-[var(--ink)] px-[var(--space-md)] py-[var(--space-xs)] -rotate-[4deg] shadow-[var(--elev-1)]",
-                perfect ? "bg-[var(--secondary)] text-[var(--on-secondary)]" : "bg-[var(--surface)] text-[var(--ink)]",
-              ].join(" ")}
-            >
-              {scoreLabel}
-            </div>
+          <div className="relative h-[320px] border-b-[length:var(--border-base)] border-b-[var(--ink)] bg-[var(--fill)] overflow-hidden">
+            {hasImage ? (
+              <Image
+                src={series.coverImageUrl as string}
+                alt={`${series.title} cover art`}
+                fill
+                sizes="208px"
+                className="object-cover object-top [filter:contrast(1.05)_saturate(0.85)]"
+              />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="font-display text-[length:var(--text-cover)] text-[var(--primary)] opacity-85 leading-none">
+                  {series.title[0]}
+                </span>
+              </div>
+            )}
+            {/* Dark scrim so overlaid title text stays readable over any
+                photo. on-secondary (not ink/surface) because it's the one
+                role that's guaranteed dark in every theme — ink/surface
+                flip per theme and would go light-on-light in Tide. */}
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[100px] bg-gradient-to-t from-[var(--on-secondary)] to-transparent" />
             <div className="absolute top-[var(--space-md)] left-[var(--space-md)] flex gap-[var(--space-sm)]">
               <button
                 type="button"
@@ -117,15 +123,28 @@ export function ResultCard({
                 <DiceIcon />
               </button>
             </div>
+            {/* Score badge + title/meta stack together, bottom-anchored, so
+                the badge naturally sits above the title with no manual
+                offset math. Both on-primary — guaranteed light in every
+                theme, same reasoning as the scrim above. */}
+            <div className="absolute inset-x-0 bottom-0 flex flex-col items-start gap-[var(--space-sm)] px-[var(--space-lg)] pb-[var(--space-md)]">
+              <div
+                className={[
+                  "font-display text-[length:var(--text-sm)] tracking-[var(--tracking-lg)] border-[length:var(--border-thin)] border-[var(--ink)] px-[var(--space-md)] py-[var(--space-xs)] -rotate-[4deg] shadow-[var(--elev-1)]",
+                  perfect ? "bg-[var(--secondary)] text-[var(--on-secondary)]" : "bg-[var(--surface)] text-[var(--ink)]",
+                ].join(" ")}
+              >
+                {scoreLabel}
+              </div>
+              <div>
+                <h3 className="font-body font-black text-[length:var(--text-md)] leading-[var(--leading-tight)] text-[var(--on-primary)] m-0">
+                  {series.title}
+                </h3>
+                <div className="font-mono text-[length:var(--text-xs)] text-[var(--on-primary)] opacity-80 mt-[var(--space-xs)]">{meta}</div>
+              </div>
+            </div>
           </div>
-          <div className="px-[var(--space-lg)] pt-[var(--space-lg)] pb-[var(--space-lg)] flex flex-col gap-[var(--space-md)] flex-1 min-h-0">
-            <div className="flex items-baseline gap-[var(--space-md)]">
-              <span className="font-display text-[length:var(--text-base)] text-[var(--muted)]">#{rank}</span>
-              <h3 className="font-body font-black text-[length:var(--text-md)] leading-[var(--leading-tight)] m-0">{series.title}</h3>
-            </div>
-            <div className="font-mono text-[length:var(--text-xs)] text-[var(--primary)]">
-              {meta}
-            </div>
+          <div className="px-[var(--space-lg)] pt-[var(--space-lg)] pb-[var(--space-lg)]">
             <TagScrollArea tags={series.tags} selectedTags={selectedTags} onChipToggle={onChipToggle} />
           </div>
         </div>

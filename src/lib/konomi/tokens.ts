@@ -31,7 +31,7 @@ export const TRACKING = {
 export const TYPE_SCALE = {
   wordmark: "clamp(44px, 8vw, 78px)",
   wordmarkJp: "clamp(22px, 4vw, 38px)",
-  cover: "70px",
+  cover: "120px",
   "2xl": "30px",
   xl: "26px",
   lg: "20px",

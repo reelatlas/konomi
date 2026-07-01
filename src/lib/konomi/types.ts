@@ -5,6 +5,7 @@ export interface Series {
   year: number | null;
   eps: number | null;
   tags: string[];
+  coverImageUrl: string | null;
 }
 
 export interface ResultEntry {

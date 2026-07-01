@@ -77,7 +77,6 @@ export function RecommendationsSection({
             <ResultCard
               key={entry.series.title}
               entry={entry}
-              rank={index + 1}
               index={index}
               selectedTags={selectedTags}
               filledCount={filledCount}

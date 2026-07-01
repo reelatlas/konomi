@@ -9,6 +9,7 @@ interface RawSeriesRow {
   title_english: string | null;
   year: number | null;
   episodes: number | null;
+  cover_image_url: string | null;
   series_tags: { rank: number; tags: { name: string } | null }[] | null;
 }
 
@@ -23,7 +24,7 @@ export interface Catalog {
 export async function getCatalog(): Promise<Catalog> {
   const { data, error } = await supabase
     .from("series")
-    .select("title_romaji, title_english, year, episodes, series_tags(rank, tags(name))")
+    .select("title_romaji, title_english, year, episodes, cover_image_url, series_tags(rank, tags(name))")
     .order("title_romaji", { ascending: true })
     .returns<RawSeriesRow[]>();
 
@@ -47,6 +48,7 @@ export async function getCatalog(): Promise<Catalog> {
       year: row.year,
       eps: row.episodes,
       tags,
+      coverImageUrl: row.cover_image_url,
     };
   });
 

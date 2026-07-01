@@ -7,6 +7,17 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname),
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        // AniList shards cover images across s1-s4.anilist.co (and possibly
+        // more in the future) — wildcard the subdomain rather than pinning
+        // to whichever shard a handful of sample URLs happened to use.
+        hostname: "**.anilist.co",
+      },
+    ],
+  },
 };
 
 export default nextConfig;

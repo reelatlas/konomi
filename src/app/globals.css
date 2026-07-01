@@ -11,7 +11,7 @@
   /* typography */
   --text-wordmark: clamp(44px, 8vw, 78px);
   --text-wordmark-jp: clamp(22px, 4vw, 38px);
-  --text-cover: 70px;
+  --text-cover: 120px;
   --text-2xl: 30px;
   --text-xl: 26px;
   --text-lg: 20px;
