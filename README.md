@@ -2,7 +2,7 @@
 
 anime tag remixer
 
-Pick up to 3 tags, mix them, and get your top series recommendations.
+Pick up to 3 tags, get your top series recommendations, remix.
 
 ## Getting started
 
