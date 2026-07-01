@@ -1,7 +1,9 @@
 export interface Series {
   title: string;
-  year: number;
-  eps: number;
+  // Nullable because AniList genuinely lacks these for some entries (e.g.
+  // "Not Yet Released" media) — components must handle the null case.
+  year: number | null;
+  eps: number | null;
   tags: string[];
 }
 

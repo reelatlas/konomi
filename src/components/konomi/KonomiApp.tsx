@@ -1,14 +1,20 @@
 "use client";
 
-import { SHOW_HALFTONE } from "@/lib/konomi/data";
+import { SHOW_HALFTONE } from "@/lib/konomi/config";
+import type { Series } from "@/lib/konomi/types";
 import { useKonomi } from "@/lib/konomi/useKonomi";
 import { Masthead } from "./Masthead";
 import { MixerSection } from "./MixerSection";
 import { RecommendationsSection } from "./RecommendationsSection";
 import { TagPoolSection } from "./TagPoolSection";
 
-export function KonomiApp() {
-  const k = useKonomi();
+interface KonomiAppProps {
+  initialSeries: Series[];
+  initialTags: string[];
+}
+
+export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
+  const k = useKonomi(initialSeries, initialTags);
 
   return (
     <div
@@ -56,7 +62,7 @@ export function KonomiApp() {
           onRecommend={k.recommend}
         />
 
-        <TagPoolSection selectedTags={k.selectedTags} onChipToggle={k.toggleTag} />
+        <TagPoolSection allTags={k.allTags} selectedTags={k.selectedTags} onChipToggle={k.toggleTag} />
 
         <p className="font-mono text-[length:var(--text-xs)] text-[var(--muted)] text-center mt-[var(--space-3xl)] mb-0">
           prototype · dummy data · drag tags between the pool, mixer &amp; results to remix

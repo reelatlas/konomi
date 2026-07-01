@@ -1,9 +1,11 @@
 import { useMemo, useReducer } from "react";
-import { ALL_TAGS, DEFAULT_RESULT_COUNT, SERIES, SLOT_COUNT } from "./data";
+import { DEFAULT_RESULT_COUNT, SLOT_COUNT } from "./config";
 import { scorePool, scoreSeries } from "./scoring";
-import type { MatchKey, ResultEntry, Slot, ThemeKey } from "./types";
+import type { MatchKey, ResultEntry, Series, Slot, ThemeKey } from "./types";
 
 interface KonomiState {
+  series: Series[];
+  tags: string[];
   slots: Slot[];
   results: ResultEntry[];
   generated: boolean;
@@ -14,16 +16,24 @@ interface KonomiState {
   theme: ThemeKey;
 }
 
-const initialState: KonomiState = {
-  slots: Array<Slot>(SLOT_COUNT).fill(null),
-  results: [],
-  generated: false,
-  dragOverIndex: -1,
-  minMatch: "1",
-  flipped: {},
-  locked: {},
-  theme: "default",
-};
+// Lazy initializer for useReducer — the catalog is only known at the time
+// useKonomi() is called (fetched server-side, passed in as props), so the
+// initial state can't be a static module-level constant the way it used to
+// be when series/tags were hardcoded imports.
+function createInitialState(catalog: { series: Series[]; tags: string[] }): KonomiState {
+  return {
+    series: catalog.series,
+    tags: catalog.tags,
+    slots: Array<Slot>(SLOT_COUNT).fill(null),
+    results: [],
+    generated: false,
+    dragOverIndex: -1,
+    minMatch: "1",
+    flipped: {},
+    locked: {},
+    theme: "default",
+  };
+}
 
 type Action =
   | { type: "TOGGLE_TAG"; tag: string }
@@ -57,7 +67,7 @@ function recommend(state: KonomiState): KonomiState {
   state.results.forEach((r) => {
     if (lockedTitles.has(r.series.title)) keptTitles.add(r.series.title);
   });
-  const pool = scorePool(sel, min, keptTitles);
+  const pool = scorePool(state.series, sel, min, keptTitles);
   let pi = 0;
   const out: ResultEntry[] = [];
   for (let i = 0; i < DEFAULT_RESULT_COUNT; i++) {
@@ -84,7 +94,7 @@ function replaceCard(state: KonomiState, index: number): KonomiState {
   if (!sel.length) return state;
   const min = Number(state.minMatch);
   const shown = new Set(state.results.map((r) => r.series.title));
-  const pool = scorePool(sel, min, shown);
+  const pool = scorePool(state.series, sel, min, shown);
   if (!pool.length) return state;
   const res = [...state.results];
   res[index] = pool[0];
@@ -113,7 +123,7 @@ function clearRecs(state: KonomiState): KonomiState {
 }
 
 function randomTags(state: KonomiState): KonomiState {
-  const copy: string[] = [...ALL_TAGS];
+  const copy: string[] = [...state.tags];
   const picks: string[] = [];
   for (let k = 0; k < SLOT_COUNT && copy.length; k++) {
     const idx = Math.floor(Math.random() * copy.length);
@@ -183,9 +193,12 @@ function reducer(state: KonomiState, action: Action): KonomiState {
 // Owns all interactive state for the app. Deliberately framework-light and
 // DOM-free (no drag events, no document access) so the same hook can back a
 // React Native client later — the web layer wires HTML5 drag/drop into
-// these plain actions (see TagChip/TagSlot).
-export function useKonomi() {
-  const [state, dispatch] = useReducer(reducer, initialState);
+// these plain actions (see TagChip/TagSlot). The catalog (series + tags) is
+// fetched once server-side and passed in here rather than imported from a
+// static module — everything downstream (scoring, the reducer) stays
+// synchronous and unchanged either way.
+export function useKonomi(initialSeries: Series[], initialTags: string[]) {
+  const [state, dispatch] = useReducer(reducer, { series: initialSeries, tags: initialTags }, createInitialState);
 
   const sel = useMemo(() => selectedTags(state.slots), [state.slots]);
   const filledCount = sel.length;
@@ -195,8 +208,8 @@ export function useKonomi() {
 
   const canSwap = useMemo(() => {
     if (filledCount === 0) return false;
-    return SERIES.some((s) => !shownTitles.has(s.title) && scoreSeries(s, sel) >= minNum);
-  }, [filledCount, shownTitles, sel, minNum]);
+    return state.series.some((s) => !shownTitles.has(s.title) && scoreSeries(s, sel) >= minNum);
+  }, [filledCount, shownTitles, sel, minNum, state.series]);
 
   const lockedCount = useMemo(
     () => state.results.filter((r) => state.locked[r.series.title]).length,
@@ -239,6 +252,7 @@ export function useKonomi() {
     flipped: state.flipped,
     locked: state.locked,
     theme: state.theme,
+    allTags: state.tags,
     selectedTags: sel,
     filledCount,
     minNum,

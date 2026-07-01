@@ -1,4 +1,4 @@
-import { PLATFORMS, SERIES } from "./data";
+import { PLATFORMS } from "./data";
 import type { ResultEntry, Series } from "./types";
 
 // Deterministic per-title pick from the platform list, so the same series
@@ -27,12 +27,13 @@ export function scoreSeries(series: Series, selectedTags: string[]): number {
 // qualifying set we shuffle randomly (not best-first) so the floor's effect
 // is visible and picks feel like fresh recommendations on every roll.
 export function scorePool(
+  series: Series[],
   selectedTags: string[],
   min: number,
   excludeTitles: Set<string>,
 ): ResultEntry[] {
-  return SERIES.filter((s) => !excludeTitles.has(s.title))
-    .map((series) => ({ series, score: scoreSeries(series, selectedTags) }))
+  return series.filter((s) => !excludeTitles.has(s.title))
+    .map((s) => ({ series: s, score: scoreSeries(s, selectedTags) }))
     .filter((x) => x.score >= min)
     .map((x) => ({ entry: x, r: Math.random() }))
     .sort((a, b) => a.r - b.r)

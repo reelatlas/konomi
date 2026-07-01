@@ -47,6 +47,9 @@ export function ResultCard({
   const scoreLabel = perfect ? "PERFECT" : `${score}/${filledCount}`;
   const swapDisabled = locked || !canSwap;
   const streams = streamsFor(series.title);
+  // year/eps come from AniList and can genuinely be null (e.g. unreleased
+  // media) — omit whichever part is missing instead of rendering "null".
+  const meta = [series.year ?? "TBA", series.eps != null ? `${series.eps} EP` : null].filter(Boolean).join(" · ");
 
   return (
     <article
@@ -121,7 +124,7 @@ export function ResultCard({
               <h3 className="font-body font-black text-[length:var(--text-md)] leading-[var(--leading-tight)] m-0">{series.title}</h3>
             </div>
             <div className="font-mono text-[length:var(--text-xs)] text-[var(--primary)]">
-              {series.year} · {series.eps} EP
+              {meta}
             </div>
             <TagScrollArea tags={series.tags} selectedTags={selectedTags} onChipToggle={onChipToggle} />
           </div>
