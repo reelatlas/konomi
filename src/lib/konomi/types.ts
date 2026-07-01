@@ -14,14 +14,17 @@ export interface ResultEntry {
   score: number;
 }
 
-// Catalog-level tag metadata for the (future) tag pool filter UI — kept
-// separate from Series.tags (which stays plain string[], since scoring only
-// ever needs tag names, not category/popularity stats).
+// Catalog-level tag metadata for the tag pool UI — kept separate from
+// Series.tags (which stays plain string[], since scoring only ever needs tag
+// names, not category/popularity stats). Genres are represented here too
+// (isGenre: true, avgRank: 100, category: null) so they flow through the same
+// pool/selection/mixer infrastructure as real tags — see queries.ts.
 export interface TagInfo {
   name: string;
   category: string | null;
   seriesCount: number;
   avgRank: number;
+  isGenre: boolean;
 }
 
 export type ThemeKey = "default" | "dark" | "third";

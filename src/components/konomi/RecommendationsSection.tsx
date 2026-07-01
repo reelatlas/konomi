@@ -17,6 +17,7 @@ interface RecommendationsSectionProps {
   onToggleLock: (title: string) => void;
   onReplace: (index: number) => void;
   onChipToggle: (tag: string) => void;
+  tagRank: Map<string, number>;
 }
 
 export function RecommendationsSection({
@@ -35,6 +36,7 @@ export function RecommendationsSection({
   onToggleLock,
   onReplace,
   onChipToggle,
+  tagRank,
 }: RecommendationsSectionProps) {
   return (
     <section className="mb-[var(--space-3xl)]">
@@ -87,6 +89,7 @@ export function RecommendationsSection({
               onToggleLock={onToggleLock}
               onReplace={onReplace}
               onChipToggle={onChipToggle}
+              tagRank={tagRank}
             />
           ))}
         </div>

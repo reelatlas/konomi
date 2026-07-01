@@ -45,6 +45,7 @@ export function KonomiApp({ initialSeries, initialTags, initialGenres }: KonomiA
           onToggleLock={k.toggleLock}
           onReplace={k.replaceCard}
           onChipToggle={k.toggleTag}
+          tagRank={k.tagRank}
         />
 
         <MixerSection

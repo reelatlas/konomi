@@ -42,6 +42,7 @@ export async function getCatalog(): Promise<Catalog> {
   // changed if we materialized them as columns.
   const tagStats = new Map<string, { category: string | null; rankSum: number; count: number }>();
   const allGenreNames = new Set<string>();
+  const genreSeriesCounts = new Map<string, number>();
 
   const series: Series[] = rows.map((row) => {
     const seriesTags = (row.series_tags ?? [])
@@ -59,7 +60,10 @@ export async function getCatalog(): Promise<Catalog> {
     }
 
     const genres = row.genres ?? [];
-    genres.forEach((g) => allGenreNames.add(g));
+    genres.forEach((g) => {
+      allGenreNames.add(g);
+      genreSeriesCounts.set(g, (genreSeriesCounts.get(g) ?? 0) + 1);
+    });
 
     return {
       title: row.title_english ?? row.title_romaji,
@@ -71,14 +75,27 @@ export async function getCatalog(): Promise<Catalog> {
     };
   });
 
-  const tags: TagInfo[] = [...tagStats.entries()]
-    .map(([name, stat]) => ({
-      name,
-      category: stat.category,
-      seriesCount: stat.count,
-      avgRank: stat.rankSum / stat.count,
-    }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+  const realTags: TagInfo[] = [...tagStats.entries()].map(([name, stat]) => ({
+    name,
+    category: stat.category,
+    seriesCount: stat.count,
+    avgRank: stat.rankSum / stat.count,
+    isGenre: false,
+  }));
+
+  // Genres get avgRank: 100 (the max a real tag's rank can reach) so they
+  // always pass any rank-threshold filter — they're a stronger signal than
+  // any individual tag, not a middling one — and category: null since they
+  // aren't drawn from the tags table at all.
+  const genreTags: TagInfo[] = [...genreSeriesCounts.entries()].map(([name, count]) => ({
+    name,
+    category: null,
+    seriesCount: count,
+    avgRank: 100,
+    isGenre: true,
+  }));
+
+  const tags = [...realTags, ...genreTags].sort((a, b) => a.name.localeCompare(b.name));
 
   return { series, tags, genres: [...allGenreNames].sort() };
 }

@@ -222,6 +222,15 @@ export function useKonomi(initialSeries: Series[], initialTags: TagInfo[], initi
     [state.results, state.locked],
   );
 
+  // name -> avgRank lookup so result cards can merge a series' tags and
+  // genres into one list sorted by popularity (genres always avgRank: 100,
+  // so they float to the top — see ResultCard).
+  const tagRank = useMemo(() => {
+    const m = new Map<string, number>();
+    state.tags.forEach((t) => m.set(t.name, t.avgRank));
+    return m;
+  }, [state.tags]);
+
   const resultsHint = useMemo(() => {
     if (!state.generated) return "metadata appears here";
     if (state.results.length) {
@@ -260,6 +269,7 @@ export function useKonomi(initialSeries: Series[], initialTags: TagInfo[], initi
     theme: state.theme,
     allTags: state.tags,
     allGenres: state.genres,
+    tagRank,
     selectedTags: sel,
     filledCount,
     minNum,

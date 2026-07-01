@@ -21,6 +21,7 @@ interface ResultCardProps {
   onToggleLock: (title: string) => void;
   onReplace: (index: number) => void;
   onChipToggle: (tag: string) => void;
+  tagRank: Map<string, number>;
 }
 
 export function ResultCard({
@@ -35,6 +36,7 @@ export function ResultCard({
   onToggleLock,
   onReplace,
   onChipToggle,
+  tagRank,
 }: ResultCardProps) {
   const { series } = entry;
   // Recomputed live against the current tag selection on every render — not
@@ -42,6 +44,9 @@ export function ResultCard({
   // last (re)generated and would otherwise go stale the instant tags change
   // without a RECOMMEND in between.
   const score = scoreSeries(series, selectedTags);
+  // Genres display exactly like tags (same chip, same highlight-on-match) —
+  // merged in and sorted by avgRank so genres (always 100) float to the top.
+  const cardTags = [...series.tags, ...series.genres].sort((a, b) => (tagRank.get(b) ?? 0) - (tagRank.get(a) ?? 0));
   const perfect = score === filledCount && filledCount > 0;
   const scoreLabel = perfect ? "PERFECT" : `${score}/${filledCount}`;
   const swapDisabled = locked || !canSwap;
@@ -145,7 +150,7 @@ export function ResultCard({
             </div>
           </div>
           <div className="px-[var(--space-lg)] pt-[var(--space-lg)] pb-[var(--space-lg)]">
-            <TagScrollArea tags={series.tags} selectedTags={selectedTags} onChipToggle={onChipToggle} />
+            <TagScrollArea tags={cardTags} selectedTags={selectedTags} onChipToggle={onChipToggle} />
           </div>
         </div>
 

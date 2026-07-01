@@ -18,7 +18,7 @@ export function streamsFor(title: string): string[] {
 }
 
 export function scoreSeries(series: Series, selectedTags: string[]): number {
-  return selectedTags.filter((t) => series.tags.includes(t)).length;
+  return selectedTags.filter((t) => series.tags.includes(t) || series.genres.includes(t)).length;
 }
 
 // Candidate pool = every series matching AT LEAST `min` of the selected tags.
