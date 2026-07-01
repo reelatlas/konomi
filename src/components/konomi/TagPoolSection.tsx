@@ -1,7 +1,8 @@
+import type { TagInfo } from "@/lib/konomi/types";
 import { TagChip } from "./TagChip";
 
 interface TagPoolSectionProps {
-  allTags: string[];
+  allTags: TagInfo[];
   selectedTags: string[];
   onChipToggle: (tag: string) => void;
 }
@@ -16,7 +17,7 @@ export function TagPoolSection({ allTags, selectedTags, onChipToggle }: TagPoolS
       </div>
       <div className="flex flex-wrap gap-[var(--space-md)]">
         {allTags.map((tag) => (
-          <TagChip key={tag} name={tag} active={selectedTags.includes(tag)} onToggle={onChipToggle} />
+          <TagChip key={tag.name} name={tag.name} active={selectedTags.includes(tag.name)} onToggle={onChipToggle} />
         ))}
       </div>
     </section>

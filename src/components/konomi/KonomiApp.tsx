@@ -1,7 +1,7 @@
 "use client";
 
 import { SHOW_HALFTONE } from "@/lib/konomi/config";
-import type { Series } from "@/lib/konomi/types";
+import type { Series, TagInfo } from "@/lib/konomi/types";
 import { useKonomi } from "@/lib/konomi/useKonomi";
 import { Masthead } from "./Masthead";
 import { MixerSection } from "./MixerSection";
@@ -10,11 +10,12 @@ import { TagPoolSection } from "./TagPoolSection";
 
 interface KonomiAppProps {
   initialSeries: Series[];
-  initialTags: string[];
+  initialTags: TagInfo[];
+  initialGenres: string[];
 }
 
-export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
-  const k = useKonomi(initialSeries, initialTags);
+export function KonomiApp({ initialSeries, initialTags, initialGenres }: KonomiAppProps) {
+  const k = useKonomi(initialSeries, initialTags, initialGenres);
 
   return (
     <div

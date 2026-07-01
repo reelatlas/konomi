@@ -12,7 +12,7 @@
 import { createClient } from "@supabase/supabase-js";
 
 // ── config — bump SERIES_LIMIT to import more later ─────────────────────
-const SERIES_LIMIT = 50;
+const SERIES_LIMIT = 500;
 const PER_PAGE = 50; // AniList's Page query hard cap
 const TOP_TAGS_PER_SERIES = 10;
 const REQUEST_DELAY_MS = 1500; // courtesy delay between successful requests
@@ -45,6 +45,7 @@ const PAGE_QUERY = `
         coverImage {
           large
         }
+        genres
         tags {
           id
           name
@@ -52,6 +53,7 @@ const PAGE_QUERY = `
           isGeneralSpoiler
           isMediaSpoiler
           isAdult
+          category
         }
       }
     }
@@ -65,6 +67,7 @@ interface AniListTag {
   isGeneralSpoiler: boolean;
   isMediaSpoiler: boolean;
   isAdult: boolean;
+  category: string | null;
 }
 
 interface AniListMedia {
@@ -73,6 +76,7 @@ interface AniListMedia {
   episodes: number | null;
   startDate: { year: number | null } | null;
   coverImage: { large: string | null } | null;
+  genres: string[] | null;
   tags: AniListTag[] | null;
 }
 
@@ -158,7 +162,7 @@ async function main() {
   console.log(`Fetched ${series.length} series total.\n`);
 
   // ── build tag selections per series + the deduped global tag set ──────
-  const tagsByAnilistId = new Map<number, { anilist_id: number; name: string }>();
+  const tagsByAnilistId = new Map<number, { anilist_id: number; name: string; category: string | null }>();
   const seriesTagSelections = new Map<number, { anilistTagId: number; rank: number }[]>();
   let seriesWithNoTags = 0;
 
@@ -184,7 +188,7 @@ async function main() {
     }
 
     for (const t of topTags) {
-      if (!tagsByAnilistId.has(t.id)) tagsByAnilistId.set(t.id, { anilist_id: t.id, name: t.name });
+      if (!tagsByAnilistId.has(t.id)) tagsByAnilistId.set(t.id, { anilist_id: t.id, name: t.name, category: t.category });
     }
 
     seriesTagSelections.set(
@@ -219,6 +223,7 @@ async function main() {
     year: media.startDate?.year ?? null,
     episodes: media.episodes ?? null,
     cover_image_url: media.coverImage?.large ?? null,
+    genres: media.genres ?? [],
   }));
 
   const seriesIdMap = new Map<number, string>(); // anilist media id -> uuid

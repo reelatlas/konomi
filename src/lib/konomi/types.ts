@@ -6,11 +6,22 @@ export interface Series {
   eps: number | null;
   tags: string[];
   coverImageUrl: string | null;
+  genres: string[];
 }
 
 export interface ResultEntry {
   series: Series;
   score: number;
+}
+
+// Catalog-level tag metadata for the (future) tag pool filter UI — kept
+// separate from Series.tags (which stays plain string[], since scoring only
+// ever needs tag names, not category/popularity stats).
+export interface TagInfo {
+  name: string;
+  category: string | null;
+  seriesCount: number;
+  avgRank: number;
 }
 
 export type ThemeKey = "default" | "dark" | "third";

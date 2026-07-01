@@ -1,21 +1,23 @@
 import { supabase } from "./client";
-import type { Series } from "@/lib/konomi/types";
+import type { Series, TagInfo } from "@/lib/konomi/types";
 
 // Raw shape of a `series` row with its tags embedded via PostgREST's
 // resource-embedding syntax (series_tags -> tags), matching the schema in
-// supabase/migrations/0001_init.sql.
+// supabase/migrations/0001_init.sql (plus 0004/0005 for category/genres).
 interface RawSeriesRow {
   title_romaji: string;
   title_english: string | null;
   year: number | null;
   episodes: number | null;
   cover_image_url: string | null;
-  series_tags: { rank: number; tags: { name: string } | null }[] | null;
+  genres: string[];
+  series_tags: { rank: number; tags: { name: string; category: string | null } | null }[] | null;
 }
 
 export interface Catalog {
   series: Series[];
-  tags: string[];
+  tags: TagInfo[];
+  genres: string[];
 }
 
 // Fetches the whole catalog in one query and adapts it into the app's
@@ -24,7 +26,7 @@ export interface Catalog {
 export async function getCatalog(): Promise<Catalog> {
   const { data, error } = await supabase
     .from("series")
-    .select("title_romaji, title_english, year, episodes, cover_image_url, series_tags(rank, tags(name))")
+    .select("title_romaji, title_english, year, episodes, cover_image_url, genres, series_tags(rank, tags(name, category))")
     .order("title_romaji", { ascending: true })
     .returns<RawSeriesRow[]>();
 
@@ -33,24 +35,50 @@ export async function getCatalog(): Promise<Catalog> {
   }
 
   const rows = data ?? [];
-  const allTagNames = new Set<string>();
+
+  // seriesCount/avgRank are computed here from the same fetch rather than
+  // stored in the DB — they're derived stats over series_tags, not facts
+  // about a tag on its own, so they'd go stale the moment the catalog
+  // changed if we materialized them as columns.
+  const tagStats = new Map<string, { category: string | null; rankSum: number; count: number }>();
+  const allGenreNames = new Set<string>();
 
   const series: Series[] = rows.map((row) => {
-    const tags = (row.series_tags ?? [])
-      .filter((st): st is { rank: number; tags: { name: string } } => Boolean(st.tags))
-      .sort((a, b) => b.rank - a.rank)
-      .map((st) => st.tags.name);
+    const seriesTags = (row.series_tags ?? [])
+      .filter((st): st is { rank: number; tags: { name: string; category: string | null } } => Boolean(st.tags))
+      .sort((a, b) => b.rank - a.rank);
 
-    tags.forEach((t) => allTagNames.add(t));
+    for (const st of seriesTags) {
+      const existing = tagStats.get(st.tags.name);
+      if (existing) {
+        existing.rankSum += st.rank;
+        existing.count += 1;
+      } else {
+        tagStats.set(st.tags.name, { category: st.tags.category, rankSum: st.rank, count: 1 });
+      }
+    }
+
+    const genres = row.genres ?? [];
+    genres.forEach((g) => allGenreNames.add(g));
 
     return {
       title: row.title_english ?? row.title_romaji,
       year: row.year,
       eps: row.episodes,
-      tags,
+      tags: seriesTags.map((st) => st.tags.name),
       coverImageUrl: row.cover_image_url,
+      genres,
     };
   });
 
-  return { series, tags: [...allTagNames].sort() };
+  const tags: TagInfo[] = [...tagStats.entries()]
+    .map(([name, stat]) => ({
+      name,
+      category: stat.category,
+      seriesCount: stat.count,
+      avgRank: stat.rankSum / stat.count,
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  return { series, tags, genres: [...allGenreNames].sort() };
 }
