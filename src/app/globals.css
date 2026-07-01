@@ -1,0 +1,143 @@
+@import "tailwindcss";
+
+/* ─────────────────────────── DESIGN TOKENS ───────────────────────────────
+ * Single source of truth for the app's CSS, mirroring
+ * src/lib/konomi/tokens.ts and src/lib/konomi/themes.ts. Every component
+ * consumes these via Tailwind arbitrary values (`bg-[var(--surface)]`,
+ * `gap-[var(--space-md)]`, …) — never hardcoded colors/spacing/radii.
+ * ────────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* typography */
+  --text-wordmark: clamp(44px, 8vw, 78px);
+  --text-wordmark-jp: clamp(22px, 4vw, 38px);
+  --text-cover: 70px;
+  --text-2xl: 30px;
+  --text-xl: 26px;
+  --text-lg: 20px;
+  --text-md: 18px;
+  --text-base: 13px;
+  --text-sm: 12px;
+  --text-xs: 11px;
+  --text-2xs: 10px;
+  --weight-bold: 700;
+  --weight-black: 900;
+  --leading-display: 0.86;
+  --leading-tight: 1.05;
+
+  /* letter-spacing scale: 0.01 · 0.02 · 0.03 · 0.04 · 0.06 · 0.08em */
+  --tracking-xs: 0.01em;
+  --tracking-sm: 0.02em;
+  --tracking-md: 0.03em;
+  --tracking-lg: 0.04em;
+  --tracking-xl: 0.06em;
+  --tracking-2xl: 0.08em;
+
+  /* spacing scale: 4 · 6 · 8 · 12 · 16 · 24 · 32 · 48 · 60 */
+  --space-xs: 4px;
+  --space-sm: 6px;
+  --space-md: 8px;
+  --space-lg: 12px;
+  --space-xl: 16px;
+  --space-2xl: 24px;
+  --space-3xl: 32px;
+  --space-huge: 48px;
+  --space-page: 60px;
+
+  /* borders & radius (hard-edged manga vocabulary) */
+  --border-hair: 1.5px;
+  --border-thin: 2px;
+  --border-base: 2.5px;
+  --radius-none: 0;
+  --radius-chip: 2px;
+}
+
+/* ── color roles, one palette per theme ──────────────────────────────────
+ * Every key is a semantic role, not a hue, so the names hold up across all
+ * three themes. Switching `data-theme` on the root is the only thing that
+ * needs to happen to retheme the whole app.
+ */
+[data-theme="default"] {
+  --bg: #efe7f8;
+  --surface: #fcfaff;
+  --ink: #191225;
+  --muted: #a985e2;
+  --fill: #e4d7f4;
+  --primary: #564fd6;
+  --secondary: #e4f46f;
+  --on-primary: #fcfaff;
+  --on-secondary: #191225;
+  --disabled-bg: #d9ccec;
+  --disabled-text: #9a8bb5;
+  --slot-empty: #f4eefb;
+}
+
+[data-theme="dark"] {
+  --bg: #12181c;
+  --surface: #1c242a;
+  --ink: #dce4e6;
+  --muted: #66727b;
+  --fill: #26323b;
+  --primary: #3486b4;
+  --secondary: #6fd3d6;
+  --on-primary: #eaf3f5;
+  --on-secondary: #0e1518;
+  --disabled-bg: #243038;
+  --disabled-text: #515e66;
+  --slot-empty: #1b2329;
+}
+
+[data-theme="third"] {
+  --bg: #f3ede1;
+  --surface: #fffdf6;
+  --ink: #211c17;
+  --muted: #b3a589;
+  --fill: #ebe0cb;
+  --primary: #d8392e;
+  --secondary: #f2c14e;
+  --on-primary: #fff7ec;
+  --on-secondary: #211c17;
+  --disabled-bg: #e3dac8;
+  --disabled-text: #a99b82;
+  --slot-empty: #f1e9da;
+}
+
+/* elevation: hard offset shadows, ink-colored — composed at the usage site
+ * since the color is theme-dependent (e.g. `shadow-[var(--elev-3)]`).
+ * The `-accent` variants are the same offsets rendered in the theme's
+ * secondary color instead of ink, for the two "selected/filled" states
+ * (TagChip active, TagSlot filled) that pop against the accent color. */
+[data-theme] {
+  --elev-1: 2px 2px 0 var(--ink);
+  --elev-2: 3px 3px 0 var(--ink);
+  --elev-3: 4px 4px 0 var(--ink);
+  --elev-4: 5px 5px 0 var(--ink);
+  --elev-5: 8px 8px 0 var(--ink);
+  --elev-2-accent: 3px 3px 0 var(--secondary);
+  --elev-3-accent: 4px 4px 0 var(--secondary);
+}
+
+@layer base {
+  html,
+  body {
+    height: 100%;
+  }
+
+  .font-display {
+    font-family: "Anton", sans-serif;
+  }
+
+  .font-body {
+    font-family: "Zen Kaku Gothic New", sans-serif;
+  }
+
+  .font-mono {
+    font-family: "Space Mono", monospace;
+  }
+}
+
+@keyframes kono-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
