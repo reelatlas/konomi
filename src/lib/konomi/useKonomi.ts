@@ -47,11 +47,12 @@ type Action =
   | { type: "RECOMMEND" }
   | { type: "REPLACE_CARD"; index: number }
   | { type: "CLEAR_RECS" }
-  | { type: "RANDOM_TAGS" }
+  | { type: "RANDOM_TAGS"; visible: string[] }
   | { type: "CLEAR_SLOTS" }
   | { type: "TOGGLE_LOCK"; title: string }
   | { type: "TOGGLE_FLIP"; title: string }
-  | { type: "SET_THEME"; theme: ThemeKey };
+  | { type: "SET_THEME"; theme: ThemeKey }
+  | { type: "PRUNE_TAGS"; visible: Set<string> };
 
 function selectedTags(slots: Slot[]): string[] {
   return slots.filter((s): s is string => Boolean(s));
@@ -124,8 +125,29 @@ function clearRecs(state: KonomiState): KonomiState {
   return { ...state, results: kept, generated: true, locked, flipped };
 }
 
-function randomTags(state: KonomiState): KonomiState {
-  const copy: string[] = state.tags.map((t) => t.name);
+// Generic "clear any slot whose tag isn't in this set" — used when the tag
+// pool's level changes and a selected tag falls outside the new visible set.
+// Per the spec, that tag must behave exactly like a manual deselect —
+// structurally identical to TOGGLE_TAG below: touch slots only, nothing
+// else. Cards (if any are showing) stay exactly as they are; scoreSeries is
+// recomputed live off selectedTags on every ResultCard render, so a pruned
+// tag's highlight/score contribution disappears immediately without a
+// recommend()/clearRecs() cascade — results only change when the user hits
+// RECOMMEND again. The caller (KonomiApp) computes `visible` from the tag
+// pool's level — this reducer doesn't need to know what a "level" is, just
+// which names are still allowed.
+function pruneTags(state: KonomiState, visible: Set<string>): KonomiState {
+  const slots = state.slots.map((s) => (s && !visible.has(s) ? null : s));
+  return slots.some((s, i) => s !== state.slots[i]) ? { ...state, slots } : state;
+}
+
+// Picks from the caller-supplied visible-name list, not state.tags directly
+// — mirrors pruneTags: this reducer doesn't need to know what makes a tag
+// "visible" (level, section mapping, etc.), just the allowed pool to pick
+// from. If there aren't enough visible names to fill every slot, the loop
+// below already stops early and leaves the rest empty (picks[i] ?? null).
+function randomTags(state: KonomiState, visible: string[]): KonomiState {
+  const copy = [...visible];
   const picks: string[] = [];
   for (let k = 0; k < SLOT_COUNT && copy.length; k++) {
     const idx = Math.floor(Math.random() * copy.length);
@@ -178,7 +200,7 @@ function reducer(state: KonomiState, action: Action): KonomiState {
     case "CLEAR_RECS":
       return clearRecs(state);
     case "RANDOM_TAGS":
-      return randomTags(state);
+      return randomTags(state, action.visible);
     case "CLEAR_SLOTS":
       return { ...state, slots: Array<Slot>(SLOT_COUNT).fill(null) };
     case "TOGGLE_LOCK":
@@ -187,6 +209,8 @@ function reducer(state: KonomiState, action: Action): KonomiState {
       return { ...state, flipped: { ...state.flipped, [action.title]: !state.flipped[action.title] } };
     case "SET_THEME":
       return { ...state, theme: action.theme };
+    case "PRUNE_TAGS":
+      return pruneTags(state, action.visible);
     default:
       return state;
   }
@@ -222,12 +246,12 @@ export function useKonomi(initialSeries: Series[], initialTags: TagInfo[], initi
     [state.results, state.locked],
   );
 
-  // name -> avgRank lookup so result cards can merge a series' tags and
-  // genres into one list sorted by popularity (genres always avgRank: 100,
-  // so they float to the top — see ResultCard).
-  const tagRank = useMemo(() => {
-    const m = new Map<string, number>();
-    state.tags.forEach((t) => m.set(t.name, t.avgRank));
+  // name -> TagInfo lookup so result cards can merge a series' tags and
+  // genres into one list, then level-filter and sort it exactly like the
+  // pool does (needs isGenre/seriesCount, not just avgRank — see ResultCard).
+  const tagInfoByName = useMemo(() => {
+    const m = new Map<string, TagInfo>();
+    state.tags.forEach((t) => m.set(t.name, t));
     return m;
   }, [state.tags]);
 
@@ -250,11 +274,12 @@ export function useKonomi(initialSeries: Series[], initialTags: TagInfo[], initi
       recommend: () => dispatch({ type: "RECOMMEND" }),
       replaceCard: (index: number) => dispatch({ type: "REPLACE_CARD", index }),
       clearRecs: () => dispatch({ type: "CLEAR_RECS" }),
-      randomTags: () => dispatch({ type: "RANDOM_TAGS" }),
+      randomTags: (visible: string[]) => dispatch({ type: "RANDOM_TAGS", visible }),
       clearSlots: () => dispatch({ type: "CLEAR_SLOTS" }),
       toggleLock: (title: string) => dispatch({ type: "TOGGLE_LOCK", title }),
       toggleFlip: (title: string) => dispatch({ type: "TOGGLE_FLIP", title }),
       setTheme: (theme: ThemeKey) => dispatch({ type: "SET_THEME", theme }),
+      pruneTags: (visible: Set<string>) => dispatch({ type: "PRUNE_TAGS", visible }),
     }),
     [],
   );
@@ -269,7 +294,8 @@ export function useKonomi(initialSeries: Series[], initialTags: TagInfo[], initi
     theme: state.theme,
     allTags: state.tags,
     allGenres: state.genres,
-    tagRank,
+    tagInfoByName,
+    totalSeriesCount: state.series.length,
     selectedTags: sel,
     filledCount,
     minNum,

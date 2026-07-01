@@ -1,11 +1,13 @@
 "use client";
 
 import { SHOW_HALFTONE } from "@/lib/konomi/config";
-import type { Series, TagInfo } from "@/lib/konomi/types";
+import { visiblePoolTagNames } from "@/lib/konomi/tagPool";
+import type { LevelKey, Series, TagInfo } from "@/lib/konomi/types";
 import { useKonomi } from "@/lib/konomi/useKonomi";
 import { Masthead } from "./Masthead";
 import { MixerSection } from "./MixerSection";
 import { RecommendationsSection } from "./RecommendationsSection";
+import { setLevelPref, useLevel } from "./tagPoolPrefs";
 import { TagPoolSection } from "./TagPoolSection";
 
 interface KonomiAppProps {
@@ -16,6 +18,23 @@ interface KonomiAppProps {
 
 export function KonomiApp({ initialSeries, initialTags, initialGenres }: KonomiAppProps) {
   const k = useKonomi(initialSeries, initialTags, initialGenres);
+  const level = useLevel();
+
+  // The only place level-change needs to touch both the preference store
+  // and the mixer: persist the new level, then prune any selected tag the
+  // new level no longer shows (see pruneTags' doc comment in useKonomi.ts).
+  // visiblePoolTagNames (not a raw isTagVisibleAtLevel filter) is what
+  // correctly excludes Technical/Sexual Content too — see its doc comment.
+  function handleLevelChange(next: LevelKey) {
+    setLevelPref(next);
+    k.pruneTags(new Set(visiblePoolTagNames(k.allTags, next, k.totalSeriesCount)));
+  }
+
+  // Random ×3 must only ever pick from what the pool actually shows at the
+  // current level — same canonical visible-name list as the prune cascade.
+  function handleRandomTags() {
+    k.randomTags(visiblePoolTagNames(k.allTags, level, k.totalSeriesCount));
+  }
 
   return (
     <div
@@ -45,7 +64,8 @@ export function KonomiApp({ initialSeries, initialTags, initialGenres }: KonomiA
           onToggleLock={k.toggleLock}
           onReplace={k.replaceCard}
           onChipToggle={k.toggleTag}
-          tagRank={k.tagRank}
+          tagInfoByName={k.tagInfoByName}
+          totalSeriesCount={k.totalSeriesCount}
         />
 
         <MixerSection
@@ -59,12 +79,19 @@ export function KonomiApp({ initialSeries, initialTags, initialGenres }: KonomiA
           onSlotDrop={k.placeInSlot}
           onSlotClick={k.clearSlot}
           onSetMatch={k.setMinMatch}
-          onRandomTags={k.randomTags}
+          onRandomTags={handleRandomTags}
           onClearSlots={k.clearSlots}
           onRecommend={k.recommend}
         />
 
-        <TagPoolSection allTags={k.allTags} selectedTags={k.selectedTags} onChipToggle={k.toggleTag} />
+        <TagPoolSection
+          allTags={k.allTags}
+          selectedTags={k.selectedTags}
+          totalSeriesCount={k.totalSeriesCount}
+          level={level}
+          onLevelChange={handleLevelChange}
+          onChipToggle={k.toggleTag}
+        />
 
         <p className="font-mono text-[length:var(--text-xs)] text-[var(--muted)] text-center mt-[var(--space-3xl)] mb-0">
           prototype · dummy data · drag tags between the pool, mixer &amp; results to remix

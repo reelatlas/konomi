@@ -1,5 +1,5 @@
-import { AVG_RANK_BASELINE } from "./config";
-import type { TagInfo } from "./types";
+import { AVG_RANK_BASELINE, POPULAR_AVG_RANK_THRESHOLD, POPULAR_SERIES_COUNT_PCT } from "./config";
+import type { LevelKey, SortKey, TagInfo } from "./types";
 
 // Static mapping of the tag pool's hierarchy: 5 top-level sections. Only
 // Theme splits into labeled, non-collapsible subsections — Setting and Cast
@@ -47,23 +47,84 @@ export const TAG_SECTIONS: TagSection[] = [
   { key: "demographic", label: "Demographic", defaultExpanded: true, categories: ["Demographic"] },
 ];
 
-// Tags for one subsection/flat category list: rank-floored, sorted by popularity.
-export function tagsForCategories(allTags: TagInfo[], categories: string[]): TagInfo[] {
-  return allTags
-    .filter((t) => !t.isGenre && t.avgRank >= AVG_RANK_BASELINE && categories.includes(t.category ?? ""))
-    .sort((a, b) => b.seriesCount - a.seriesCount);
+export const LEVEL_OPTIONS: { key: LevelKey; label: string }[] = [
+  { key: "1", label: "Genres" },
+  { key: "2", label: "Popular" },
+  { key: "3", label: "All" },
+];
+
+export const SORT_OPTIONS: { key: SortKey; label: string }[] = [
+  { key: "popular", label: "Most Popular" },
+  { key: "unpopular", label: "Least Popular" },
+  { key: "az", label: "A-Z" },
+  { key: "za", label: "Z-A" },
+];
+
+// Whether a tag shows at a given level — the single rule both the pool and
+// result cards defer to, so "what's visible" never drifts between them.
+// Genres always pass (isGenre short-circuits before any level check), which
+// is also why callers never need to level-filter genreTags() below.
+export function isTagVisibleAtLevel(tag: TagInfo, level: LevelKey, totalSeriesCount: number): boolean {
+  if (tag.isGenre) return true;
+  if (level === "1") return false;
+  if (level === "2") return tag.avgRank >= POPULAR_AVG_RANK_THRESHOLD && tag.seriesCount >= POPULAR_SERIES_COUNT_PCT * totalSeriesCount;
+  return tag.avgRank >= AVG_RANK_BASELINE;
+}
+
+export function sortTags(tags: TagInfo[], sort: SortKey): TagInfo[] {
+  const sorted = [...tags];
+  switch (sort) {
+    case "popular":
+      return sorted.sort((a, b) => b.seriesCount - a.seriesCount);
+    case "unpopular":
+      return sorted.sort((a, b) => a.seriesCount - b.seriesCount);
+    case "az":
+      return sorted.sort((a, b) => a.name.localeCompare(b.name));
+    case "za":
+      return sorted.sort((a, b) => b.name.localeCompare(a.name));
+  }
+}
+
+// Tags for one subsection/flat category list, floored at the given level.
+export function tagsForCategories(allTags: TagInfo[], categories: string[], level: LevelKey, totalSeriesCount: number): TagInfo[] {
+  return allTags.filter((t) => !t.isGenre && isTagVisibleAtLevel(t, level, totalSeriesCount) && categories.includes(t.category ?? ""));
 }
 
 export function genreTags(allTags: TagInfo[]): TagInfo[] {
-  return allTags.filter((t) => t.isGenre).sort((a, b) => b.seriesCount - a.seriesCount);
+  return allTags.filter((t) => t.isGenre);
 }
 
 // All tags belonging to a section, regardless of its internal shape (flat
 // categories, subsections, or genres) — used for the section header's
 // selected-count badge, which counts across the whole section rather than
 // per-subsection.
-export function tagsForSection(allTags: TagInfo[], section: TagSection): TagInfo[] {
+export function tagsForSection(allTags: TagInfo[], section: TagSection, level: LevelKey, totalSeriesCount: number): TagInfo[] {
   if (section.key === "genres") return genreTags(allTags);
-  if (section.subsections) return tagsForCategories(allTags, section.subsections.flatMap((sub) => sub.categories));
-  return tagsForCategories(allTags, section.categories ?? []);
+  if (section.subsections) {
+    return tagsForCategories(
+      allTags,
+      section.subsections.flatMap((sub) => sub.categories),
+      level,
+      totalSeriesCount,
+    );
+  }
+  return tagsForCategories(allTags, section.categories ?? [], level, totalSeriesCount);
+}
+
+// The single canonical definition of "visible in the pool at this level" —
+// the union of every TAG_SECTIONS entry's tags, not just isTagVisibleAtLevel
+// alone. That distinction matters: Technical/Sexual Content tags can clear
+// a level's rank/count threshold but are never mapped into any section, so
+// they must never come out of this regardless of level. Anything that picks
+// or prunes tag *selections* (Random ×3, the level-change deselect cascade)
+// should use this, not isTagVisibleAtLevel directly, so those surfaces can
+// never drift from what the pool actually renders.
+export function visiblePoolTagNames(allTags: TagInfo[], level: LevelKey, totalSeriesCount: number): string[] {
+  const names = new Set<string>();
+  for (const section of TAG_SECTIONS) {
+    for (const tag of tagsForSection(allTags, section, level, totalSeriesCount)) {
+      names.add(tag.name);
+    }
+  }
+  return [...names];
 }

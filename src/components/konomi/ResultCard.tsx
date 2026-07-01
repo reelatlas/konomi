@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { scoreSeries, streamsFor } from "@/lib/konomi/scoring";
-import type { ResultEntry } from "@/lib/konomi/types";
+import { isTagVisibleAtLevel, sortTags } from "@/lib/konomi/tagPool";
+import type { LevelKey, ResultEntry, SortKey, TagInfo } from "@/lib/konomi/types";
 import { DiceIcon, LockClosedIcon, LockOpenIcon } from "./icons";
 import { TagScrollArea } from "./TagScrollArea";
 
@@ -21,7 +22,10 @@ interface ResultCardProps {
   onToggleLock: (title: string) => void;
   onReplace: (index: number) => void;
   onChipToggle: (tag: string) => void;
-  tagRank: Map<string, number>;
+  tagInfoByName: Map<string, TagInfo>;
+  totalSeriesCount: number;
+  level: LevelKey;
+  sort: SortKey;
 }
 
 export function ResultCard({
@@ -36,7 +40,10 @@ export function ResultCard({
   onToggleLock,
   onReplace,
   onChipToggle,
-  tagRank,
+  tagInfoByName,
+  totalSeriesCount,
+  level,
+  sort,
 }: ResultCardProps) {
   const { series } = entry;
   // Recomputed live against the current tag selection on every render — not
@@ -44,9 +51,14 @@ export function ResultCard({
   // last (re)generated and would otherwise go stale the instant tags change
   // without a RECOMMEND in between.
   const score = scoreSeries(series, selectedTags);
-  // Genres display exactly like tags (same chip, same highlight-on-match) —
-  // merged in and sorted by avgRank so genres (always 100) float to the top.
-  const cardTags = [...series.tags, ...series.genres].sort((a, b) => (tagRank.get(b) ?? 0) - (tagRank.get(a) ?? 0));
+  // Genres display exactly like tags (same chip, same highlight-on-match),
+  // filtered to the current level and sorted by the current sort — same
+  // rules the pool itself uses, so a card never shows a tag the pool
+  // wouldn't let you select at this level.
+  const cardTagInfos = [...series.tags, ...series.genres]
+    .map((name) => tagInfoByName.get(name))
+    .filter((t): t is TagInfo => t !== undefined && isTagVisibleAtLevel(t, level, totalSeriesCount));
+  const cardTags = sortTags(cardTagInfos, sort).map((t) => t.name);
   const perfect = score === filledCount && filledCount > 0;
   const scoreLabel = perfect ? "PERFECT" : `${score}/${filledCount}`;
   const swapDisabled = locked || !canSwap;

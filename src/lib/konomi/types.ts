@@ -47,4 +47,12 @@ export interface ThemeColors {
 
 export type MatchKey = "1" | "2" | "3";
 
+// Tag pool visibility tier — "1" (Genres only) through "3" (All, the
+// existing baseline). Global, applies to both the pool and result cards.
+export type LevelKey = "1" | "2" | "3";
+
+// Tag pool/result-card sort order — independent of LevelKey (level decides
+// which tags show, sort decides what order).
+export type SortKey = "popular" | "unpopular" | "az" | "za";
+
 export type Slot = string | null;

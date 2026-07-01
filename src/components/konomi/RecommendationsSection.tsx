@@ -1,5 +1,6 @@
-import type { ResultEntry } from "@/lib/konomi/types";
+import type { ResultEntry, TagInfo } from "@/lib/konomi/types";
 import { ResultCard } from "./ResultCard";
+import { useLevel, useSort } from "./tagPoolPrefs";
 
 interface RecommendationsSectionProps {
   results: ResultEntry[];
@@ -17,7 +18,8 @@ interface RecommendationsSectionProps {
   onToggleLock: (title: string) => void;
   onReplace: (index: number) => void;
   onChipToggle: (tag: string) => void;
-  tagRank: Map<string, number>;
+  tagInfoByName: Map<string, TagInfo>;
+  totalSeriesCount: number;
 }
 
 export function RecommendationsSection({
@@ -36,8 +38,11 @@ export function RecommendationsSection({
   onToggleLock,
   onReplace,
   onChipToggle,
-  tagRank,
+  tagInfoByName,
+  totalSeriesCount,
 }: RecommendationsSectionProps) {
+  const level = useLevel();
+  const sort = useSort();
   return (
     <section className="mb-[var(--space-3xl)]">
       <div className="flex items-center gap-[var(--space-md)] mb-[var(--space-xl)]">
@@ -89,7 +94,10 @@ export function RecommendationsSection({
               onToggleLock={onToggleLock}
               onReplace={onReplace}
               onChipToggle={onChipToggle}
-              tagRank={tagRank}
+              tagInfoByName={tagInfoByName}
+              totalSeriesCount={totalSeriesCount}
+              level={level}
+              sort={sort}
             />
           ))}
         </div>

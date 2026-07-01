@@ -1,12 +1,18 @@
-import { genreTags, TAG_SECTIONS, tagsForCategories, tagsForSection } from "@/lib/konomi/tagPool";
-import type { TagInfo } from "@/lib/konomi/types";
+import { genreTags, sortTags, TAG_SECTIONS, tagsForCategories, tagsForSection } from "@/lib/konomi/tagPool";
+import type { LevelKey, TagInfo } from "@/lib/konomi/types";
 import { CollapsibleSection } from "./CollapsibleSection";
+import { LevelSelector } from "./LevelSelector";
 import { ScrollFadeArea } from "./ScrollFadeArea";
+import { SortSelect } from "./SortSelect";
 import { TagChip } from "./TagChip";
+import { setSortPref, useSort } from "./tagPoolPrefs";
 
 interface TagPoolSectionProps {
   allTags: TagInfo[];
   selectedTags: string[];
+  totalSeriesCount: number;
+  level: LevelKey;
+  onLevelChange: (level: LevelKey) => void;
   onChipToggle: (tag: string) => void;
 }
 
@@ -40,7 +46,9 @@ function ChipRow({
   );
 }
 
-export function TagPoolSection({ allTags, selectedTags, onChipToggle }: TagPoolSectionProps) {
+export function TagPoolSection({ allTags, selectedTags, totalSeriesCount, level, onLevelChange, onChipToggle }: TagPoolSectionProps) {
+  const sort = useSort();
+
   return (
     <section className="border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-5)] p-[var(--space-2xl)] mb-[var(--space-xl)]">
       <div className="flex items-center gap-[var(--space-md)] mb-[var(--space-xl)]">
@@ -49,9 +57,22 @@ export function TagPoolSection({ allTags, selectedTags, onChipToggle }: TagPoolS
         <span className="ml-auto font-mono text-[length:var(--text-xs)] text-[var(--muted)]">drag or tap to load a slot</span>
       </div>
 
+      <div className="flex items-center gap-[var(--space-lg)] flex-wrap mb-[var(--space-xl)]">
+        <LevelSelector value={level} onChange={onLevelChange} />
+        <SortSelect value={sort} onChange={setSortPref} />
+      </div>
+
       <ScrollFadeArea height={POOL_AREA_HEIGHT} topInset={SECTION_HEADER_HEIGHT}>
         {TAG_SECTIONS.map((section) => {
-          const selectedCount = tagsForSection(allTags, section).filter((t) => selectedTags.includes(t.name)).length;
+          const sectionTags = tagsForSection(allTags, section, level, totalSeriesCount);
+          // Hidden entirely, not just visually collapsed, when nothing at
+          // this level qualifies (e.g. every non-Genres section at Level
+          // 1). CollapsibleSection's expand state lives in localStorage,
+          // untouched by mounting/unmounting, so this is a pure render
+          // guard — the section remembers its expand state for whenever it
+          // reappears at a higher level.
+          if (sectionTags.length === 0) return null;
+          const selectedCount = sectionTags.filter((t) => selectedTags.includes(t.name)).length;
           return (
             <CollapsibleSection
               key={section.key}
@@ -63,7 +84,7 @@ export function TagPoolSection({ allTags, selectedTags, onChipToggle }: TagPoolS
               {section.subsections ? (
                 <div className="flex flex-col gap-[var(--space-lg)]">
                   {section.subsections.map((sub) => {
-                    const subTags = tagsForCategories(allTags, sub.categories);
+                    const subTags = sortTags(tagsForCategories(allTags, sub.categories, level, totalSeriesCount), sort);
                     if (!subTags.length) return null;
                     return (
                       <div key={sub.label}>
@@ -77,7 +98,10 @@ export function TagPoolSection({ allTags, selectedTags, onChipToggle }: TagPoolS
                 </div>
               ) : (
                 <ChipRow
-                  tags={section.key === "genres" ? genreTags(allTags) : tagsForCategories(allTags, section.categories ?? [])}
+                  tags={sortTags(
+                    section.key === "genres" ? genreTags(allTags) : tagsForCategories(allTags, section.categories ?? [], level, totalSeriesCount),
+                    sort,
+                  )}
                   selectedTags={selectedTags}
                   onChipToggle={onChipToggle}
                 />
