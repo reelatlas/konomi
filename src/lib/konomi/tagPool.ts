@@ -57,3 +57,13 @@ export function tagsForCategories(allTags: TagInfo[], categories: string[]): Tag
 export function genreTags(allTags: TagInfo[]): TagInfo[] {
   return allTags.filter((t) => t.isGenre).sort((a, b) => b.seriesCount - a.seriesCount);
 }
+
+// All tags belonging to a section, regardless of its internal shape (flat
+// categories, subsections, or genres) — used for the section header's
+// selected-count badge, which counts across the whole section rather than
+// per-subsection.
+export function tagsForSection(allTags: TagInfo[], section: TagSection): TagInfo[] {
+  if (section.key === "genres") return genreTags(allTags);
+  if (section.subsections) return tagsForCategories(allTags, section.subsections.flatMap((sub) => sub.categories));
+  return tagsForCategories(allTags, section.categories ?? []);
+}

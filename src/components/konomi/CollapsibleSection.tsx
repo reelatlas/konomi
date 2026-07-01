@@ -6,6 +6,7 @@ interface CollapsibleSectionProps {
   title: string;
   storageKey: string;
   defaultExpanded: boolean;
+  selectedCount?: number;
   children: React.ReactNode;
 }
 
@@ -47,7 +48,7 @@ function setExpanded(key: string, value: boolean) {
 // buttons used elsewhere: it needs to occlude content scrolling underneath
 // it. ScrollFadeArea's `topInset` prop keeps its top gradient/arrow from
 // rendering underneath this header — see the call site in TagPoolSection.
-export function CollapsibleSection({ title, storageKey, defaultExpanded, children }: CollapsibleSectionProps) {
+export function CollapsibleSection({ title, storageKey, defaultExpanded, selectedCount, children }: CollapsibleSectionProps) {
   const expanded = useSyncExternalStore(
     (callback) => subscribe(storageKey, callback),
     () => getSnapshot(storageKey, defaultExpanded),
@@ -64,6 +65,11 @@ export function CollapsibleSection({ title, storageKey, defaultExpanded, childre
       >
         <span className="inline-flex items-center gap-[var(--space-sm)]">
           <h3 className="font-display text-[length:var(--text-lg)] m-0 uppercase tracking-[var(--tracking-sm)]">{title}</h3>
+          {Boolean(selectedCount) && (
+            <span className="font-mono font-bold text-[length:var(--text-2xs)] leading-none bg-[var(--fill)] border-[length:var(--border-hair)] border-[var(--ink)] px-[var(--space-sm)] py-[var(--space-xs)]">
+              {selectedCount}
+            </span>
+          )}
           <span className="font-mono text-[length:var(--text-sm)] text-[var(--muted)]">{expanded ? "▾" : "▸"}</span>
         </span>
       </button>

@@ -3,7 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 
 interface ScrollFadeAreaProps {
-  // Tailwind height utility for the fixed-height scroll viewport, e.g. "h-[97px]".
+  // Tailwind height utility applied to the scroll viewport — either a fixed
+  // "h-[Npx]" (viewport always this tall, e.g. TagScrollArea's per-card
+  // area, which needs uniform height across a grid regardless of content)
+  // or a capping "max-h-[Npx]" (viewport hugs shorter content and only
+  // clamps + scrolls past the cap, e.g. the Tag Pool). Overflow detection
+  // below works identically either way — it just compares the rendered
+  // scrollHeight/clientHeight, which "hugging" content naturally keeps equal.
   height: string;
   scrollStep?: number;
   // Pixels to push the top gradient + up-arrow down by, for callers that
