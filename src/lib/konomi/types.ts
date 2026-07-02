@@ -37,6 +37,13 @@ export interface ThemeColors {
   muted: string;
   fill: string;
   primary: string;
+  // A bold, high-contrast variant of `primary` — darkened for light-surface
+  // themes, lightened for dark-surface ones (same blend ratio, opposite
+  // direction — darkening in a dark-surface theme would move toward the
+  // background, not away from it). Used where something needs to read as
+  // "the same accent family as primary" but stand out sharply regardless of
+  // what it's sitting on, e.g. the mixer error hint stars/text.
+  primaryDeep: string;
   secondary: string;
   onPrimary: string;
   onSecondary: string;

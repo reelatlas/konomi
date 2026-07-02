@@ -64,6 +64,7 @@
   --muted: #a985e2;
   --fill: #e4d7f4;
   --primary: #564fd6;
+  --primary-deep: #24215a;
   --secondary: #e4f46f;
   --on-primary: #fcfaff;
   --on-secondary: #191225;
@@ -79,6 +80,7 @@
   --muted: #66727b;
   --fill: #26323b;
   --primary: #3486b4;
+  --primary-deep: #8fbdd6;
   --secondary: #6fd3d6;
   --on-primary: #eaf3f5;
   --on-secondary: #0e1518;
@@ -94,6 +96,7 @@
   --muted: #b3a589;
   --fill: #ebe0cb;
   --primary: #d8392e;
+  --primary-deep: #5b1813;
   --secondary: #f2c14e;
   --on-primary: #fff7ec;
   --on-secondary: #211c17;

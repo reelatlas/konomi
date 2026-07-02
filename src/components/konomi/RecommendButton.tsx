@@ -65,7 +65,12 @@ export function RecommendButton({ filledCount, onRecommend, error }: RecommendBu
           RECOMMEND ▸
         </button>
         {error && (
-          <span className="absolute top-full mt-[var(--space-xs)] whitespace-nowrap font-mono text-[length:var(--text-2xs)] tracking-[var(--tracking-xs)] text-[var(--primary)]">
+          // --primary-deep, not --secondary: a bold, high-contrast variant
+          // of primary (darkened for light-surface themes, lightened for
+          // Tide's dark surface — see its doc comment in types.ts), and
+          // matches the mini hint stars' color so the two read as
+          // one connected hint rather than two unrelated accents.
+          <span className="absolute top-full mt-[var(--space-xs)] whitespace-nowrap font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xs)] text-[var(--primary-deep)]">
             {ERROR_MESSAGE[error]}
           </span>
         )}
