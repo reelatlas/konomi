@@ -61,6 +61,18 @@ export function MixerSection({
             ))}
           </div>
 
+          {/* flex-wrap here only ever has 2 items — the MIN TAG MATCH block
+              and the Random+Clear group below — so wrapping is inherently
+              all-or-nothing per item, never a partial split. The group's own
+              inner flex has no flex-wrap of its own, so Random and Clear can
+              never separate from each other; ml-auto keeps it flush-right
+              whether it's sharing this line or wrapped alone onto the next
+              one (unlike justify-between, which would only push it right
+              while sharing a line and revert to flex-start once alone).
+              MIN TAG MATCH's own flex-grow (below) is what stretches it to
+              fill the full line once it's alone on it — no extra rule
+              needed for that, it's the same asymmetry that already pushes
+              Random+Clear right when both share a line. */}
           <div className="flex gap-[var(--space-lg)] flex-wrap items-end">
             <div className="flex-[1_1_250px] min-w-[210px] flex flex-col gap-[var(--space-xs)]">
               <span className="font-mono text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] text-[var(--muted)]">
@@ -68,24 +80,31 @@ export function MixerSection({
               </span>
               <MatchSelector value={minMatch} onChange={onSetMatch} />
             </div>
-            <button
-              type="button"
-              onClick={onRandomTags}
-              className="bg-[var(--fill)] border-[length:var(--border-base)] border-[var(--ink)] font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-xl)] px-[var(--space-xl)] py-[var(--space-lg)] cursor-pointer text-[var(--ink)] uppercase shadow-[var(--elev-2)]"
-            >
-              Random ×3
-            </button>
-            <button
-              type="button"
-              onClick={onClearSlots}
-              className="bg-transparent border-[length:var(--border-base)] border-[var(--ink)] font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-xl)] px-[var(--space-xl)] py-[var(--space-lg)] cursor-pointer text-[var(--ink)] uppercase shadow-[var(--elev-2)]"
-            >
-              Clear slots ✕
-            </button>
+            <div className="flex gap-[var(--space-lg)] ml-auto">
+              <button
+                type="button"
+                onClick={onRandomTags}
+                className="bg-[var(--fill)] border-[length:var(--border-base)] border-[var(--ink)] font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-xl)] px-[var(--space-xl)] py-[var(--space-lg)] cursor-pointer text-[var(--ink)] uppercase shadow-[var(--elev-2)] whitespace-nowrap"
+              >
+                Random ×3
+              </button>
+              <button
+                type="button"
+                onClick={onClearSlots}
+                className="bg-transparent border-[length:var(--border-base)] border-[var(--ink)] font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-xl)] px-[var(--space-xl)] py-[var(--space-lg)] cursor-pointer text-[var(--ink)] uppercase shadow-[var(--elev-2)] whitespace-nowrap"
+              >
+                Clear slots ✕
+              </button>
+            </div>
           </div>
         </div>
 
-        <RecommendButton filledCount={filledCount} onRecommend={onRecommend} />
+        {/* ml-auto, same reasoning as the Random+Clear group above: stays
+            flush-right whether RecommendButton shares the line with the
+            mixer column or wraps to its own line below. */}
+        <div className="ml-auto">
+          <RecommendButton filledCount={filledCount} onRecommend={onRecommend} />
+        </div>
       </div>
     </section>
   );
