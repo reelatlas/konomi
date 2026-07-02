@@ -94,7 +94,7 @@ export function KonomiApp({ initialSeries, initialTags, initialGenres }: KonomiA
         />
 
         <p className="font-mono text-[length:var(--text-xs)] text-[var(--muted)] text-center mt-[var(--space-3xl)] mb-0">
-          prototype · dummy data · drag tags between the pool, mixer &amp; results to remix
+          drag tags between the pool, mixer &amp; results to remix · the end…?
         </p>
       </div>
     </div>
