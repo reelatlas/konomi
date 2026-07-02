@@ -25,7 +25,16 @@ export function RecommendButton({ filledCount, onRecommend, error }: RecommendBu
   const accent = DEFAULT_ACCENT;
 
   return (
-    <div className="flex-none min-w-[188px] min-h-[92px] self-start flex items-center justify-center">
+    // No min-w here (deliberately, unlike min-h below): a fixed min-width
+    // used to reserve room for the star's 190px layers, but the star is
+    // absolutely positioned and centered on the in-flow <button> alone, so
+    // that reserved width just became invisible padding to the button's
+    // right once ml-auto (in MixerSection) right-aligned this box instead
+    // of the button itself — pushing the visible button ~18px short of
+    // flush with MatchSelector's edge above it. Shrink-wrapping to the
+    // button's own width (and letting the star overflow the frame instead,
+    // per explicit product decision) makes ml-auto align the real edge.
+    <div className="flex-none min-h-[92px] self-start flex items-center justify-center">
       <div
         className={["relative flex items-center justify-center transition-transform duration-200", error ? ERROR_SHIFT : ""].join(
           " ",

@@ -106,24 +106,25 @@ export function TagPoolSection({ allTags, selectedTags, totalSeriesCount, level,
           </span>
         </div>
 
-        {/* One atomic flex item so Sort+Level move together when wrapped —
+        {/* One atomic flex item so Level+Sort move together when wrapped —
             justify-between above then degenerates to flex-start for this
             lone item on its own line, matching the header's alignment
-            rather than staying docked right once stacked. Level sits last
-            (rightmost) so its hint — always right-aligned to its own box —
-            lines up flush with the whole group's right edge. Sort/Level stay
-            items-start against each other so their top edges line up. Each
-            icon is paired with its own control in a nested items-center row
-            so it centers against that control's height specifically, not
-            the row's overall height. */}
+            rather than staying docked right once stacked. Level, then Sort
+            (left to right) — Level no longer needs to be last for hint
+            alignment now that its hints are per-segment tooltips, not a
+            shared line under the row. Level/Sort stay items-start against
+            each other so their top edges line up. Each icon is paired with
+            its own control in a nested items-center row so it centers
+            against that control's height specifically, not the row's
+            overall height. */}
         <div className="flex items-start gap-[var(--space-lg)] flex-wrap">
-          <div className="flex items-center gap-[var(--space-sm)]">
-            <SortIcon className="text-[var(--ink)]" />
-            <SortSelect value={sort} onChange={setSortPref} />
-          </div>
           <div className="flex items-center gap-[var(--space-sm)]">
             <TagIcon className="text-[var(--ink)]" />
             <LevelSelector value={level} onChange={onLevelChange} />
+          </div>
+          <div className="flex items-center gap-[var(--space-sm)]">
+            <SortIcon className="text-[var(--ink)]" />
+            <SortSelect value={sort} onChange={setSortPref} />
           </div>
         </div>
       </div>

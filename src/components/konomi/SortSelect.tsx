@@ -6,30 +6,37 @@ interface SortSelectProps {
   onChange: (key: SortKey) => void;
 }
 
-// Same segmented-button structure as MatchSelector/LevelSelector — replaces
-// an earlier native <select> version (see DESIGN_SYSTEM.md's now-removed
-// "first native select" note) so both tag pool controls share one visual
-// pattern.
+// A native <select>, not a segmented control — this app's first version of
+// this control WAS a native select, later replaced with a segmented row to
+// match LevelSelector's shape (see DESIGN_SYSTEM.md). Moving back is a
+// deliberate choice this time, not a regression: Level no longer needs a
+// shared visual pattern to justify matching now that its own hint moved to
+// per-segment tooltips, and a 4-option dropdown reads as more standard/
+// compact than 4 segmented buttons. `appearance-none` strips the native
+// arrow so the custom "▾" (matching this app's own bordered/shadow control
+// style) replaces it — the same restyling approach DESIGN_SYSTEM.md's
+// now-removed note already flagged as the right starting point if a select
+// ever came back.
 export function SortSelect({ value, onChange }: SortSelectProps) {
   return (
-    <div className="flex border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-2)]">
-      {SORT_OPTIONS.map((option, i) => {
-        const active = value === option.key;
-        return (
-          <button
-            key={option.key}
-            type="button"
-            onClick={() => onChange(option.key)}
-            className={[
-              "flex-1 py-[var(--space-md)] px-[var(--space-lg)] border-0 cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] whitespace-nowrap",
-              i > 0 ? "border-l-[length:var(--border-thin)] border-l-[var(--ink)]" : "",
-              active ? "bg-[var(--primary)] text-[var(--surface)]" : "bg-[var(--surface)] text-[var(--ink)]",
-            ].join(" ")}
-          >
+    <div className="relative inline-block">
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value as SortKey)}
+        className="appearance-none min-w-[128px] bg-[var(--surface)] border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-2)] font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] uppercase text-[var(--ink)] pl-[var(--space-lg)] pr-[var(--space-2xl)] py-[var(--space-md)] cursor-pointer"
+      >
+        {SORT_OPTIONS.map((option) => (
+          <option key={option.key} value={option.key}>
             {option.label}
-          </button>
-        );
-      })}
+          </option>
+        ))}
+      </select>
+      <span
+        aria-hidden
+        className="pointer-events-none absolute right-[var(--space-md)] top-1/2 -translate-y-1/2 font-mono text-[length:var(--text-sm)] text-[var(--ink)]"
+      >
+        ▾
+      </span>
     </div>
   );
 }
