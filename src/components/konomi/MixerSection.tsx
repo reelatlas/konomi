@@ -37,8 +37,8 @@ export function MixerSection({
   return (
     <section className="relative border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-5)] p-[var(--space-2xl)] mb-[var(--space-3xl)]">
       <div className="flex items-center gap-[var(--space-md)] mb-[var(--space-xl)]">
-        <h2 className="font-display text-[length:var(--text-xl)] m-0 uppercase tracking-[var(--tracking-sm)]">Mixer</h2>
-        <span className="font-body font-bold text-[var(--primary)] text-[length:var(--text-md)]">ミックス</span>
+        <h2 className="font-display text-[length:var(--text-xl)] leading-[var(--leading-display)] m-0 uppercase tracking-[var(--tracking-sm)]">Mixer</h2>
+        <span className="font-body font-bold leading-[var(--leading-tight)] text-[var(--primary)] text-[length:var(--text-md)]">ミックス</span>
         <span className="ml-auto font-mono font-bold text-[length:var(--text-sm)] bg-[var(--fill)] border-[length:var(--border-thin)] border-[var(--ink)] px-[var(--space-md)] py-[var(--space-xs)]">
           {lockedLabel}
         </span>

@@ -94,7 +94,7 @@ export function TagPoolSection({ allTags, selectedTags, totalSeriesCount, level,
         <div className={`relative ${HEADER_TITLE_MIN_WIDTH}`}>
           <div className="flex items-center gap-[var(--space-md)]">
             <h2 className="font-display text-[length:var(--text-xl)] leading-[var(--leading-display)] m-0 uppercase tracking-[var(--tracking-sm)]">Tag Pool</h2>
-            <span className="font-body font-bold text-[var(--primary)] text-[length:var(--text-md)]">タグ</span>
+            <span className="font-body font-bold leading-[var(--leading-tight)] text-[var(--primary)] text-[length:var(--text-md)]">タグ</span>
           </div>
           {/* left-0 + whitespace-nowrap, not inset-x-0: the relative parent's
               width now comes from just the title row (narrower than this
