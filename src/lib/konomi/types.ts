@@ -47,6 +47,13 @@ export interface ThemeColors {
 
 export type MatchKey = "1" | "2" | "3";
 
+// Set only by a RECOMMEND click that can't produce results — never by
+// changing tags or min-match alone (those only drive live filtering of
+// what's already on screen). "impossible-min": tag count < min-match.
+// "no-match": min-match is achievable but the catalog rescore found nothing
+// new. See DESIGN_SYSTEM.md's "Mixer error system" for the full model.
+export type MixerError = "impossible-min" | "no-match" | null;
+
 // Tag pool visibility tier — "1" (Genres only) through "3" (All, the
 // existing baseline). Global, applies to both the pool and result cards.
 export type LevelKey = "1" | "2" | "3";

@@ -49,10 +49,9 @@ export function KonomiApp({ initialSeries, initialTags, initialGenres }: KonomiA
         <Masthead theme={k.theme} onThemeChange={k.setTheme} />
 
         <RecommendationsSection
-          results={k.results}
+          results={k.visibleResults}
           empty={k.empty}
           hasResults={k.hasResults}
-          noMatch={k.noMatch}
           resultsHint={k.resultsHint}
           selectedTags={k.selectedTags}
           filledCount={k.filledCount}
@@ -82,6 +81,7 @@ export function KonomiApp({ initialSeries, initialTags, initialGenres }: KonomiA
           onRandomTags={handleRandomTags}
           onClearSlots={k.clearSlots}
           onRecommend={k.recommend}
+          error={k.mixerError}
         />
 
         <TagPoolSection

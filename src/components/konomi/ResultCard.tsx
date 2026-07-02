@@ -12,7 +12,6 @@ const ICON_BTN =
 
 interface ResultCardProps {
   entry: ResultEntry;
-  index: number;
   selectedTags: string[];
   filledCount: number;
   locked: boolean;
@@ -20,7 +19,7 @@ interface ResultCardProps {
   canSwap: boolean;
   onFlip: (title: string) => void;
   onToggleLock: (title: string) => void;
-  onReplace: (index: number) => void;
+  onReplace: (title: string) => void;
   onChipToggle: (tag: string) => void;
   tagInfoByName: Map<string, TagInfo>;
   totalSeriesCount: number;
@@ -30,7 +29,6 @@ interface ResultCardProps {
 
 export function ResultCard({
   entry,
-  index,
   selectedTags,
   filledCount,
   locked,
@@ -127,11 +125,10 @@ export function ResultCard({
               <button
                 type="button"
                 title="Swap for another"
-                data-idx={index}
                 disabled={swapDisabled}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onReplace(index);
+                  onReplace(series.title);
                 }}
                 className={[ICON_BTN, "bg-[var(--surface)] text-[var(--ink)]", swapDisabled ? "opacity-40 cursor-not-allowed" : "opacity-100 cursor-pointer"].join(
                   " ",

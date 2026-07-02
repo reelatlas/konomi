@@ -1,4 +1,4 @@
-import type { MatchKey, Slot } from "@/lib/konomi/types";
+import type { MatchKey, MixerError, Slot } from "@/lib/konomi/types";
 import { MatchSelector } from "./MatchSelector";
 import { RecommendButton } from "./RecommendButton";
 import { TagSlot } from "./TagSlot";
@@ -17,6 +17,7 @@ interface MixerSectionProps {
   onRandomTags: () => void;
   onClearSlots: () => void;
   onRecommend: () => void;
+  error: MixerError;
 }
 
 export function MixerSection({
@@ -33,6 +34,7 @@ export function MixerSection({
   onRandomTags,
   onClearSlots,
   onRecommend,
+  error,
 }: MixerSectionProps) {
   return (
     <section className="relative border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-5)] p-[var(--space-2xl)] mb-[var(--space-3xl)]">
@@ -103,7 +105,7 @@ export function MixerSection({
             flush-right whether RecommendButton shares the line with the
             mixer column or wraps to its own line below. */}
         <div className="ml-auto">
-          <RecommendButton filledCount={filledCount} onRecommend={onRecommend} />
+          <RecommendButton filledCount={filledCount} onRecommend={onRecommend} error={error} />
         </div>
       </div>
     </section>

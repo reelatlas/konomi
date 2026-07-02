@@ -6,7 +6,6 @@ interface RecommendationsSectionProps {
   results: ResultEntry[];
   empty: boolean;
   hasResults: boolean;
-  noMatch: boolean;
   resultsHint: string;
   selectedTags: string[];
   filledCount: number;
@@ -16,7 +15,7 @@ interface RecommendationsSectionProps {
   onClearRecs: () => void;
   onFlip: (title: string) => void;
   onToggleLock: (title: string) => void;
-  onReplace: (index: number) => void;
+  onReplace: (title: string) => void;
   onChipToggle: (tag: string) => void;
   tagInfoByName: Map<string, TagInfo>;
   totalSeriesCount: number;
@@ -26,7 +25,6 @@ export function RecommendationsSection({
   results,
   empty,
   hasResults,
-  noMatch,
   resultsHint,
   selectedTags,
   filledCount,
@@ -69,22 +67,12 @@ export function RecommendationsSection({
         </div>
       )}
 
-      {noMatch && (
-        <div className="border-[length:var(--border-base)] border-dashed border-[var(--primary)] bg-[var(--surface)] px-[var(--space-2xl)] py-[var(--space-huge)] text-center">
-          <div className="font-display text-[length:var(--text-2xl)] text-[var(--primary)] uppercase">no series match that strict</div>
-          <p className="font-mono text-[length:var(--text-base)] text-[var(--muted)] mt-[var(--space-md)] mb-0">
-            lower the MIN TAG MATCH or pick different tags
-          </p>
-        </div>
-      )}
-
       {hasResults && (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(208px,1fr))] gap-[var(--space-xl)]">
-          {results.map((entry, index) => (
+          {results.map((entry) => (
             <ResultCard
               key={entry.series.title}
               entry={entry}
-              index={index}
               selectedTags={selectedTags}
               filledCount={filledCount}
               locked={Boolean(locked[entry.series.title])}
