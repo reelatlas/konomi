@@ -49,7 +49,7 @@ export function KonomiApp({ initialSeries, initialTags, initialGenres }: KonomiA
         <Masthead theme={k.theme} onThemeChange={k.setTheme} />
 
         <RecommendationsSection
-          results={k.visibleResults}
+          results={k.results}
           empty={k.empty}
           hasResults={k.hasResults}
           resultsHint={k.resultsHint}

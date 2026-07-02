@@ -66,10 +66,10 @@ function selectedTags(slots: Slot[]): string[] {
 // before even touching the catalog) and "no-match" (min-match is achievable
 // but a fresh catalog rescore found nothing new — checked regardless of
 // whether locked cards still fill some slots, since the question is "did a
-// new search succeed", not "is anything currently visible"). On either
+// new search succeed", not "is anything currently displayed"). On either
 // error, `results` is deliberately left untouched — stale results stay on
-// screen, live-filtered elsewhere, until a genuinely new RECOMMEND succeeds
-// or the user hits Clear ✕.
+// screen exactly as they were until a genuinely new RECOMMEND succeeds or
+// the user hits Clear ✕.
 function recommend(state: KonomiState): KonomiState {
   const sel = selectedTags(state.slots);
   if (!sel.length) return state;
@@ -86,21 +86,23 @@ function recommend(state: KonomiState): KonomiState {
   if (!pool.length) {
     return { ...state, generated: true, error: "no-match" };
   }
+
+  // Walks the raw stored order directly — there's no separate "visible
+  // order" to reconcile against anymore. The displayed set is always
+  // exactly `state.results`; nothing hides between RECOMMENDs, so stored
+  // order and displayed order can never diverge. Locked entries are carried
+  // forward unconditionally at their existing position; non-locked slots
+  // get the next fresh pool pick, or are dropped (compacting, no gaps) if
+  // the pool runs short.
   let pi = 0;
   const out: ResultEntry[] = [];
   for (let i = 0; i < DEFAULT_RESULT_COUNT; i++) {
     const old = state.results[i];
     if (old && lockedTitles.has(old.series.title)) {
-      // Clamped to `min`, not the raw live score — a locked carry-over must
-      // satisfy the CURRENT threshold by construction, the same guarantee
-      // `scorePool` already gives every fresh entry (it only ever returns
-      // score >= min). Without this, a locked card that doesn't match the
-      // new tags could be carried over with a score below min-match — fine
-      // while locked (visibleResults exempts locked cards), but the moment
-      // it's unlocked, that honestly-low frozen score fails the same
-      // min-match check every other entry has to pass, and the card
-      // vanishes even though it's a real, positioned member of `results`.
-      out.push({ series: old.series, score: Math.max(scoreSeries(old.series, sel), min) });
+      // No min-match clamp — `score` is purely informational now (nothing
+      // reads it to decide visibility), so it's just the honest live score
+      // against the current tags.
+      out.push({ series: old.series, score: scoreSeries(old.series, sel) });
     } else if (pi < pool.length) {
       out.push(pool[pi]);
       pi++;
@@ -114,25 +116,32 @@ function recommend(state: KonomiState): KonomiState {
   return { ...state, results: out, generated: true, flipped, error: null };
 }
 
-// Shared by every reducer branch that mutates `slots` — clears "no-match"
-// unconditionally (any tag change is a fresh attempt) and clears
-// "impossible-min" only via the global override (tag count hits zero).
-// Adding/swapping tags never clears "impossible-min" on its own — per the
-// design, only lowering min-match itself (SET_MIN_MATCH below) does that,
-// since min-match is a deliberate setting the app never silently changes.
+// Shared by every reducer branch that mutates `slots` — re-evaluates
+// whether an active error still applies to the CURRENT state, rather than
+// only clearing on the specific action that originally set it. "no-match"
+// clears unconditionally (any tag change is a fresh attempt worth trying
+// again). "impossible-min" clears the moment tag count no longer makes it
+// impossible: either tag count rises to >= min-match (adding a tag back,
+// Random ×3 refilling all slots) or tag count drops to exactly zero (the
+// global override, back to the plain disabled-no-error zero state — a
+// separate condition from ">= min-match", since min-match can never be
+// lower than "1", so zero tags never satisfies that check on its own).
+// Lowering min-match itself is a different clearing path, handled by
+// SET_MIN_MATCH below — min-match is a deliberate setting the app never
+// silently changes just because tags moved.
 function clearErrorForTagChange(state: KonomiState, slots: Slot[]): MixerError {
   if (state.error === "no-match") return null;
-  if (state.error === "impossible-min" && selectedTags(slots).length === 0) return null;
+  if (state.error === "impossible-min") {
+    const tagCount = selectedTags(slots).length;
+    const min = Number(state.minMatch);
+    if (tagCount === 0 || tagCount >= min) return null;
+  }
   return state.error;
 }
 
-// Targets by title, not array index — `onReplace` fires from whichever card
-// is currently on screen, which is `visibleResults` (filtered by live
-// min-match), not `state.results` (unfiltered) that this reducer operates
-// on. Those two arrays' indices diverge the moment anything is hidden, so an
-// index passed straight through would silently hit the wrong slot. Title is
-// the same stable identifier `TOGGLE_LOCK`/`TOGGLE_FLIP` already use for
-// exactly this reason.
+// Targets by title, not array index — the same stable identifier
+// `TOGGLE_LOCK`/`TOGGLE_FLIP` already use, so a swap can't be thrown off by
+// whatever positional assumptions the rendering layer happens to make.
 function replaceCard(state: KonomiState, title: string): KonomiState {
   const index = state.results.findIndex((r) => r.series.title === title);
   if (index < 0) return state;
@@ -200,7 +209,7 @@ function randomTags(state: KonomiState, visible: string[]): KonomiState {
     picks.push(copy.splice(idx, 1)[0]);
   }
   const slots: Slot[] = Array.from({ length: SLOT_COUNT }, (_, i) => picks[i] ?? null);
-  return { ...state, slots };
+  return { ...state, slots, error: clearErrorForTagChange(state, slots) };
 }
 
 function reducer(state: KonomiState, action: Action): KonomiState {
@@ -304,23 +313,6 @@ export function useKonomi(initialSeries: Series[], initialTags: TagInfo[], initi
     [state.results, state.locked],
   );
 
-  // Live filter, not a reducer concern — `state.results` itself is never
-  // mutated by a tag/min-match change (see clearErrorForTagChange's doc
-  // comment above). Deliberately compares each entry's FROZEN `score`
-  // (captured once, when RECOMMEND or a swap put it into `state.results`)
-  // against the LIVE `minNum` — not a live-recomputed score against the
-  // current tag selection. That split is the whole point: min-match changes
-  // must hide/show cards (frozen score vs a live threshold), but tag
-  // changes must never hide a card, only re-highlight/re-count it (handled
-  // separately, live, in ResultCard). Using a live score here would re-hide
-  // cards the instant a tag was removed, which is exactly the bug this
-  // avoids. `sel` is deliberately NOT a dependency — tag changes structurally
-  // cannot affect this filter's result, not just incidentally don't.
-  const visibleResults = useMemo(
-    () => state.results.filter((r) => state.locked[r.series.title] || r.score >= minNum),
-    [state.results, state.locked, minNum],
-  );
-
   // name -> TagInfo lookup so result cards can merge a series' tags and
   // genres into one list, then level-filter and sort it exactly like the
   // pool does (needs isGenre/seriesCount, not just avgRank — see ResultCard).
@@ -332,11 +324,11 @@ export function useKonomi(initialSeries: Series[], initialTags: TagInfo[], initi
 
   const resultsHint = useMemo(() => {
     if (!state.generated) return "metadata appears here";
-    if (visibleResults.length) {
-      return `${visibleResults.length} recs · ${filledCount} tag${filledCount !== 1 ? "s" : ""} · ${minNum} tag${minNum !== 1 ? "s" : ""} min · ${lockedCount} locked · drag a tag down to remix`;
+    if (state.results.length) {
+      return `${state.results.length} recs · ${filledCount} tag${filledCount !== 1 ? "s" : ""} · ${minNum} tag${minNum !== 1 ? "s" : ""} min · ${lockedCount} locked · drag a tag down to remix`;
     }
     return "no matches — loosen the filter";
-  }, [state.generated, visibleResults.length, filledCount, minNum, lockedCount]);
+  }, [state.generated, state.results.length, filledCount, minNum, lockedCount]);
 
   const actions = useMemo(
     () => ({
@@ -362,7 +354,6 @@ export function useKonomi(initialSeries: Series[], initialTags: TagInfo[], initi
   return {
     slots: state.slots,
     results: state.results,
-    visibleResults,
     dragOverIndex: state.dragOverIndex,
     minMatch: state.minMatch,
     flipped: state.flipped,
