@@ -47,11 +47,16 @@ const HEADER_TITLE_MIN_WIDTH = "min-w-[190px]";
 // container's own wrap-gap is computed from in-flow content only — it can't
 // see the absolutely-positioned subtext hanging below the title row, so the
 // wrapped controls line landed directly on top of it (confirmed live before
-// this fix). This margin on the title block reserves that clearance
-// explicitly — measured live at a comfortable ~15.5px across every wrapped
-// width from 400px to 810px, and --space-2xl happens to be exactly the
-// value that produces it.
-const HEADER_TITLE_WRAP_CLEARANCE = "mb-[var(--space-2xl)]";
+// this fix). This is `gap-y` on the *container*, not `margin-bottom` on the
+// title-block item — margin on a flex item counts toward that item's own
+// height for every cross-axis alignment purpose, including items-center's
+// same-line comparison, which is exactly what a first version of this fix
+// broke (it silently added 24px to the title block's effective height,
+// skewing items-center's title-vs-controls centering by half of that even
+// when both sat on the same line). row-gap only inserts space *between*
+// wrapped lines and never touches any single item's own box, so it can
+// solve the wrap-collision without touching same-line centering at all.
+const HEADER_TITLE_WRAP_CLEARANCE = "gap-y-[var(--space-3xl)]";
 
 function ChipRow({
   tags,
@@ -85,8 +90,8 @@ export function TagPoolSection({ allTags, selectedTags, totalSeriesCount, level,
           their primary elements. HEADER_HINT_CLEARANCE below reserves the
           space the now-out-of-flow hints need so neither overlaps the
           first Tag Pool section. */}
-      <div className={`flex items-center justify-between gap-[var(--space-lg)] flex-wrap ${HEADER_HINT_CLEARANCE} mb-[var(--space-xl)]`}>
-        <div className={`relative ${HEADER_TITLE_MIN_WIDTH} ${HEADER_TITLE_WRAP_CLEARANCE}`}>
+      <div className={`flex items-center justify-between gap-x-[var(--space-lg)] ${HEADER_TITLE_WRAP_CLEARANCE} flex-wrap ${HEADER_HINT_CLEARANCE} mb-[var(--space-xl)]`}>
+        <div className={`relative ${HEADER_TITLE_MIN_WIDTH}`}>
           <div className="flex items-center gap-[var(--space-md)]">
             <h2 className="font-display text-[length:var(--text-xl)] leading-[var(--leading-display)] m-0 uppercase tracking-[var(--tracking-sm)]">Tag Pool</h2>
             <span className="font-body font-bold text-[var(--primary)] text-[length:var(--text-md)]">タグ</span>
