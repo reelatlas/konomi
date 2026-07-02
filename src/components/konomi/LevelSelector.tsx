@@ -14,11 +14,17 @@ interface LevelSelectorProps {
 // always right-aligned to this control's own right edge, fixed regardless
 // of which segment is active (deliberately not position-tracking, so it
 // stays visually stable as the level changes).
+//
+// The hint is `absolute`, not normal flow: it needs to hang below the
+// button row without contributing to this component's own layout height, so
+// a parent comparing this control's real (button-row-only) height against
+// something else — see TagPoolSection's header row — compares like with
+// like instead of getting thrown off by trailing hint text.
 export function LevelSelector({ value, onChange }: LevelSelectorProps) {
   const activeOption = LEVEL_OPTIONS.find((option) => option.key === value);
 
   return (
-    <div>
+    <div className="relative">
       <div className="flex border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-2)]">
         {LEVEL_OPTIONS.map((option, i) => {
           const active = value === option.key;
@@ -39,7 +45,7 @@ export function LevelSelector({ value, onChange }: LevelSelectorProps) {
         })}
       </div>
       {activeOption && (
-        <div className="mt-[var(--space-xs)] w-full text-right font-mono text-[length:var(--text-2xs)] tracking-[var(--tracking-xs)] text-[var(--muted)]">
+        <div className="absolute top-full inset-x-0 mt-[var(--space-xs)] text-right font-mono text-[length:var(--text-2xs)] tracking-[var(--tracking-xs)] text-[var(--muted)]">
           {activeOption.hint}
         </div>
       )}

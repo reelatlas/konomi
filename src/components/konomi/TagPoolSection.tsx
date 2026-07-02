@@ -27,6 +27,12 @@ const POOL_AREA_HEIGHT = "max-h-[380px]";
 // component, not estimated. Keeps ScrollFadeArea's top gradient/arrow from
 // rendering underneath the sticky header.
 const SECTION_HEADER_HEIGHT = 38;
+// Reserves clearance for the header row's two now-absolute hints (the
+// subtext and the Level hint), neither of which contributes flow height
+// anymore — confirmed live: with no extra clearance the Level hint sits
+// ~1px from the first Tag Pool section (Chrome DevTools bounding-box
+// measurement, not estimated); --space-lg leaves a comfortable ~13-17px.
+const HEADER_HINT_CLEARANCE = "pb-[var(--space-lg)]";
 
 function ChipRow({
   tags,
@@ -51,13 +57,29 @@ export function TagPoolSection({ allTags, selectedTags, totalSeriesCount, level,
 
   return (
     <section className="border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-5)] p-[var(--space-2xl)] mb-[var(--space-xl)]">
-      <div className="flex items-start justify-between gap-[var(--space-lg)] flex-wrap mb-[var(--space-xl)]">
-        <div>
+      {/* items-center compares each side's PRIMARY row only — the title row
+          here, the button row in the controls group — not the combined
+          height including each side's secondary hint. Both hints
+          ("drag or tap...", the Level hint) are `absolute`, out of flow, so
+          they hang below their primary row without affecting this
+          comparison: two parallel primary+hint structures, centered on
+          their primary elements. HEADER_HINT_CLEARANCE below reserves the
+          space the now-out-of-flow hints need so neither overlaps the
+          first Tag Pool section. */}
+      <div className={`flex items-center justify-between gap-[var(--space-lg)] flex-wrap ${HEADER_HINT_CLEARANCE} mb-[var(--space-xl)]`}>
+        <div className="relative">
           <div className="flex items-center gap-[var(--space-md)]">
             <h2 className="font-display text-[length:var(--text-xl)] leading-[var(--leading-display)] m-0 uppercase tracking-[var(--tracking-sm)]">Tag Pool</h2>
             <span className="font-body font-bold text-[var(--primary)] text-[length:var(--text-md)]">タグ</span>
           </div>
-          <span className="block mt-[var(--space-xs)] font-mono text-[length:var(--text-xs)] text-[var(--muted)]">drag or tap to load a slot</span>
+          {/* left-0 + whitespace-nowrap, not inset-x-0: the relative parent's
+              width now comes from just the title row (narrower than this
+              phrase), so inset-x-0 would force-wrap it to the parent's
+              width instead of letting it render at its natural single-line
+              width. */}
+          <span className="absolute top-full left-0 mt-[var(--space-xs)] whitespace-nowrap font-mono text-[length:var(--text-xs)] text-[var(--muted)]">
+            drag or tap to load a slot
+          </span>
         </div>
 
         {/* One atomic flex item so Sort+Level move together when wrapped —
@@ -65,7 +87,8 @@ export function TagPoolSection({ allTags, selectedTags, totalSeriesCount, level,
             lone item on its own line, matching the header's alignment
             rather than staying docked right once stacked. Level sits last
             (rightmost) so its hint — always right-aligned to its own box —
-            lines up flush with the whole group's right edge. */}
+            lines up flush with the whole group's right edge. Sort/Level stay
+            items-start against each other so their top edges line up. */}
         <div className="flex items-start gap-[var(--space-lg)] flex-wrap">
           <SortSelect value={sort} onChange={setSortPref} />
           <LevelSelector value={level} onChange={onLevelChange} />
