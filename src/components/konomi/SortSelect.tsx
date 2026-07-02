@@ -6,29 +6,30 @@ interface SortSelectProps {
   onChange: (key: SortKey) => void;
 }
 
-// First native <select> in the app — see DESIGN_SYSTEM.md for the pattern
-// this establishes for any future one. `appearance-none` strips the
-// browser's own chrome (which can't be restyled to match the hard-edged
-// bordered look everything else uses) down to a plain box we style
-// ourselves; the ▾ glyph is a separate pointer-events-none overlay standing
-// in for the native dropdown arrow.
+// Same segmented-button structure as MatchSelector/LevelSelector — replaces
+// an earlier native <select> version (see DESIGN_SYSTEM.md's now-removed
+// "first native select" note) so both tag pool controls share one visual
+// pattern.
 export function SortSelect({ value, onChange }: SortSelectProps) {
   return (
-    <div className="relative inline-block">
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value as SortKey)}
-        className="appearance-none bg-[var(--surface)] border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-2)] font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] uppercase text-[var(--ink)] py-[var(--space-md)] pl-[var(--space-lg)] pr-[var(--space-2xl)] cursor-pointer"
-      >
-        {SORT_OPTIONS.map((option) => (
-          <option key={option.key} value={option.key}>
+    <div className="flex border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-2)]">
+      {SORT_OPTIONS.map((option, i) => {
+        const active = value === option.key;
+        return (
+          <button
+            key={option.key}
+            type="button"
+            onClick={() => onChange(option.key)}
+            className={[
+              "flex-1 py-[var(--space-md)] px-[var(--space-lg)] border-0 cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] whitespace-nowrap",
+              i > 0 ? "border-l-[length:var(--border-thin)] border-l-[var(--ink)]" : "",
+              active ? "bg-[var(--primary)] text-[var(--surface)]" : "bg-[var(--surface)] text-[var(--ink)]",
+            ].join(" ")}
+          >
             {option.label}
-          </option>
-        ))}
-      </select>
-      <span className="pointer-events-none absolute right-[var(--space-md)] top-1/2 -translate-y-1/2 font-mono text-[length:var(--text-sm)] text-[var(--ink)]">
-        ▾
-      </span>
+          </button>
+        );
+      })}
     </div>
   );
 }

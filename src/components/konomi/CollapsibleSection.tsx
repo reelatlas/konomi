@@ -56,7 +56,13 @@ export function CollapsibleSection({ title, storageKey, defaultExpanded, selecte
   );
 
   return (
-    <div className="mb-[var(--space-xl)] last:mb-0">
+    // last:mb-md, not last:mb-0 — a bare-zero trailing margin let the last
+    // section's chip row sit flush against ScrollFadeArea's overflow-y-auto
+    // clip boundary, cutting off the elev-2 shadow (3px offset) that every
+    // base-size TagChip renders. --space-md matches the existing row-to-row
+    // gap inside a ChipRow, so the last row's trailing space reads the same
+    // as the gap between any two rows, rather than an arbitrary smaller value.
+    <div className="mb-[var(--space-xl)] last:mb-[var(--space-md)]">
       <button
         type="button"
         onClick={() => setExpanded(storageKey, !expanded)}

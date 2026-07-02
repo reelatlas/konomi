@@ -43,19 +43,21 @@ export const TAG_SECTIONS: TagSection[] = [
     ],
   },
   { key: "setting", label: "Setting", defaultExpanded: true, categories: ["Setting-Scene", "Setting-Time", "Setting-Universe"] },
-  { key: "cast", label: "Cast", defaultExpanded: true, categories: ["Cast-Traits", "Cast-Main Cast"] },
+  // "Characters" is display-only — key/categories stay "cast"/Cast-* so
+  // storageKey, localStorage, and the section-mapping logic are untouched.
+  { key: "cast", label: "Characters", defaultExpanded: true, categories: ["Cast-Traits", "Cast-Main Cast"] },
   { key: "demographic", label: "Demographic", defaultExpanded: true, categories: ["Demographic"] },
 ];
 
-export const LEVEL_OPTIONS: { key: LevelKey; label: string }[] = [
-  { key: "1", label: "Genres" },
-  { key: "2", label: "Popular" },
-  { key: "3", label: "All" },
+export const LEVEL_OPTIONS: { key: LevelKey; label: string; hint: string }[] = [
+  { key: "1", label: "Casual", hint: "light enjoyer" },
+  { key: "2", label: "Seasoned", hint: "not my first rodeo" },
+  { key: "3", label: "Otaku", hint: "power level > 9000" },
 ];
 
 export const SORT_OPTIONS: { key: SortKey; label: string }[] = [
-  { key: "popular", label: "Most Popular" },
-  { key: "unpopular", label: "Least Popular" },
+  { key: "popular", label: "Popular" },
+  { key: "unpopular", label: "Unpopular" },
   { key: "az", label: "A-Z" },
   { key: "za", label: "Z-A" },
 ];

@@ -51,15 +51,25 @@ export function TagPoolSection({ allTags, selectedTags, totalSeriesCount, level,
 
   return (
     <section className="border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-5)] p-[var(--space-2xl)] mb-[var(--space-xl)]">
-      <div className="flex items-center gap-[var(--space-md)] mb-[var(--space-xl)]">
-        <h2 className="font-display text-[length:var(--text-xl)] m-0 uppercase tracking-[var(--tracking-sm)]">Tag Pool</h2>
-        <span className="font-body font-bold text-[var(--primary)] text-[length:var(--text-md)]">タグ</span>
-        <span className="ml-auto font-mono text-[length:var(--text-xs)] text-[var(--muted)]">drag or tap to load a slot</span>
-      </div>
+      <div className="flex items-start justify-between gap-[var(--space-lg)] flex-wrap mb-[var(--space-xl)]">
+        <div>
+          <div className="flex items-center gap-[var(--space-md)]">
+            <h2 className="font-display text-[length:var(--text-xl)] leading-[var(--leading-display)] m-0 uppercase tracking-[var(--tracking-sm)]">Tag Pool</h2>
+            <span className="font-body font-bold text-[var(--primary)] text-[length:var(--text-md)]">タグ</span>
+          </div>
+          <span className="block mt-[var(--space-xs)] font-mono text-[length:var(--text-xs)] text-[var(--muted)]">drag or tap to load a slot</span>
+        </div>
 
-      <div className="flex items-center gap-[var(--space-lg)] flex-wrap mb-[var(--space-xl)]">
-        <LevelSelector value={level} onChange={onLevelChange} />
-        <SortSelect value={sort} onChange={setSortPref} />
+        {/* One atomic flex item so Sort+Level move together when wrapped —
+            justify-between above then degenerates to flex-start for this
+            lone item on its own line, matching the header's alignment
+            rather than staying docked right once stacked. Level sits last
+            (rightmost) so its hint — always right-aligned to its own box —
+            lines up flush with the whole group's right edge. */}
+        <div className="flex items-start gap-[var(--space-lg)] flex-wrap">
+          <SortSelect value={sort} onChange={setSortPref} />
+          <LevelSelector value={level} onChange={onLevelChange} />
+        </div>
       </div>
 
       <ScrollFadeArea height={POOL_AREA_HEIGHT} topInset={SECTION_HEADER_HEIGHT}>
