@@ -61,3 +61,46 @@ export function DiceIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+// Two arrows side by side, pointing opposite directions — up on the left,
+// down on the right — the sort/reorder glyph.
+export function SortIcon({ className }: IconProps) {
+  return (
+    <svg
+      className={className}
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M7 18V6" />
+      <path d="M3.5 9.5L7 6l3.5 3.5" />
+      <path d="M17 6v12" />
+      <path d="M20.5 14.5L17 18l-3.5-3.5" />
+    </svg>
+  );
+}
+
+// A rotated label/price-tag silhouette with a small hole — standard tag glyph.
+export function TagIcon({ className }: IconProps) {
+  return (
+    <svg
+      className={className}
+      width="15"
+      height="15"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M11.5 3.5H5A1.5 1.5 0 0 0 3.5 5v6.5a1.5 1.5 0 0 0 .44 1.06l8.5 8.5a1.5 1.5 0 0 0 2.12 0l6.5-6.5a1.5 1.5 0 0 0 0-2.12l-8.5-8.5a1.5 1.5 0 0 0-1.06-.44Z" />
+      <circle cx="8" cy="8" r="1.3" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}

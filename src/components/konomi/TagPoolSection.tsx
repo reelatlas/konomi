@@ -1,6 +1,7 @@
 import { genreTags, sortTags, TAG_SECTIONS, tagsForCategories, tagsForSection } from "@/lib/konomi/tagPool";
 import type { LevelKey, TagInfo } from "@/lib/konomi/types";
 import { CollapsibleSection } from "./CollapsibleSection";
+import { SortIcon, TagIcon } from "./icons";
 import { LevelSelector } from "./LevelSelector";
 import { ScrollFadeArea } from "./ScrollFadeArea";
 import { SortSelect } from "./SortSelect";
@@ -33,6 +34,24 @@ const SECTION_HEADER_HEIGHT = 38;
 // ~1px from the first Tag Pool section (Chrome DevTools bounding-box
 // measurement, not estimated); --space-lg leaves a comfortable ~13-17px.
 const HEADER_HINT_CLEARANCE = "pb-[var(--space-lg)]";
+// The subtext is `absolute` (see below), so its real rendered width is
+// invisible to the flex row's wrap-width calculation, which would otherwise
+// only account for the much-narrower title row — confirmed live, this let
+// the subtext visually overlap the controls in a ~40px window right before
+// the row wrapped (e.g. 11px of real overlap at a 740px viewport). Giving
+// the title block a min-width matching the subtext's measured natural width
+// (172px) plus a small buffer makes the flex row treat that block as
+// needing this much space, so it wraps before any overlap can occur.
+const HEADER_TITLE_MIN_WIDTH = "min-w-[190px]";
+// When the controls wrap below the title block (narrow viewports), the flex
+// container's own wrap-gap is computed from in-flow content only — it can't
+// see the absolutely-positioned subtext hanging below the title row, so the
+// wrapped controls line landed directly on top of it (confirmed live before
+// this fix). This margin on the title block reserves that clearance
+// explicitly — measured live at a comfortable ~15.5px across every wrapped
+// width from 400px to 810px, and --space-2xl happens to be exactly the
+// value that produces it.
+const HEADER_TITLE_WRAP_CLEARANCE = "mb-[var(--space-2xl)]";
 
 function ChipRow({
   tags,
@@ -67,7 +86,7 @@ export function TagPoolSection({ allTags, selectedTags, totalSeriesCount, level,
           space the now-out-of-flow hints need so neither overlaps the
           first Tag Pool section. */}
       <div className={`flex items-center justify-between gap-[var(--space-lg)] flex-wrap ${HEADER_HINT_CLEARANCE} mb-[var(--space-xl)]`}>
-        <div className="relative">
+        <div className={`relative ${HEADER_TITLE_MIN_WIDTH} ${HEADER_TITLE_WRAP_CLEARANCE}`}>
           <div className="flex items-center gap-[var(--space-md)]">
             <h2 className="font-display text-[length:var(--text-xl)] leading-[var(--leading-display)] m-0 uppercase tracking-[var(--tracking-sm)]">Tag Pool</h2>
             <span className="font-body font-bold text-[var(--primary)] text-[length:var(--text-md)]">タグ</span>
@@ -88,10 +107,19 @@ export function TagPoolSection({ allTags, selectedTags, totalSeriesCount, level,
             rather than staying docked right once stacked. Level sits last
             (rightmost) so its hint — always right-aligned to its own box —
             lines up flush with the whole group's right edge. Sort/Level stay
-            items-start against each other so their top edges line up. */}
+            items-start against each other so their top edges line up. Each
+            icon is paired with its own control in a nested items-center row
+            so it centers against that control's height specifically, not
+            the row's overall height. */}
         <div className="flex items-start gap-[var(--space-lg)] flex-wrap">
-          <SortSelect value={sort} onChange={setSortPref} />
-          <LevelSelector value={level} onChange={onLevelChange} />
+          <div className="flex items-center gap-[var(--space-sm)]">
+            <SortIcon className="text-[var(--ink)]" />
+            <SortSelect value={sort} onChange={setSortPref} />
+          </div>
+          <div className="flex items-center gap-[var(--space-sm)]">
+            <TagIcon className="text-[var(--ink)]" />
+            <LevelSelector value={level} onChange={onLevelChange} />
+          </div>
         </div>
       </div>
 
