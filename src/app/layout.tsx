@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Konomi — anime tag remixer",
-  description: "Pick up to 3 tags, mix them, and get your top series recommendations.",
+  title: "KONOMI",
+  description: "anime tag mixer",
 };
 
 export default function RootLayout({
