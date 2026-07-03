@@ -16,30 +16,22 @@ interface TagPoolBodyProps {
 
 const STRIP_GAP = 12; // --space-lg
 // max-h-, not h- — a short section (Genres, Setting, Demographic) should
-// hug its own content and render shorter than Recommendations, not pad out
-// to match it every time; a long one (Theme) still caps at the same
-// ceiling Recommendations uses and scrolls past it. This is a deliberate
-// departure from the older fixed-height version's invariant ("both tabs
-// render at the exact same total height, always") — switching from a short
-// Tag Pool section to Recommendations (or vice versa) can now visibly
-// change the panel's height, by choice, in exchange for not showing a
-// mostly-empty 445px box for a 2-tag section. --result-card-height minus
-// the tab strip + gap it now sits below is still the *ceiling*, not a
-// fixed value — ScrollFadeArea's own overflow-detection (scrollHeight vs
-// clientHeight) needs no changes to support a max-h box: clientHeight
-// already equals natural content height whenever that's under the cap.
+// hug its own content, not pad out to match a fixed ceiling every time; a
+// long one (Theme) caps and scrolls past it. dvh, not vh: this cap lives
+// inside MixerBar's bottom sheet, and dvh avoids the well-known mobile
+// Safari/Chrome dynamic-toolbar jump plain vh produces (see MixerBar.tsx's
+// own top comment — same reasoning, this is the one place it actually
+// bites). This used to be pegged to --result-card-height (this component's
+// old container was a page-width tab matching Recommendations' height);
+// now that it lives in a capped bottom sheet instead, that peg no longer
+// means anything, so this caps against the viewport directly.
 //
-// This has to be a literal string, not built via template interpolation
-// (e.g. `` `max-h-[calc(...)-${tabStripHeight + STRIP_GAP}px)]` ``) —
-// Tailwind's scanner needs the full class as static source text to
-// generate its CSS; a runtime-computed template literal is invisible to it
-// and silently produces no rule at all. Confirmed live as a real bug while
-// building this: an interpolated version rendered with no height
-// constraint whatsoever (height:auto, the whole Theme section stacked to
-// ~1066px). The 42px below = the tab strip's own rendered height (30px,
-// measured live against the real component, not estimated) + STRIP_GAP
-// (12px) — keep this literal in sync by hand if either changes.
-const CHIP_AREA_HEIGHT = "max-h-[calc(var(--result-card-height)-42px)]";
+// Literal string, not built via template interpolation — Tailwind's
+// scanner needs the full class as static source text to generate its CSS;
+// a runtime-computed template literal is invisible to it and silently
+// produces no rule at all (confirmed live as a real bug once, before this
+// was a literal).
+const CHIP_AREA_HEIGHT = "max-h-[50dvh]";
 
 function ChipRow({
   tags,
@@ -60,12 +52,10 @@ function ChipRow({
 }
 
 // Body-only — the section-level chrome (border/shadow/padding) and the
-// title/controls header both moved out to TagPoolRecommendationsPanel and
-// PanelToggleHeader respectively, once Tag Pool became a tab sharing one
-// card with Recommendations instead of its own independent section. `level`
-// is still a prop (needed to filter which tags render), but there's no
-// `onLevelChange` here anymore — that control now lives in the header,
-// which calls the same handler directly.
+// Level/Sort header both live in MixerBar now, which renders this inside
+// its bottom-anchored edit-mode pool panel. `level` is still a prop (needed
+// to filter which tags render), but there's no `onLevelChange` here — that
+// control lives in MixerBar, which calls the same handler directly.
 //
 // Section navigation is a horizontal tab strip (SectionTabStrip), not
 // collapsible sections — see DESIGN_SYSTEM.md for why that replaced the
@@ -74,11 +64,11 @@ function ChipRow({
 export function TagPoolBody({ allTags, selectedTags, totalSeriesCount, level, onChipToggle }: TagPoolBodyProps) {
   const sort = useSort();
   // Plain component state, not localStorage-backed — TagPoolBody itself
-  // never unmounts while the Recommendations tab is active (only `hidden`
-  // toggles, in TagPoolRecommendationsPanel), so this alone is enough for
-  // the active section and its scroll position to survive switching to
-  // Recommendations and back. No requirement was made for this to survive
-  // a full page reload, so it isn't persisted beyond the session.
+  // never unmounts while browse mode is active (only max-h-0 toggles, in
+  // MixerBar), so this alone is enough for the active section and its
+  // scroll position to survive closing and reopening edit mode. No
+  // requirement was made for this to survive a full page reload, so it
+  // isn't persisted beyond the session.
   const [activeSectionKey, setActiveSectionKey] = useState(TAG_SECTIONS[0].key);
 
   // Every section with at least one tag at the current level — hidden
@@ -118,15 +108,16 @@ export function TagPoolBody({ allTags, selectedTags, totalSeriesCount, level, on
       {/* key={active.section.key}: forces a clean remount (and therefore a
           reset scroll position) on every section switch — you said
           reset-to-top there is fine, and per-section scroll memory isn't
-          worth the complexity for now. Switching the *panel* tab (to
-          Recommendations and back) never touches this key, so this area's
-          scroll position is untouched by that — it survives purely because
-          TagPoolBody itself stays mounted throughout (see this file's own
-          top comment). surfaceColor="var(--bg)": this sits directly on the
-          page background, not a --surface card (Tag Pool has no card shell
-          of its own — see "Tag Pool and Recommendations became two tabs" in
-          DESIGN_SYSTEM.md). role=tabpanel/aria-labelledby/tabIndex make
-          this the real target of the tab strip's aria-controls above. */}
+          worth the complexity for now. Opening/closing edit mode (in
+          MixerBar) never touches this key, so this area's scroll position
+          is untouched by that — it survives purely because TagPoolBody
+          itself stays mounted throughout (see this file's own top
+          comment). surfaceColor="var(--surface)": this now sits inside
+          MixerBar's bottom-anchored bar, which is a --surface card, not
+          directly on the page background the way it was as its own tab —
+          see DESIGN_SYSTEM.md's "Super-mixer edit mode" section.
+          role=tabpanel/aria-labelledby/tabIndex make this the real target
+          of the tab strip's aria-controls above. */}
       <div
         key={active.section.key}
         id={`tagpool-panel-${active.section.key}`}
@@ -134,7 +125,7 @@ export function TagPoolBody({ allTags, selectedTags, totalSeriesCount, level, on
         aria-labelledby={`tagpool-tab-${active.section.key}`}
         tabIndex={0}
       >
-        <ScrollFadeArea height={CHIP_AREA_HEIGHT} scrollStep={92} fadeSize={4} surfaceColor="var(--bg)">
+        <ScrollFadeArea height={CHIP_AREA_HEIGHT} scrollStep={92} fadeSize={4} surfaceColor="var(--surface)">
           {/* pb/pr-[3px]: base-size TagChip carries shadow-[var(--elev-2)]
               (3px 3px 0, bottom-right, no blur). ScrollFadeArea's vertical
               viewport sets overflow-y-auto/overflow-x-hidden, so a chip's

@@ -75,7 +75,7 @@ export function SectionTabStrip({ sections, activeKey, onChange }: SectionTabStr
   }
 
   return (
-    <ScrollFadeArea orientation="horizontal" scrollStep={SCROLL_STEP} fadeSize={12} surfaceColor="var(--bg)">
+    <ScrollFadeArea orientation="horizontal" scrollStep={SCROLL_STEP} fadeSize={12} surfaceColor="var(--surface)">
       <div role="tablist" aria-label="Tag pool sections" onKeyDown={handleKeyDown} className="flex flex-nowrap items-center gap-[var(--space-xl)]">
         {sections.map((section) => {
           const active = section.key === activeKey;
