@@ -98,7 +98,15 @@ export function RecommendationsBody({
   };
 
   return (
-    <>
+    // flow-root (a new block formatting context), not a plain fragment —
+    // the carousel row below cancels its own shadow-clipping padding with a
+    // negative margin (see that div's comment). Negative margins collapse
+    // through any number of unbroken parent/child edges, so without a BFC
+    // boundary right here, that -5px silently ate into this section's own
+    // external mb-3xl in the parent instead of staying contained to the
+    // padding it was meant to cancel. flow-root stops it at this component's
+    // own edge, exactly where the compensation should end.
+    <div className="flow-root">
       {!hasResults && (
         // !hasResults, not `empty` (!generated) — a RECOMMEND that fails
         // with an error (impossible-min/no-match) still sets `generated:
@@ -178,11 +186,22 @@ export function RecommendationsBody({
         // specific name) is the same shared hover-reveal group name
         // ScrollFadeArea's arrows use — see IconButton's own doc comment
         // for why the group name had to be unified rather than parameterized.
-        <div className="relative group/reveal">
+        <div className="relative group/reveal max-[1152px]:-mr-[5px] max-[1152px]:-mb-[5px]">
+          {/* Setting overflow-x without overflow-y doesn't leave overflow-y
+              at its default `visible` — CSS computes it as `auto` too
+              whenever exactly one axis is non-visible (see the CSS Overflow
+              spec's "overflow-x/-y interaction" rule). That silently clips
+              each card's elev-4 shadow (5px 5px 0, bottom-right only, no
+              blur) wherever it bleeds past this row's own box. pr/pb-[5px]
+              here (matching the shadow's offset exactly, not a guess) gives
+              the now-auto overflow room to paint the shadow instead of
+              cutting it off; the wrapper's matching -mr/-mb-[5px] cancels
+              the added size back out so nothing below/right of the row
+              shifts. */}
           <div
             ref={rowRef}
             onScroll={updateScrollEdges}
-            className="grid grid-cols-[repeat(auto-fill,minmax(208px,1fr))] gap-[var(--space-xl)] max-[1152px]:flex max-[1152px]:overflow-x-auto max-[1152px]:snap-x max-[1152px]:snap-mandatory max-[1152px]:[scroll-padding-left:6%] max-[1152px]:[scrollbar-width:none] max-[1152px]:[&::-webkit-scrollbar]:hidden"
+            className="grid grid-cols-[repeat(auto-fill,minmax(208px,1fr))] gap-[var(--space-xl)] max-[1152px]:flex max-[1152px]:overflow-x-auto max-[1152px]:pr-[5px] max-[1152px]:pb-[5px] max-[1152px]:snap-x max-[1152px]:snap-mandatory max-[1152px]:[scroll-padding-left:6%] max-[1152px]:[scrollbar-width:none] max-[1152px]:[&::-webkit-scrollbar]:hidden"
           >
             {results.map((entry) => (
               <ResultCard
@@ -248,6 +267,6 @@ export function RecommendationsBody({
           )}
         </div>
       )}
-    </>
+    </div>
   );
 }
