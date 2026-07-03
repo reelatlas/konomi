@@ -15,6 +15,16 @@ interface ScrollFadeAreaProps {
   // Tag Pool's section tab strip) wants the full width available to it, so
   // a per-instance sizing prop would be unused generality.
   height?: string;
+  // Vertical-only, overrides `height` with an inline max-height in px
+  // instead of a Tailwind class — for a height that's only known at
+  // runtime (MixerBar's desktop drag-resize handle). A computed arbitrary-
+  // value class string (e.g. `` `max-h-[${n}px]` ``) can't work here the
+  // same way `height` does: Tailwind's scanner needs the full class as
+  // static source text to generate CSS for it, so a runtime-built one is
+  // invisible to it and silently produces no rule at all (the same failure
+  // mode TagPoolBody's CHIP_AREA_HEIGHT comment documents for the same
+  // reason). An inline style has no such constraint.
+  heightPx?: number;
   orientation?: Orientation;
   // The amount a single (non-held) arrow click moves, in px. Most callers
   // pass a fixed number; getScrollStep (below) exists for the one caller
@@ -102,6 +112,7 @@ const DEFAULT_CONTINUOUS_SCROLL_SPEED = 6;
 // e.g. a level change hiding/showing tags.
 export function ScrollFadeArea({
   height,
+  heightPx,
   orientation = "vertical",
   scrollStep = DEFAULT_SCROLL_STEP,
   getScrollStep,
@@ -311,15 +322,16 @@ export function ScrollFadeArea({
         ref={scrollRef}
         onScroll={updateScrollState}
         onWheel={horizontal ? handleWheel : undefined}
-        style={
-          scrollPaddingStart
+        style={{
+          ...(scrollPaddingStart
             ? horizontal
               ? { scrollPaddingLeft: scrollPaddingStart }
               : { scrollPaddingTop: scrollPaddingStart }
-            : undefined
-        }
+            : undefined),
+          ...(!horizontal && heightPx !== undefined ? { maxHeight: heightPx } : undefined),
+        }}
         className={[
-          horizontal ? "w-full overflow-x-auto overflow-y-hidden" : `${height} overflow-y-auto overflow-x-hidden`,
+          horizontal ? "w-full overflow-x-auto overflow-y-hidden" : `${heightPx !== undefined ? "" : height} overflow-y-auto overflow-x-hidden`,
           "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
           snap ? (horizontal ? "snap-x snap-mandatory" : "snap-y snap-mandatory") : "",
         ].join(" ")}

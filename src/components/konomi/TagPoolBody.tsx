@@ -12,6 +12,11 @@ interface TagPoolBodyProps {
   totalSeriesCount: number;
   level: LevelKey;
   onChipToggle: (tag: string) => void;
+  // Desktop drag-resize override (MixerBar's resize handle) — undefined
+  // means "never dragged this session, use the CSS 50dvh default"
+  // (CHIP_AREA_HEIGHT below). See ScrollFadeArea's heightPx prop for why
+  // this can't just be a computed Tailwind class instead.
+  chipAreaHeightPx?: number;
 }
 
 const STRIP_GAP = 12; // --space-lg
@@ -61,7 +66,7 @@ function ChipRow({
 // collapsible sections — see DESIGN_SYSTEM.md for why that replaced the
 // old sticky-header/mask machinery entirely rather than keeping it around
 // in reduced form.
-export function TagPoolBody({ allTags, selectedTags, totalSeriesCount, level, onChipToggle }: TagPoolBodyProps) {
+export function TagPoolBody({ allTags, selectedTags, totalSeriesCount, level, onChipToggle, chipAreaHeightPx }: TagPoolBodyProps) {
   const sort = useSort();
   // Plain component state, not localStorage-backed — TagPoolBody itself
   // never unmounts while browse mode is active (only max-h-0 toggles, in
@@ -125,7 +130,7 @@ export function TagPoolBody({ allTags, selectedTags, totalSeriesCount, level, on
         aria-labelledby={`tagpool-tab-${active.section.key}`}
         tabIndex={0}
       >
-        <ScrollFadeArea height={CHIP_AREA_HEIGHT} scrollStep={92} fadeSize={4} surfaceColor="var(--surface)">
+        <ScrollFadeArea height={CHIP_AREA_HEIGHT} heightPx={chipAreaHeightPx} scrollStep={92} fadeSize={4} surfaceColor="var(--surface)">
           {/* pb/pr-[3px]: base-size TagChip carries shadow-[var(--elev-2)]
               (3px 3px 0, bottom-right, no blur). ScrollFadeArea's vertical
               viewport sets overflow-y-auto/overflow-x-hidden, so a chip's
