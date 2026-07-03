@@ -23,7 +23,7 @@ export function Masthead({ theme, onThemeChange }: MastheadProps) {
         </div>
       </div>
       <p className="font-mono text-[length:var(--text-base)] tracking-[var(--tracking-sm)] text-[var(--primary)] mt-[var(--space-md)] mb-[var(--space-xl)]">
-        pick up to 3 tags · get your top series · remix
+        pick up to 3 tags → get your top series → remix
       </p>
       <div className="h-[9px] bg-[var(--secondary)] border-t-[length:var(--border-base)] border-t-[var(--ink)] mx-[calc(var(--space-2xl)*-1)]" />
     </header>

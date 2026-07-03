@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { scoreSeries, streamsFor } from "@/lib/konomi/scoring";
 import { isTagVisibleAtLevel, sortTags } from "@/lib/konomi/tagPool";
 import type { LevelKey, ResultEntry, SortKey, TagInfo } from "@/lib/konomi/types";
@@ -9,8 +9,15 @@ import { TagScrollArea } from "./TagScrollArea";
 
 const DOT_CLASSES = ["bg-[var(--secondary)]", "bg-[var(--primary)]", "bg-[var(--muted)]"];
 
+// flex-none — not optional, despite the fixed w-[30px]/h-[30px]: these
+// buttons share a flex row with the hover-hint chip (a third sibling that
+// mounts in-flow once hovered), and flex items default to flex-shrink:1
+// regardless of an explicit width. Without flex-none, a wide hint mounting
+// could shrink these buttons to make room instead of letting the hint (its
+// own min-w-0) wrap — which moved the icon out from under the cursor
+// mid-hover and caused a mouseleave/mouseenter flicker loop, confirmed live.
 const ICON_BTN =
-  "w-[30px] h-[30px] inline-flex items-center justify-center p-0 border-[length:var(--border-thin)] border-[var(--ink)] shadow-[var(--elev-1)] cursor-pointer text-[var(--ink)]";
+  "flex-none w-[30px] h-[30px] inline-flex items-center justify-center p-0 border-[length:var(--border-thin)] border-[var(--ink)] shadow-[var(--elev-1)] cursor-pointer text-[var(--ink)]";
 
 interface ResultCardProps {
   entry: ResultEntry;
@@ -93,6 +100,34 @@ export function ResultCard({
   const swapHint = locked ? null : filledCount < minNum ? ERROR_MESSAGE["impossible-min"] : !canSwap ? "no swaps available for this mix" : "swap";
   const lockHint = locked ? "unlock" : "lock";
   const activeHint = hoveredIcon === "lock" ? lockHint : hoveredIcon === "swap" ? swapHint : null;
+  const hintRef = useRef<HTMLSpanElement>(null);
+  const [hintWrapped, setHintWrapped] = useState(false);
+  // CSS has no way to select on "did this text wrap to multiple lines," so
+  // this is measured directly: derive the expected single-line box height
+  // from the hint's own computed line-height/padding/border (not a guessed
+  // pixel constant — stays correct regardless of font-size or theme
+  // changes), then compare against its actual rendered height. Taller means
+  // it wrapped. Runs after every hint change since a different hint string
+  // (different length) can wrap where the previous one didn't. useLayoutEffect,
+  // not useEffect — this reads layout (offsetHeight) and writes state that
+  // changes layout (items-start/items-center) in response; useEffect would
+  // let the browser paint once with the stale alignment first, a one-frame
+  // flash right when the whole point is to avoid visible jumps.
+  useLayoutEffect(() => {
+    const el = hintRef.current;
+    if (!activeHint || !el) {
+      setHintWrapped(false);
+      return;
+    }
+    const style = getComputedStyle(el);
+    const singleLineHeight =
+      parseFloat(style.lineHeight) +
+      parseFloat(style.paddingTop) +
+      parseFloat(style.paddingBottom) +
+      parseFloat(style.borderTopWidth) +
+      parseFloat(style.borderBottomWidth);
+    setHintWrapped(el.offsetHeight > singleLineHeight + 1);
+  }, [activeHint]);
   const streams = streamsFor(series.title);
   const hasImage = Boolean(series.coverImageUrl);
   // year/eps come from AniList and can genuinely be null (e.g. unreleased
@@ -139,7 +174,22 @@ export function ResultCard({
                 role that's guaranteed dark in every theme — ink/surface
                 flip per theme and would go light-on-light in Tide. */}
             <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[100px] bg-gradient-to-t from-[var(--on-secondary)] to-transparent" />
-            <div className="absolute top-[var(--space-md)] left-[var(--space-md)] right-[var(--space-md)] flex items-center gap-[var(--space-sm)]">
+            {/* items-center normally (centers the single-line hint nicely
+                against the 30px icons, which are still the tallest/only
+                item defining the row's height in that case), but switches
+                to items-start the moment the hint wraps to two lines and
+                becomes taller than the icons — items-center would then
+                re-center the whole row against that new taller height,
+                visibly shifting both icons every time a multi-line hint
+                mounts/unmounts. items-start pins them to the row's own top
+                edge instead, so only the hint grows downward. hintWrapped
+                is measured, not guessed (see the effect above). */}
+            <div
+              className={[
+                "absolute top-[var(--space-md)] left-[var(--space-md)] right-[var(--space-md)] flex gap-[var(--space-sm)]",
+                hintWrapped ? "items-start" : "items-center",
+              ].join(" ")}
+            >
               <button
                 type="button"
                 aria-label={lockHint}
@@ -207,7 +257,10 @@ export function ResultCard({
                   show keeps the icon row exactly as wide as its two 30px
                   buttons the rest of the time. */}
               {activeHint && (
-                <span className="min-w-0 bg-[var(--surface)] border-[length:var(--border-thin)] border-[var(--ink)] shadow-[var(--elev-1)] px-[var(--space-sm)] py-[var(--space-xs)] font-mono text-[length:var(--text-2xs)] text-[var(--ink)]">
+                <span
+                  ref={hintRef}
+                  className="min-w-0 bg-[var(--surface)] border-[length:var(--border-thin)] border-[var(--ink)] shadow-[var(--elev-1)] px-[var(--space-sm)] py-[var(--space-xs)] font-mono text-[length:var(--text-2xs)] text-[var(--ink)]"
+                >
                   {activeHint}
                 </span>
               )}
