@@ -3,10 +3,9 @@ import type { ResultEntry, TagInfo } from "@/lib/konomi/types";
 import { ResultCard } from "./ResultCard";
 import { useLevel, useSort } from "./tagPoolPrefs";
 
-interface RecommendationsSectionProps {
+interface RecommendationsBodyProps {
   results: ResultEntry[];
   hasResults: boolean;
-  resultsHint: string;
   selectedTags: string[];
   filledCount: number;
   minNum: number;
@@ -14,7 +13,6 @@ interface RecommendationsSectionProps {
   locked: Record<string, boolean>;
   flipped: Record<string, boolean>;
   canSwap: boolean;
-  onClearRecs: () => void;
   onFlip: (title: string) => void;
   onToggleLock: (title: string) => void;
   onReplace: (title: string) => void;
@@ -23,10 +21,14 @@ interface RecommendationsSectionProps {
   totalSeriesCount: number;
 }
 
-export function RecommendationsSection({
+// Body-only — the section-level chrome (border/shadow/padding) and the
+// title/resultsHint/Clear✕ header all moved out to
+// TagPoolRecommendationsPanel and PanelToggleHeader respectively, once
+// Recommendations became a tab sharing one card with Tag Pool instead of
+// its own independent, unbordered section.
+export function RecommendationsBody({
   results,
   hasResults,
-  resultsHint,
   selectedTags,
   filledCount,
   minNum,
@@ -34,14 +36,13 @@ export function RecommendationsSection({
   locked,
   flipped,
   canSwap,
-  onClearRecs,
   onFlip,
   onToggleLock,
   onReplace,
   onChipToggle,
   tagInfoByName,
   totalSeriesCount,
-}: RecommendationsSectionProps) {
+}: RecommendationsBodyProps) {
   const level = useLevel();
   const sort = useSort();
   const rowRef = useRef<HTMLDivElement>(null);
@@ -94,23 +95,9 @@ export function RecommendationsSection({
     const gap = 16; // mirrors --space-xl, the row's own gap-xl
     el.scrollBy({ left: direction * (cardWidth + gap), behavior: "smooth" });
   };
-  return (
-    <section className="mb-[var(--space-3xl)]">
-      <div className="flex items-center gap-[var(--space-md)] mb-[var(--space-xl)]">
-        <h2 className="font-display text-[length:var(--text-2xl)] m-0 uppercase tracking-[var(--tracking-sm)]">Recommendations</h2>
-        <span className="font-body font-bold text-[var(--primary)] text-[length:var(--text-md)]">おすすめ</span>
-        <span className="ml-auto font-mono text-[length:var(--text-xs)] text-[var(--muted)]">{resultsHint}</span>
-        {hasResults && (
-          <button
-            type="button"
-            onClick={onClearRecs}
-            className="bg-[var(--ink)] text-[var(--bg)] border-[length:var(--border-base)] border-[var(--ink)] font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-xl)] px-[var(--space-lg)] py-[var(--space-md)] cursor-pointer uppercase"
-          >
-            Clear ✕
-          </button>
-        )}
-      </div>
 
+  return (
+    <>
       {!hasResults && (
         // !hasResults, not `empty` (!generated) — a RECOMMEND that fails
         // with an error (impossible-min/no-match) still sets `generated:
@@ -127,9 +114,10 @@ export function RecommendationsSection({
         // fixes the error and hits RECOMMEND again.
         //
         // min-h-[var(--result-card-height)] (the same token ResultCard's
-        // own height reads from — see globals.css) instead of a measured
-        // literal: the empty state and the results grid must always be the
-        // exact same height, or the page visibly jumps the instant results
+        // own height reads from, and the same one TagPoolBody's scroll area
+        // now targets too — see that file) instead of a measured literal:
+        // the empty state and the results grid must always be the exact
+        // same height, or the page visibly jumps the instant results
         // replace this placeholder. flex/items-center/justify-center
         // centers the content within that now-taller box (previously this
         // relied on py-huge padding to both establish height and center
@@ -220,15 +208,15 @@ export function RecommendationsSection({
               and visible only on hover of the row (mirrors its
               group-hover/scroll reveal) — a permanent pair of arrows
               sitting on top of the peek affordance would be redundant
-              chrome most of the time. z-10 + an opaque bg/border/shadow
-              (not a flat ScrollFadeArea-style treatment) since these sit
-              over arbitrary cover art, not a flat surface color. */}
+              chrome most of the time. z-overlay + an opaque bg/border/
+              shadow (not a flat ScrollFadeArea-style treatment) since these
+              sit over arbitrary cover art, not a flat surface color. */}
           {!atStart && (
             <button
               type="button"
               aria-label="Scroll to previous result"
               onClick={() => scrollByCard(-1)}
-              className="hidden max-[1152px]:flex absolute top-1/2 -translate-y-1/2 left-[var(--space-md)] w-[36px] h-[36px] items-center justify-center rounded-full border-[length:var(--border-hair)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-1)] text-[length:var(--text-sm)] leading-none text-[var(--ink)] opacity-0 group-hover/carousel:opacity-100 transition-opacity cursor-pointer z-10"
+              className="hidden max-[1152px]:flex absolute top-1/2 -translate-y-1/2 left-[var(--space-md)] w-[36px] h-[36px] items-center justify-center rounded-full border-[length:var(--border-hair)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-1)] text-[length:var(--text-sm)] leading-none text-[var(--ink)] opacity-0 group-hover/carousel:opacity-100 transition-opacity cursor-pointer z-[var(--z-overlay)]"
             >
               ◀
             </button>
@@ -238,13 +226,13 @@ export function RecommendationsSection({
               type="button"
               aria-label="Scroll to next result"
               onClick={() => scrollByCard(1)}
-              className="hidden max-[1152px]:flex absolute top-1/2 -translate-y-1/2 right-[var(--space-md)] w-[36px] h-[36px] items-center justify-center rounded-full border-[length:var(--border-hair)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-1)] text-[length:var(--text-sm)] leading-none text-[var(--ink)] opacity-0 group-hover/carousel:opacity-100 transition-opacity cursor-pointer z-10"
+              className="hidden max-[1152px]:flex absolute top-1/2 -translate-y-1/2 right-[var(--space-md)] w-[36px] h-[36px] items-center justify-center rounded-full border-[length:var(--border-hair)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-1)] text-[length:var(--text-sm)] leading-none text-[var(--ink)] opacity-0 group-hover/carousel:opacity-100 transition-opacity cursor-pointer z-[var(--z-overlay)]"
             >
               ▶
             </button>
           )}
         </div>
       )}
-    </section>
+    </>
   );
 }

@@ -33,6 +33,16 @@ interface ScrollFadeAreaProps {
   // visible as a "there's more above" peek. 0 (no peek) unless a caller
   // opts in.
   scrollPaddingTop?: number;
+  // What the top/bottom fade gradients fade *from*, and what the hover
+  // arrows are filled with — i.e. "the color of whatever's actually behind
+  // this component," not a fixed choice. Defaults to --surface, correct for
+  // any caller sitting on a --surface card (TagScrollArea, inside
+  // ResultCard). TagPoolBody overrides this to --bg once the Tag Pool
+  // panel lost its own bordered/--surface card shell — with the default
+  // still in place there, the gradients and arrows kept fading to/filling
+  // with white against the page's actual (non-white) --bg, reading as a
+  // mismatched pale patch/line at the scroll edges, confirmed live.
+  surfaceColor?: string;
   // Height of the top/bottom fade gradients, in px. Callers with a real
   // peek already showing (TagScrollArea) want this small or 0 — the
   // gradient's job is exactly what the peek already does, and a full-size
@@ -40,6 +50,34 @@ interface ScrollFadeAreaProps {
   // supposed to preview. Callers with no peek (the Tag Pool) keep the
   // default, where the gradient is the only "there's more" signal.
   fadeSize?: number;
+  // Real alpha transparency at the top edge, via CSS mask-image — not a
+  // color-overlay gradient like fadeSize above. A first attempt at "hide
+  // chips before they reach a transparent sticky header" used exactly that
+  // kind of overlay (a solid-to-transparent gradient div drawn on top of
+  // the content, matching the surrounding background color) — confirmed
+  // live that it doesn't work: it fades content to a *color*, not to
+  // nothing, so it visibly collides with the header's own (genuinely
+  // transparent) text instead of cleanly erasing whatever's behind it.
+  // mask-image erases actual pixels to true transparency — content that's
+  // "faded" this way reveals whatever is really behind it (the page, a
+  // border, anything), with no assumption about what color that is, which
+  // is the same technique iOS/macOS scroll views use for edge fades.
+  // Applied to the scroll viewport itself, not a child, so it covers
+  // everything scrolling through that band uniformly. 0 (no mask) unless a
+  // caller opts in.
+  topMaskSize?: number;
+  // Extends the mask's fully-transparent zone into a flat plateau from 0 up
+  // to this many px, *before* the ramp to opaque starts (which then runs
+  // from here to topMaskSize). Without this, the mask is a single ramp
+  // starting at 0 — meaning it's only *exactly* 0% opaque at y=0 itself; a
+  // few px into the ramp (e.g. within a sticky header's own height) content
+  // is already partially visible, confirmed live as a real bug: chips
+  // sitting behind a pinned, transparent sticky header were still faintly
+  // visible, not fully erased, because the header's whole 0-38px band
+  // wasn't actually within the mask's 0%-opacity region — only its very top
+  // edge was. Set this to the header's own height so nothing behind it, at
+  // any point in that band, is ever partially visible.
+  topMaskFlatSize?: number;
   // Per-frame px rate for continuous (held) scrolling. Deliberately a prop,
   // not a single shared constant: the same rate reads completely
   // differently depending on how big the scrollable area is relative to
@@ -48,6 +86,22 @@ interface ScrollFadeAreaProps {
   // much smaller area — confirmed live, not just theorized, after the
   // first shared-constant version shipped.
   continuousScrollSpeed?: number;
+  // Fires once with the actual scrolling DOM element, as soon as it mounts
+  // — lets a caller (TagPoolBody) attach its own scroll-position tracking
+  // (which section is "active," for the sticky-header-overlay mechanism
+  // below) without ScrollFadeArea needing to know anything about sections.
+  onScrollContainerMount?: (el: HTMLDivElement) => void;
+  // Rendered as a plain sibling of the masked/scrollable content, inside
+  // the same relative wrapper — i.e., explicitly *not* a descendant of the
+  // element topMaskSize masks. This is the other half of that mechanism:
+  // topMaskSize erases the *real*, in-flow sticky header along with
+  // everything else scrolling through that band (masks can't exempt one
+  // descendant while affecting others at the same screen position — there
+  // is no CSS escape hatch for that), so a caller that wants a crisp,
+  // unfaded sticky header has to render a second, unmasked copy of
+  // whichever one is currently active here instead, positioned to sit
+  // exactly where the real (now-hidden-while-active) one would be.
+  stickyOverlay?: React.ReactNode;
   children: React.ReactNode;
 }
 
@@ -77,8 +131,13 @@ export function ScrollFadeArea({
   topInset = 0,
   snap = false,
   scrollPaddingTop = 0,
+  surfaceColor = "var(--surface)",
   fadeSize = DEFAULT_FADE_SIZE,
+  topMaskSize = 0,
+  topMaskFlatSize = 0,
   continuousScrollSpeed = DEFAULT_CONTINUOUS_SCROLL_SPEED,
+  onScrollContainerMount,
+  stickyOverlay,
   children,
 }: ScrollFadeAreaProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -251,12 +310,49 @@ export function ScrollFadeArea({
   const showTopGradient = hasOverflow && !atTop;
   const showBottomGradient = hasOverflow && !atBottom;
 
+  // useCallback, not an inline arrow — the same reason stopContinuousScroll
+  // above needs one. An inline ref callback is a *new* function every
+  // render, and React treats a changed ref function as "detach the old one,
+  // attach the new one" even when the DOM element itself hasn't changed —
+  // calling onScrollContainerMount again every single render. Since that
+  // callback (TagPoolBody's recomputeActive) calls setState, this produced
+  // an actual infinite render loop, confirmed live ("Maximum update depth
+  // exceeded"). A stable callback reference is only invoked when the
+  // element it's attached to actually mounts/unmounts.
+  const setScrollRef = useCallback(
+    (el: HTMLDivElement | null) => {
+      scrollRef.current = el;
+      if (el) onScrollContainerMount?.(el);
+    },
+    [onScrollContainerMount],
+  );
+
   return (
     <div className="group/scroll relative">
       <div
-        ref={scrollRef}
+        ref={setScrollRef}
         onScroll={updateScrollState}
-        style={scrollPaddingTop ? { scrollPaddingTop } : undefined}
+        style={{
+          ...(scrollPaddingTop ? { scrollPaddingTop } : undefined),
+          // Real erasure to transparency, not a color blend — see
+          // topMaskSize's own doc comment above for why this replaced an
+          // earlier gradient-overlay attempt. Four stops, not two: a plain
+          // transparent→black ramp starting at 0 is only *exactly* 0%
+          // opaque at y=0 — a few px into the ramp (e.g. a sticky header's
+          // own height), content is already partially visible again,
+          // confirmed live as a real bug (see topMaskFlatSize's own doc
+          // comment). Holding flat at transparent through topMaskFlatSize,
+          // *then* ramping to opaque by topMaskSize, guarantees nothing in
+          // that whole flat zone is ever partially visible, not just its
+          // very top edge. -webkit- prefix included since mask-image
+          // support without it is inconsistent across Safari versions.
+          ...(topMaskSize > 0
+            ? {
+                WebkitMaskImage: `linear-gradient(to bottom, transparent, transparent ${topMaskFlatSize}px, black ${topMaskSize}px, black 100%)`,
+                maskImage: `linear-gradient(to bottom, transparent, transparent ${topMaskFlatSize}px, black ${topMaskSize}px, black 100%)`,
+              }
+            : undefined),
+        }}
         className={`${height} overflow-y-auto overflow-x-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${snap ? "snap-y snap-mandatory" : ""}`}
       >
         <div ref={contentRef}>{children}</div>
@@ -270,14 +366,14 @@ export function ScrollFadeArea({
           div for no reason. */}
       {showTopGradient && fadeSize > 0 && (
         <div
-          className="pointer-events-none absolute inset-x-0 bg-gradient-to-b from-[var(--surface)] to-transparent"
-          style={{ top: topInset, height: fadeSize }}
+          className="pointer-events-none absolute inset-x-0"
+          style={{ top: topInset, height: fadeSize, backgroundImage: `linear-gradient(to bottom, ${surfaceColor}, transparent)` }}
         />
       )}
       {showBottomGradient && fadeSize > 0 && (
         <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-[var(--surface)] to-transparent"
-          style={{ height: fadeSize }}
+          className="pointer-events-none absolute inset-x-0 bottom-0"
+          style={{ height: fadeSize, backgroundImage: `linear-gradient(to top, ${surfaceColor}, transparent)` }}
         />
       )}
 
@@ -325,8 +421,8 @@ export function ScrollFadeArea({
             handlePressEnd(-1);
           }}
           onClick={(e) => e.stopPropagation()}
-          className="absolute left-1/2 -translate-x-1/2 w-[18px] h-[16px] flex items-center justify-center rounded-full border-[length:var(--border-hair)] border-[var(--ink)] bg-[var(--surface)] text-[8px] leading-none text-[var(--ink)] opacity-0 group-hover/scroll:opacity-100 transition-opacity cursor-pointer z-10"
-          style={{ top: topInset + 2 }}
+          className="absolute left-1/2 -translate-x-1/2 w-[18px] h-[16px] flex items-center justify-center rounded-full border-[length:var(--border-hair)] border-[var(--ink)] text-[8px] leading-none text-[var(--ink)] opacity-0 group-hover/scroll:opacity-100 transition-opacity cursor-pointer z-[var(--z-overlay)]"
+          style={{ top: topInset, backgroundColor: surfaceColor }}
         >
           ▲
         </button>
@@ -353,11 +449,13 @@ export function ScrollFadeArea({
             handlePressEnd(1);
           }}
           onClick={(e) => e.stopPropagation()}
-          className="absolute bottom-[2px] left-1/2 -translate-x-1/2 w-[18px] h-[16px] flex items-center justify-center rounded-full border-[length:var(--border-hair)] border-[var(--ink)] bg-[var(--surface)] text-[8px] leading-none text-[var(--ink)] opacity-0 group-hover/scroll:opacity-100 transition-opacity cursor-pointer z-10"
+          className="absolute bottom-[2px] left-1/2 -translate-x-1/2 w-[18px] h-[16px] flex items-center justify-center rounded-full border-[length:var(--border-hair)] border-[var(--ink)] text-[8px] leading-none text-[var(--ink)] opacity-0 group-hover/scroll:opacity-100 transition-opacity cursor-pointer z-[var(--z-overlay)]"
+          style={{ backgroundColor: surfaceColor }}
         >
           ▼
         </button>
       )}
+      {stickyOverlay}
     </div>
   );
 }

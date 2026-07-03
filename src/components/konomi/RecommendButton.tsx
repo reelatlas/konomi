@@ -62,7 +62,7 @@ export function RecommendButton({ filledCount, onRecommend, error }: RecommendBu
       >
         <div
           className={[
-            "absolute w-[128px] h-[128px] bg-[var(--ink)] z-0",
+            "absolute w-[128px] h-[128px] bg-[var(--ink)] z-[var(--z-base)]",
             STAR_CLIP,
             "animate-[kono-spin_20s_linear_infinite]",
             // animation-play-state, not adding/removing the animation
@@ -77,7 +77,7 @@ export function RecommendButton({ filledCount, onRecommend, error }: RecommendBu
         />
         <div
           className={[
-            "absolute w-[118px] h-[118px] z-0",
+            "absolute w-[118px] h-[118px] z-[var(--z-base)]",
             STAR_CLIP,
             "animate-[kono-spin_20s_linear_infinite]",
             error ? "[animation-play-state:paused]" : "[animation-play-state:running]",
@@ -95,7 +95,7 @@ export function RecommendButton({ filledCount, onRecommend, error }: RecommendBu
             // shared, unchanged) so all three Mixer action buttons render at
             // the same size instead of RECOMMEND standing taller on its
             // former font-display/text-lg styling.
-            "relative z-1 uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-xl)] border-[length:var(--border-base)] border-[var(--ink)] px-[var(--space-xl)] py-[var(--space-lg)] whitespace-nowrap",
+            "relative z-[var(--z-raised)] uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-xl)] border-[length:var(--border-base)] border-[var(--ink)] px-[var(--space-xl)] py-[var(--space-lg)] whitespace-nowrap",
             enabled ? "cursor-pointer shadow-[var(--elev-4)]" : "cursor-not-allowed shadow-none",
             enabled
               ? accent === "primary"
@@ -109,9 +109,12 @@ export function RecommendButton({ filledCount, onRecommend, error }: RecommendBu
         {error && (
           // --primary-deep, not --secondary: a bold, high-contrast variant
           // of primary (darkened for light-surface themes, lightened for
-          // Tide's dark surface — see its doc comment in types.ts), and
-          // matches the mini hint stars' color so the two read as
-          // one connected hint rather than two unrelated accents.
+          // Tide's dark surface — see its doc comment in types.ts). Chosen
+          // for contrast against arbitrary surfaces, not tied to any other
+          // element's color — this is the only thing --primary-deep backs
+          // today (a "MiniStar" hint feature that once shared this token
+          // was built, tried live, then deliberately removed; see
+          // DESIGN_SYSTEM.md).
           <span className="absolute top-full mt-[var(--space-xs)] whitespace-nowrap font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xs)] text-[var(--primary-deep)]">
             {ERROR_MESSAGE[error]}
           </span>

@@ -9,10 +9,13 @@ interface SortSelectProps {
 // A native <select>, not a segmented control — this app's first version of
 // this control WAS a native select, later replaced with a segmented row to
 // match LevelSelector's shape (see DESIGN_SYSTEM.md). Moving back is a
-// deliberate choice this time, not a regression: Level no longer needs a
-// shared visual pattern to justify matching now that its own hint moved to
-// per-segment tooltips, and a 4-option dropdown reads as more standard/
-// compact than 4 segmented buttons. `appearance-none` strips the native
+// deliberate choice this time, not a regression: a 4-option dropdown reads
+// as more standard/compact than 4 segmented buttons, and there's no longer
+// a "match LevelSelector's shape" pressure forcing this control's own shape
+// — Level still uses the same hover-subtext hint pattern LevelSelector
+// always has (never actually moved to per-segment title tooltips; an
+// earlier draft of that change was tried and reverted). `appearance-none`
+// strips the native
 // arrow so the custom "▾" (matching this app's own bordered/shadow control
 // style) replaces it — the same restyling approach DESIGN_SYSTEM.md's
 // now-removed note already flagged as the right starting point if a select

@@ -193,7 +193,7 @@ export function ResultCard({
         <div
           className={[
             "absolute inset-0 [backface-visibility:hidden] border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-4)] overflow-hidden flex flex-col transition-opacity duration-200 bg-[var(--surface)]",
-            flipped ? "opacity-0 pointer-events-none z-[1]" : "opacity-100 pointer-events-auto z-[2]",
+            flipped ? "opacity-0 pointer-events-none z-[var(--z-base)]" : "opacity-100 pointer-events-auto z-[var(--z-raised)]",
           ].join(" ")}
         >
           <div className="relative h-[295px] border-b-[length:var(--border-base)] border-b-[var(--ink)] bg-[var(--fill)] overflow-hidden">
@@ -338,7 +338,7 @@ export function ResultCard({
         <div
           className={[
             "absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-4)] overflow-hidden flex flex-col transition-opacity duration-200 bg-[var(--fill)] bg-[radial-gradient(var(--muted)_1.4px,transparent_1.5px)] [background-size:8px_8px]",
-            flipped ? "opacity-100 pointer-events-auto z-[2]" : "opacity-0 pointer-events-none z-[1]",
+            flipped ? "opacity-100 pointer-events-auto z-[var(--z-raised)]" : "opacity-0 pointer-events-none z-[var(--z-base)]",
           ].join(" ")}
         >
           <div className="bg-[var(--primary)] text-[var(--secondary)] font-display text-[length:var(--text-lg)] tracking-[var(--tracking-md)] px-[var(--space-lg)] py-[var(--space-md)] border-b-[length:var(--border-base)] border-b-[var(--ink)] uppercase flex gap-[var(--space-md)] items-baseline">

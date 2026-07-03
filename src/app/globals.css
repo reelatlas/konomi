@@ -44,6 +44,28 @@
   --space-huge: 48px;
   --space-page: 60px;
 
+  /* z-index scale — introduced once the tag-pool/recommendations tab panel
+     started keeping both bodies permanently mounted (one hidden via
+     `display:none`, not unmounted, so scroll position survives a tab
+     switch — see TagPoolRecommendationsPanel.tsx). Before this, every
+     z-index in the app was a standalone ad hoc number (z-0/z-1/z-[5]/z-10)
+     that happened never to collide only because nothing actually overlapped
+     anything else spatially — a coexistence moment like a tab switch is
+     exactly the case that turns "lucky" into "broken," so the scale exists
+     now rather than after the first real collision. --z-base and
+     --z-raised describe a *local* front/back relationship within one
+     component's own stacking context (e.g. RecommendButton's star layers,
+     ResultCard's flip faces) — they don't compete with --z-sticky/--z-overlay
+     globally, just with each other, locally.
+     base    → decorative backdrop / the "back" layer in a local pair
+     raised  → the "front" layer in that same local pair
+     sticky  → sticky headers pinned within their own scroll container
+     overlay → floating controls on top of scrollable/hoverable content */
+  --z-base: 0;
+  --z-raised: 1;
+  --z-sticky: 5;
+  --z-overlay: 10;
+
   /* borders & radius (hard-edged manga vocabulary) */
   --border-hair: 1.5px;
   --border-thin: 2px;

@@ -17,7 +17,7 @@ const VISIBLE_ROWS = 3;
 // state — the remaining 6px is the row-to-row gap itself (empty space, no
 // content).
 const TOP_RESERVE_PX = 14;
-// TAG_AREA_HEIGHT_PX is a deliberate compromise, not a value that gives an
+// TAG_AREA_HEIGHT is a deliberate compromise, not a value that gives an
 // identical peek in every scroll position — that turns out to be
 // impossible with this mechanism. At the very first row, reaching it wants
 // scrollTop = 0 − TOP_RESERVE_PX (negative), which the browser clamps to
