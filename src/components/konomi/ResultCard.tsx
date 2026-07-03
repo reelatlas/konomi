@@ -138,7 +138,50 @@ export function ResultCard({
     <article
       data-title={series.title}
       onClick={() => onFlip(series.title)}
-      className="h-[421px] [perspective:1100px] cursor-pointer"
+      // h-[var(--result-card-height)], not a literal h-[421px]: shared with
+      // RecommendationsSection's empty-state placeholder so the two can
+      // never drift out of sync (see the token's own comment in
+      // globals.css). max-[1152px]: below the width where all
+      // DEFAULT_RESULT_COUNT (5) cards stop fitting in one grid row —
+      // NOT the grid's 1-column breakpoint (480px), which was tried first
+      // and confirmed live to be wrong: the grid wraps to 2-3 rows well
+      // above 480px already (5 cards, 208px min width, only 2 fit per row
+      // once width drops below ~1152px), so a carousel that only kicked in
+      // below 480px left most of the resize range still wrapping into
+      // multiple rows — defeating the entire "stay a single row, keep the
+      // mixer co-visible" point of building this. Below 1152px, this card
+      // becomes a snap-carousel item instead of a grid cell — flex-none so
+      // it doesn't shrink/grow. snap-start (not snap-center) — the active
+      // card stays mostly left-aligned, not dead-centered in the
+      // scrollport; the "previous card peeks in too" requirement is
+      // instead handled by scroll-padding-left on the row itself (see
+      // RecommendationsSection), which shifts *where* a start-aligned card
+      // comes to rest, not whether it's centered. snap-center was tried
+      // first and explicitly rejected: centering reads as a different,
+      // more "look at one thing at a time" carousel feel than wanted here.
+      //
+      // Width steps down through 4 tiers as the row narrows — 4 comfortable
+      // cards, then 3, then 2, falling back to one dominant card (with a
+      // peek either side) only once 2 no longer fit at a reasonable size.
+      // Each tier is bounded by BOTH a min and max (not a bare max-[Npx],
+      // which would leave every wider tier's rule simultaneously "true" at
+      // narrow widths too, since max-width ranges nest/overlap) so exactly
+      // one tier ever applies at a given width. Tailwind v4 compiles
+      // max-[Npx] as strictly-less-than (`not (min-width: Npx)`), not
+      // "Npx or narrower" — confirmed by inspecting the actual generated
+      // media rules live, after the first version of these tiers left a
+      // 1px gap at each boundary (992/740/500 exactly matched *no* tier,
+      // collapsing the card to 0 width). Each tier's max is therefore set
+      // to the exact same number as the next tier's min, not min-1, so
+      // the exclusive/inclusive pairing meets with zero gap or overlap.
+      // Percentages, not fixed px, so card size still flexes smoothly
+      // within each tier rather than jumping. Boundaries tuned live, not
+      // purely computed — see DESIGN_SYSTEM.md for the measured values.
+      //
+      // The 1152px ceiling itself is unchanged: coupled to
+      // DEFAULT_RESULT_COUNT (config.ts) — re-derive (5×208 + 4×16 gaps +
+      // 48px page margins = 1152) if that count ever changes.
+      className="h-[var(--result-card-height)] [perspective:1100px] cursor-pointer max-[1152px]:flex-none max-[1152px]:snap-start min-[993px]:max-[1152px]:w-[22%] min-[741px]:max-[993px]:w-[30%] min-[501px]:max-[741px]:w-[46%] max-[501px]:w-[85%]"
     >
       <div
         className={[

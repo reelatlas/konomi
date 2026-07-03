@@ -16,6 +16,14 @@ interface KonomiState {
   locked: Record<string, boolean>;
   theme: ThemeKey;
   error: MixerError;
+  // Bumped only on a successful RECOMMEND (never on error, never on a
+  // single-card REPLACE_CARD swap) — a signal the results carousel watches
+  // to reset its scroll position back to the first card on a fresh batch,
+  // while leaving scroll position alone when just one card changes. Not
+  // derived from `results` itself, since both a fresh RECOMMEND and a swap
+  // produce a new `results` array reference — this is the one field that
+  // distinguishes "a whole new batch" from "one card changed."
+  recommendGen: number;
 }
 
 // Lazy initializer for useReducer — the catalog is only known at the time
@@ -36,6 +44,7 @@ function createInitialState(catalog: { series: Series[]; tags: TagInfo[]; genres
     locked: {},
     theme: "default",
     error: null,
+    recommendGen: 0,
   };
 }
 
@@ -113,7 +122,7 @@ function recommend(state: KonomiState): KonomiState {
   Object.keys(state.flipped).forEach((t) => {
     if (outTitles.has(t) && state.flipped[t]) flipped[t] = true;
   });
-  return { ...state, results: out, generated: true, flipped, error: null };
+  return { ...state, results: out, generated: true, flipped, error: null, recommendGen: state.recommendGen + 1 };
 }
 
 // Shared by every reducer branch that mutates `slots` — re-evaluates
@@ -372,6 +381,7 @@ export function useKonomi(initialSeries: Series[], initialTags: TagInfo[], initi
     empty: !state.generated,
     hasResults: state.generated && state.results.length > 0,
     mixerError: state.error,
+    recommendGen: state.recommendGen,
     ...actions,
   };
 }

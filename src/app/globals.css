@@ -50,6 +50,16 @@
   --border-base: 2.5px;
   --radius-none: 0;
   --radius-chip: 2px;
+
+  /* Deliberate, narrow exception to "component-specific dimensions aren't
+     tokenized" (see DESIGN_SYSTEM.md): ResultCard's own height and the
+     Recommendations empty-state placeholder's min-height must always be
+     identical, or the layout visibly jumps the moment results replace the
+     placeholder. A CSS custom property is the only way two different
+     Tailwind arbitrary-value classes (h-[…] / min-h-[…]) can share one
+     real value with zero duplication — Tailwind's class scanner needs the
+     complete class as static text, so this is what var(--…) is for. */
+  --result-card-height: 421px;
 }
 
 /* ── color roles, one palette per theme ──────────────────────────────────

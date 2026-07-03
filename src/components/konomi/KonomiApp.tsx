@@ -56,6 +56,7 @@ export function KonomiApp({ initialSeries, initialTags, initialGenres }: KonomiA
           selectedTags={k.selectedTags}
           filledCount={k.filledCount}
           minNum={k.minNum}
+          recommendGen={k.recommendGen}
           locked={k.locked}
           flipped={k.flipped}
           canSwap={k.canSwap}
