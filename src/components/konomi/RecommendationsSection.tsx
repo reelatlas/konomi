@@ -5,7 +5,6 @@ import { useLevel, useSort } from "./tagPoolPrefs";
 
 interface RecommendationsSectionProps {
   results: ResultEntry[];
-  empty: boolean;
   hasResults: boolean;
   resultsHint: string;
   selectedTags: string[];
@@ -26,7 +25,6 @@ interface RecommendationsSectionProps {
 
 export function RecommendationsSection({
   results,
-  empty,
   hasResults,
   resultsHint,
   selectedTags,
@@ -113,7 +111,21 @@ export function RecommendationsSection({
         )}
       </div>
 
-      {empty && (
+      {!hasResults && (
+        // !hasResults, not `empty` (!generated) — a RECOMMEND that fails
+        // with an error (impossible-min/no-match) still sets `generated:
+        // true` (see recommend() in useKonomi.ts), but leaves `results`
+        // untouched. On a first-ever attempt (or right after Clear ✕),
+        // `results` is already `[]`, so `empty` goes false the moment the
+        // error is set while `hasResults` stays false too — with the
+        // condition as `empty`, NEITHER this placeholder nor the results
+        // grid below would render, collapsing the whole section down to
+        // just its header. `!hasResults` covers both "never generated" and
+        // "generated but errored with nothing to show," so the placeholder
+        // (and the height it reserves) stays put until an actual result
+        // set replaces it — no jarring collapse-then-jump when the user
+        // fixes the error and hits RECOMMEND again.
+        //
         // min-h-[var(--result-card-height)] (the same token ResultCard's
         // own height reads from — see globals.css) instead of a measured
         // literal: the empty state and the results grid must always be the

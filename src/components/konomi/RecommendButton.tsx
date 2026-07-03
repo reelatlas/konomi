@@ -38,7 +38,23 @@ export function RecommendButton({ filledCount, onRecommend, error }: RecommendBu
     // flush with MatchSelector's edge above it. Shrink-wrapping to the
     // button's own width (and letting the star overflow the frame instead,
     // per explicit product decision) makes ml-auto align the real edge.
-    <div className="flex-none min-h-[92px] self-start flex items-center justify-center">
+    //
+    // No self-start, and no min-h-[92px], either — both were leftovers from
+    // when this box sat in its own row beside the tag slots specifically
+    // (92px to match TagSlot's own height, self-start to align to that
+    // row's top). It now lives inside MixerSection's row 4 alongside MIN
+    // TAG MATCH/Random/Clear instead, none of which are anywhere near 92px
+    // tall (confirmed live: Random measures 44.5px) — forcing this one
+    // child to 92px made the *whole row* 92px tall for cross-axis purposes,
+    // and centering everything shorter within that within row 4's own box
+    // left ~26px of dead space above and below the actually-visible
+    // controls, stacking with the real token-based gaps on both sides of
+    // row 4 to make them read as roughly double what they actually are.
+    // Removing both leaves this wrapper's height to fall out naturally from
+    // its one in-flow child (the `<button>` itself — the star layers and
+    // error hint are all `absolute`, so they don't contribute to it),
+    // matching its row-mates and centering correctly among them.
+    <div className="flex-none flex items-center justify-center">
       <div
         className={["relative flex items-center justify-center transition-transform duration-200", error ? ERROR_SHIFT : ""].join(
           " ",
@@ -46,7 +62,7 @@ export function RecommendButton({ filledCount, onRecommend, error }: RecommendBu
       >
         <div
           className={[
-            "absolute w-[150px] h-[150px] bg-[var(--ink)] z-0",
+            "absolute w-[128px] h-[128px] bg-[var(--ink)] z-0",
             STAR_CLIP,
             "animate-[kono-spin_20s_linear_infinite]",
             // animation-play-state, not adding/removing the animation
@@ -61,7 +77,7 @@ export function RecommendButton({ filledCount, onRecommend, error }: RecommendBu
         />
         <div
           className={[
-            "absolute w-[139px] h-[139px] z-0",
+            "absolute w-[118px] h-[118px] z-0",
             STAR_CLIP,
             "animate-[kono-spin_20s_linear_infinite]",
             error ? "[animation-play-state:paused]" : "[animation-play-state:running]",

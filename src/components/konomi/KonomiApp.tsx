@@ -50,7 +50,6 @@ export function KonomiApp({ initialSeries, initialTags, initialGenres }: KonomiA
 
         <RecommendationsSection
           results={k.results}
-          empty={k.empty}
           hasResults={k.hasResults}
           resultsHint={k.resultsHint}
           selectedTags={k.selectedTags}

@@ -378,7 +378,6 @@ export function useKonomi(initialSeries: Series[], initialTags: TagInfo[], initi
     canSwap,
     resultsHint,
     lockedLabel: `${filledCount} / ${SLOT_COUNT}`,
-    empty: !state.generated,
     hasResults: state.generated && state.results.length > 0,
     mixerError: state.error,
     recommendGen: state.recommendGen,
