@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { IconButton } from "./IconButton";
 
 interface ScrollFadeAreaProps {
   // Tailwind height utility applied to the scroll viewport — either a fixed
@@ -328,7 +329,7 @@ export function ScrollFadeArea({
   );
 
   return (
-    <div className="group/scroll relative">
+    <div className="group/reveal relative">
       <div
         ref={setScrollRef}
         onScroll={updateScrollState}
@@ -400,8 +401,13 @@ export function ScrollFadeArea({
           unstopped click bubbled up to the card's own onClick and flipped
           it every time this button was pressed. */}
       {showTopGradient && (
-        <button
-          type="button"
+        <IconButton
+          width={18}
+          height={16}
+          shape="circle"
+          border="hair"
+          backgroundColor={surfaceColor}
+          revealOnHover
           aria-label="Scroll up"
           onMouseDown={(e) => {
             e.stopPropagation();
@@ -421,15 +427,20 @@ export function ScrollFadeArea({
             handlePressEnd(-1);
           }}
           onClick={(e) => e.stopPropagation()}
-          className="absolute left-1/2 -translate-x-1/2 w-[18px] h-[16px] flex items-center justify-center rounded-full border-[length:var(--border-hair)] border-[var(--ink)] text-[8px] leading-none text-[var(--ink)] opacity-0 group-hover/scroll:opacity-100 transition-opacity cursor-pointer z-[var(--z-overlay)]"
-          style={{ top: topInset, backgroundColor: surfaceColor }}
+          className="absolute left-1/2 -translate-x-1/2 text-[8px] leading-none z-[var(--z-overlay)]"
+          style={{ top: topInset }}
         >
           ▲
-        </button>
+        </IconButton>
       )}
       {showBottomGradient && (
-        <button
-          type="button"
+        <IconButton
+          width={18}
+          height={16}
+          shape="circle"
+          border="hair"
+          backgroundColor={surfaceColor}
+          revealOnHover
           aria-label="Scroll down"
           onMouseDown={(e) => {
             e.stopPropagation();
@@ -449,11 +460,10 @@ export function ScrollFadeArea({
             handlePressEnd(1);
           }}
           onClick={(e) => e.stopPropagation()}
-          className="absolute bottom-[2px] left-1/2 -translate-x-1/2 w-[18px] h-[16px] flex items-center justify-center rounded-full border-[length:var(--border-hair)] border-[var(--ink)] text-[8px] leading-none text-[var(--ink)] opacity-0 group-hover/scroll:opacity-100 transition-opacity cursor-pointer z-[var(--z-overlay)]"
-          style={{ backgroundColor: surfaceColor }}
+          className="absolute bottom-[2px] left-1/2 -translate-x-1/2 text-[8px] leading-none z-[var(--z-overlay)]"
         >
           ▼
-        </button>
+        </IconButton>
       )}
       {stickyOverlay}
     </div>

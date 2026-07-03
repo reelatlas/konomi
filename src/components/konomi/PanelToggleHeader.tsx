@@ -1,4 +1,5 @@
 import type { LevelKey } from "@/lib/konomi/types";
+import { ActionButton } from "./ActionButton";
 import { SortIcon, TagIcon } from "./icons";
 import { LevelSelector } from "./LevelSelector";
 import { SortSelect } from "./SortSelect";
@@ -98,13 +99,9 @@ export function PanelToggleHeader({
           <>
             <span className="font-mono text-[length:var(--text-xs)] text-[var(--muted)]">{resultsHint}</span>
             {hasResults && (
-              <button
-                type="button"
-                onClick={onClearRecs}
-                className="bg-[var(--ink)] text-[var(--bg)] border-[length:var(--border-base)] border-[var(--ink)] font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-xl)] px-[var(--space-lg)] py-[var(--space-md)] cursor-pointer uppercase"
-              >
+              <ActionButton variant="inverted" size="sm" onClick={onClearRecs}>
                 Clear ✕
-              </button>
+              </ActionButton>
             )}
           </>
         ) : (

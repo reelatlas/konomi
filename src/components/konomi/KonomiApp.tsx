@@ -14,11 +14,10 @@ import { TagPoolRecommendationsPanel } from "./TagPoolRecommendationsPanel";
 interface KonomiAppProps {
   initialSeries: Series[];
   initialTags: TagInfo[];
-  initialGenres: string[];
 }
 
-export function KonomiApp({ initialSeries, initialTags, initialGenres }: KonomiAppProps) {
-  const k = useKonomi(initialSeries, initialTags, initialGenres);
+export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
+  const k = useKonomi(initialSeries, initialTags);
   const level = useLevel();
   // Owned here, not inside TagPoolRecommendationsPanel — hitting RECOMMEND
   // (in MixerSection, a sibling of that whole panel) needs to switch this

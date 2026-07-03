@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { ResultEntry, TagInfo } from "@/lib/konomi/types";
+import { IconButton } from "./IconButton";
 import { ResultCard } from "./ResultCard";
 import { useLevel, useSort } from "./tagPoolPrefs";
 
@@ -169,12 +170,15 @@ export function RecommendationsBody({
         // unaffected: there's nothing before it to scroll to, so the
         // browser clamps scrollLeft at 0 and it sits flush-left on its
         // own — no special-casing needed for "first card, no previous."
-        // relative + group/carousel wraps the scrollable row (not applied
+        // relative + group/reveal wraps the scrollable row (not applied
         // to the row itself) so the two arrow buttons — positioned
         // absolute, as siblings of the row rather than children of it —
         // stay fixed in place as the row scrolls beneath them, instead of
-        // scrolling away with the cards.
-        <div className="relative group/carousel">
+        // scrolling away with the cards. group/reveal (not a carousel-
+        // specific name) is the same shared hover-reveal group name
+        // ScrollFadeArea's arrows use — see IconButton's own doc comment
+        // for why the group name had to be unified rather than parameterized.
+        <div className="relative group/reveal">
           <div
             ref={rowRef}
             onScroll={updateScrollEdges}
@@ -205,31 +209,42 @@ export function RecommendationsBody({
           {/* hidden by default (grid mode, no scrolling); in carousel mode,
               mounted only while there's actually somewhere to scroll to in
               that direction (mirrors ScrollFadeArea's hasOverflow gating),
-              and visible only on hover of the row (mirrors its
-              group-hover/scroll reveal) — a permanent pair of arrows
+              and visible only on hover of the row via IconButton's
+              `revealOnHover` (the same `group/reveal` mechanism
+              ScrollFadeArea's own arrows use) — a permanent pair of arrows
               sitting on top of the peek affordance would be redundant
-              chrome most of the time. z-overlay + an opaque bg/border/
-              shadow (not a flat ScrollFadeArea-style treatment) since these
+              chrome most of the time. z-overlay + shadow (not
+              ScrollFadeArea's flatter, shadowless treatment) since these
               sit over arbitrary cover art, not a flat surface color. */}
           {!atStart && (
-            <button
-              type="button"
+            <IconButton
+              width={36}
+              shape="circle"
+              border="hair"
+              shadow
+              revealOnHover
+              display="hidden max-[1152px]:flex"
               aria-label="Scroll to previous result"
               onClick={() => scrollByCard(-1)}
-              className="hidden max-[1152px]:flex absolute top-1/2 -translate-y-1/2 left-[var(--space-md)] w-[36px] h-[36px] items-center justify-center rounded-full border-[length:var(--border-hair)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-1)] text-[length:var(--text-sm)] leading-none text-[var(--ink)] opacity-0 group-hover/carousel:opacity-100 transition-opacity cursor-pointer z-[var(--z-overlay)]"
+              className="absolute top-1/2 -translate-y-1/2 left-[var(--space-md)] text-[length:var(--text-sm)] leading-none z-[var(--z-overlay)]"
             >
               ◀
-            </button>
+            </IconButton>
           )}
           {!atEnd && (
-            <button
-              type="button"
+            <IconButton
+              width={36}
+              shape="circle"
+              border="hair"
+              shadow
+              revealOnHover
+              display="hidden max-[1152px]:flex"
               aria-label="Scroll to next result"
               onClick={() => scrollByCard(1)}
-              className="hidden max-[1152px]:flex absolute top-1/2 -translate-y-1/2 right-[var(--space-md)] w-[36px] h-[36px] items-center justify-center rounded-full border-[length:var(--border-hair)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-1)] text-[length:var(--text-sm)] leading-none text-[var(--ink)] opacity-0 group-hover/carousel:opacity-100 transition-opacity cursor-pointer z-[var(--z-overlay)]"
+              className="absolute top-1/2 -translate-y-1/2 right-[var(--space-md)] text-[length:var(--text-sm)] leading-none z-[var(--z-overlay)]"
             >
               ▶
-            </button>
+            </IconButton>
           )}
         </div>
       )}

@@ -6,7 +6,6 @@ import type { MatchKey, MixerError, ResultEntry, Series, Slot, TagInfo, ThemeKey
 interface KonomiState {
   series: Series[];
   tags: TagInfo[];
-  genres: string[];
   slots: Slot[];
   results: ResultEntry[];
   generated: boolean;
@@ -30,11 +29,10 @@ interface KonomiState {
 // useKonomi() is called (fetched server-side, passed in as props), so the
 // initial state can't be a static module-level constant the way it used to
 // be when series/tags were hardcoded imports.
-function createInitialState(catalog: { series: Series[]; tags: TagInfo[]; genres: string[] }): KonomiState {
+function createInitialState(catalog: { series: Series[]; tags: TagInfo[] }): KonomiState {
   return {
     series: catalog.series,
     tags: catalog.tags,
-    genres: catalog.genres,
     slots: Array<Slot>(SLOT_COUNT).fill(null),
     results: [],
     generated: false,
@@ -108,10 +106,7 @@ function recommend(state: KonomiState): KonomiState {
   for (let i = 0; i < DEFAULT_RESULT_COUNT; i++) {
     const old = state.results[i];
     if (old && lockedTitles.has(old.series.title)) {
-      // No min-match clamp — `score` is purely informational now (nothing
-      // reads it to decide visibility), so it's just the honest live score
-      // against the current tags.
-      out.push({ series: old.series, score: scoreSeries(old.series, sel) });
+      out.push({ series: old.series });
     } else if (pi < pool.length) {
       out.push(pool[pi]);
       pi++;
@@ -299,12 +294,8 @@ function reducer(state: KonomiState, action: Action): KonomiState {
 // fetched once server-side and passed in here rather than imported from a
 // static module — everything downstream (scoring, the reducer) stays
 // synchronous and unchanged either way.
-export function useKonomi(initialSeries: Series[], initialTags: TagInfo[], initialGenres: string[]) {
-  const [state, dispatch] = useReducer(
-    reducer,
-    { series: initialSeries, tags: initialTags, genres: initialGenres },
-    createInitialState,
-  );
+export function useKonomi(initialSeries: Series[], initialTags: TagInfo[]) {
+  const [state, dispatch] = useReducer(reducer, { series: initialSeries, tags: initialTags }, createInitialState);
 
   const sel = useMemo(() => selectedTags(state.slots), [state.slots]);
   const filledCount = sel.length;
@@ -369,7 +360,6 @@ export function useKonomi(initialSeries: Series[], initialTags: TagInfo[], initi
     locked: state.locked,
     theme: state.theme,
     allTags: state.tags,
-    allGenres: state.genres,
     tagInfoByName,
     totalSeriesCount: state.series.length,
     selectedTags: sel,
@@ -384,5 +374,3 @@ export function useKonomi(initialSeries: Series[], initialTags: TagInfo[], initi
     ...actions,
   };
 }
-
-export type KonomiHook = ReturnType<typeof useKonomi>;

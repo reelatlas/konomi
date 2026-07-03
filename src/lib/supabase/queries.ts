@@ -17,7 +17,6 @@ interface RawSeriesRow {
 export interface Catalog {
   series: Series[];
   tags: TagInfo[];
-  genres: string[];
 }
 
 // Fetches the whole catalog in one query and adapts it into the app's
@@ -41,7 +40,6 @@ export async function getCatalog(): Promise<Catalog> {
   // about a tag on its own, so they'd go stale the moment the catalog
   // changed if we materialized them as columns.
   const tagStats = new Map<string, { category: string | null; rankSum: number; count: number }>();
-  const allGenreNames = new Set<string>();
   const genreSeriesCounts = new Map<string, number>();
 
   const series: Series[] = rows.map((row) => {
@@ -61,7 +59,6 @@ export async function getCatalog(): Promise<Catalog> {
 
     const genres = row.genres ?? [];
     genres.forEach((g) => {
-      allGenreNames.add(g);
       genreSeriesCounts.set(g, (genreSeriesCounts.get(g) ?? 0) + 1);
     });
 
@@ -97,5 +94,5 @@ export async function getCatalog(): Promise<Catalog> {
 
   const tags = [...realTags, ...genreTags].sort((a, b) => a.name.localeCompare(b.name));
 
-  return { series, tags, genres: [...allGenreNames].sort() };
+  return { series, tags };
 }

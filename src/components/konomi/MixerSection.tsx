@@ -1,4 +1,5 @@
 import type { MatchKey, MixerError, Slot } from "@/lib/konomi/types";
+import { ActionButton } from "./ActionButton";
 import { GreaterEqualIcon, TagIcon } from "./icons";
 import { MatchSelector } from "./MatchSelector";
 import { RecommendButton } from "./RecommendButton";
@@ -133,20 +134,12 @@ export function MixerSection({
             each other regardless of the bigger, independently-controlled
             gap the divider gets on both its sides below. */}
         <div className="ml-auto flex items-center gap-[var(--space-lg)]">
-          <button
-            type="button"
-            onClick={onRandomTags}
-            className="bg-[var(--fill)] border-[length:var(--border-base)] border-[var(--ink)] font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-xl)] px-[var(--space-xl)] py-[var(--space-lg)] cursor-pointer text-[var(--ink)] uppercase shadow-[var(--elev-2)] whitespace-nowrap"
-          >
+          <ActionButton variant="filled" onClick={onRandomTags}>
             Random ×3
-          </button>
-          <button
-            type="button"
-            onClick={onClearSlots}
-            className="bg-transparent border-[length:var(--border-base)] border-[var(--ink)] font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-xl)] px-[var(--space-xl)] py-[var(--space-lg)] cursor-pointer text-[var(--ink)] uppercase shadow-[var(--elev-2)] whitespace-nowrap"
-          >
+          </ActionButton>
+          <ActionButton variant="outline" onClick={onClearSlots}>
             Clear ✕
-          </button>
+          </ActionButton>
         </div>
         {/* The row's own gap-x (space-lg, 12px) is the fallback spacing on
             every side, including Clear→RECOMMEND directly once the divider

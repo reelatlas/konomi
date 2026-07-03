@@ -11,7 +11,6 @@ export interface Series {
 
 export interface ResultEntry {
   series: Series;
-  score: number;
 }
 
 // Catalog-level tag metadata for the tag pool UI — kept separate from

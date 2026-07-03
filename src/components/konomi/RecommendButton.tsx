@@ -1,5 +1,6 @@
 import { DEFAULT_ACCENT } from "@/lib/konomi/config";
 import type { MixerError } from "@/lib/konomi/types";
+import { ActionButton } from "./ActionButton";
 
 const STAR_CLIP = "[clip-path:polygon(50%_0,61%_35%,98%_35%,68%_57%,79%_91%,50%_70%,21%_91%,32%_57%,2%_35%,39%_35%)]";
 
@@ -85,27 +86,23 @@ export function RecommendButton({ filledCount, onRecommend, error }: RecommendBu
             enabled ? "opacity-95" : "opacity-35",
           ].join(" ")}
         />
-        <button
-          type="button"
-          onClick={onRecommend}
+        {/* ActionButton's own base (font-mono/text-xs/tracking-xl/uppercase,
+            border-base/border-ink, px-xl/py-lg) matches Random/Clear's exact
+            type treatment and padding, so all three Mixer action buttons
+            render at the same size instead of RECOMMEND standing taller on
+            its former font-display/text-lg styling. `relative z-[var(--z-raised)]`
+            is this button's own one-off, layered on top via `className` — it
+            needs to paint above the star layers behind it, which no other
+            ActionButton caller needs. */}
+        <ActionButton
+          variant="accent"
+          accentColor={accent}
           disabled={!enabled}
-          className={[
-            // Matches Random/Clear's exact type treatment (font-mono,
-            // text-xs, tracking-xl) and padding (px-xl/py-lg — already
-            // shared, unchanged) so all three Mixer action buttons render at
-            // the same size instead of RECOMMEND standing taller on its
-            // former font-display/text-lg styling.
-            "relative z-[var(--z-raised)] uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-xl)] border-[length:var(--border-base)] border-[var(--ink)] px-[var(--space-xl)] py-[var(--space-lg)] whitespace-nowrap",
-            enabled ? "cursor-pointer shadow-[var(--elev-4)]" : "cursor-not-allowed shadow-none",
-            enabled
-              ? accent === "primary"
-                ? "bg-[var(--primary)] text-[var(--on-primary)]"
-                : "bg-[var(--secondary)] text-[var(--on-secondary)]"
-              : "bg-[var(--disabled-bg)] text-[var(--disabled-text)]",
-          ].join(" ")}
+          onClick={onRecommend}
+          className="relative z-[var(--z-raised)]"
         >
           RECOMMEND ▸
-        </button>
+        </ActionButton>
         {error && (
           // --primary-deep, not --secondary: a bold, high-contrast variant
           // of primary (darkened for light-surface themes, lightened for

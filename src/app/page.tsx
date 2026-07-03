@@ -7,7 +7,7 @@ import { getCatalog } from "@/lib/supabase/queries";
 export const revalidate = 300;
 
 export default async function Home() {
-  const { series, tags, genres } = await getCatalog();
+  const { series, tags } = await getCatalog();
 
   if (series.length === 0) {
     return (
@@ -17,5 +17,5 @@ export default async function Home() {
     );
   }
 
-  return <KonomiApp initialSeries={series} initialTags={tags} initialGenres={genres} />;
+  return <KonomiApp initialSeries={series} initialTags={tags} />;
 }

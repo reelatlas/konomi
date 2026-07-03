@@ -4,20 +4,11 @@ import { scoreSeries, streamsFor } from "@/lib/konomi/scoring";
 import { isTagVisibleAtLevel, sortTags } from "@/lib/konomi/tagPool";
 import type { LevelKey, ResultEntry, SortKey, TagInfo } from "@/lib/konomi/types";
 import { DiceIcon, LockClosedIcon, LockOpenIcon } from "./icons";
+import { IconButton } from "./IconButton";
 import { ERROR_MESSAGE } from "./RecommendButton";
 import { TagScrollArea } from "./TagScrollArea";
 
 const DOT_CLASSES = ["bg-[var(--secondary)]", "bg-[var(--primary)]", "bg-[var(--muted)]"];
-
-// flex-none — not optional, despite the fixed w-[30px]/h-[30px]: these
-// buttons share a flex row with the hover-hint chip (a third sibling that
-// mounts in-flow once hovered), and flex items default to flex-shrink:1
-// regardless of an explicit width. Without flex-none, a wide hint mounting
-// could shrink these buttons to make room instead of letting the hint (its
-// own min-w-0) wrap — which moved the icon out from under the cursor
-// mid-hover and caused a mouseleave/mouseenter flicker loop, confirmed live.
-const ICON_BTN =
-  "flex-none w-[30px] h-[30px] inline-flex items-center justify-center p-0 border-[length:var(--border-thin)] border-[var(--ink)] shadow-[var(--elev-1)] cursor-pointer text-[var(--ink)]";
 
 interface ResultCardProps {
   entry: ResultEntry;
@@ -233,8 +224,8 @@ export function ResultCard({
                 hintWrapped ? "items-start" : "items-center",
               ].join(" ")}
             >
-              <button
-                type="button"
+              <IconButton
+                width={30}
                 aria-label={lockHint}
                 data-title={series.title}
                 onClick={(e) => {
@@ -245,15 +236,14 @@ export function ResultCard({
                 onMouseLeave={() => setHoveredIcon(null)}
                 onFocus={() => setHoveredIcon("lock")}
                 onBlur={() => setHoveredIcon(null)}
-                className={[
-                  ICON_BTN,
-                  locked ? "bg-[var(--secondary)] text-[var(--on-secondary)]" : "bg-[var(--surface)] text-[var(--ink)]",
-                ].join(" ")}
+                shadow
+                backgroundColor={locked ? "var(--secondary)" : "var(--surface)"}
+                textColor={locked ? "var(--on-secondary)" : "var(--ink)"}
               >
                 {locked ? <LockClosedIcon /> : <LockOpenIcon />}
-              </button>
-              <button
-                type="button"
+              </IconButton>
+              <IconButton
+                width={30}
                 aria-label={swapHint ?? "swap"}
                 aria-disabled={swapDisabled}
                 onClick={(e) => {
@@ -271,12 +261,11 @@ export function ResultCard({
                 onMouseLeave={() => setHoveredIcon(null)}
                 onFocus={() => setHoveredIcon("swap")}
                 onBlur={() => setHoveredIcon(null)}
-                className={[ICON_BTN, "bg-[var(--surface)] text-[var(--ink)]", swapDisabled ? "opacity-40 cursor-not-allowed" : "opacity-100 cursor-pointer"].join(
-                  " ",
-                )}
+                shadow
+                visuallyDisabled={swapDisabled}
               >
                 <DiceIcon />
-              </button>
+              </IconButton>
               {/* In-flow, not absolute — a normal third flex item sitting to
                   the right of the two icons in the same row (items-center
                   on the row vertically centers it against their 30px
@@ -287,8 +276,8 @@ export function ResultCard({
                   explicitly relaxed, and cards in this grid can be as
                   narrow as 208px — nowhere near enough for the longest hint
                   ("no series match this mix") on one line. An opaque
-                  bordered/shadowed chip (matching ICON_BTN's own elev-1
-                  treatment), not plain muted text like other hints — this
+                  bordered/shadowed chip (matching the lock/swap IconButtons'
+                  own elev-1 treatment), not plain muted text like other hints — this
                   one floats over arbitrary cover art, not a flat surface
                   color, so it needs its own background to stay legible
                   regardless of the photo underneath. */}
