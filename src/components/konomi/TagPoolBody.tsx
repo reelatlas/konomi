@@ -164,7 +164,7 @@ export function TagPoolBody({ allTags, selectedTags, totalSeriesCount, level, on
                   if (!subTags.length) return null;
                   return (
                     <div key={sub.label}>
-                      <span className="block font-mono text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] text-[var(--muted)] uppercase mb-[var(--space-sm)]">
+                      <span className="block font-mono text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] text-[var(--subtext)] uppercase mb-[var(--space-sm)]">
                         {sub.label}
                       </span>
                       <ChipRow tags={subTags} selectedTags={selectedTags} onChipToggle={onChipToggle} />

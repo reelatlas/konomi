@@ -95,12 +95,28 @@
  * Every key is a semantic role, not a hue, so the names hold up across all
  * three themes. Switching `data-theme` on the root is the only thing that
  * needs to happen to retheme the whole app.
+ *
+ * --subtext derivation (apply this when adding a theme): same hue/
+ * saturation as --muted, lightness shifted toward --bg's own lightness
+ * until contrast against --bg clears ~4.5:1 (small mono text needs AA,
+ * and --bg is the hardest surface --subtext sits on — --surface and
+ * --fill both read easier). Shift direction follows --bg, not a fixed
+ * "always darken": darken --muted for a light-bg theme, lighten it for a
+ * dark-bg theme (dark's own --bg is darker than --muted, so going darker
+ * would shrink contrast, not grow it — the direction is "away from --bg,"
+ * not "toward black"). --muted itself is left unchanged in every theme —
+ * it also drives decorative uses (dot-pattern texture, dashed borders)
+ * that were never the legibility complaint and shouldn't get bolder as a
+ * side effect of fixing text contrast.
  */
 [data-theme="default"] {
   --bg: #efe7f8;
   --surface: #fcfaff;
   --ink: #191225;
   --muted: #a985e2;
+  /* Derived from --muted per the rule above: 2.44:1 on --bg at --muted's
+     own lightness (fails AA) → 4.75:1 at --subtext's. */
+  --subtext: #7c46d3;
   --fill: #e4d7f4;
   --primary: #564fd6;
   --primary-deep: #24215a;
@@ -120,6 +136,9 @@
   --surface: #1c242a;
   --ink: #dce4e6;
   --muted: #66727b;
+  /* Derived from --muted per the rule above: 3.63:1 on --bg at --muted's
+     own lightness (fails AA) → 5.34:1 at --subtext's. */
+  --subtext: #828e97;
   --fill: #26323b;
   --primary: #3486b4;
   --primary-deep: #8fbdd6;
@@ -140,6 +159,9 @@
   --surface: #fffdf6;
   --ink: #211c17;
   --muted: #b3a589;
+  /* Derived from --muted per the rule above: 2.08:1 on --bg at --muted's
+     own lightness (fails AA) → 5.28:1 at --subtext's. */
+  --subtext: #6d6046;
   --fill: #ebe0cb;
   --primary: #d8392e;
   --primary-deep: #5b1813;

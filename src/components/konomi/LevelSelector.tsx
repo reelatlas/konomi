@@ -52,7 +52,7 @@ export function LevelSelector({ value, onChange }: LevelSelectorProps) {
         // ThemeSwitcher's swatches don't carry a shadow this deep, so its
         // mt-xs never had the same problem.
         className={[
-          "absolute top-full left-0 mt-[var(--space-sm)] whitespace-nowrap font-mono text-[length:var(--text-xs)] text-[var(--muted)] transition-opacity duration-150",
+          "absolute top-full left-0 mt-[var(--space-sm)] whitespace-nowrap font-mono text-[length:var(--text-xs)] text-[var(--subtext)] transition-opacity duration-150",
           hoveredOption ? "opacity-100" : "opacity-0",
         ].join(" ")}
       >

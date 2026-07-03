@@ -54,7 +54,7 @@ export function MatchSelector({ value, onChange }: MatchSelectorProps) {
       <span
         aria-hidden={!hovered}
         className={[
-          "absolute top-full left-0 mt-[var(--space-sm)] whitespace-nowrap font-mono text-[length:var(--text-xs)] text-[var(--muted)] transition-opacity duration-150",
+          "absolute top-full left-0 mt-[var(--space-sm)] whitespace-nowrap font-mono text-[length:var(--text-xs)] text-[var(--subtext)] transition-opacity duration-150",
           hovered ? "opacity-100" : "opacity-0",
         ].join(" ")}
       >

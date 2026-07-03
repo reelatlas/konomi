@@ -84,7 +84,7 @@ export function PanelToggleHeader({
               disappear entirely (not just dim) once Recommendations is
               active, rather than staying visible under a dimmed label. */}
           {tagPoolActive && (
-            <span className="absolute top-full left-0 mt-[var(--space-xs)] whitespace-nowrap font-mono text-[length:var(--text-xs)] text-[var(--muted)]">
+            <span className="absolute top-full left-0 mt-[var(--space-xs)] whitespace-nowrap font-mono text-[length:var(--text-xs)] text-[var(--subtext)]">
               drag or tap to load a slot
             </span>
           )}
@@ -94,7 +94,7 @@ export function PanelToggleHeader({
       <div className="flex items-center gap-[var(--space-lg)] flex-wrap">
         {recommendationsActive ? (
           <>
-            <span className="font-mono text-[length:var(--text-xs)] text-[var(--muted)]">{resultsHint}</span>
+            <span className="font-mono text-[length:var(--text-xs)] text-[var(--subtext)]">{resultsHint}</span>
             {hasResults && (
               <ActionButton variant="inverted" size="sm" onClick={onClearRecs}>
                 Clear ✕

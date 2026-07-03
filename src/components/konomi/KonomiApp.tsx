@@ -106,7 +106,7 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
           error={k.mixerError}
         />
 
-        <p className="font-mono text-[length:var(--text-xs)] text-[var(--muted)] text-center mt-[var(--space-3xl)] mb-0">
+        <p className="font-mono text-[length:var(--text-xs)] text-[var(--subtext)] text-center mt-[var(--space-3xl)] mb-0">
           drag tags between the pool, mixer &amp; results to remix · the end…?
         </p>
       </div>
