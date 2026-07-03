@@ -24,8 +24,7 @@ const SCROLL_STEP = 140;
 
 // Real tablist: role=tab/tablist, aria-selected, roving tabindex (only the
 // active tab is in the natural tab order; arrow keys move — and, per the
-// "automatic activation" model below, also activate — the others). The "/"
-// separators are decorative (aria-hidden) and never counted as tabs.
+// "automatic activation" model below, also activate — the others).
 export function SectionTabStrip({ sections, activeKey, onChange }: SectionTabStripProps) {
   const tabRefs = useRef(new Map<string, HTMLButtonElement>());
 
@@ -77,54 +76,48 @@ export function SectionTabStrip({ sections, activeKey, onChange }: SectionTabStr
 
   return (
     <ScrollFadeArea orientation="horizontal" scrollStep={SCROLL_STEP} fadeSize={12} surfaceColor="var(--bg)">
-      <div role="tablist" aria-label="Tag pool sections" onKeyDown={handleKeyDown} className="flex flex-nowrap items-center gap-[var(--space-md)]">
-        {sections.map((section, i) => {
+      <div role="tablist" aria-label="Tag pool sections" onKeyDown={handleKeyDown} className="flex flex-nowrap items-center gap-[var(--space-xl)]">
+        {sections.map((section) => {
           const active = section.key === activeKey;
           return (
-            <div key={section.key} className="flex shrink-0 items-center gap-[var(--space-md)]">
-              {i > 0 && (
-                <span className="font-display text-[length:var(--text-lg)] text-[var(--muted)] select-none" aria-hidden>
-                  /
+            <button
+              key={section.key}
+              ref={(el) => {
+                if (el) tabRefs.current.set(section.key, el);
+                else tabRefs.current.delete(section.key);
+              }}
+              role="tab"
+              id={`tagpool-tab-${section.key}`}
+              aria-selected={active}
+              aria-controls={`tagpool-panel-${section.key}`}
+              tabIndex={active ? 0 : -1}
+              type="button"
+              onClick={() => onChange(section.key)}
+              className="shrink-0 cursor-pointer"
+            >
+              {/* Same font/size/style as the old CollapsibleSection header
+                  labels (font-display text-lg uppercase tracking-sm) —
+                  deliberately one step smaller than PanelToggleHeader's
+                  text-xl toggle above it, so the two rows read as a
+                  hierarchy (panel tabs, then section tabs within Tag
+                  Pool) rather than one flattened row of controls. No
+                  chevron — sections are tabs now, nothing to expand. */}
+              <span className="inline-flex items-center gap-[var(--space-sm)]">
+                <span
+                  className={[
+                    "font-display text-[length:var(--text-lg)] uppercase tracking-[var(--tracking-sm)]",
+                    active ? "text-[var(--ink)]" : "text-[var(--muted)]",
+                  ].join(" ")}
+                >
+                  {section.label}
                 </span>
-              )}
-              <button
-                ref={(el) => {
-                  if (el) tabRefs.current.set(section.key, el);
-                  else tabRefs.current.delete(section.key);
-                }}
-                role="tab"
-                id={`tagpool-tab-${section.key}`}
-                aria-selected={active}
-                aria-controls={`tagpool-panel-${section.key}`}
-                tabIndex={active ? 0 : -1}
-                type="button"
-                onClick={() => onChange(section.key)}
-                className="cursor-pointer"
-              >
-                {/* Same font/size/style as the old CollapsibleSection header
-                    labels (font-display text-lg uppercase tracking-sm) —
-                    deliberately one step smaller than PanelToggleHeader's
-                    text-xl toggle above it, so the two rows read as a
-                    hierarchy (panel tabs, then section tabs within Tag
-                    Pool) rather than one flattened row of controls. No
-                    chevron — sections are tabs now, nothing to expand. */}
-                <span className="inline-flex items-center gap-[var(--space-sm)]">
-                  <span
-                    className={[
-                      "font-display text-[length:var(--text-lg)] uppercase tracking-[var(--tracking-sm)]",
-                      active ? "text-[var(--ink)]" : "text-[var(--muted)]",
-                    ].join(" ")}
-                  >
-                    {section.label}
+                {section.selectedCount > 0 && (
+                  <span className="font-mono font-bold text-[length:var(--text-2xs)] leading-none bg-[var(--fill)] border-[length:var(--border-hair)] border-[var(--ink)] px-[var(--space-sm)] py-[var(--space-xs)]">
+                    {section.selectedCount}
                   </span>
-                  {section.selectedCount > 0 && (
-                    <span className="font-mono font-bold text-[length:var(--text-2xs)] leading-none bg-[var(--fill)] border-[length:var(--border-hair)] border-[var(--ink)] px-[var(--space-sm)] py-[var(--space-xs)]">
-                      {section.selectedCount}
-                    </span>
-                  )}
-                </span>
-              </button>
-            </div>
+                )}
+              </span>
+            </button>
           );
         })}
       </div>

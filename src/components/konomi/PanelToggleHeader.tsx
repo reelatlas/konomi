@@ -48,8 +48,8 @@ function TabLabel({ title, jp, active }: { title: string; jp: string; active: bo
 }
 
 // Not a traditional tab bar — the two section headers themselves (title +
-// JP subtitle) sit side by side, separated by "/", and become the toggle.
-// The active one keeps the exact formatting every top-level section header
+// JP subtitle) sit side by side and become the toggle. The active one
+// keeps the exact formatting every top-level section header
 // in this app already uses; the inactive one dims to --muted, size/leading
 // unchanged. Below/beside the toggle, the right side swaps in the active
 // tab's own contextual controls (Recommendations: resultsHint + Clear ✕;
@@ -70,13 +70,10 @@ export function PanelToggleHeader({
 
   return (
     <div className="flex items-center justify-between flex-wrap gap-x-[var(--space-lg)] gap-y-[var(--space-lg)] mb-[var(--space-xl)]">
-      <div className="flex items-center gap-[var(--space-md)]">
+      <div className="flex items-center gap-[var(--space-xl)]">
         <button type="button" onClick={() => onChangeTab("recommendations")} aria-pressed={recommendationsActive} className="cursor-pointer">
           <TabLabel title="Recommendations" jp="おすすめ" active={recommendationsActive} />
         </button>
-        <span className="font-display text-[length:var(--text-xl)] text-[var(--muted)] select-none" aria-hidden>
-          /
-        </span>
         {/* relative: anchors the "drag or tap" hint (below) to this button
             specifically, not to the toggle row as a whole — so it lands
             under "Tag Pool タグ" regardless of where that label sits in the
