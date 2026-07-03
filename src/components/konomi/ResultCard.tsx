@@ -79,10 +79,18 @@ export function ResultCard({
   // would succeed fine (e.g. every series that matches this mix is already
   // displayed, none locked — recommend()'s pool isn't empty, since it
   // doesn't exclude the shown-but-unlocked ones). Reusing "no series match
-  // this mix" there would be false in exactly that case. "all series shown
-  // for this mix" accurately describes what canSwap actually reports —
-  // every qualifying series is already on screen, not that none exist.
-  const swapHint = locked ? null : filledCount < minNum ? ERROR_MESSAGE["impossible-min"] : !canSwap ? "all series shown for this mix" : "swap";
+  // this mix" there would be false in exactly that case.
+  //
+  // "no swaps available for this mix" — not "all series shown for this
+  // mix" (an earlier version of this copy) — because that phrasing asserts
+  // the shown cards themselves belong to the current mix, which isn't
+  // always true: results can go stale (tags changed since the last
+  // RECOMMEND, see "Locked cards are real, positioned members of `results`"
+  // below and the mixer error system notes) while still being displayed.
+  // This wording only claims what canSwap actually reports — no series is
+  // available to swap in — without asserting anything about whether
+  // what's currently on screen matches the current mix.
+  const swapHint = locked ? null : filledCount < minNum ? ERROR_MESSAGE["impossible-min"] : !canSwap ? "no swaps available for this mix" : "swap";
   const lockHint = locked ? "unlock" : "lock";
   const activeHint = hoveredIcon === "lock" ? lockHint : hoveredIcon === "swap" ? swapHint : null;
   const streams = streamsFor(series.title);
