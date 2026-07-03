@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import type { ResultEntry, TagInfo } from "@/lib/konomi/types";
-import { IconButton } from "./IconButton";
 import { ResultCard } from "./ResultCard";
+import { ScrollFadeArea } from "./ScrollFadeArea";
 import { useLevel, useSort } from "./tagPoolPrefs";
 
 interface RecommendationsBodyProps {
@@ -46,55 +46,26 @@ export function RecommendationsBody({
 }: RecommendationsBodyProps) {
   const level = useLevel();
   const sort = useSort();
+  // ScrollFadeArea (horizontal orientation) now owns the scroll/fade/arrow
+  // mechanics here — the same primitive the Tag Pool's section tab strip
+  // uses (SectionTabStrip.tsx) — via getScrollStep/scrollResetKey/arrow*
+  // props rather than a bespoke rowRef + scroll-edge-state implementation.
+  // rowRef still exists, but now points only at this component's own
+  // grid/carousel row (ScrollFadeArea's *children*, not its scroll
+  // viewport), purely so getScrollStep below can measure a live card width
+  // off it — ScrollFadeArea deliberately doesn't expose its own internal
+  // scroll element to callers.
   const rowRef = useRef<HTMLDivElement>(null);
-  // Resets the carousel back to the first card on a fresh RECOMMEND batch
-  // (recommendGen only bumps on that success path — see useKonomi.ts), but
-  // deliberately does NOT reset on a single-card swap, which produces a new
-  // `results` array too but leaves recommendGen untouched — the user is
-  // very likely still looking at the card they just swapped. Harmless
-  // no-op above the carousel breakpoint (nothing to scroll there) and when
-  // results is empty.
-  useEffect(() => {
-    rowRef.current?.scrollTo({ left: 0 });
-  }, [recommendGen]);
-
-  // Arrow affordance for anyone without a trackpad/horizontal-scroll mouse
-  // wheel — same idea as ScrollFadeArea's hover-triggered ▲/▼ buttons
-  // (mount only while there's somewhere left to scroll, reveal on hover of
-  // the row, not a permanent fixture), sized up to match this row's own
-  // 30px icon buttons rather than ScrollFadeArea's tiny 18×16px (tuned for
-  // a much shorter vertical scroll area — these needed to read clearly
-  // against a 421px-tall card, not a few lines of chips). Not reused as
-  // the ScrollFadeArea component itself: that component's mechanics
-  // (ResizeObserver'd inner content div, top/bottom gradient placement,
-  // topInset for sticky headers) are all specific to a fixed-height
-  // vertical viewport and don't transfer to a horizontal, always-scrolling
-  // carousel — same underlying *idea*, different, simpler implementation.
-  const [atStart, setAtStart] = useState(true);
-  const [atEnd, setAtEnd] = useState(true);
-  const updateScrollEdges = () => {
-    const el = rowRef.current;
-    if (!el) return;
-    setAtStart(el.scrollLeft <= 0);
-    setAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 1);
-  };
-  useEffect(() => {
-    updateScrollEdges();
-  }, [results]);
-  const scrollByCard = (direction: 1 | -1) => {
-    const el = rowRef.current;
-    const card = el?.querySelector("article");
-    if (!el || !card) return;
-    // Doesn't need to be pixel-exact — snap-mandatory corrects any
-    // scrollBy amount to the nearest real snap point, so "one card's
-    // current rendered width plus the gap" just needs to land closer to
-    // the next card than the current one, which it reliably does across
-    // every width tier (card width isn't a fixed px — it steps down
-    // through breakpoints — so it's measured live here rather than
-    // hardcoded per tier).
-    const cardWidth = card.getBoundingClientRect().width;
-    const gap = 16; // mirrors --space-xl, the row's own gap-xl
-    el.scrollBy({ left: direction * (cardWidth + gap), behavior: "smooth" });
+  // One card's current rendered width plus the row's own gap-xl — not a
+  // fixed number, since card width steps down through 4 responsive tiers
+  // (see ResultCard.tsx). Doesn't need to be pixel-exact: snap-mandatory
+  // corrects any scrollBy amount to the nearest real snap point, so this
+  // just needs to land closer to the next card than the current one, which
+  // it reliably does at every tier.
+  const getScrollStep = () => {
+    const card = rowRef.current?.querySelector("article");
+    const cardWidth = card?.getBoundingClientRect().width ?? 208;
+    return cardWidth + 16; // mirrors --space-xl, the row's own gap-xl
   };
 
   return (
@@ -162,109 +133,62 @@ export function RecommendationsBody({
         // to DEFAULT_RESULT_COUNT (config.ts) — re-derive it if that count
         // ever changes.
         //
-        // Plain native overflow-x-auto + snap-x — no custom gesture/
-        // pointer handling, same underlying mechanism as TagScrollArea's
-        // overflow-y-auto (draggable + clickable chips coexist with native
-        // scroll there for free; this is the same thing on the other
-        // axis). Scrollbar hidden to read as a carousel, not a scroll pane.
-        //
-        // scroll-padding-left (6% of the row's own width) is what gives a
-        // "previous card" peek on the left without switching to
-        // snap-center: each ResultCard still uses snap-start, but
-        // scroll-padding shifts *where* "start" lands relative to the
-        // scrollport — a start-aligned card comes to rest 6% in from the
-        // true left edge instead of flush against it, leaving exactly that
-        // much of the previous card visible. The very first card is
-        // unaffected: there's nothing before it to scroll to, so the
-        // browser clamps scrollLeft at 0 and it sits flush-left on its
-        // own — no special-casing needed for "first card, no previous."
-        // relative + group/reveal wraps the scrollable row (not applied
-        // to the row itself) so the two arrow buttons — positioned
-        // absolute, as siblings of the row rather than children of it —
-        // stay fixed in place as the row scrolls beneath them, instead of
-        // scrolling away with the cards. group/reveal (not a carousel-
-        // specific name) is the same shared hover-reveal group name
-        // ScrollFadeArea's arrows use — see IconButton's own doc comment
-        // for why the group name had to be unified rather than parameterized.
-        <div className="relative group/reveal max-[1152px]:-mr-[5px] max-[1152px]:-mb-[5px]">
-          {/* Setting overflow-x without overflow-y doesn't leave overflow-y
-              at its default `visible` — CSS computes it as `auto` too
-              whenever exactly one axis is non-visible (see the CSS Overflow
-              spec's "overflow-x/-y interaction" rule). That silently clips
-              each card's elev-4 shadow (5px 5px 0, bottom-right only, no
-              blur) wherever it bleeds past this row's own box. pr/pb-[5px]
-              here (matching the shadow's offset exactly, not a guess) gives
-              the now-auto overflow room to paint the shadow instead of
-              cutting it off; the wrapper's matching -mr/-mb-[5px] cancels
-              the added size back out so nothing below/right of the row
-              shifts. */}
-          <div
-            ref={rowRef}
-            onScroll={updateScrollEdges}
-            className="grid grid-cols-[repeat(auto-fill,minmax(208px,1fr))] gap-[var(--space-xl)] max-[1152px]:flex max-[1152px]:overflow-x-auto max-[1152px]:pr-[5px] max-[1152px]:pb-[5px] max-[1152px]:snap-x max-[1152px]:snap-mandatory max-[1152px]:[scroll-padding-left:6%] max-[1152px]:[scrollbar-width:none] max-[1152px]:[&::-webkit-scrollbar]:hidden"
+        // ScrollFadeArea (orientation="horizontal") supplies the actual
+        // overflow-x-auto viewport, snap, peek, wheel/press-hold, and
+        // arrows now — see this component's own top-of-file comment. What
+        // stays here, on the row itself (ScrollFadeArea's children): the
+        // grid↔flex-nowrap breakpoint switch (ScrollFadeArea has no concept
+        // of "static grid above N px," so that decision has to live in the
+        // caller's own markup), and each ResultCard's own snap-start
+        // (max-[1152px]:snap-start, in ResultCard.tsx) — snap points come
+        // from the children, same as TagScrollArea's chips.
+        <div className="-mr-[5px] -mb-[5px]">
+          {/* ScrollFadeArea's scroll viewport is unconditionally
+              overflow-x-auto/overflow-y-hidden now (not gated to
+              max-[1152px] the way the old bespoke implementation was), so
+              the elev-4 shadow-clipping risk this pr/pb-[5px] + -mr/-mb-[5px]
+              pair fixes is no longer confined to the carousel breakpoint —
+              a card flush against the grid's own right/bottom edge above
+              1152px is just as exposed. Both halves of the fix are
+              unconditional here for exactly that reason (see
+              ScrollFadeArea.tsx's own overflow-x/-y comment for the root
+              cause: setting only one axis non-visible silently coerces the
+              other from `visible` to `auto`, clipping any box-shadow
+              bleeding past that edge). */}
+          <ScrollFadeArea
+            orientation="horizontal"
+            snap
+            scrollPaddingStart="6%"
+            scrollResetKey={recommendGen}
+            getScrollStep={getScrollStep}
+            fadeSize={0}
+            arrowWidth={36}
+            arrowShadow
+            arrowInset="var(--space-md)"
           >
-            {results.map((entry) => (
-              <ResultCard
-                key={entry.series.title}
-                entry={entry}
-                selectedTags={selectedTags}
-                filledCount={filledCount}
-                minNum={minNum}
-                locked={Boolean(locked[entry.series.title])}
-                flipped={Boolean(flipped[entry.series.title])}
-                canSwap={canSwap}
-                onFlip={onFlip}
-                onToggleLock={onToggleLock}
-                onReplace={onReplace}
-                onChipToggle={onChipToggle}
-                tagInfoByName={tagInfoByName}
-                totalSeriesCount={totalSeriesCount}
-                level={level}
-                sort={sort}
-              />
-            ))}
-          </div>
-
-          {/* hidden by default (grid mode, no scrolling); in carousel mode,
-              mounted only while there's actually somewhere to scroll to in
-              that direction (mirrors ScrollFadeArea's hasOverflow gating),
-              and visible only on hover of the row via IconButton's
-              `revealOnHover` (the same `group/reveal` mechanism
-              ScrollFadeArea's own arrows use) — a permanent pair of arrows
-              sitting on top of the peek affordance would be redundant
-              chrome most of the time. z-overlay + shadow (not
-              ScrollFadeArea's flatter, shadowless treatment) since these
-              sit over arbitrary cover art, not a flat surface color. */}
-          {!atStart && (
-            <IconButton
-              width={36}
-              shape="circle"
-              border="hair"
-              shadow
-              revealOnHover
-              display="hidden max-[1152px]:flex"
-              aria-label="Scroll to previous result"
-              onClick={() => scrollByCard(-1)}
-              className="absolute top-1/2 -translate-y-1/2 left-[var(--space-md)] text-[length:var(--text-sm)] leading-none z-[var(--z-overlay)]"
-            >
-              ◀
-            </IconButton>
-          )}
-          {!atEnd && (
-            <IconButton
-              width={36}
-              shape="circle"
-              border="hair"
-              shadow
-              revealOnHover
-              display="hidden max-[1152px]:flex"
-              aria-label="Scroll to next result"
-              onClick={() => scrollByCard(1)}
-              className="absolute top-1/2 -translate-y-1/2 right-[var(--space-md)] text-[length:var(--text-sm)] leading-none z-[var(--z-overlay)]"
-            >
-              ▶
-            </IconButton>
-          )}
+            <div ref={rowRef} className="grid grid-cols-[repeat(auto-fill,minmax(208px,1fr))] gap-[var(--space-xl)] pr-[5px] pb-[5px] max-[1152px]:flex max-[1152px]:flex-nowrap">
+              {results.map((entry) => (
+                <ResultCard
+                  key={entry.series.title}
+                  entry={entry}
+                  selectedTags={selectedTags}
+                  filledCount={filledCount}
+                  minNum={minNum}
+                  locked={Boolean(locked[entry.series.title])}
+                  flipped={Boolean(flipped[entry.series.title])}
+                  canSwap={canSwap}
+                  onFlip={onFlip}
+                  onToggleLock={onToggleLock}
+                  onReplace={onReplace}
+                  onChipToggle={onChipToggle}
+                  tagInfoByName={tagInfoByName}
+                  totalSeriesCount={totalSeriesCount}
+                  level={level}
+                  sort={sort}
+                />
+              ))}
+            </div>
+          </ScrollFadeArea>
         </div>
       )}
     </div>

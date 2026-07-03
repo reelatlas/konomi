@@ -3,111 +3,84 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { IconButton } from "./IconButton";
 
+type Orientation = "vertical" | "horizontal";
+
 interface ScrollFadeAreaProps {
-  // Tailwind height utility applied to the scroll viewport — either a fixed
-  // "h-[Npx]" (viewport always this tall, e.g. TagScrollArea's per-card
-  // area, which needs uniform height across a grid regardless of content)
-  // or a capping "max-h-[Npx]" (viewport hugs shorter content and only
-  // clamps + scrolls past the cap, e.g. the Tag Pool). Overflow detection
-  // below works identically either way — it just compares the rendered
-  // scrollHeight/clientHeight, which "hugging" content naturally keeps equal.
-  height: string;
+  // Vertical-only: the Tailwind height utility applied to the scroll
+  // viewport — either a fixed "h-[Npx]" (TagScrollArea's per-card area,
+  // which needs uniform height across a grid regardless of content) or a
+  // capping "max-h-[Npx]" (hugs shorter content, only clamps + scrolls past
+  // the cap). Ignored for orientation="horizontal", which always takes
+  // "w-full" instead — every horizontal caller (the results carousel, the
+  // Tag Pool's section tab strip) wants the full width available to it, so
+  // a per-instance sizing prop would be unused generality.
+  height?: string;
+  orientation?: Orientation;
+  // The amount a single (non-held) arrow click moves, in px. Most callers
+  // pass a fixed number; getScrollStep (below) exists for the one caller
+  // whose "one unit" isn't a constant.
   scrollStep?: number;
-  // Pixels to push the top gradient + up-arrow down by, for callers that
-  // render their own sticky header(s) inside the scrolled content (see
-  // TagPoolSection) — otherwise they'd render at top-0 and sit underneath
-  // (visually hidden behind) that header. 0 for callers with no sticky
-  // header (e.g. TagScrollArea), which is the common case.
-  topInset?: number;
-  // Adds scroll-snap-type: y mandatory to the viewport. Opt-in, not the
-  // default: this only makes sense where children register real snap
-  // points (TagScrollArea's chips, via its own [&_button]:snap-start on
-  // its wrapping div — deliberately not baked in here, since ScrollFadeArea
-  // shouldn't need to know its children are buttons). The Tag Pool doesn't
-  // use this — no uniform row/section unit to snap to there (see
-  // DESIGN_SYSTEM.md).
+  // Overrides `scrollStep` for a plain click, when the amount to scroll
+  // can't be a fixed number — the results carousel's card width steps
+  // through 4 responsive tiers, so "one card over" has to be measured off
+  // the actual rendered DOM on each click rather than hardcoded.
+  getScrollStep?: () => number;
+  // Adds scroll-snap on the main axis (snap-y for vertical, snap-x for
+  // horizontal). Opt-in: this only makes sense where children register real
+  // snap points (TagScrollArea's chip rows via [&_button]:snap-start; the
+  // results carousel via each ResultCard's own snap-start) — deliberately
+  // not baked in here, since ScrollFadeArea shouldn't need to know what its
+  // children are.
   snap?: boolean;
-  // Shifts where a snap-start child comes to rest, same trick as the
-  // results carousel's scroll-padding-left (see RecommendationsSection):
-  // a start-aligned row settles this many px in from the true top instead
-  // of flush against it, leaving exactly that much of the previous row
-  // visible as a "there's more above" peek. 0 (no peek) unless a caller
-  // opts in.
-  scrollPaddingTop?: number;
-  // What the top/bottom fade gradients fade *from*, and what the hover
-  // arrows are filled with — i.e. "the color of whatever's actually behind
-  // this component," not a fixed choice. Defaults to --surface, correct for
-  // any caller sitting on a --surface card (TagScrollArea, inside
-  // ResultCard). TagPoolBody overrides this to --bg once the Tag Pool
-  // panel lost its own bordered/--surface card shell — with the default
-  // still in place there, the gradients and arrows kept fading to/filling
-  // with white against the page's actual (non-white) --bg, reading as a
-  // mismatched pale patch/line at the scroll edges, confirmed live.
+  // Peek reservation on the main axis's start edge — same idea both
+  // orientations: a snap-start child settles this far in from the true
+  // edge instead of flush against it, leaving exactly that much of the
+  // previous item visible. Accepts a plain px number (TagScrollArea) or a
+  // CSS length string like "6%" (the results carousel, which wants a
+  // peek proportional to the row's own width, not a fixed px amount).
+  scrollPaddingStart?: number | string;
+  // Whenever this value changes (by reference/value inequality, checked via
+  // a useEffect dependency), the viewport scrolls back to its start edge —
+  // instantly, not smoothed. Generalizes the results carousel's own
+  // "recommendGen bumped, scroll back to card 0" behavior into a prop
+  // instead of a caller-owned ref + effect.
+  scrollResetKey?: unknown;
+  // What the fade gradients fade *from*, and what the hover arrows are
+  // filled with — i.e. "the color of whatever's actually behind this
+  // component," not a fixed choice. Defaults to --surface, correct for any
+  // caller sitting on a --surface card (TagScrollArea, inside ResultCard).
   surfaceColor?: string;
-  // Height of the top/bottom fade gradients, in px. Callers with a real
-  // peek already showing (TagScrollArea) want this small or 0 — the
-  // gradient's job is exactly what the peek already does, and a full-size
-  // fade actively works against a peek by obscuring the very row it's
-  // supposed to preview. Callers with no peek (the Tag Pool) keep the
-  // default, where the gradient is the only "there's more" signal.
+  // Height (vertical) or width (horizontal) of the fade gradients, in px.
+  // 0 renders no gradient at all (the results carousel: its peek is
+  // already the "there's more" signal, and a gradient on top of arbitrary
+  // cover art read wrong — see RecommendationsBody).
   fadeSize?: number;
-  // Real alpha transparency at the top edge, via CSS mask-image — not a
-  // color-overlay gradient like fadeSize above. A first attempt at "hide
-  // chips before they reach a transparent sticky header" used exactly that
-  // kind of overlay (a solid-to-transparent gradient div drawn on top of
-  // the content, matching the surrounding background color) — confirmed
-  // live that it doesn't work: it fades content to a *color*, not to
-  // nothing, so it visibly collides with the header's own (genuinely
-  // transparent) text instead of cleanly erasing whatever's behind it.
-  // mask-image erases actual pixels to true transparency — content that's
-  // "faded" this way reveals whatever is really behind it (the page, a
-  // border, anything), with no assumption about what color that is, which
-  // is the same technique iOS/macOS scroll views use for edge fades.
-  // Applied to the scroll viewport itself, not a child, so it covers
-  // everything scrolling through that band uniformly. 0 (no mask) unless a
-  // caller opts in.
-  topMaskSize?: number;
-  // Extends the mask's fully-transparent zone into a flat plateau from 0 up
-  // to this many px, *before* the ramp to opaque starts (which then runs
-  // from here to topMaskSize). Without this, the mask is a single ramp
-  // starting at 0 — meaning it's only *exactly* 0% opaque at y=0 itself; a
-  // few px into the ramp (e.g. within a sticky header's own height) content
-  // is already partially visible, confirmed live as a real bug: chips
-  // sitting behind a pinned, transparent sticky header were still faintly
-  // visible, not fully erased, because the header's whole 0-38px band
-  // wasn't actually within the mask's 0%-opacity region — only its very top
-  // edge was. Set this to the header's own height so nothing behind it, at
-  // any point in that band, is ever partially visible.
-  topMaskFlatSize?: number;
-  // Per-frame px rate for continuous (held) scrolling. Deliberately a prop,
-  // not a single shared constant: the same rate reads completely
-  // differently depending on how big the scrollable area is relative to
-  // it. 6px/frame felt right for the Tag Pool's much taller/longer list,
-  // but the same 6px/frame felt roughly 4x too fast for TagScrollArea's
-  // much smaller area — confirmed live, not just theorized, after the
-  // first shared-constant version shipped.
+  // Per-frame px rate for continuous (held) scrolling. A prop, not a shared
+  // constant: the same rate reads differently depending on how big the
+  // scrollable area is relative to it (confirmed live across TagScrollArea
+  // vs. the Tag Pool, which needed different values).
   continuousScrollSpeed?: number;
-  // Fires once with the actual scrolling DOM element, as soon as it mounts
-  // — lets a caller (TagPoolBody) attach its own scroll-position tracking
-  // (which section is "active," for the sticky-header-overlay mechanism
-  // below) without ScrollFadeArea needing to know anything about sections.
-  onScrollContainerMount?: (el: HTMLDivElement) => void;
-  // Rendered as a plain sibling of the masked/scrollable content, inside
-  // the same relative wrapper — i.e., explicitly *not* a descendant of the
-  // element topMaskSize masks. This is the other half of that mechanism:
-  // topMaskSize erases the *real*, in-flow sticky header along with
-  // everything else scrolling through that band (masks can't exempt one
-  // descendant while affecting others at the same screen position — there
-  // is no CSS escape hatch for that), so a caller that wants a crisp,
-  // unfaded sticky header has to render a second, unmasked copy of
-  // whichever one is currently active here instead, positioned to sit
-  // exactly where the real (now-hidden-while-active) one would be.
-  stickyOverlay?: React.ReactNode;
+  // Arrow button geometry/treatment — every existing caller keeps
+  // ScrollFadeArea's own small (18×16), flat (no shadow), flush (0 inset)
+  // defaults; the results carousel is the one caller that needs bigger,
+  // shadowed, edge-inset arrows (they sit over arbitrary cover art rather
+  // than a flat surface color, and needed room to clear the cards' own
+  // margin) — see arrowWidth/arrowHeight/arrowShadow/arrowInset below.
+  arrowWidth?: number;
+  arrowHeight?: number;
+  arrowShadow?: boolean;
+  // Offset from the edge each arrow sits at (top/bottom for vertical,
+  // left/right for horizontal) — a plain px number or a CSS length string
+  // (e.g. "var(--space-md)", which the results carousel uses to stay
+  // token-linked rather than hardcoding the current --space-md value).
+  arrowInset?: number | string;
   children: React.ReactNode;
 }
 
 const DEFAULT_SCROLL_STEP = 32;
 const DEFAULT_FADE_SIZE = 18;
+const DEFAULT_ARROW_WIDTH = 18;
+const DEFAULT_ARROW_HEIGHT = 16;
 // Below this holding time, a press is treated as a plain click (one
 // scrollStep). At or beyond it, continuous scrolling takes over instead —
 // for anyone without a trackpad/scroll wheel who'd otherwise need to click
@@ -119,33 +92,37 @@ const LONG_PRESS_MS = 300;
 // for why a single shared rate didn't work for both callers.
 const DEFAULT_CONTINUOUS_SCROLL_SPEED = 6;
 
-// Shared fixed-height-viewport-with-gradient-fade-and-hover-arrows mechanic,
-// used by both TagScrollArea (per-card tags) and the Tag Pool container.
-// Watches an inner, intrinsically-sized content div (not the fixed-height
-// viewport itself, whose own box never changes size) via ResizeObserver, so
-// it correctly detects content growing/shrinking for reasons the viewport
-// can't see itself — e.g. a nested CollapsibleSection expanding, not just a
-// changed children array.
+// Shared scroll/fade/hover-arrow mechanic. Vertical callers: TagScrollArea
+// (per-card tags) and the Tag Pool's chip area. Horizontal callers: the
+// results carousel (RecommendationsBody) and the Tag Pool's section tab
+// strip (SectionTabStrip). Watches an inner, intrinsically-sized content
+// div (not the fixed/full-size scroll viewport itself, whose own box never
+// changes size on its own) via ResizeObserver, so it correctly detects
+// content growing/shrinking for reasons the viewport can't see itself —
+// e.g. a level change hiding/showing tags.
 export function ScrollFadeArea({
   height,
+  orientation = "vertical",
   scrollStep = DEFAULT_SCROLL_STEP,
-  topInset = 0,
+  getScrollStep,
   snap = false,
-  scrollPaddingTop = 0,
+  scrollPaddingStart,
+  scrollResetKey,
   surfaceColor = "var(--surface)",
   fadeSize = DEFAULT_FADE_SIZE,
-  topMaskSize = 0,
-  topMaskFlatSize = 0,
   continuousScrollSpeed = DEFAULT_CONTINUOUS_SCROLL_SPEED,
-  onScrollContainerMount,
-  stickyOverlay,
+  arrowWidth = DEFAULT_ARROW_WIDTH,
+  arrowHeight = DEFAULT_ARROW_HEIGHT,
+  arrowShadow = false,
+  arrowInset = 0,
   children,
 }: ScrollFadeAreaProps) {
+  const horizontal = orientation === "horizontal";
   const scrollRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [hasOverflow, setHasOverflow] = useState(false);
-  const [atTop, setAtTop] = useState(true);
-  const [atBottom, setAtBottom] = useState(true);
+  const [atStart, setAtStart] = useState(true);
+  const [atEnd, setAtEnd] = useState(true);
   // Tracks an in-progress press so a single mouseup/touchend/mouseleave
   // handler can tell "was this a quick click" from "was this a hold that's
   // already been continuously scrolling" — see handlePressEnd below.
@@ -153,15 +130,11 @@ export function ScrollFadeArea({
   const continuousScrollFrame = useRef<number | null>(null);
   // Carries the fractional remainder between frames. `scrollBy` rounds its
   // delta to a whole pixel per call — confirmed live: at continuousScrollSpeed
-  // 0.25 (TagScrollArea's rate), every single `scrollBy({ top: 0.25 })` call
-  // was silently rounding down to 0 and never moving the element at all, on
-  // its own. (The appearance of movement before the scroll-snap-disable fix
-  // above was never this scrollBy call — it was scroll-snap-mandatory
-  // treating each no-op nudge as a completed gesture and jumping to the next
-  // full snap point, which is what the earlier "4x too fast" complaints were
-  // actually describing.) Accumulating the sub-pixel remainder here and only
-  // calling scrollBy once it reaches a whole pixel makes any rate < 1px/frame
-  // still scroll at its correct average speed instead of not moving at all.
+  // 0.25 (TagScrollArea's rate), every single sub-pixel scrollBy call was
+  // silently rounding down to 0 and never moving the element at all, on its
+  // own. Accumulating the sub-pixel remainder here and only calling
+  // scrollBy once it reaches a whole pixel makes any rate < 1px/frame still
+  // scroll at its correct average speed instead of not moving at all.
   const scrollRemainder = useRef(0);
   // Holds whichever function is currently registered as the window-level
   // release listener (see startContinuousScroll), so stopContinuousScroll
@@ -175,9 +148,15 @@ export function ScrollFadeArea({
   const updateScrollState = () => {
     const el = scrollRef.current;
     if (!el) return;
-    setHasOverflow(el.scrollHeight > el.clientHeight + 1);
-    setAtTop(el.scrollTop <= 0);
-    setAtBottom(el.scrollTop + el.clientHeight >= el.scrollHeight - 1);
+    if (horizontal) {
+      setHasOverflow(el.scrollWidth > el.clientWidth + 1);
+      setAtStart(el.scrollLeft <= 0);
+      setAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 1);
+    } else {
+      setHasOverflow(el.scrollHeight > el.clientHeight + 1);
+      setAtStart(el.scrollTop <= 0);
+      setAtEnd(el.scrollTop + el.clientHeight >= el.scrollHeight - 1);
+    }
   };
 
   useEffect(() => {
@@ -187,10 +166,22 @@ export function ScrollFadeArea({
     const observer = new ResizeObserver(updateScrollState);
     observer.observe(content);
     return () => observer.disconnect();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [horizontal]);
+
+  // Scrolls back to the start edge whenever the caller's reset key changes
+  // (also fires harmlessly on mount, since scrollTop/scrollLeft is already
+  // 0 then). Instant (no `behavior`), matching the carousel's original
+  // recommendGen-triggered reset.
+  useEffect(() => {
+    scrollRef.current?.scrollTo(horizontal ? { left: 0 } : { top: 0 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scrollResetKey]);
 
   const scrollBy = (direction: 1 | -1) => {
-    scrollRef.current?.scrollBy({ top: direction * scrollStep, behavior: "smooth" });
+    const step = getScrollStep ? getScrollStep() : scrollStep;
+    const delta = direction * step;
+    scrollRef.current?.scrollBy(horizontal ? { left: delta, behavior: "smooth" } : { top: delta, behavior: "smooth" });
   };
 
   // useCallback (not a plain function/arrow recreated every render): this
@@ -213,9 +204,9 @@ export function ScrollFadeArea({
     // on every stop path (including the unmount cleanup below) regardless
     // of whether this specific call started the override. Clearing the
     // inline value (not setting a specific value) lets the CSS classes
-    // (snap-y snap-mandatory, applied via the `snap` prop elsewhere in this
-    // component) take back over, which is what makes the final resting
-    // position correctly snap once scrolling actually stops.
+    // (snap-y/snap-x snap-mandatory, applied via the `snap` prop elsewhere
+    // in this component) take back over, which is what makes the final
+    // resting position correctly snap once scrolling actually stops.
     if (scrollRef.current) scrollRef.current.style.scrollSnapType = "";
   }, []);
 
@@ -228,10 +219,10 @@ export function ScrollFadeArea({
     // Defensive: cancels any loop already running before starting a new
     // one. Without this, a specific real bug reproduced live: hold one
     // arrow until scrolling reaches that end — the *button itself*
-    // unmounts the instant atTop/atBottom flips (see showTopGradient/
-    // showBottomGradient below), so its own onMouseUp can never fire to
-    // stop the loop it started. Immediately holding the *opposite* arrow
-    // then started a second loop without cancelling the first — both ran
+    // unmounts the instant atStart/atEnd flips (see showStartGradient/
+    // showEndGradient below), so its own onMouseUp can never fire to stop
+    // the loop it started. Immediately holding the *opposite* arrow then
+    // started a second loop without cancelling the first — both ran
     // simultaneously in opposite directions, visibly cancelling each other
     // out (reported as "the other arrow doesn't work").
     stopContinuousScroll();
@@ -241,31 +232,21 @@ export function ScrollFadeArea({
     // sub-pixel scrollBy nudge is apparently enough for the browser to
     // treat it as a completed scroll gesture and immediately snap-correct
     // to the next full row — so *every single frame* of continuous
-    // scrolling was triggering its own snap-jump, compounding into
-    // movement far larger than continuousScrollSpeed would predict,
-    // regardless of how small that number was set to (reducing it 4x, then
-    // 6x again, produced no perceptible change, because the runaway
-    // snap-jumps were dominating either way — confirmed by directly
-    // comparing the same tick loop with snap on vs. off: 20 ticks of
-    // 0.25px each moved 104px with snap active, ~0px with it off). Restored
-    // in stopContinuousScroll once the hold ends, so the final rest
-    // position still snaps normally.
+    // scrolling was triggering its own snap-jump. Restored in
+    // stopContinuousScroll once the hold ends, so the final rest position
+    // still snaps normally.
     if (snap && scrollRef.current) scrollRef.current.style.scrollSnapType = "none";
     scrollRemainder.current = 0;
+    const axisKey = horizontal ? "left" : "top";
     const step = () => {
       // behavior: "auto" (instant), not "smooth" — this already runs every
       // frame on its own, so it doesn't need the browser's own scroll
       // animation stacking on top; "smooth" here would compound into
       // increasingly laggy catch-up as frames pile up.
-      //
-      // Accumulate first, then only call scrollBy with the whole-pixel part
-      // — see scrollRemainder's own comment for why this is necessary at all
-      // (scrollBy silently no-ops on a sub-1px delta rather than fractionally
-      // accumulating it itself).
       scrollRemainder.current += direction * continuousScrollSpeed;
       const wholePixels = Math.trunc(scrollRemainder.current);
       if (wholePixels !== 0) {
-        scrollRef.current?.scrollBy({ top: wholePixels, behavior: "auto" });
+        scrollRef.current?.scrollBy({ [axisKey]: wholePixels, behavior: "auto" });
         scrollRemainder.current -= wholePixels;
       }
       continuousScrollFrame.current = requestAnimationFrame(step);
@@ -308,73 +289,68 @@ export function ScrollFadeArea({
     }
   };
 
-  const showTopGradient = hasOverflow && !atTop;
-  const showBottomGradient = hasOverflow && !atBottom;
+  // Horizontal-only: a plain mouse wheel reports only deltaY, and browsers
+  // don't natively redirect that into a horizontal-only overflow
+  // container's scrollLeft the way they do for vertical containers — only
+  // a trackpad's genuine two-finger horizontal swipe (deltaX) drives it for
+  // free. Summing both deltas into scrollLeft is the standard fix: a
+  // trackpad horizontal gesture reports almost entirely on deltaX (deltaY
+  // near 0) and a mouse wheel reports almost entirely on deltaY (deltaX
+  // near 0), so adding both never double-counts either input in practice.
+  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    if (!horizontal) return;
+    scrollRef.current?.scrollBy({ left: e.deltaX + e.deltaY, behavior: "auto" });
+  };
 
-  // useCallback, not an inline arrow — the same reason stopContinuousScroll
-  // above needs one. An inline ref callback is a *new* function every
-  // render, and React treats a changed ref function as "detach the old one,
-  // attach the new one" even when the DOM element itself hasn't changed —
-  // calling onScrollContainerMount again every single render. Since that
-  // callback (TagPoolBody's recomputeActive) calls setState, this produced
-  // an actual infinite render loop, confirmed live ("Maximum update depth
-  // exceeded"). A stable callback reference is only invoked when the
-  // element it's attached to actually mounts/unmounts.
-  const setScrollRef = useCallback(
-    (el: HTMLDivElement | null) => {
-      scrollRef.current = el;
-      if (el) onScrollContainerMount?.(el);
-    },
-    [onScrollContainerMount],
-  );
+  const showStartGradient = hasOverflow && !atStart;
+  const showEndGradient = hasOverflow && !atEnd;
 
   return (
     <div className="group/reveal relative">
       <div
-        ref={setScrollRef}
+        ref={scrollRef}
         onScroll={updateScrollState}
-        style={{
-          ...(scrollPaddingTop ? { scrollPaddingTop } : undefined),
-          // Real erasure to transparency, not a color blend — see
-          // topMaskSize's own doc comment above for why this replaced an
-          // earlier gradient-overlay attempt. Four stops, not two: a plain
-          // transparent→black ramp starting at 0 is only *exactly* 0%
-          // opaque at y=0 — a few px into the ramp (e.g. a sticky header's
-          // own height), content is already partially visible again,
-          // confirmed live as a real bug (see topMaskFlatSize's own doc
-          // comment). Holding flat at transparent through topMaskFlatSize,
-          // *then* ramping to opaque by topMaskSize, guarantees nothing in
-          // that whole flat zone is ever partially visible, not just its
-          // very top edge. -webkit- prefix included since mask-image
-          // support without it is inconsistent across Safari versions.
-          ...(topMaskSize > 0
-            ? {
-                WebkitMaskImage: `linear-gradient(to bottom, transparent, transparent ${topMaskFlatSize}px, black ${topMaskSize}px, black 100%)`,
-                maskImage: `linear-gradient(to bottom, transparent, transparent ${topMaskFlatSize}px, black ${topMaskSize}px, black 100%)`,
-              }
-            : undefined),
-        }}
-        className={`${height} overflow-y-auto overflow-x-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${snap ? "snap-y snap-mandatory" : ""}`}
+        onWheel={horizontal ? handleWheel : undefined}
+        style={
+          scrollPaddingStart
+            ? horizontal
+              ? { scrollPaddingLeft: scrollPaddingStart }
+              : { scrollPaddingTop: scrollPaddingStart }
+            : undefined
+        }
+        className={[
+          horizontal ? "w-full overflow-x-auto overflow-y-hidden" : `${height} overflow-y-auto overflow-x-hidden`,
+          "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+          snap ? (horizontal ? "snap-x snap-mandatory" : "snap-y snap-mandatory") : "",
+        ].join(" ")}
       >
         <div ref={contentRef}>{children}</div>
       </div>
 
-      {/* fadeSize > 0 gates rendering entirely, not just a height of 0 —
+      {/* fadeSize > 0 gates rendering entirely, not just a size of 0 —
           fadeSize is a per-instance number, not a static Tailwind class
-          this component can express as a literal utility, so height comes
+          this component can express as a literal utility, so size comes
           from an inline style either way; skipping the element completely
-          when a caller passes 0 avoids rendering a zero-height gradient
-          div for no reason. */}
-      {showTopGradient && fadeSize > 0 && (
+          when a caller passes 0 avoids rendering a zero-size gradient div
+          for no reason. */}
+      {showStartGradient && fadeSize > 0 && (
         <div
-          className="pointer-events-none absolute inset-x-0"
-          style={{ top: topInset, height: fadeSize, backgroundImage: `linear-gradient(to bottom, ${surfaceColor}, transparent)` }}
+          className={horizontal ? "pointer-events-none absolute inset-y-0 left-0" : "pointer-events-none absolute inset-x-0 top-0"}
+          style={
+            horizontal
+              ? { width: fadeSize, backgroundImage: `linear-gradient(to right, ${surfaceColor}, transparent)` }
+              : { height: fadeSize, backgroundImage: `linear-gradient(to bottom, ${surfaceColor}, transparent)` }
+          }
         />
       )}
-      {showBottomGradient && fadeSize > 0 && (
+      {showEndGradient && fadeSize > 0 && (
         <div
-          className="pointer-events-none absolute inset-x-0 bottom-0"
-          style={{ height: fadeSize, backgroundImage: `linear-gradient(to top, ${surfaceColor}, transparent)` }}
+          className={horizontal ? "pointer-events-none absolute inset-y-0 right-0" : "pointer-events-none absolute inset-x-0 bottom-0"}
+          style={
+            horizontal
+              ? { width: fadeSize, backgroundImage: `linear-gradient(to left, ${surfaceColor}, transparent)` }
+              : { height: fadeSize, backgroundImage: `linear-gradient(to top, ${surfaceColor}, transparent)` }
+          }
         />
       )}
 
@@ -400,15 +376,16 @@ export function ScrollFadeArea({
           stopping one doesn't stop the others). Inside a ResultCard, that
           unstopped click bubbled up to the card's own onClick and flipped
           it every time this button was pressed. */}
-      {showTopGradient && (
+      {showStartGradient && (
         <IconButton
-          width={18}
-          height={16}
+          width={arrowWidth}
+          height={arrowHeight}
           shape="circle"
           border="hair"
+          shadow={arrowShadow}
           backgroundColor={surfaceColor}
           revealOnHover
-          aria-label="Scroll up"
+          aria-label={horizontal ? "Scroll left" : "Scroll up"}
           onMouseDown={(e) => {
             e.stopPropagation();
             handlePressStart(-1);
@@ -427,21 +404,26 @@ export function ScrollFadeArea({
             handlePressEnd(-1);
           }}
           onClick={(e) => e.stopPropagation()}
-          className="absolute left-1/2 -translate-x-1/2 text-[8px] leading-none z-[var(--z-overlay)]"
-          style={{ top: topInset }}
+          className={
+            horizontal
+              ? "absolute top-1/2 -translate-y-1/2 text-[8px] leading-none z-[var(--z-overlay)]"
+              : "absolute left-1/2 -translate-x-1/2 text-[8px] leading-none z-[var(--z-overlay)]"
+          }
+          style={horizontal ? { left: arrowInset } : { top: arrowInset }}
         >
-          ▲
+          {horizontal ? "◀" : "▲"}
         </IconButton>
       )}
-      {showBottomGradient && (
+      {showEndGradient && (
         <IconButton
-          width={18}
-          height={16}
+          width={arrowWidth}
+          height={arrowHeight}
           shape="circle"
           border="hair"
+          shadow={arrowShadow}
           backgroundColor={surfaceColor}
           revealOnHover
-          aria-label="Scroll down"
+          aria-label={horizontal ? "Scroll right" : "Scroll down"}
           onMouseDown={(e) => {
             e.stopPropagation();
             handlePressStart(1);
@@ -460,12 +442,16 @@ export function ScrollFadeArea({
             handlePressEnd(1);
           }}
           onClick={(e) => e.stopPropagation()}
-          className="absolute bottom-[2px] left-1/2 -translate-x-1/2 text-[8px] leading-none z-[var(--z-overlay)]"
+          className={
+            horizontal
+              ? "absolute top-1/2 -translate-y-1/2 text-[8px] leading-none z-[var(--z-overlay)]"
+              : "absolute left-1/2 -translate-x-1/2 text-[8px] leading-none z-[var(--z-overlay)]"
+          }
+          style={horizontal ? { right: arrowInset } : { bottom: arrowInset }}
         >
-          ▼
+          {horizontal ? "▶" : "▼"}
         </IconButton>
       )}
-      {stickyOverlay}
     </div>
   );
 }

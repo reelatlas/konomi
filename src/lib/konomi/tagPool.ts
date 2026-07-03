@@ -1,11 +1,12 @@
 import { AVG_RANK_BASELINE, POPULAR_AVG_RANK_THRESHOLD, POPULAR_SERIES_COUNT_PCT } from "./config";
 import type { LevelKey, SortKey, TagInfo } from "./types";
 
-// Static mapping of the tag pool's hierarchy: 5 top-level sections. Only
-// Theme splits into labeled, non-collapsible subsections — Setting and Cast
-// merge their categories into one flat, unlabeled list per section (same
-// tags, just no subsection grouping shown). Technical and Sexual Content are
-// deliberately omitted — hidden entirely.
+// Static mapping of the tag pool's hierarchy: 5 top-level sections, each one
+// a tab in SectionTabStrip.tsx. Only Theme splits into labeled subsections
+// (plain inline group labels within that tab's content, not a second nav
+// level) — Setting and Cast merge their categories into one flat, unlabeled
+// list per section (same tags, just no subsection grouping shown). Technical
+// and Sexual Content are deliberately omitted — hidden entirely.
 export interface TagSubsection {
   label: string;
   categories: string[];
@@ -14,7 +15,6 @@ export interface TagSubsection {
 export interface TagSection {
   key: string;
   label: string;
-  defaultExpanded: boolean;
   // Theme only. When present, tags render grouped under each label instead
   // of the flat `categories` list below.
   subsections?: TagSubsection[];
@@ -24,11 +24,10 @@ export interface TagSection {
 }
 
 export const TAG_SECTIONS: TagSection[] = [
-  { key: "genres", label: "Genres", defaultExpanded: true },
+  { key: "genres", label: "Genres" },
   {
     key: "theme",
     label: "Theme",
-    defaultExpanded: true,
     subsections: [
       { label: "Action", categories: ["Theme-Action"] },
       { label: "Fantasy", categories: ["Theme-Fantasy"] },
@@ -42,11 +41,11 @@ export const TAG_SECTIONS: TagSection[] = [
       { label: "Other", categories: ["Theme-Other", "Theme-Other-Organisations", "Theme-Other-Vehicle"] },
     ],
   },
-  { key: "setting", label: "Setting", defaultExpanded: true, categories: ["Setting-Scene", "Setting-Time", "Setting-Universe"] },
+  { key: "setting", label: "Setting", categories: ["Setting-Scene", "Setting-Time", "Setting-Universe"] },
   // "Characters" is display-only — key/categories stay "cast"/Cast-* so
-  // storageKey, localStorage, and the section-mapping logic are untouched.
-  { key: "cast", label: "Characters", defaultExpanded: true, categories: ["Cast-Traits", "Cast-Main Cast"] },
-  { key: "demographic", label: "Demographic", defaultExpanded: true, categories: ["Demographic"] },
+  // storageKey and the section-mapping logic are untouched.
+  { key: "cast", label: "Characters", categories: ["Cast-Traits", "Cast-Main Cast"] },
+  { key: "demographic", label: "Demographic", categories: ["Demographic"] },
 ];
 
 export const LEVEL_OPTIONS: { key: LevelKey; label: string; hint: string }[] = [

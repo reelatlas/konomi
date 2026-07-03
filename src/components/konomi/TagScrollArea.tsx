@@ -60,9 +60,10 @@ export function TagScrollArea({ tags, selectedTags, onChipToggle }: TagScrollAre
     // less than a full "page" remained above and landed exactly at the
     // top.
     //
-    // scrollPaddingTop mirrors the results carousel's scroll-padding-left:
-    // a snapped row settles TOP_RESERVE_PX in from the true top instead of
-    // flush against it. fadeSize shrunk from the default 18px to 4px —
+    // scrollPaddingStart mirrors the results carousel's scroll-padding-left,
+    // just the vertical axis: a snapped row settles TOP_RESERVE_PX in from
+    // the true top instead of flush against it. fadeSize shrunk from the
+    // default 18px to 4px —
     // confirmed live that the full gradient was fading out exactly the
     // peeking row it was supposed to preview, working against the peek
     // instead of reinforcing it. A small amount is kept, not removed
@@ -85,7 +86,7 @@ export function TagScrollArea({ tags, selectedTags, onChipToggle }: TagScrollAre
       height={TAG_AREA_HEIGHT}
       scrollStep={VISIBLE_ROWS * ROW_STEP_PX}
       snap
-      scrollPaddingTop={TOP_RESERVE_PX}
+      scrollPaddingStart={TOP_RESERVE_PX}
       fadeSize={4}
       continuousScrollSpeed={1.5}
     >

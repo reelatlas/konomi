@@ -1,8 +1,8 @@
-import { useCallback, useRef, useState } from "react";
+import { useState } from "react";
 import { genreTags, sortTags, TAG_SECTIONS, tagsForCategories, tagsForSection } from "@/lib/konomi/tagPool";
 import type { LevelKey, TagInfo } from "@/lib/konomi/types";
-import { CollapsibleSection, SectionHeaderLabel, useSectionExpanded } from "./CollapsibleSection";
 import { ScrollFadeArea } from "./ScrollFadeArea";
+import { SectionTabStrip } from "./SectionTabStrip";
 import { TagChip } from "./TagChip";
 import { useSort } from "./tagPoolPrefs";
 
@@ -14,49 +14,32 @@ interface TagPoolBodyProps {
   onChipToggle: (tag: string) => void;
 }
 
-// Fixed, not a cap — this is the one real change from the pre-tab
-// TagPoolSection. Both this and RecommendationsBody now render inside one
-// shared card shell (TagPoolRecommendationsPanel) with only one body visible
-// at a time, so their heights must match exactly or the shell visibly
-// resizes on every tab switch — the same "no jarring height change" problem
-// already solved once for the empty-state/results-grid transition (see
-// RecommendationsBody's own placeholder comment). --result-card-height is
-// the reference: Recommendations' body is always exactly that tall
-// (ResultCard's own fixed height, or the empty-state placeholder's matching
-// min-height), so Tag Pool's scroll area now targets the same token instead
-// of its own independently-tuned cap. This makes Tag Pool's own scrollable
-// height go up slightly (was max-h-380px) even though the *section's*
-// overall footprint gets shorter overall, since its former header (title +
-// hint + Level/Sort, now external — see PanelToggleHeader) no longer adds
-// height inside this card at all. ScrollFadeArea's overflow-fade-and-arrow
-// mechanism doesn't care which of the two forms (h- vs max-h-) it's given,
-// or what the number is — confirmed live that content still scrolls,
-// fades, and reveals arrows correctly at this new value; nothing is clipped
-// or unreachable, exactly as before.
-const POOL_AREA_HEIGHT = "h-[var(--result-card-height)]";
-// Rendered height of a sticky CollapsibleSection header button (text-lg
-// line + py-xs top/bottom padding) — measured live against the live
-// component, not estimated. Keeps ScrollFadeArea's top gradient/arrow from
-// rendering underneath the sticky header, and doubles as the unmasked
-// overlay's own height below. Unrelated to (and unaffected by) the
-// panel-level header moving out of this file — this is about each
-// CollapsibleSection's own internal sticky title bar, inside the scroll
-// area itself.
-const SECTION_HEADER_HEIGHT = 38;
-// The mask's flat (fully-transparent, not ramping) zone — exactly the
-// header's own height, so nothing behind a header, anywhere within its own
-// band, is ever partially visible (see ScrollFadeArea's topMaskFlatSize).
-const TOP_MASK_FLAT_SIZE = SECTION_HEADER_HEIGHT;
-// A short ramp past the flat zone (was 46px) — real headers no longer rely
-// on the ramp for cover at all (that's `hiddenKeys`' job now, a separate
-// JS-driven mechanism independent of the mask's own shape), so the ramp's
-// only remaining purpose is a bit of depth cue for chips specifically, the
-// same role the bottom edge's small `fadeSize` already plays there. A wide
-// 46px ramp read as a slow, lingering "faded outro" — confirmed live it
-// didn't match the snappy, near-instant disappearance the bottom edge
-// already has; a short ramp gives chips that same clean, sudden cutoff.
-const TOP_MASK_RAMP_PX = 8;
-const TOP_MASK_SIZE = TOP_MASK_FLAT_SIZE + TOP_MASK_RAMP_PX;
+const STRIP_GAP = 12; // --space-lg
+// max-h-, not h- — a short section (Genres, Setting, Demographic) should
+// hug its own content and render shorter than Recommendations, not pad out
+// to match it every time; a long one (Theme) still caps at the same
+// ceiling Recommendations uses and scrolls past it. This is a deliberate
+// departure from the older fixed-height version's invariant ("both tabs
+// render at the exact same total height, always") — switching from a short
+// Tag Pool section to Recommendations (or vice versa) can now visibly
+// change the panel's height, by choice, in exchange for not showing a
+// mostly-empty 445px box for a 2-tag section. --result-card-height minus
+// the tab strip + gap it now sits below is still the *ceiling*, not a
+// fixed value — ScrollFadeArea's own overflow-detection (scrollHeight vs
+// clientHeight) needs no changes to support a max-h box: clientHeight
+// already equals natural content height whenever that's under the cap.
+//
+// This has to be a literal string, not built via template interpolation
+// (e.g. `` `max-h-[calc(...)-${tabStripHeight + STRIP_GAP}px)]` ``) —
+// Tailwind's scanner needs the full class as static source text to
+// generate its CSS; a runtime-computed template literal is invisible to it
+// and silently produces no rule at all. Confirmed live as a real bug while
+// building this: an interpolated version rendered with no height
+// constraint whatsoever (height:auto, the whole Theme section stacked to
+// ~1066px). The 42px below = the tab strip's own rendered height (30px,
+// measured live against the real component, not estimated) + STRIP_GAP
+// (12px) — keep this literal in sync by hand if either changes.
+const CHIP_AREA_HEIGHT = "max-h-[calc(var(--result-card-height)-42px)]";
 
 function ChipRow({
   tags,
@@ -76,36 +59,6 @@ function ChipRow({
   );
 }
 
-// The single unmasked copy of whichever section is "at the top" right now —
-// rendered by ScrollFadeArea as a plain sibling of the masked/scrollable
-// content (see its `stickyOverlay` prop), so it's never a descendant of the
-// element `topMaskSize` erases. Reads/writes the *same* expand state the
-// real (now-hidden-while-active) header drives via useSectionExpanded, so
-// clicking this one toggles the real section, not a second copy of it.
-function ActiveSectionOverlay({
-  title,
-  storageKey,
-  defaultExpanded,
-  selectedCount,
-}: {
-  title: string;
-  storageKey: string;
-  defaultExpanded: boolean;
-  selectedCount: number;
-}) {
-  const [expanded, setExpandedState] = useSectionExpanded(storageKey, defaultExpanded);
-  return (
-    <button
-      type="button"
-      onClick={() => setExpandedState(!expanded)}
-      aria-expanded={expanded}
-      className="absolute top-0 inset-x-0 z-[var(--z-sticky)] flex items-center h-[38px] cursor-pointer bg-transparent border-0 text-left text-[var(--ink)]"
-    >
-      <SectionHeaderLabel title={title} selectedCount={selectedCount} expanded={expanded} />
-    </button>
-  );
-}
-
 // Body-only — the section-level chrome (border/shadow/padding) and the
 // title/controls header both moved out to TagPoolRecommendationsPanel and
 // PanelToggleHeader respectively, once Tag Pool became a tab sharing one
@@ -113,144 +66,100 @@ function ActiveSectionOverlay({
 // is still a prop (needed to filter which tags render), but there's no
 // `onLevelChange` here anymore — that control now lives in the header,
 // which calls the same handler directly.
+//
+// Section navigation is a horizontal tab strip (SectionTabStrip), not
+// collapsible sections — see DESIGN_SYSTEM.md for why that replaced the
+// old sticky-header/mask machinery entirely rather than keeping it around
+// in reduced form.
 export function TagPoolBody({ allTags, selectedTags, totalSeriesCount, level, onChipToggle }: TagPoolBodyProps) {
   const sort = useSort();
-  const sectionRefs = useRef(new Map<string, HTMLDivElement>());
-  const headerRefs = useRef(new Map<string, HTMLButtonElement>());
-  // Which section the crisp overlay currently shows a title for — the one
-  // with the smallest relTop among every section currently within the
-  // mask's reach (pinned, or still approaching it). Not restricted to "is
-  // this exactly pinned" (relTop <= 0) — a section that's merely
-  // approaching still needs its real header hidden (see the imperative
-  // opacity write in recomputeActive below), and picking it as the overlay
-  // target *as soon as* it's hidden, rather than waiting for exact pinning,
-  // is what closes the gap where an incoming section was hidden but had no
-  // overlay covering for it yet — confirmed live as a blank flash.
-  const [overlayKey, setOverlayKey] = useState<string | null>(null);
+  // Plain component state, not localStorage-backed — TagPoolBody itself
+  // never unmounts while the Recommendations tab is active (only `hidden`
+  // toggles, in TagPoolRecommendationsPanel), so this alone is enough for
+  // the active section and its scroll position to survive switching to
+  // Recommendations and back. No requirement was made for this to survive
+  // a full page reload, so it isn't persisted beyond the session.
+  const [activeSectionKey, setActiveSectionKey] = useState(TAG_SECTIONS[0].key);
 
-  // useCallback (stable identity, empty deps — the ref Maps are always the
-  // same objects): this gets passed down to ScrollFadeArea's
-  // `onScrollContainerMount`, which itself only re-invokes when *this*
-  // function reference changes (see that component's own doc comment on
-  // why). A plain function here would be a new reference every render,
-  // defeating that stability and reintroducing the infinite-render-loop bug
-  // this whole chain was built to avoid.
-  //
-  // Real headers' opacity is set here directly via el.style, not through
-  // React state/className — confirmed live that going through state (one
-  // render + commit + paint cycle behind the raw scroll position) was
-  // visibly one frame late during fast, continuous scrolling: a header
-  // could flash briefly visible-and-masked before its hidden state caught
-  // up. Mutating style.opacity synchronously, in the same tick as the
-  // measurement, removes that gap entirely — the header's visual state
-  // updates in lockstep with scroll, same as the browser's own native
-  // `position: sticky` recalculation already does. `overlayKey` (which
-  // title the crisp overlay shows) stays as React state — a single text
-  // swap is far less perceptible than a whole header flickering, so it
-  // doesn't need the same treatment.
-  const recomputeActive = useCallback((scrollEl: HTMLDivElement) => {
-    const top = scrollEl.getBoundingClientRect().top;
-    let bestKey: string | null = null;
-    let bestTop = Infinity;
-    for (const [key, el] of sectionRefs.current) {
-      const r = el.getBoundingClientRect();
-      const relTop = r.top - top;
-      const relBottom = r.bottom - top;
-      const hide = relTop < TOP_MASK_SIZE && relBottom > 0;
-      const headerEl = headerRefs.current.get(key);
-      if (headerEl) {
-        headerEl.style.opacity = hide ? "0" : "";
-        headerEl.style.pointerEvents = hide ? "none" : "";
-      }
-      if (hide && relTop < bestTop) {
-        bestTop = relTop;
-        bestKey = key;
-      }
-    }
-    setOverlayKey(bestKey);
-  }, []);
+  // Every section with at least one tag at the current level — hidden
+  // entirely (not shown as a disabled tab), matching the old collapsible
+  // version's "hidden, not just collapsed, empty sections" behavior.
+  const visibleSections = TAG_SECTIONS.map((section) => ({
+    section,
+    tags: tagsForSection(allTags, section, level, totalSeriesCount),
+  })).filter(({ tags }) => tags.length > 0);
 
-  const handleScrollContainerMount = useCallback(
-    (el: HTMLDivElement) => {
-      recomputeActive(el);
-      el.addEventListener("scroll", () => recomputeActive(el));
-      // Also on resize, not just scroll — this mounts on first page load
-      // while the Tag Pool tab is still hidden (`display:none`, since
-      // Recommendations is the default tab), and every getBoundingClientRect
-      // call on a display:none subtree returns an all-zero rect. That left
-      // `recomputeActive`'s very first run computing nothing useful
-      // (relBottom > 0 was false for everything), and nothing else ever
-      // re-ran it until the user's first actual scroll — confirmed live: no
-      // section title showed in the overlay at all until scrolling, even
-      // slightly. Switching tabs is exactly a display:none → visible resize
-      // (0×0 to its real size), which ResizeObserver reports — recomputing
-      // there closes the gap without TagPoolBody needing to know anything
-      // about which tab is active.
-      new ResizeObserver(() => recomputeActive(el)).observe(el);
-    },
-    [recomputeActive],
-  );
-
-  const activeSection = TAG_SECTIONS.find((s) => s.key === overlayKey);
-  const activeSectionTags = activeSection ? tagsForSection(allTags, activeSection, level, totalSeriesCount) : [];
-  const activeSelectedCount = activeSectionTags.filter((t) => selectedTags.includes(t.name)).length;
+  // A Level change (in PanelToggleHeader) can make the currently-active
+  // section disappear entirely (e.g. every non-Genres section is empty at
+  // Level 1 "Casual") — collapsible sections never had to handle this,
+  // since a hidden section just stayed collapsed-and-invisible in place.
+  // The fallback (first visible section, always Genres, which passes every
+  // level) is computed here at render time rather than written back via
+  // setActiveSectionKey in an effect — a plain derived value, not a second
+  // synced copy of the state, and it means the *stored* key is left
+  // untouched while its section is only temporarily hidden: raise the
+  // level back up and the strip resumes showing whatever was actually
+  // active before, instead of having permanently reset to Genres the
+  // moment it first disappeared.
+  const active = visibleSections.find(({ section }) => section.key === activeSectionKey) ?? visibleSections[0];
 
   return (
-    // surfaceColor="var(--bg)", not ScrollFadeArea's own --surface default:
-    // this used to sit on TagPoolSection's own bordered/--surface card, but
-    // that card is gone now that Tag Pool is a tab floating directly on the
-    // page — a --surface (white) fade/arrow-fill against the page's actual
-    // --bg color read as a mismatched pale patch/line at the scroll edges,
-    // confirmed live.
-    <ScrollFadeArea
-      height={POOL_AREA_HEIGHT}
-      topInset={SECTION_HEADER_HEIGHT}
-      scrollStep={92}
-      fadeSize={4}
-      topMaskSize={TOP_MASK_SIZE}
-      topMaskFlatSize={TOP_MASK_FLAT_SIZE}
-      surfaceColor="var(--bg)"
-      onScrollContainerMount={handleScrollContainerMount}
-      stickyOverlay={
-        activeSection && (
-          <ActiveSectionOverlay
-            title={activeSection.label}
-            storageKey={activeSection.key}
-            defaultExpanded={activeSection.defaultExpanded}
-            selectedCount={activeSelectedCount}
-          />
-        )
-      }
-    >
-      {TAG_SECTIONS.map((section) => {
-        const sectionTags = tagsForSection(allTags, section, level, totalSeriesCount);
-        // Hidden entirely, not just visually collapsed, when nothing at
-        // this level qualifies (e.g. every non-Genres section at Level
-        // 1). CollapsibleSection's expand state lives in localStorage,
-        // untouched by mounting/unmounting, so this is a pure render
-        // guard — the section remembers its expand state for whenever it
-        // reappears at a higher level.
-        if (sectionTags.length === 0) return null;
-        const selectedCount = sectionTags.filter((t) => selectedTags.includes(t.name)).length;
-        return (
-          <CollapsibleSection
-            key={section.key}
-            ref={(el) => {
-              if (el) sectionRefs.current.set(section.key, el);
-              else sectionRefs.current.delete(section.key);
-            }}
-            headerRef={(el) => {
-              if (el) headerRefs.current.set(section.key, el);
-              else headerRefs.current.delete(section.key);
-            }}
-            title={section.label}
-            storageKey={section.key}
-            defaultExpanded={section.defaultExpanded}
-            selectedCount={selectedCount}
-          >
-            {section.subsections ? (
+    <div className="flex flex-col" style={{ gap: STRIP_GAP }}>
+      <SectionTabStrip
+        sections={visibleSections.map(({ section, tags }) => ({
+          key: section.key,
+          label: section.label,
+          selectedCount: tags.filter((t) => selectedTags.includes(t.name)).length,
+        }))}
+        activeKey={active.section.key}
+        onChange={setActiveSectionKey}
+      />
+
+      {/* key={active.section.key}: forces a clean remount (and therefore a
+          reset scroll position) on every section switch — you said
+          reset-to-top there is fine, and per-section scroll memory isn't
+          worth the complexity for now. Switching the *panel* tab (to
+          Recommendations and back) never touches this key, so this area's
+          scroll position is untouched by that — it survives purely because
+          TagPoolBody itself stays mounted throughout (see this file's own
+          top comment). surfaceColor="var(--bg)": this sits directly on the
+          page background, not a --surface card (Tag Pool has no card shell
+          of its own — see "Tag Pool and Recommendations became two tabs" in
+          DESIGN_SYSTEM.md). role=tabpanel/aria-labelledby/tabIndex make
+          this the real target of the tab strip's aria-controls above. */}
+      <div
+        key={active.section.key}
+        id={`tagpool-panel-${active.section.key}`}
+        role="tabpanel"
+        aria-labelledby={`tagpool-tab-${active.section.key}`}
+        tabIndex={0}
+      >
+        <ScrollFadeArea height={CHIP_AREA_HEIGHT} scrollStep={92} fadeSize={4} surfaceColor="var(--bg)">
+          {/* pb/pr-[3px]: base-size TagChip carries shadow-[var(--elev-2)]
+              (3px 3px 0, bottom-right, no blur). ScrollFadeArea's vertical
+              viewport sets overflow-y-auto/overflow-x-hidden, so a chip's
+              shadow bleeding past the content's own bottom/right edge gets
+              clipped there — same root cause as the results carousel's
+              shadow-clipping bug. The fix here is deliberately *not* the
+              carousel's pad-then-cancel-with-a-negative-margin pattern,
+              though — canceling the padding turned out to create a
+              different real bug: `scrollHeight` doesn't shrink back down to
+              match a negative margin the way normal `height:auto` layout
+              does, so the canceled version still measured `scrollHeight`
+              a few px taller than `clientHeight`, tripping ScrollFadeArea's
+              `hasOverflow` check and showing a scrollbar/fade/arrows for
+              sections that should render with zero scroll affordance at
+              all (confirmed live). Since this area now hugs rather than
+              holding a fixed height (see CHIP_AREA_HEIGHT above), there's
+              no exact-footprint invariant to protect the way the carousel
+              has — so the simpler, correct fix is to just let the box
+              legitimately grow by 3px to fit the shadow, uncanceled. Same
+              approach the older CollapsibleSection-era fix for this exact
+              problem used (a plain last:mb-md, not a cancel trick). */}
+          <div className="pb-[3px] pr-[3px]">
+            {active.section.subsections ? (
               <div className="flex flex-col gap-[var(--space-lg)]">
-                {section.subsections.map((sub) => {
+                {active.section.subsections.map((sub) => {
                   const subTags = sortTags(tagsForCategories(allTags, sub.categories, level, totalSeriesCount), sort);
                   if (!subTags.length) return null;
                   return (
@@ -266,16 +175,18 @@ export function TagPoolBody({ allTags, selectedTags, totalSeriesCount, level, on
             ) : (
               <ChipRow
                 tags={sortTags(
-                  section.key === "genres" ? genreTags(allTags) : tagsForCategories(allTags, section.categories ?? [], level, totalSeriesCount),
+                  active.section.key === "genres"
+                    ? genreTags(allTags)
+                    : tagsForCategories(allTags, active.section.categories ?? [], level, totalSeriesCount),
                   sort,
                 )}
                 selectedTags={selectedTags}
                 onChipToggle={onChipToggle}
               />
             )}
-          </CollapsibleSection>
-        );
-      })}
-    </ScrollFadeArea>
+          </div>
+        </ScrollFadeArea>
+      </div>
+    </div>
   );
 }
