@@ -110,13 +110,16 @@ export function TagPoolSection({ allTags, selectedTags, totalSeriesCount, level,
             justify-between above then degenerates to flex-start for this
             lone item on its own line, matching the header's alignment
             rather than staying docked right once stacked. Level, then Sort
-            (left to right) — Level no longer needs to be last for hint
-            alignment now that its hints are per-segment tooltips, not a
-            shared line under the row. Level/Sort stay items-start against
-            each other so their top edges line up. Each icon is paired with
-            its own control in a nested items-center row so it centers
-            against that control's height specifically, not the row's
-            overall height. */}
+            (left to right) — order is a display preference, not load-
+            bearing: LevelSelector's own hint is now an absolute line below
+            *its own* segmented control (hover/focus-driven, one string per
+            segment, same mechanic as ThemeSwitcher's swatch subtext) rather
+            than a title tooltip, but it's scoped to LevelSelector's own
+            relative wrapper, not this shared row, so it doesn't care what
+            comes after it. Level/Sort stay items-start against each other
+            so their top edges line up. Each icon is paired with its own
+            control in a nested items-center row so it centers against that
+            control's height specifically, not the row's overall height. */}
         <div className="flex items-start gap-[var(--space-lg)] flex-wrap">
           <div className="flex items-center gap-[var(--space-sm)]">
             <TagIcon className="text-[var(--ink)]" />

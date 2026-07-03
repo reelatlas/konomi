@@ -1,5 +1,5 @@
 import type { MatchKey, MixerError, Slot } from "@/lib/konomi/types";
-import { MinTagMatchIcon } from "./icons";
+import { GreaterEqualIcon, TagIcon } from "./icons";
 import { MatchSelector } from "./MatchSelector";
 import { RecommendButton } from "./RecommendButton";
 import { TagSlot } from "./TagSlot";
@@ -73,20 +73,46 @@ export function MixerSection({
             ))}
           </div>
 
-          {/* Row 2b, exploratory: MIN TAG MATCH (icon + inline label +
-              selector) on the left, vertically centered against this row's
-              height; Random/Clear/badge grouped on the right. items-center
-              (not items-start) is what centers MIN TAG MATCH's shorter box
-              against Random/Clear's taller one — the badge opts back out
-              with self-start so it stays flush against the row's own top
-              edge (its previous "top aligned" position) rather than
-              centering with everything else. */}
-          <div className="flex justify-end @min-[313px]:justify-between items-center gap-[var(--space-lg)] flex-wrap">
+          {/* Row 2b, exploratory: MIN TAG MATCH (label, then TagIcon, then
+              ≥, then the selector) on the left, vertically centered against
+              this row's height; Random/Clear/badge grouped on the right.
+              items-center (not items-start) is what centers MIN TAG MATCH's
+              shorter box against Random/Clear's taller one — the badge
+              opts back out with self-start so it stays flush against the
+              row's own top edge (its previous "top aligned" position)
+              rather than centering with everything else.
+
+              @min-[514px] (not the old 313px): MIN TAG MATCH grew a label
+              and two icons, and the right cluster gained the badge as a
+              third item, so the two groups need much more combined width
+              to share one line now — re-measured live via 1px-step
+              bisection (fits at column width 514px, wraps at 513px). Below
+              514px, justify-end (not justify-between) is what keeps both
+              groups right-aligned once wrapped — see the doc comment above
+              this same technique elsewhere in DESIGN_SYSTEM.md. Confirmed
+              live across the full 1280→380px range that no width still
+              shows the old bug (both groups landing flush-left once
+              wrapped).
+
+              gap-y is bumped only below that same 514px threshold: MIN TAG
+              MATCH's hover subtext is `absolute`, so it doesn't reserve any
+              space in-flow — fine at 514px+ where it has nothing below it
+              to collide with, but once wrapped, Random/Clear/badge's line
+              starts close enough beneath MIN TAG MATCH's line that the
+              subtext visually overlapped it. Widening just the row-gap
+              (not gap-x, which would misalign the same-line case) between
+              the two wrapped lines gives the subtext room without ever
+              touching the wide-viewport layout — simpler than making the
+              hint conditionally in-flow/push-down on hover, and covers the
+              case regardless of which segment (shortest vs longest hint
+              text) is hovered. */}
+          <div className="flex justify-end @min-[514px]:justify-between items-center gap-x-[var(--space-lg)] gap-y-[var(--space-lg)] @max-[513px]:gap-y-[var(--space-2xl)] flex-wrap">
             <div className="flex items-center gap-[var(--space-sm)]">
-              <MinTagMatchIcon className="text-[var(--ink)]" />
               <span className="font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
                 Min Tag Match
               </span>
+              <TagIcon className="text-[var(--ink)]" />
+              <GreaterEqualIcon className="text-[var(--ink)]" />
               <MatchSelector value={minMatch} onChange={onSetMatch} />
             </div>
             <div className="flex items-center gap-[var(--space-lg)]">

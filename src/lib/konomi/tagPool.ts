@@ -50,9 +50,9 @@ export const TAG_SECTIONS: TagSection[] = [
 ];
 
 export const LEVEL_OPTIONS: { key: LevelKey; label: string; hint: string }[] = [
-  { key: "1", label: "Casual", hint: "light enjoyer" },
-  { key: "2", label: "Seasoned", hint: "not my first rodeo" },
-  { key: "3", label: "Otaku", hint: "power level > 9000" },
+  { key: "1", label: "Casual", hint: "light enjoyer ☕" },
+  { key: "2", label: "Seasoned", hint: "not my first rodeo 𓄀" },
+  { key: "3", label: "Otaku", hint: ">9000 ⋆˙⟡(っ•̀,•́)っ≡≡≡≡〇" },
 ];
 
 export const SORT_OPTIONS: { key: SortKey; label: string }[] = [

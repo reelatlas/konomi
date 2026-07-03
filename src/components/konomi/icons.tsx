@@ -85,28 +85,24 @@ export function SortIcon({ className }: IconProps) {
   );
 }
 
-// "≥" (a ">" chevron plus an underline) followed by the tag glyph, scaled
-// down and shifted into the same viewBox — reads as "at least N tags",
-// paired with the MIN TAG MATCH label/selector in MixerSection.
-export function MinTagMatchIcon({ className }: IconProps) {
+// "≥" — a ">" chevron plus an underline. Paired with TagIcon (separately,
+// not combined into one glyph) in MixerSection's MIN TAG MATCH label:
+// label text, then TagIcon, then this — reading as "match ≥ N tags".
+export function GreaterEqualIcon({ className }: IconProps) {
   return (
     <svg
       className={className}
-      width="27"
-      height="20"
-      viewBox="0 0 30 22"
+      width="13"
+      height="17"
+      viewBox="0 0 14 20"
       fill="none"
       stroke="currentColor"
       strokeWidth={2.2}
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <path d="M3 3L10 8L3 13" />
-      <path d="M3 17H10" />
-      <g transform="translate(14 3) scale(0.68)">
-        <path d="M11.5 3.5H5A1.5 1.5 0 0 0 3.5 5v6.5a1.5 1.5 0 0 0 .44 1.06l8.5 8.5a1.5 1.5 0 0 0 2.12 0l6.5-6.5a1.5 1.5 0 0 0 0-2.12l-8.5-8.5a1.5 1.5 0 0 0-1.06-.44Z" />
-        <circle cx="8" cy="8" r="1.3" fill="currentColor" stroke="none" />
-      </g>
+      <path d="M2 3L9 8L2 13" />
+      <path d="M2 17H9" />
     </svg>
   );
 }
