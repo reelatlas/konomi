@@ -40,6 +40,14 @@ interface ScrollFadeAreaProps {
   // supposed to preview. Callers with no peek (the Tag Pool) keep the
   // default, where the gradient is the only "there's more" signal.
   fadeSize?: number;
+  // Per-frame px rate for continuous (held) scrolling. Deliberately a prop,
+  // not a single shared constant: the same rate reads completely
+  // differently depending on how big the scrollable area is relative to
+  // it. 6px/frame felt right for the Tag Pool's much taller/longer list,
+  // but the same 6px/frame felt roughly 4x too fast for TagScrollArea's
+  // much smaller area — confirmed live, not just theorized, after the
+  // first shared-constant version shipped.
+  continuousScrollSpeed?: number;
   children: React.ReactNode;
 }
 
@@ -50,12 +58,11 @@ const DEFAULT_FADE_SIZE = 18;
 // for anyone without a trackpad/scroll wheel who'd otherwise need to click
 // repeatedly to get through more than a couple of rows.
 const LONG_PRESS_MS = 300;
-// Deliberately independent of scrollStep — that's sized around "one
-// press = a couple of rows," a single discrete jump; this is a smooth
-// per-frame rate for continuous scrolling once a press turns into a hold,
-// a different kind of quantity that shouldn't be derived from the same
-// number.
-const CONTINUOUS_SCROLL_PX_PER_FRAME = 6;
+// This default (6px/frame) is what the Tag Pool actually uses today, kept
+// as the fallback so it didn't need its own explicit prop when
+// continuousScrollSpeed became configurable — see that prop's own comment
+// for why a single shared rate didn't work for both callers.
+const DEFAULT_CONTINUOUS_SCROLL_SPEED = 6;
 
 // Shared fixed-height-viewport-with-gradient-fade-and-hover-arrows mechanic,
 // used by both TagScrollArea (per-card tags) and the Tag Pool container.
@@ -71,6 +78,7 @@ export function ScrollFadeArea({
   snap = false,
   scrollPaddingTop = 0,
   fadeSize = DEFAULT_FADE_SIZE,
+  continuousScrollSpeed = DEFAULT_CONTINUOUS_SCROLL_SPEED,
   children,
 }: ScrollFadeAreaProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -83,6 +91,18 @@ export function ScrollFadeArea({
   // already been continuously scrolling" — see handlePressEnd below.
   const longPressTimer = useRef<number | null>(null);
   const continuousScrollFrame = useRef<number | null>(null);
+  // Carries the fractional remainder between frames. `scrollBy` rounds its
+  // delta to a whole pixel per call — confirmed live: at continuousScrollSpeed
+  // 0.25 (TagScrollArea's rate), every single `scrollBy({ top: 0.25 })` call
+  // was silently rounding down to 0 and never moving the element at all, on
+  // its own. (The appearance of movement before the scroll-snap-disable fix
+  // above was never this scrollBy call — it was scroll-snap-mandatory
+  // treating each no-op nudge as a completed gesture and jumping to the next
+  // full snap point, which is what the earlier "4x too fast" complaints were
+  // actually describing.) Accumulating the sub-pixel remainder here and only
+  // calling scrollBy once it reaches a whole pixel makes any rate < 1px/frame
+  // still scroll at its correct average speed instead of not moving at all.
+  const scrollRemainder = useRef(0);
   // Holds whichever function is currently registered as the window-level
   // release listener (see startContinuousScroll), so stopContinuousScroll
   // can remove exactly that listener via a ref read rather than by
@@ -128,6 +148,15 @@ export function ScrollFadeArea({
       window.removeEventListener("touchend", globalReleaseListener.current);
       globalReleaseListener.current = null;
     }
+    // Unconditional, not gated on the `snap` prop — restoring an inline
+    // style that was never set is a harmless no-op, and this needs to run
+    // on every stop path (including the unmount cleanup below) regardless
+    // of whether this specific call started the override. Clearing the
+    // inline value (not setting a specific value) lets the CSS classes
+    // (snap-y snap-mandatory, applied via the `snap` prop elsewhere in this
+    // component) take back over, which is what makes the final resting
+    // position correctly snap once scrolling actually stops.
+    if (scrollRef.current) scrollRef.current.style.scrollSnapType = "";
   }, []);
 
   // Also clears any in-flight press state on unmount — a held button
@@ -146,12 +175,39 @@ export function ScrollFadeArea({
     // simultaneously in opposite directions, visibly cancelling each other
     // out (reported as "the other arrow doesn't work").
     stopContinuousScroll();
+    // Temporarily turns scroll-snap off for the duration of the hold, when
+    // this instance uses it at all. Confirmed live as a real, separate bug
+    // from the speed number itself: with snap-mandatory active, even a
+    // sub-pixel scrollBy nudge is apparently enough for the browser to
+    // treat it as a completed scroll gesture and immediately snap-correct
+    // to the next full row — so *every single frame* of continuous
+    // scrolling was triggering its own snap-jump, compounding into
+    // movement far larger than continuousScrollSpeed would predict,
+    // regardless of how small that number was set to (reducing it 4x, then
+    // 6x again, produced no perceptible change, because the runaway
+    // snap-jumps were dominating either way — confirmed by directly
+    // comparing the same tick loop with snap on vs. off: 20 ticks of
+    // 0.25px each moved 104px with snap active, ~0px with it off). Restored
+    // in stopContinuousScroll once the hold ends, so the final rest
+    // position still snaps normally.
+    if (snap && scrollRef.current) scrollRef.current.style.scrollSnapType = "none";
+    scrollRemainder.current = 0;
     const step = () => {
       // behavior: "auto" (instant), not "smooth" — this already runs every
       // frame on its own, so it doesn't need the browser's own scroll
       // animation stacking on top; "smooth" here would compound into
       // increasingly laggy catch-up as frames pile up.
-      scrollRef.current?.scrollBy({ top: direction * CONTINUOUS_SCROLL_PX_PER_FRAME, behavior: "auto" });
+      //
+      // Accumulate first, then only call scrollBy with the whole-pixel part
+      // — see scrollRemainder's own comment for why this is necessary at all
+      // (scrollBy silently no-ops on a sub-1px delta rather than fractionally
+      // accumulating it itself).
+      scrollRemainder.current += direction * continuousScrollSpeed;
+      const wholePixels = Math.trunc(scrollRemainder.current);
+      if (wholePixels !== 0) {
+        scrollRef.current?.scrollBy({ top: wholePixels, behavior: "auto" });
+        scrollRemainder.current -= wholePixels;
+      }
       continuousScrollFrame.current = requestAnimationFrame(step);
     };
     continuousScrollFrame.current = requestAnimationFrame(step);

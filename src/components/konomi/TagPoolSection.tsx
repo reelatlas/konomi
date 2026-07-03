@@ -139,8 +139,12 @@ export function TagPoolSection({ allTags, selectedTags, totalSeriesCount, level,
           headers, chip rows, and sub-labels, with collapsible sections
           changing the whole scrollable shape — there's no single
           consistent unit to snap to that wouldn't feel arbitrary (see
-          DESIGN_SYSTEM.md). */}
-      <ScrollFadeArea height={POOL_AREA_HEIGHT} topInset={SECTION_HEADER_HEIGHT} scrollStep={92}>
+          DESIGN_SYSTEM.md). fadeSize=4 matches TagScrollArea's own reduced
+          gradient — confirmed live to look better even without a peek
+          mechanism here, so applied for visual consistency between the
+          two scroll areas, not because this one needed shrinking for the
+          same functional reason (obscuring a peek) TagScrollArea did. */}
+      <ScrollFadeArea height={POOL_AREA_HEIGHT} topInset={SECTION_HEADER_HEIGHT} scrollStep={92} fadeSize={4}>
         {TAG_SECTIONS.map((section) => {
           const sectionTags = tagsForSection(allTags, section, level, totalSeriesCount);
           // Hidden entirely, not just visually collapsed, when nothing at
