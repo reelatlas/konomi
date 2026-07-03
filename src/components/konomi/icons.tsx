@@ -85,6 +85,32 @@ export function SortIcon({ className }: IconProps) {
   );
 }
 
+// "≥" (a ">" chevron plus an underline) followed by the tag glyph, scaled
+// down and shifted into the same viewBox — reads as "at least N tags",
+// paired with the MIN TAG MATCH label/selector in MixerSection.
+export function MinTagMatchIcon({ className }: IconProps) {
+  return (
+    <svg
+      className={className}
+      width="27"
+      height="20"
+      viewBox="0 0 30 22"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 3L10 8L3 13" />
+      <path d="M3 17H10" />
+      <g transform="translate(14 3) scale(0.68)">
+        <path d="M11.5 3.5H5A1.5 1.5 0 0 0 3.5 5v6.5a1.5 1.5 0 0 0 .44 1.06l8.5 8.5a1.5 1.5 0 0 0 2.12 0l6.5-6.5a1.5 1.5 0 0 0 0-2.12l-8.5-8.5a1.5 1.5 0 0 0-1.06-.44Z" />
+        <circle cx="8" cy="8" r="1.3" fill="currentColor" stroke="none" />
+      </g>
+    </svg>
+  );
+}
+
 // A rotated label/price-tag silhouette with a small hole — standard tag glyph.
 export function TagIcon({ className }: IconProps) {
   return (

@@ -68,7 +68,10 @@
   --secondary: #e4f46f;
   --on-primary: #fcfaff;
   --on-secondary: #191225;
-  --disabled-bg: #d9ccec;
+  /* disabled-bg matches slot-empty (both faded-purple) — the recommend
+     button's disabled state and an empty drop-tag slot read as the same
+     "nothing here yet" surface, not two different grays. */
+  --disabled-bg: #f4eefb;
   --disabled-text: #9a8bb5;
   --slot-empty: #f4eefb;
 }
@@ -84,9 +87,13 @@
   --secondary: #6fd3d6;
   --on-primary: #eaf3f5;
   --on-secondary: #0e1518;
+  /* slot-empty matches disabled-bg here, not the other way around: the old
+     slot-empty (#1b2329) sat almost on top of --bg (#12181c) and effectively
+     disappeared — disabled-bg is the value that actually reads as a
+     distinct surface in this theme. */
   --disabled-bg: #243038;
   --disabled-text: #515e66;
-  --slot-empty: #1b2329;
+  --slot-empty: #243038;
 }
 
 [data-theme="third"] {
@@ -100,7 +107,9 @@
   --secondary: #f2c14e;
   --on-primary: #fff7ec;
   --on-secondary: #211c17;
-  --disabled-bg: #e3dac8;
+  /* disabled-bg matches slot-empty, same reasoning as the default theme
+     above. */
+  --disabled-bg: #f1e9da;
   --disabled-text: #a99b82;
   --slot-empty: #f1e9da;
 }

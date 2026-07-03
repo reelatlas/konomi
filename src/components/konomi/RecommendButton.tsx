@@ -26,7 +26,7 @@ export function RecommendButton({ filledCount, onRecommend, error }: RecommendBu
 
   return (
     // No min-w here (deliberately, unlike min-h below): a fixed min-width
-    // used to reserve room for the star's 190px layers, but the star is
+    // used to reserve room for the star's layers, but the star is
     // absolutely positioned and centered on the in-flow <button> alone, so
     // that reserved width just became invisible padding to the button's
     // right once ml-auto (in MixerSection) right-aligned this box instead
@@ -42,17 +42,25 @@ export function RecommendButton({ filledCount, onRecommend, error }: RecommendBu
       >
         <div
           className={[
-            "absolute w-[190px] h-[190px] bg-[var(--ink)] z-0",
+            "absolute w-[150px] h-[150px] bg-[var(--ink)] z-0",
             STAR_CLIP,
-            error ? "" : "animate-[kono-spin_20s_linear_infinite]",
+            "animate-[kono-spin_20s_linear_infinite]",
+            // animation-play-state, not adding/removing the animation
+            // class: removing the class entirely drops the animation's
+            // transform and snaps back to the element's base (untransformed,
+            // 0deg) state. Pausing freezes it exactly at its current
+            // rotation, and un-pausing resumes from that same point — no
+            // manual angle-tracking needed, the browser already does it.
+            error ? "[animation-play-state:paused]" : "[animation-play-state:running]",
             enabled ? "opacity-100" : "opacity-35",
           ].join(" ")}
         />
         <div
           className={[
-            "absolute w-[176px] h-[176px] z-0",
+            "absolute w-[139px] h-[139px] z-0",
             STAR_CLIP,
-            error ? "" : "animate-[kono-spin_20s_linear_infinite]",
+            "animate-[kono-spin_20s_linear_infinite]",
+            error ? "[animation-play-state:paused]" : "[animation-play-state:running]",
             accent === "primary" ? "bg-[var(--secondary)]" : "bg-[var(--primary)]",
             enabled ? "opacity-95" : "opacity-35",
           ].join(" ")}
@@ -62,7 +70,12 @@ export function RecommendButton({ filledCount, onRecommend, error }: RecommendBu
           onClick={onRecommend}
           disabled={!enabled}
           className={[
-            "relative z-1 uppercase font-display text-[length:var(--text-lg)] tracking-[var(--tracking-md)] border-[length:var(--border-base)] border-[var(--ink)] px-[var(--space-xl)] py-[var(--space-lg)]",
+            // Matches Random/Clear's exact type treatment (font-mono,
+            // text-xs, tracking-xl) and padding (px-xl/py-lg — already
+            // shared, unchanged) so all three Mixer action buttons render at
+            // the same size instead of RECOMMEND standing taller on its
+            // former font-display/text-lg styling.
+            "relative z-1 uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-xl)] border-[length:var(--border-base)] border-[var(--ink)] px-[var(--space-xl)] py-[var(--space-lg)] whitespace-nowrap",
             enabled ? "cursor-pointer shadow-[var(--elev-4)]" : "cursor-not-allowed shadow-none",
             enabled
               ? accent === "primary"

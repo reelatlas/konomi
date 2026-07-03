@@ -1,4 +1,5 @@
 import type { MatchKey, MixerError, Slot } from "@/lib/konomi/types";
+import { MinTagMatchIcon } from "./icons";
 import { MatchSelector } from "./MatchSelector";
 import { RecommendButton } from "./RecommendButton";
 import { TagSlot } from "./TagSlot";
@@ -38,18 +39,11 @@ export function MixerSection({
 }: MixerSectionProps) {
   return (
     <section className="relative border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-5)] p-[var(--space-2xl)] mb-[var(--space-3xl)]">
-      {/* Row 1: header left, MIN TAG MATCH inline right — same segmented-
-          control size as Level/Sort in the Tag Pool header now (see
-          MatchSelector), so all three filter controls in the app read as
-          one consistent component, not a Mixer-specific size. The caption
-          ("MIN TAG MATCH — how many must overlap") is deliberately gone for
-          now, not replaced — a placeholder removal, not a final design. */}
-      <div className="flex items-center justify-between gap-[var(--space-lg)] flex-wrap mb-[var(--space-xl)]">
-        <div className="flex items-center gap-[var(--space-md)]">
-          <h2 className="font-display text-[length:var(--text-xl)] leading-[var(--leading-display)] m-0 uppercase tracking-[var(--tracking-sm)]">Mixer</h2>
-          <span className="font-body font-bold leading-[var(--leading-tight)] text-[var(--primary)] text-[length:var(--text-md)]">ミックス</span>
-        </div>
-        <MatchSelector value={minMatch} onChange={onSetMatch} />
+      {/* Row 1: just the title now — MIN TAG MATCH moved down into the
+          tag-slots group below (exploratory placement, see row 2b). */}
+      <div className="flex items-center gap-[var(--space-md)] mb-[var(--space-xl)]">
+        <h2 className="font-display text-[length:var(--text-xl)] leading-[var(--leading-display)] m-0 uppercase tracking-[var(--tracking-sm)]">Mixer</h2>
+        <span className="font-body font-bold leading-[var(--leading-tight)] text-[var(--primary)] text-[length:var(--text-md)]">ミックス</span>
       </div>
 
       {/* Row 2: the tag-slots group + RECOMMEND. items-start (not
@@ -79,39 +73,23 @@ export function MixerSection({
             ))}
           </div>
 
-          {/* Badge (left) + Random/Clear (right), directly below the tag
-              slots and matching their width exactly (this div is a flex-col
-              sibling of the tag-slots row above, inside the same
-              flex-[1_1_280px] column, so it inherits that same width) —
-              right-aligned to the tag slots specifically, not the wider row
-              that also contains RecommendButton. items-start (not
-              items-end) keeps the badge flush against the top of this row —
-              closest to the tag slots directly above it — rather than
-              sinking to match Random/Clear's taller bottom edge.
-
-              justify-between only works while badge + Random/Clear fit on
-              one line — a lone wrapped flex item under justify-between
-              degenerates to flex-start (CSS spec), which left-pins BOTH the
-              badge and the Random/Clear group once this row's own width
-              (shared with RecommendButton up in the row above) gets tight
-              enough that they stack. Confirmed live: that stacked state
-              only happens while this column's own width is below 313px
-              (measured exactly at the flex-wrap boundary via bounding-box
-              scan) — @container/@min-[313px] swaps back to justify-between
-              the instant there's room for both on one line, and
-              justify-end packs each solo-line item to the right below
-              that, matching Random/Clear's already-right-aligned position
-              instead of leaving everything flush left. */}
-          <div className="flex justify-end @min-[313px]:justify-between items-start gap-[var(--space-lg)] flex-wrap">
-            <span
-              className={[
-                "font-mono font-bold text-[length:var(--text-sm)] border-[length:var(--border-thin)] border-[var(--ink)] px-[var(--space-md)] py-[var(--space-xs)]",
-                filledCount === 0 ? "bg-[var(--slot-empty)]" : "bg-[var(--fill)]",
-              ].join(" ")}
-            >
-              {lockedLabel}
-            </span>
-            <div className="flex gap-[var(--space-lg)]">
+          {/* Row 2b, exploratory: MIN TAG MATCH (icon + inline label +
+              selector) on the left, vertically centered against this row's
+              height; Random/Clear/badge grouped on the right. items-center
+              (not items-start) is what centers MIN TAG MATCH's shorter box
+              against Random/Clear's taller one — the badge opts back out
+              with self-start so it stays flush against the row's own top
+              edge (its previous "top aligned" position) rather than
+              centering with everything else. */}
+          <div className="flex justify-end @min-[313px]:justify-between items-center gap-[var(--space-lg)] flex-wrap">
+            <div className="flex items-center gap-[var(--space-sm)]">
+              <MinTagMatchIcon className="text-[var(--ink)]" />
+              <span className="font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
+                Min Tag Match
+              </span>
+              <MatchSelector value={minMatch} onChange={onSetMatch} />
+            </div>
+            <div className="flex items-center gap-[var(--space-lg)]">
               <button
                 type="button"
                 onClick={onRandomTags}
@@ -124,8 +102,25 @@ export function MixerSection({
                 onClick={onClearSlots}
                 className="bg-transparent border-[length:var(--border-base)] border-[var(--ink)] font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-xl)] px-[var(--space-xl)] py-[var(--space-lg)] cursor-pointer text-[var(--ink)] uppercase shadow-[var(--elev-2)] whitespace-nowrap"
               >
-                Clear slots ✕
+                Clear ✕
               </button>
+              <span
+                className={[
+                  "self-start font-mono font-bold text-[length:var(--text-sm)] border-[length:var(--border-thin)] border-[var(--ink)] px-[var(--space-md)] py-[var(--space-xs)]",
+                  // Text color, not just bg, needs to carry the zero/filled
+                  // distinction — at 0/3 the bg alone (--slot-empty, now
+                  // matching RecommendButton's --disabled-bg) read as barely
+                  // different from filled once --ink text dominated the
+                  // small box in the darker themes. --disabled-text at 0/3
+                  // (matching RecommendButton's own disabled label color)
+                  // and --ink from 1/3 up (matching Random/Clear's own text
+                  // color) makes the same disabled/active distinction
+                  // visible through the numbers themselves.
+                  filledCount === 0 ? "bg-[var(--slot-empty)] text-[var(--disabled-text)]" : "bg-[var(--fill)] text-[var(--ink)]",
+                ].join(" ")}
+              >
+                {lockedLabel}
+              </span>
             </div>
           </div>
         </div>
