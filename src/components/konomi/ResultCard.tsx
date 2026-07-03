@@ -71,7 +71,18 @@ export function ResultCard({
   // null while locked — the lock icon's own hint already explains why swap
   // is unavailable, so this doesn't duplicate/contradict that with a
   // different reason.
-  const swapHint = locked ? null : filledCount < minNum ? ERROR_MESSAGE["impossible-min"] : !canSwap ? ERROR_MESSAGE["no-match"] : "swap";
+  //
+  // The !canSwap branch does NOT reuse ERROR_MESSAGE["no-match"] — canSwap
+  // excludes every currently-*shown* title (locked and unlocked), while
+  // recommend()'s no-match error excludes only *locked* titles. They're
+  // different conditions: canSwap can be false while a fresh RECOMMEND
+  // would succeed fine (e.g. every series that matches this mix is already
+  // displayed, none locked — recommend()'s pool isn't empty, since it
+  // doesn't exclude the shown-but-unlocked ones). Reusing "no series match
+  // this mix" there would be false in exactly that case. "all series shown
+  // for this mix" accurately describes what canSwap actually reports —
+  // every qualifying series is already on screen, not that none exist.
+  const swapHint = locked ? null : filledCount < minNum ? ERROR_MESSAGE["impossible-min"] : !canSwap ? "all series shown for this mix" : "swap";
   const lockHint = locked ? "unlock" : "lock";
   const activeHint = hoveredIcon === "lock" ? lockHint : hoveredIcon === "swap" ? swapHint : null;
   const streams = streamsFor(series.title);
