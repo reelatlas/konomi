@@ -132,7 +132,15 @@ export function TagPoolSection({ allTags, selectedTags, totalSeriesCount, level,
         </div>
       </div>
 
-      <ScrollFadeArea height={POOL_AREA_HEIGHT} topInset={SECTION_HEADER_HEIGHT}>
+      {/* scrollStep=92 (2× the already-documented 46px chip row step), not
+          the ScrollFadeArea default of 32px — 32px is smaller than even one
+          row here, so a click barely moved anything. No snap prop: unlike
+          TagScrollArea's uniform chip rows, this area mixes section
+          headers, chip rows, and sub-labels, with collapsible sections
+          changing the whole scrollable shape — there's no single
+          consistent unit to snap to that wouldn't feel arbitrary (see
+          DESIGN_SYSTEM.md). */}
+      <ScrollFadeArea height={POOL_AREA_HEIGHT} topInset={SECTION_HEADER_HEIGHT} scrollStep={92}>
         {TAG_SECTIONS.map((section) => {
           const sectionTags = tagsForSection(allTags, section, level, totalSeriesCount);
           // Hidden entirely, not just visually collapsed, when nothing at

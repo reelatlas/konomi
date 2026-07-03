@@ -59,7 +59,12 @@
      Tailwind arbitrary-value classes (h-[…] / min-h-[…]) can share one
      real value with zero duplication — Tailwind's class scanner needs the
      complete class as static text, so this is what var(--…) is for. */
-  --result-card-height: 421px;
+  /* 436px = original 421px + 15px, the exact amount TagScrollArea's own
+     TAG_AREA_HEIGHT grew by (97px → 112px) to add a 4th-row peek — see
+     that constant's own comment. The two must move together any time
+     either changes, for the same "must never drift" reason this token
+     exists at all. */
+  --result-card-height: 436px;
 }
 
 /* ── color roles, one palette per theme ──────────────────────────────────
