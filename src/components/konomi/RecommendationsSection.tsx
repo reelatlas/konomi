@@ -9,6 +9,7 @@ interface RecommendationsSectionProps {
   resultsHint: string;
   selectedTags: string[];
   filledCount: number;
+  minNum: number;
   locked: Record<string, boolean>;
   flipped: Record<string, boolean>;
   canSwap: boolean;
@@ -28,6 +29,7 @@ export function RecommendationsSection({
   resultsHint,
   selectedTags,
   filledCount,
+  minNum,
   locked,
   flipped,
   canSwap,
@@ -75,6 +77,7 @@ export function RecommendationsSection({
               entry={entry}
               selectedTags={selectedTags}
               filledCount={filledCount}
+              minNum={minNum}
               locked={Boolean(locked[entry.series.title])}
               flipped={Boolean(flipped[entry.series.title])}
               canSwap={canSwap}

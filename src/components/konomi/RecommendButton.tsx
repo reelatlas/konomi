@@ -9,7 +9,11 @@ const STAR_CLIP = "[clip-path:polygon(50%_0,61%_35%,98%_35%,68%_57%,79%_91%,50%_
 // occupy, rather than the subtext just growing the block downward.
 const ERROR_SHIFT = "-translate-y-[9.5px]";
 
-const ERROR_MESSAGE: Record<NonNullable<MixerError>, string> = {
+// Exported so ResultCard's swap-icon hover hint can reuse the exact same
+// wording for the same two underlying conditions, rather than duplicating
+// these strings — swap and RECOMMEND fail for identical reasons (tag count
+// below MIN TAG MATCH, or nothing left that qualifies).
+export const ERROR_MESSAGE: Record<NonNullable<MixerError>, string> = {
   "impossible-min": "lower MIN TAG MATCH",
   "no-match": "no series match this mix",
 };

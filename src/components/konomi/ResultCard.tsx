@@ -1,8 +1,10 @@
 import Image from "next/image";
+import { useState } from "react";
 import { scoreSeries, streamsFor } from "@/lib/konomi/scoring";
 import { isTagVisibleAtLevel, sortTags } from "@/lib/konomi/tagPool";
 import type { LevelKey, ResultEntry, SortKey, TagInfo } from "@/lib/konomi/types";
 import { DiceIcon, LockClosedIcon, LockOpenIcon } from "./icons";
+import { ERROR_MESSAGE } from "./RecommendButton";
 import { TagScrollArea } from "./TagScrollArea";
 
 const DOT_CLASSES = ["bg-[var(--secondary)]", "bg-[var(--primary)]", "bg-[var(--muted)]"];
@@ -14,6 +16,7 @@ interface ResultCardProps {
   entry: ResultEntry;
   selectedTags: string[];
   filledCount: number;
+  minNum: number;
   locked: boolean;
   flipped: boolean;
   canSwap: boolean;
@@ -31,6 +34,7 @@ export function ResultCard({
   entry,
   selectedTags,
   filledCount,
+  minNum,
   locked,
   flipped,
   canSwap,
@@ -43,6 +47,7 @@ export function ResultCard({
   level,
   sort,
 }: ResultCardProps) {
+  const [hoveredIcon, setHoveredIcon] = useState<"lock" | "swap" | null>(null);
   const { series } = entry;
   // Recomputed live against the current tag selection on every render — not
   // taken from entry.score, which is frozen at whatever moment this card was
@@ -60,6 +65,15 @@ export function ResultCard({
   const perfect = score === filledCount && filledCount > 0;
   const scoreLabel = perfect ? "PERFECT" : `${score}/${filledCount}`;
   const swapDisabled = locked || !canSwap;
+  // Same priority order as recommend()'s own error check in useKonomi.ts:
+  // tag count below MIN TAG MATCH is checked (and reported) before "nothing
+  // else qualifies," since that's the more specific, more actionable reason.
+  // null while locked — the lock icon's own hint already explains why swap
+  // is unavailable, so this doesn't duplicate/contradict that with a
+  // different reason.
+  const swapHint = locked ? null : filledCount < minNum ? ERROR_MESSAGE["impossible-min"] : !canSwap ? ERROR_MESSAGE["no-match"] : "swap";
+  const lockHint = locked ? "unlock" : "lock";
+  const activeHint = hoveredIcon === "lock" ? lockHint : hoveredIcon === "swap" ? swapHint : null;
   const streams = streamsFor(series.title);
   const hasImage = Boolean(series.coverImageUrl);
   // year/eps come from AniList and can genuinely be null (e.g. unreleased
@@ -106,15 +120,19 @@ export function ResultCard({
                 role that's guaranteed dark in every theme — ink/surface
                 flip per theme and would go light-on-light in Tide. */}
             <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[100px] bg-gradient-to-t from-[var(--on-secondary)] to-transparent" />
-            <div className="absolute top-[var(--space-md)] left-[var(--space-md)] flex gap-[var(--space-sm)]">
+            <div className="absolute top-[var(--space-md)] left-[var(--space-md)] right-[var(--space-md)] flex items-center gap-[var(--space-sm)]">
               <button
                 type="button"
-                title="Lock card"
+                aria-label={lockHint}
                 data-title={series.title}
                 onClick={(e) => {
                   e.stopPropagation();
                   onToggleLock(series.title);
                 }}
+                onMouseEnter={() => setHoveredIcon("lock")}
+                onMouseLeave={() => setHoveredIcon(null)}
+                onFocus={() => setHoveredIcon("lock")}
+                onBlur={() => setHoveredIcon(null)}
                 className={[
                   ICON_BTN,
                   locked ? "bg-[var(--secondary)] text-[var(--on-secondary)]" : "bg-[var(--surface)] text-[var(--ink)]",
@@ -124,18 +142,56 @@ export function ResultCard({
               </button>
               <button
                 type="button"
-                title="Swap for another"
-                disabled={swapDisabled}
+                aria-label={swapHint ?? "swap"}
+                aria-disabled={swapDisabled}
                 onClick={(e) => {
                   e.stopPropagation();
+                  // aria-disabled, not the native disabled attribute — a
+                  // real disabled button can silently fail to fire hover
+                  // events in some browsers, which would break exactly the
+                  // hint this button needs to show (explaining *why* it's
+                  // disabled). Guarding the handler here instead keeps
+                  // hover/focus always reliable.
+                  if (swapDisabled) return;
                   onReplace(series.title);
                 }}
+                onMouseEnter={() => setHoveredIcon("swap")}
+                onMouseLeave={() => setHoveredIcon(null)}
+                onFocus={() => setHoveredIcon("swap")}
+                onBlur={() => setHoveredIcon(null)}
                 className={[ICON_BTN, "bg-[var(--surface)] text-[var(--ink)]", swapDisabled ? "opacity-40 cursor-not-allowed" : "opacity-100 cursor-pointer"].join(
                   " ",
                 )}
               >
                 <DiceIcon />
               </button>
+              {/* In-flow, not absolute — a normal third flex item sitting to
+                  the right of the two icons in the same row (items-center
+                  on the row vertically centers it against their 30px
+                  height), not below them. min-w-0 (not the flex default
+                  min-w-auto) is what lets it actually wrap instead of
+                  overflowing the card: flex items refuse to shrink below
+                  their content's unwrapped width unless min-width is
+                  explicitly relaxed, and cards in this grid can be as
+                  narrow as 208px — nowhere near enough for the longest hint
+                  ("no series match this mix") on one line. An opaque
+                  bordered/shadowed chip (matching ICON_BTN's own elev-1
+                  treatment), not plain muted text like other hints — this
+                  one floats over arbitrary cover art, not a flat surface
+                  color, so it needs its own background to stay legible
+                  regardless of the photo underneath. */}
+              {/* Conditionally mounted, not always-rendered + opacity
+                  toggled like every other hint in this app — this one is
+                  in-flow now, so an always-present (even invisible) chip
+                  would permanently reserve its padding/border footprint
+                  next to the icons. Mounting only while there's a hint to
+                  show keeps the icon row exactly as wide as its two 30px
+                  buttons the rest of the time. */}
+              {activeHint && (
+                <span className="min-w-0 bg-[var(--surface)] border-[length:var(--border-thin)] border-[var(--ink)] shadow-[var(--elev-1)] px-[var(--space-sm)] py-[var(--space-xs)] font-mono text-[length:var(--text-2xs)] text-[var(--ink)]">
+                  {activeHint}
+                </span>
+              )}
             </div>
             {/* Score badge + title/meta stack together, bottom-anchored, so
                 the badge naturally sits above the title with no manual
