@@ -61,12 +61,19 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
     k.randomTags(visiblePoolTagNames(k.allTags, level, k.totalSeriesCount));
   }
 
-  // Closes edit mode on every RECOMMEND click, success or not — even an
-  // error (e.g. "impossible-min") is more useful seen in the collapsed
-  // bar's own hint than left hidden behind a still-open edit sheet.
+  // Closes edit mode only on a successful RECOMMEND. An error (e.g.
+  // "impossible-min") leaves the user exactly where they need to be to fix
+  // it — still in edit mode, tags and section tab untouched — rather than
+  // collapsing back to browse mode and hiding the fix behind a still-open
+  // affordance they'd have to reopen. k.recommend() returns the resulting
+  // MixerError synchronously (or null on success) specifically so this
+  // decision doesn't need to wait for a re-render — see its own doc
+  // comment in useKonomi.ts.
   function handleRecommend() {
-    k.recommend();
-    setEditMode(false);
+    const error = k.recommend();
+    if (!error) {
+      setEditMode(false);
+    }
   }
 
   return (

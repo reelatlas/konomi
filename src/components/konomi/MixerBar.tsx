@@ -81,9 +81,8 @@ interface MixerBarProps {
 // reset both every time — see TagPoolBody.tsx's own top comment, unchanged
 // from before, for why it already relies on exactly this guarantee.
 //
-// Esc and click-outside close edit mode on every device, mobile included —
-// neither is gated to desktop. (The resize handle *is* desktop/pointer-only
-// by design; don't confuse the two.)
+// Esc, click-outside, and the resize handle all work at every breakpoint —
+// none of the three is gated to desktop/pointer specifically.
 
 // Combined height of the Level/Sort row + SectionTabStrip + the gaps
 // between them and the chip area, inside the pool panel — subtracted from
@@ -233,30 +232,47 @@ export function MixerBar({
   // doc comment.
   const chipAreaHeightPx = Math.max(CHIP_AREA_MIN, effectiveHeightPx - FILTERS_AND_TABS_HEIGHT);
 
-  function handleResizeStart(e: React.MouseEvent) {
+  // Mouse AND touch — this has to work at every breakpoint, not just
+  // desktop/pointer. Mirrors the same dual mouse+touch handling
+  // ScrollFadeArea's own press-and-hold arrows already use, rather than
+  // introducing a new (e.g. Pointer Events) pattern for just this one
+  // control.
+  function handleResizeStart(e: React.MouseEvent | React.TouchEvent) {
     const startHeight = effectiveHeightPx;
-    const startY = e.clientY;
+    const startY = "touches" in e ? e.touches[0].clientY : e.clientY;
     const liveHeightRef = { current: startHeight };
-    function handleMouseMove(ev: MouseEvent) {
-      // Dragging up (mouse Y decreases) grows the panel — matches the
-      // physical "pull the sheet's ceiling up to make it taller" model.
-      // The handle itself sits above the title row, but what it actually
-      // resizes is still just the pool panel: title/slots/controls are
-      // fixed, so growing the *total* bar can only ever be absorbed by the
-      // one flexible region.
-      const delta = startY - ev.clientY;
+    function handleMove(ev: MouseEvent | TouchEvent) {
+      // preventDefault on the touch path only: a touch-drag on this handle
+      // must not also scroll the page behind it, the way a native
+      // vertical swipe normally would. touch-none (className below)
+      // already tells the browser not to generate its own default touch
+      // scrolling for this element, but the listener itself still needs
+      // { passive: false } for preventDefault to actually take effect.
+      const clientY = "touches" in ev ? ev.touches[0].clientY : ev.clientY;
+      if ("touches" in ev) ev.preventDefault();
+      // Dragging up (finger/mouse Y decreases) grows the panel — matches
+      // the physical "pull the sheet's ceiling up to make it taller"
+      // model. The handle itself sits above the title row, but what it
+      // actually resizes is still just the pool panel: title/slots/
+      // controls are fixed, so growing the *total* bar can only ever be
+      // absorbed by the one flexible region.
+      const delta = startY - clientY;
       const next = clampPoolPanelHeight(startHeight + delta);
       liveHeightRef.current = next;
       setDragHeightPx(next);
     }
-    function handleMouseUp() {
+    function handleEnd() {
       setPoolPanelHeightPref(liveHeightRef.current);
       setDragHeightPx(null);
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("mousemove", handleMove);
+      window.removeEventListener("touchmove", handleMove);
+      window.removeEventListener("mouseup", handleEnd);
+      window.removeEventListener("touchend", handleEnd);
     }
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("mousemove", handleMove);
+    window.addEventListener("touchmove", handleMove, { passive: false });
+    window.addEventListener("mouseup", handleEnd);
+    window.addEventListener("touchend", handleEnd);
   }
 
   return (
@@ -285,21 +301,24 @@ export function MixerBar({
     >
       <div className="@container max-w-[1280px] mx-auto py-[var(--space-xl)]">
         {/* Resize handle — above the title row, at the very top of the
-            edit surface, not between the slots and the pool panel. Desktop
-            only (hidden below the same 993px tier the controls-row divider
-            uses) — pointer/mouse-only, no touch handlers, no keyboard
-            equivalent; mobile keeps the plain default height. Dragging it
-            only ever visibly resizes the pool panel below (title/slots/
-            controls are fixed), but it's positioned as if it controls the
-            whole sheet's height, since that's the more natural mental
-            model for the user — "pull this to make the panel bigger." */}
+            edit surface, not between the slots and the pool panel. Usable
+            at every breakpoint (mouse *and* touch, see handleResizeStart) —
+            an earlier version hid this below 993px, leaving mobile with no
+            way to resize at all; that gate is gone. No keyboard equivalent
+            yet (an accepted gap, same spirit as the no-focus-trap one —
+            not solved in this pass). Dragging it only ever visibly resizes
+            the pool panel below (title/slots/controls are fixed), but it's
+            positioned as if it controls the whole sheet's height, since
+            that's the more natural mental model for the user — "pull this
+            to make the panel bigger." */}
         {editMode && (
           <div
             role="separator"
             aria-orientation="horizontal"
             aria-label="Drag to resize edit panel"
             onMouseDown={handleResizeStart}
-            className="hidden min-[993px]:flex items-center justify-center h-[14px] mb-[var(--space-sm)] cursor-ns-resize select-none"
+            onTouchStart={handleResizeStart}
+            className="flex items-center justify-center h-[14px] mb-[var(--space-sm)] cursor-ns-resize select-none touch-none"
           >
             <div className="w-[48px] h-[length:var(--border-thin)] bg-[var(--muted)]" />
           </div>

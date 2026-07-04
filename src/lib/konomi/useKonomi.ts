@@ -1,4 +1,4 @@
-import { useMemo, useReducer } from "react";
+import { useEffect, useMemo, useReducer, useRef } from "react";
 import { DEFAULT_RESULT_COUNT, SLOT_COUNT } from "./config";
 import { scorePool, scoreSeries } from "./scoring";
 import type { MatchKey, MixerError, ResultEntry, Series, Slot, TagInfo, ThemeKey } from "./types";
@@ -297,6 +297,21 @@ function reducer(state: KonomiState, action: Action): KonomiState {
 export function useKonomi(initialSeries: Series[], initialTags: TagInfo[]) {
   const [state, dispatch] = useReducer(reducer, { series: initialSeries, tags: initialTags }, createInitialState);
 
+  // Mirrors `state` for `actions.recommend` below to read synchronously —
+  // `actions` itself is memoized with an empty dep array (stable identity
+  // for every other action, which only ever fire-and-forget a plain
+  // dispatch), so a closure inside it can't read `state` directly without
+  // being permanently stuck on whatever `state` was during the first
+  // render. Written via an effect (not during render) for the same reason
+  // MixerBar's own ref-mirrors are — assigning `ref.current` inline in the
+  // render body trips `react-hooks/refs`. By the time a user can click
+  // Recommend, the previous render's effects have already committed, so
+  // this is always the latest state whenever `actions.recommend` reads it.
+  const stateRef = useRef(state);
+  useEffect(() => {
+    stateRef.current = state;
+  });
+
   const sel = useMemo(() => selectedTags(state.slots), [state.slots]);
   const filledCount = sel.length;
   const minNum = Number(state.minMatch);
@@ -338,7 +353,34 @@ export function useKonomi(initialSeries: Series[], initialTags: TagInfo[]) {
       setDragOver: (index: number) => dispatch({ type: "SET_DRAG_OVER", index }),
       clearDragOver: () => dispatch({ type: "CLEAR_DRAG_OVER" }),
       setMinMatch: (key: MatchKey) => dispatch({ type: "SET_MIN_MATCH", key }),
-      recommend: () => dispatch({ type: "RECOMMEND" }),
+      // Returns the MixerError the click just produced (or null on success)
+      // synchronously — a caller (KonomiApp) that needs to know the outcome
+      // right away, e.g. to decide whether to close edit mode, can't just
+      // dispatch-and-read-state-after, since a reducer update isn't visible
+      // until the next render. `recommend` (the pure function above) is
+      // called directly here, against the always-current `stateRef`, purely
+      // to extract that answer — `dispatch` below still fires normally and
+      // lets the reducer recompute and apply the same result on its own;
+      // the duplicate computation is a deliberately cheap tradeoff (this
+      // scores against a hobby-scale catalog, not a hot loop) for not
+      // having to route the actual state update through anything other than
+      // the standard action-object dispatch path.
+      //
+      // Safe ONLY because `recommend` is pure — same state in, same state
+      // (and same .error) out, every time, both calls agreeing by
+      // construction. If it ever gains a side effect or non-determinism
+      // (a random tiebreak, a timestamp, anything reading outside its own
+      // `state` argument), these two calls can diverge — the error
+      // returned here would stop reliably matching the one actually
+      // applied, and this shortcut would need to go through a single
+      // computation instead (e.g. dispatch a precomputed next-state rather
+      // than an action type, or lift the result out via a ref written
+      // inside the reducer). Keep `recommend` pure, or revisit this.
+      recommend: () => {
+        const error = recommend(stateRef.current).error;
+        dispatch({ type: "RECOMMEND" });
+        return error;
+      },
       replaceCard: (title: string) => dispatch({ type: "REPLACE_CARD", title }),
       clearRecs: () => dispatch({ type: "CLEAR_RECS" }),
       randomTags: (visible: string[]) => dispatch({ type: "RANDOM_TAGS", visible }),
