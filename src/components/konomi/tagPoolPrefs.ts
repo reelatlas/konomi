@@ -55,7 +55,17 @@ const poolHeightListeners = new Set<() => void>();
 // container to scroll, because the pool panel — the only resizable part —
 // is never allowed to make the total taller than the viewport in the first
 // place.
+// Guarded for SSR: MixerBar calls this directly in its render body (not
+// just through usePoolPanelHeight's useSyncExternalStore, which already
+// skips getPoolHeightSnapshot server-side via its getServerSnapshot
+// argument), so this needs its own guard rather than relying on the
+// caller to only ever run client-side. The exact SSR fallback value
+// doesn't matter visually — editMode always starts false on first render,
+// so the pool panel is `max-h-0 overflow-hidden` and this number goes
+// unused until the user actually opens edit mode, which can only happen
+// post-hydration, where `window` is always available by then.
 export function clampPoolPanelHeight(px: number): number {
+  if (typeof window === "undefined") return Math.max(px, POOL_HEIGHT_MIN);
   const max = window.innerHeight - EDIT_MODE_FIXED_ROWS_HEIGHT;
   return Math.min(Math.max(px, POOL_HEIGHT_MIN), max);
 }
@@ -121,6 +131,41 @@ export function usePoolPanelHeight(): number | null {
     },
     getPoolHeightSnapshot,
     () => null,
+  );
+}
+
+function getDefaultPoolPanelHeightSnapshot(): number {
+  return window.innerHeight * 0.5;
+}
+
+// MixerBar's own seed for a first-ever open (before the user has ever
+// dragged, i.e. usePoolPanelHeight() above is still null) — "50% of the
+// current viewport," read via useSyncExternalStore purely for its
+// SSR-safe getServerSnapshot fallback, not because this is backed by a
+// real external store: the subscribe function below never calls its
+// callback, so React never has a reason to re-read this after the first
+// post-hydration render, and it never updates again after that (a plain
+// `useState(() => window.innerHeight * 0.5)` lazy initializer was tried
+// first and produced a real hydration mismatch — the server has no
+// `window` at all, but the client's own *first* render already does, so
+// it would compute the real value immediately while the server rendered
+// a fallback, and React compares the two; TagPoolBody's chip-area inline
+// `style={{height}}` still renders — and still gets compared — even while
+// the whole pool panel sits inside a visually-collapsed
+// `max-h-0 overflow-hidden` wrapper, so being invisible didn't exempt it).
+// `useSyncExternalStore`'s own getServerSnapshot mechanism guarantees the
+// client's first render matches the server's, with the real value only
+// appearing in a separate, ordinary post-hydration re-render — the
+// React-blessed way to do this, as opposed to a `useState`+`useEffect`
+// pair that calls setState directly in the effect body (flagged by this
+// project's own lint config, `react-hooks/set-state-in-effect`, for good
+// reason: that pattern causes an extra cascading render on every mount,
+// where this one doesn't).
+export function useDefaultPoolPanelHeight(): number {
+  return useSyncExternalStore(
+    () => () => {},
+    getDefaultPoolPanelHeightSnapshot,
+    () => POOL_HEIGHT_MIN,
   );
 }
 

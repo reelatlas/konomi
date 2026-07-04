@@ -8,7 +8,15 @@ import { LevelSelector } from "./LevelSelector";
 import { MatchSelector } from "./MatchSelector";
 import { RecommendButton } from "./RecommendButton";
 import { SortSelect } from "./SortSelect";
-import { clampPoolPanelHeight, POOL_HEIGHT_MIN, setPoolPanelHeightPref, setSortPref, useLevel, usePoolPanelHeight, useSort } from "./tagPoolPrefs";
+import {
+  clampPoolPanelHeight,
+  setPoolPanelHeightPref,
+  setSortPref,
+  useDefaultPoolPanelHeight,
+  useLevel,
+  usePoolPanelHeight,
+  useSort,
+} from "./tagPoolPrefs";
 import { TagPoolBody } from "./TagPoolBody";
 import { TagSlot } from "./TagSlot";
 
@@ -210,15 +218,17 @@ export function MixerBar({
   // release, not on every mousemove.
   const persistedHeightPx = usePoolPanelHeight();
   const [dragHeightPx, setDragHeightPx] = useState<number | null>(null);
-  // Computed once, at mount, not re-derived every render: "50% of the
-  // viewport" is only meant to establish where a first-ever open lands,
-  // not to keep tracking a live-resizing browser window afterward (that
+  // "50% of the current viewport" — only meant to establish where a
+  // first-ever open lands (not a continuously-tracked live value; that
   // would make the panel silently change size mid-session with no drag
-  // involved, contradicting "only the handle changes this"). window is
-  // guarded for SSR — this value is never read before hydration anyway,
-  // since editMode starts false and the pool panel is collapsed until the
-  // user opens it.
-  const [defaultPoolHeightPx] = useState(() => (typeof window !== "undefined" ? window.innerHeight * 0.5 : POOL_HEIGHT_MIN));
+  // involved, contradicting "only the handle changes this"), so this
+  // never needs to update again after its first real read. See
+  // useDefaultPoolPanelHeight's own comment in tagPoolPrefs.ts for why
+  // that first read has to go through useSyncExternalStore rather than a
+  // plain `useState(() => window.innerHeight * 0.5)` lazy initializer —
+  // the latter was tried first and produced a real hydration mismatch,
+  // not just a hoped-for non-issue.
+  const defaultPoolHeightPx = useDefaultPoolPanelHeight();
   // clampPoolPanelHeight applies uniformly to every source (default,
   // persisted, or actively dragging) — one clamp, not "clamp the persisted
   // value on read, then separately clamp drags" — so the guarantee (fixed
