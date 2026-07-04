@@ -10,9 +10,10 @@ import { RecommendButton } from "./RecommendButton";
 import { SortSelect } from "./SortSelect";
 import {
   clampPoolPanelHeight,
+  EDIT_MODE_FIXED_ROWS_HEIGHT,
+  POOL_HEIGHT_MIN,
   setPoolPanelHeightPref,
   setSortPref,
-  useDefaultPoolPanelHeight,
   useLevel,
   usePoolPanelHeight,
   usePoolPanelMaxHeight,
@@ -260,22 +261,52 @@ export function MixerBar({
   // release, not on every mousemove.
   const persistedHeightPx = usePoolPanelHeight();
   const [dragHeightPx, setDragHeightPx] = useState<number | null>(null);
-  // "50% of the current viewport" — only meant to establish where a
-  // first-ever open lands (not a continuously-tracked live value; that
-  // would make the panel silently change size mid-session with no drag
-  // involved, contradicting "only the handle changes this"), so this
-  // never needs to update again after its first real read. See
-  // useDefaultPoolPanelHeight's own comment in tagPoolPrefs.ts for why
-  // that first read has to go through useSyncExternalStore rather than a
-  // plain `useState(() => window.innerHeight * 0.5)` lazy initializer —
-  // the latter was tried first and produced a real hydration mismatch,
-  // not just a hoped-for non-issue.
-  const defaultPoolHeightPx = useDefaultPoolPanelHeight();
+  // First-ever open (before the user has ever dragged) lands at
+  // POOL_HEIGHT_MIN — the same floor a drag could take it to — so the
+  // sheet reads as "already at minimum, expand if you want more" rather
+  // than opening pre-expanded. A plain constant, not a hook: see its own
+  // comment in tagPoolPrefs.ts.
+  const defaultPoolHeightPx = POOL_HEIGHT_MIN;
+  // Live-measured height of everything in the edit sheet that ISN'T the
+  // pool panel (resize handle, title/slots/controls rows, card border +
+  // padding, the wrapper's bottom gutter) at the CURRENT breakpoint —
+  // replaces a single hardcoded worst-case constant (still kept as
+  // EDIT_MODE_FIXED_ROWS_HEIGHT, used only as the bootstrap value below
+  // until the first real measurement lands) so the resize ceiling reflects
+  // each breakpoint's real row heights instead of always reserving
+  // mobile's tallest 3-line-wrap case, which left desktop with ~200px of
+  // dead space it could never grow into. Reads barRef and dialogRef's
+  // (the pool panel's own wrapper, already used for focus/scroll above)
+  // *actual rendered heights* straight from the DOM inside one measure
+  // callback, rather than diffing against a React-state copy of the pool
+  // panel's height — a ref synced from effectiveHeightPx via a second
+  // effect was tried first and lost a mount-order race (whichever effect
+  // React happened to flush first saw a stale value), confirmed live as a
+  // real bug: desktop capped the sheet ~100px short of its true ceiling on
+  // the very first resize after opening. Reading both elements' current
+  // getBoundingClientRect() together sidesteps that ordering entirely —
+  // nothing here depends on which render or effect ran last.
+  const [fixedOverheadPx, setFixedOverheadPx] = useState<number | null>(null);
+  useEffect(() => {
+    if (!editMode) return;
+    const bar = barRef.current;
+    const dialog = dialogRef.current;
+    if (!bar || !dialog) return;
+    function measure() {
+      const overhead = bar!.getBoundingClientRect().height - dialog!.getBoundingClientRect().height;
+      setFixedOverheadPx(Math.max(0, overhead));
+    }
+    const observer = new ResizeObserver(measure);
+    observer.observe(bar);
+    observer.observe(dialog);
+    measure();
+    return () => observer.disconnect();
+  }, [editMode]);
   // The viewport-dependent ceiling clampPoolPanelHeight bounds against —
   // read via its own hook (not inline `window.innerHeight` math) for the
-  // same hydration-safety reason useDefaultPoolPanelHeight exists: see
-  // usePoolPanelMaxHeight's own comment in tagPoolPrefs.ts.
-  const poolPanelMaxHeight = usePoolPanelMaxHeight();
+  // same hydration-safety reason described in usePoolPanelMaxHeight's own
+  // comment in tagPoolPrefs.ts.
+  const poolPanelMaxHeight = usePoolPanelMaxHeight(fixedOverheadPx ?? EDIT_MODE_FIXED_ROWS_HEIGHT);
   // clampPoolPanelHeight applies uniformly to every source (default,
   // persisted, or actively dragging) — one clamp, not "clamp the persisted
   // value on read, then separately clamp drags" — so the guarantee (fixed
@@ -450,7 +481,7 @@ export function MixerBar({
               {editMode ? "Super Mixer" : "Mixer"}
             </h2>
             <span className="font-body font-bold leading-[var(--leading-tight)] text-[var(--primary)] text-[length:var(--text-md)]">
-              {editMode ? "スーパーミックス" : "ミックス"}
+              {editMode ? "昇龍拳" : "ミックス"}
             </span>
             <span
               className={[

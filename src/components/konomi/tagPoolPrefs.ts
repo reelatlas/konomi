@@ -57,6 +57,13 @@ export const POOL_HEIGHT_MIN = 160;
 // to grow up to whatever's left after those fixed rows are guaranteed
 // their own space — see clampPoolPanelHeight below.
 export const EDIT_MODE_FIXED_ROWS_HEIGHT = 476;
+// How much daylight must always stay visible above the sheet, even at max
+// resize — expressed as a fraction of viewport height (not a flat px
+// value) so it scales sensibly across breakpoints. 0.10 = 10% of the
+// current viewport stays uncovered; the rest is fair game, including
+// overlapping the masthead underneath — that overlap is intentional, not
+// a bug, once the user has deliberately dragged this far.
+export const EDIT_MODE_TOP_BUFFER_RATIO = 0.1;
 
 const levelListeners = new Set<() => void>();
 const sortListeners = new Set<() => void>();
@@ -84,32 +91,42 @@ const poolHeightListeners = new Set<() => void>();
 // real guarantee; changing any of POOL_HEIGHT_MIN/FILTERS_AND_TABS_HEIGHT/
 // CHIP_AREA_MIN/EDIT_MODE_FIXED_ROWS_HEIGHT could have silently reopened a
 // visible one.) Moving the ceiling itself out to its own
-// useSyncExternalStore-backed hook closes this properly, the same way
-// useDefaultPoolPanelHeight already does for the default height value —
-// see that hook for why "guard against crashing" and "guard against a
-// hydration mismatch" require different mechanisms.
+// useSyncExternalStore-backed hook closes this properly — POOL_HEIGHT_MIN
+// is a plain constant (identical on server and client with no mechanism
+// needed), but this ceiling is viewport-dependent, so it needs the same
+// "hold the client back to the server's answer until after hydration"
+// guarantee POOL_HEIGHT_MIN gets for free.
 export function clampPoolPanelHeight(px: number, max: number): number {
   return Math.min(Math.max(px, POOL_HEIGHT_MIN), max);
 }
 
-function getPoolPanelMaxHeightSnapshot(): number {
-  return window.innerHeight - EDIT_MODE_FIXED_ROWS_HEIGHT;
+// `fixedOverheadPx` is MixerBar's own live-measured height of everything
+// in the edit sheet that ISN'T the pool panel (resize handle, title/slots/
+// controls rows, card border+padding, the wrapper's bottom gutter) at the
+// *current* breakpoint — see MixerBar.tsx's ResizeObserver comment. Passing
+// it in (rather than hardcoding EDIT_MODE_FIXED_ROWS_HEIGHT here) is what
+// lets the ceiling reflect each breakpoint's real row heights instead of
+// permanently reserving mobile's tallest (3-line-wrap) case everywhere —
+// on desktop's much shorter rows that static constant left ~200px of dead
+// space the sheet could never grow into, well short of the viewport top.
+// EDIT_MODE_FIXED_ROWS_HEIGHT still matters as MixerBar's *bootstrap*
+// value for the one frame before its first real measurement lands.
+function getPoolPanelMaxHeightSnapshot(fixedOverheadPx: number): number {
+  return window.innerHeight - fixedOverheadPx - window.innerHeight * EDIT_MODE_TOP_BUFFER_RATIO;
 }
 
 // The viewport-dependent ceiling clampPoolPanelHeight bounds against —
 // split out into its own hook (rather than read directly inside
 // clampPoolPanelHeight) specifically so the client's first render can be
-// held back to a value matching the server's, the same mechanism
-// useDefaultPoolPanelHeight already relies on. getServerSnapshot returns
+// held back to a value matching the server's. getServerSnapshot returns
 // Infinity (no ceiling) rather than trying to guess a real one — safe
 // because the only value ever clamped against it before hydration
-// completes is POOL_HEIGHT_MIN itself (via useDefaultPoolPanelHeight,
-// also held back the same way), and POOL_HEIGHT_MIN trivially satisfies
-// "no ceiling" on both server and client.
-export function usePoolPanelMaxHeight(): number {
+// completes is POOL_HEIGHT_MIN itself, a plain constant already identical
+// on server and client, which trivially satisfies "no ceiling" either way.
+export function usePoolPanelMaxHeight(fixedOverheadPx: number): number {
   return useSyncExternalStore(
     () => () => {},
-    getPoolPanelMaxHeightSnapshot,
+    () => getPoolPanelMaxHeightSnapshot(fixedOverheadPx),
     () => Number.POSITIVE_INFINITY,
   );
 }
@@ -133,7 +150,7 @@ function getSortSnapshot(): SortKey {
 }
 
 // null = never dragged (no stored key, or a corrupt/non-numeric one) — the
-// caller falls back to the CSS 50dvh default in that case, not a numeric 0.
+// caller falls back to POOL_HEIGHT_MIN in that case, not a numeric 0.
 // Reads window.innerHeight directly here (rather than through
 // usePoolPanelMaxHeight) because this function is only ever invoked as
 // useSyncExternalStore's getSnapshot argument — React guarantees that
@@ -141,12 +158,28 @@ function getSortSnapshot(): SortKey {
 // only afterward, so there's no "must match the server" constraint on
 // this specific read the way there is on clampPoolPanelHeight's own
 // direct callers.
+//
+// The ceiling here is deliberately a loose sanity bound (just the top
+// buffer, ignoring fixed-rows overhead entirely) rather than MixerBar's
+// precise, live-measured one — this function has no access to that
+// per-breakpoint overhead, only `window`. Using the tighter
+// EDIT_MODE_FIXED_ROWS_HEIGHT-based ceiling here was tried first and
+// created a real, confirmed-live bug: a value freshly dragged to
+// MixerBar's own (correctly higher) ceiling would round-trip through
+// localStorage, get re-clamped back down to this stricter one on the very
+// next read, and visibly snap the sheet down the instant the user
+// released the drag. Since this ceiling can only ever be looser than (or
+// equal to) MixerBar's own — overhead is never negative, so
+// innerHeight - overhead - buffer <= innerHeight - buffer — MixerBar's
+// later clampPoolPanelHeight call is always the one actually binding, and
+// this one only ever catches genuinely absurd stored values (e.g. dragged
+// tall on a large monitor, then opened on a much shorter one).
 function getPoolHeightSnapshot(): number | null {
   const stored = window.localStorage.getItem(POOL_HEIGHT_STORAGE_KEY);
   if (stored === null) return null;
   const parsed = Number(stored);
   if (!Number.isFinite(parsed) || parsed <= 0) return null;
-  return clampPoolPanelHeight(parsed, window.innerHeight - EDIT_MODE_FIXED_ROWS_HEIGHT);
+  return clampPoolPanelHeight(parsed, window.innerHeight * (1 - EDIT_MODE_TOP_BUFFER_RATIO));
 }
 
 export function useLevel(): LevelKey {
@@ -186,40 +219,14 @@ export function usePoolPanelHeight(): number | null {
   );
 }
 
-function getDefaultPoolPanelHeightSnapshot(): number {
-  return window.innerHeight * 0.5;
-}
-
 // MixerBar's own seed for a first-ever open (before the user has ever
-// dragged, i.e. usePoolPanelHeight() above is still null) — "50% of the
-// current viewport," read via useSyncExternalStore purely for its
-// SSR-safe getServerSnapshot fallback, not because this is backed by a
-// real external store: the subscribe function below never calls its
-// callback, so React never has a reason to re-read this after the first
-// post-hydration render, and it never updates again after that (a plain
-// `useState(() => window.innerHeight * 0.5)` lazy initializer was tried
-// first and produced a real hydration mismatch — the server has no
-// `window` at all, but the client's own *first* render already does, so
-// it would compute the real value immediately while the server rendered
-// a fallback, and React compares the two; TagPoolBody's chip-area inline
-// `style={{height}}` still renders — and still gets compared — even while
-// the whole pool panel sits inside a visually-collapsed
-// `max-h-0 overflow-hidden` wrapper, so being invisible didn't exempt it).
-// `useSyncExternalStore`'s own getServerSnapshot mechanism guarantees the
-// client's first render matches the server's, with the real value only
-// appearing in a separate, ordinary post-hydration re-render — the
-// React-blessed way to do this, as opposed to a `useState`+`useEffect`
-// pair that calls setState directly in the effect body (flagged by this
-// project's own lint config, `react-hooks/set-state-in-effect`, for good
-// reason: that pattern causes an extra cascading render on every mount,
-// where this one doesn't).
-export function useDefaultPoolPanelHeight(): number {
-  return useSyncExternalStore(
-    () => () => {},
-    getDefaultPoolPanelHeightSnapshot,
-    () => POOL_HEIGHT_MIN,
-  );
-}
+// dragged, i.e. usePoolPanelHeight() above is still null) is just
+// POOL_HEIGHT_MIN itself — opens at the same minimum height a user could
+// drag down to, so the sheet reads as "already at its floor, expand if you
+// want more" rather than guessing a taller default. A plain constant, not
+// a hook: unlike the old 50%-of-viewport seed this replaced, POOL_HEIGHT_MIN
+// doesn't depend on `window` at all, so it's already identical on server
+// and client with no useSyncExternalStore ceremony needed.
 
 export function setLevelPref(level: LevelKey) {
   window.localStorage.setItem(LEVEL_STORAGE_KEY, level);
