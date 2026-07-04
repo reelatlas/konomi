@@ -163,6 +163,7 @@ export function RecommendationsBody({
             getScrollStep={getScrollStep}
             fadeSize={0}
             arrowWidth={36}
+            arrowHeight={36}
             arrowShadow
             arrowInset="var(--space-md)"
           >

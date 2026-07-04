@@ -1,11 +1,25 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { IconButton } from "./IconButton";
+import { IconButton, type RevealGroup } from "./IconButton";
 
 type Orientation = "vertical" | "horizontal";
+// This instance's own root wrapper carries one of these two group classes
+// (matching whichever RevealGroup its arrow buttons use for revealOnHover
+// below) — see RevealGroup's own comment in IconButton.tsx for why two
+// variants exist and why the class has to be a complete literal string.
+const GROUP_CLASSES: Record<RevealGroup, string> = {
+  reveal: "group/reveal relative",
+  "reveal-nested": "group/reveal-nested relative",
+};
 
 interface ScrollFadeAreaProps {
+  // Which hover-reveal group this instance's own root belongs to, and
+  // which one its arrow buttons listen for — see RevealGroup above.
+  // Default matches every non-nested caller (the results carousel itself,
+  // SectionTabStrip, TagPoolBody's chip area); only TagScrollArea (nested
+  // inside the results carousel) needs "reveal-nested".
+  groupName?: RevealGroup;
   // Vertical-only: the Tailwind height utility applied to the scroll
   // viewport — either a fixed "h-[Npx]" (TagScrollArea's per-card area,
   // which needs uniform height across a grid regardless of content) or a
@@ -15,15 +29,19 @@ interface ScrollFadeAreaProps {
   // Tag Pool's section tab strip) wants the full width available to it, so
   // a per-instance sizing prop would be unused generality.
   height?: string;
-  // Vertical-only, overrides `height` with an inline max-height in px
+  // Vertical-only, overrides `height` with an inline *fixed* height in px
   // instead of a Tailwind class — for a height that's only known at
-  // runtime (MixerBar's desktop drag-resize handle). A computed arbitrary-
-  // value class string (e.g. `` `max-h-[${n}px]` ``) can't work here the
-  // same way `height` does: Tailwind's scanner needs the full class as
-  // static source text to generate CSS for it, so a runtime-built one is
-  // invisible to it and silently produces no rule at all (the same failure
-  // mode TagPoolBody's CHIP_AREA_HEIGHT comment documents for the same
-  // reason). An inline style has no such constraint.
+  // runtime (MixerBar's desktop drag-resize handle). Fixed, not a max:
+  // MixerBar's pool panel must not hug/shrink to fit whatever the active
+  // section's content happens to be — only the drag handle (or the
+  // default on first open) may change this area's size, never which
+  // section tab happens to be selected. A computed arbitrary-value class
+  // string (e.g. `` `h-[${n}px]` ``) can't work here the same way `height`
+  // does: Tailwind's scanner needs the full class as static source text to
+  // generate CSS for it, so a runtime-built one is invisible to it and
+  // silently produces no rule at all (the same failure mode TagPoolBody's
+  // CHIP_AREA_HEIGHT comment documents for the same reason). An inline
+  // style has no such constraint.
   heightPx?: number;
   orientation?: Orientation;
   // The amount a single (non-held) arrow click moves, in px. Most callers
@@ -113,6 +131,7 @@ const DEFAULT_CONTINUOUS_SCROLL_SPEED = 6;
 export function ScrollFadeArea({
   height,
   heightPx,
+  groupName = "reveal",
   orientation = "vertical",
   scrollStep = DEFAULT_SCROLL_STEP,
   getScrollStep,
@@ -300,35 +319,38 @@ export function ScrollFadeArea({
     }
   };
 
-  // Horizontal-only: a plain mouse wheel reports only deltaY, and browsers
-  // don't natively redirect that into a horizontal-only overflow
-  // container's scrollLeft the way they do for vertical containers — only
-  // a trackpad's genuine two-finger horizontal swipe (deltaX) drives it for
-  // free. Summing both deltas into scrollLeft is the standard fix: a
-  // trackpad horizontal gesture reports almost entirely on deltaX (deltaY
-  // near 0) and a mouse wheel reports almost entirely on deltaY (deltaX
-  // near 0), so adding both never double-counts either input in practice.
-  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
-    if (!horizontal) return;
-    scrollRef.current?.scrollBy({ left: e.deltaX + e.deltaY, behavior: "auto" });
-  };
-
   const showStartGradient = hasOverflow && !atStart;
   const showEndGradient = hasOverflow && !atEnd;
 
   return (
-    <div className="group/reveal relative">
+    <div className={GROUP_CLASSES[groupName]}>
+      {/* No onWheel handler here, deliberately — an earlier horizontal-only
+          version summed e.deltaX + e.deltaY into scrollLeft, specifically
+          so a plain vertical mouse wheel (no native horizontal capability)
+          could still drive this row. Reverted: that made a *genuine*
+          vertical scroll gesture (wheel, trackpad, or a mobile scroll) get
+          hijacked into horizontal row movement the instant the pointer
+          happened to be over a horizontal row — interfering with scrolling
+          the page itself, or with the tag area of a card sitting inside a
+          horizontal results row. Native browser behavior already handles
+          the case this was trying to help: a genuine horizontal trackpad/
+          touch swipe (real deltaX) scrolls a horizontally-overflowing
+          container on its own, no JS required — it's only cross-axis
+          translation (turning deltaY into scrollLeft) that needed the
+          custom handler, and that's exactly the part causing the
+          interference. Plain-wheel-only input (no horizontal capability at
+          all) now has to use the arrow buttons instead of the row silently
+          reinterpreting vertical scroll as horizontal. */}
       <div
         ref={scrollRef}
         onScroll={updateScrollState}
-        onWheel={horizontal ? handleWheel : undefined}
         style={{
           ...(scrollPaddingStart
             ? horizontal
               ? { scrollPaddingLeft: scrollPaddingStart }
               : { scrollPaddingTop: scrollPaddingStart }
             : undefined),
-          ...(!horizontal && heightPx !== undefined ? { maxHeight: heightPx } : undefined),
+          ...(!horizontal && heightPx !== undefined ? { height: heightPx } : undefined),
         }}
         className={[
           horizontal ? "w-full overflow-x-auto overflow-y-hidden" : `${heightPx !== undefined ? "" : height} overflow-y-auto overflow-x-hidden`,
@@ -396,7 +418,7 @@ export function ScrollFadeArea({
           border="hair"
           shadow={arrowShadow}
           backgroundColor={surfaceColor}
-          revealOnHover
+          revealOnHover={groupName}
           aria-label={horizontal ? "Scroll left" : "Scroll up"}
           onMouseDown={(e) => {
             e.stopPropagation();
@@ -434,7 +456,7 @@ export function ScrollFadeArea({
           border="hair"
           shadow={arrowShadow}
           backgroundColor={surfaceColor}
-          revealOnHover
+          revealOnHover={groupName}
           aria-label={horizontal ? "Scroll right" : "Scroll down"}
           onMouseDown={(e) => {
             e.stopPropagation();

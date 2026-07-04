@@ -78,7 +78,15 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
         <div className="absolute inset-0 pointer-events-none opacity-45 bg-[radial-gradient(var(--muted)_1.3px,transparent_1.4px)] [background-size:9px_9px] z-[var(--z-base)]" />
       )}
 
-      <div className="relative z-[var(--z-raised)] max-w-[1280px] mx-auto">
+      {/* data-konomi-content: lets MixerBar's click-outside-closes-edit-mode
+          listener exclude this whole column (theme switcher, results
+          header/Clear, every result card — tags, swap/lock, flip) as one
+          zone, rather than special-casing each control individually. Only
+          a click that lands truly outside this column (the page's own
+          background/gutters) should ever close edit mode via outside-click
+          — every other control on the page has its own meaningful action
+          and shouldn't also dismiss the sheet as a side effect. */}
+      <div data-konomi-content className="relative z-[var(--z-raised)] max-w-[1280px] mx-auto">
         <Masthead theme={k.theme} onThemeChange={k.setTheme} />
 
         {/* Results is now the persistent main surface, not a tab — always

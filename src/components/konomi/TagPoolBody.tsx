@@ -12,31 +12,39 @@ interface TagPoolBodyProps {
   totalSeriesCount: number;
   level: LevelKey;
   onChipToggle: (tag: string) => void;
-  // Desktop drag-resize override (MixerBar's resize handle) — undefined
-  // means "never dragged this session, use the CSS 50dvh default"
-  // (CHIP_AREA_HEIGHT below). See ScrollFadeArea's heightPx prop for why
-  // this can't just be a computed Tailwind class instead.
+  // MixerBar's resize-handle-driven height (default 50% of viewport on
+  // first open, or whatever the user has since dragged/persisted), already
+  // reduced by MixerBar to leave room for the Level/Sort row and
+  // SectionTabStrip that sit above this component within the same pool
+  // panel — so the panel's *total* rendered height (filters + tabs +
+  // chips) matches what the user actually sees as "the pool panel size,"
+  // not just this chip area alone. Undefined only pre-hydration/no-JS,
+  // where CHIP_AREA_HEIGHT below is the fallback. See ScrollFadeArea's
+  // heightPx prop for why this can't just be a computed Tailwind class.
   chipAreaHeightPx?: number;
 }
 
 const STRIP_GAP = 12; // --space-lg
-// max-h-, not h- — a short section (Genres, Setting, Demographic) should
-// hug its own content, not pad out to match a fixed ceiling every time; a
-// long one (Theme) caps and scrolls past it. dvh, not vh: this cap lives
-// inside MixerBar's bottom sheet, and dvh avoids the well-known mobile
-// Safari/Chrome dynamic-toolbar jump plain vh produces (see MixerBar.tsx's
-// own top comment — same reasoning, this is the one place it actually
-// bites). This used to be pegged to --result-card-height (this component's
-// old container was a page-width tab matching Recommendations' height);
-// now that it lives in a capped bottom sheet instead, that peg no longer
-// means anything, so this caps against the viewport directly.
+// h-, not max-h- — this area must NOT hug/shrink to fit a short section's
+// content; only MixerBar's drag handle (or the 50%-of-viewport default on
+// first open) may change how tall this is, never which section tab
+// happens to be active. A short section (Genres, Setting, Demographic)
+// leaves visible empty space below its chips rather than collapsing the
+// box down to fit — switching tabs must be visually inert with respect to
+// size. dvh, not vh: this lives inside MixerBar's bottom-anchored bar, and
+// dvh avoids the well-known mobile Safari/Chrome dynamic-toolbar jump
+// plain vh produces (see MixerBar.tsx's own top comment — same reasoning,
+// this is the one place it actually bites). In practice MixerBar always
+// passes a real `chipAreaHeightPx` once mounted, so this class is really
+// only a pre-hydration/no-JS fallback — see ScrollFadeArea's `heightPx`
+// prop, which takes priority whenever present.
 //
 // Literal string, not built via template interpolation — Tailwind's
 // scanner needs the full class as static source text to generate its CSS;
 // a runtime-computed template literal is invisible to it and silently
 // produces no rule at all (confirmed live as a real bug once, before this
 // was a literal).
-const CHIP_AREA_HEIGHT = "max-h-[50dvh]";
+const CHIP_AREA_HEIGHT = "h-[50dvh]";
 
 function ChipRow({
   tags,
@@ -145,13 +153,15 @@ export function TagPoolBody({ allTags, selectedTags, totalSeriesCount, level, on
               a few px taller than `clientHeight`, tripping ScrollFadeArea's
               `hasOverflow` check and showing a scrollbar/fade/arrows for
               sections that should render with zero scroll affordance at
-              all (confirmed live). Since this area now hugs rather than
-              holding a fixed height (see CHIP_AREA_HEIGHT above), there's
-              no exact-footprint invariant to protect the way the carousel
-              has — so the simpler, correct fix is to just let the box
-              legitimately grow by 3px to fit the shadow, uncanceled. Same
-              approach the older CollapsibleSection-era fix for this exact
-              problem used (a plain last:mb-md, not a cancel trick). */}
+              all (confirmed live). The viewport itself is a fixed height
+              now (see CHIP_AREA_HEIGHT above), so this padding only ever
+              grows the *inner*, independently-scrollable content by 3px —
+              nothing outside this box depends on that inner content's
+              exact footprint, so there's no invariant to protect the way
+              the carousel has, and the simpler, correct fix is to just let
+              it legitimately grow by 3px to fit the shadow, uncanceled.
+              Same approach the older CollapsibleSection-era fix for this
+              exact problem used (a plain last:mb-md, not a cancel trick). */}
           <div className="pb-[3px] pr-[3px]">
             {active.section.subsections ? (
               <div className="flex flex-col gap-[var(--space-lg)]">

@@ -26,15 +26,21 @@ const POOL_HEIGHT_STORAGE_KEY = "konomi:tagpool:poolPanelHeight";
 const DEFAULT_LEVEL: LevelKey = "1";
 const DEFAULT_SORT: SortKey = "popular";
 export const POOL_HEIGHT_MIN = 160;
-// Fraction, not a fixed px ceiling — deliberately viewport-relative so the
-// clamp itself scales down correctly on a later, shorter session instead of
-// needing its own separate re-derivation. Live in-session window resizes
-// aren't specially re-clamped (useSyncExternalStore only re-checks its
-// snapshot on notify/re-render, not on a resize event) — MixerBar's outer
-// max-h-[100dvh] overflow-y-auto safety net already covers that case, so
-// this isn't a gap in practice, just a scope boundary worth being explicit
-// about.
-export const POOL_HEIGHT_MAX_FRACTION = 0.75;
+// Combined rendered height of everything in MixerBar's edit mode that is
+// NOT the pool panel — resize handle, title row, slots row, controls row,
+// plus the bar's own vertical padding and inter-row gaps — measured live
+// at the narrowest (mobile, 390px) width, where the controls row wraps to
+// 2 lines and this is tallest (341.5px measured; 345 leaves a small
+// buffer). Desktop (1400px) measures a shorter 256.5px — using the mobile
+// worst case everywhere is intentionally conservative there (a few px of
+// pool panel headroom left unused) rather than precise, same tradeoff
+// KonomiApp's MIXER_BAR_SPACER already makes. Retune by hand if any of
+// those rows' own height changes. This is what makes the pool panel's max
+// height *exact* rather than a rough fraction: title/slots/controls must
+// never scroll or be pushed off-screen, so the pool panel is only ever
+// allowed to grow up to whatever's left after those fixed rows are
+// guaranteed their own space — see clampPoolPanelHeight below.
+export const EDIT_MODE_FIXED_ROWS_HEIGHT = 345;
 
 const levelListeners = new Set<() => void>();
 const sortListeners = new Set<() => void>();
@@ -42,9 +48,15 @@ const poolHeightListeners = new Set<() => void>();
 
 // Shared by both the read-path clamp (getPoolHeightSnapshot) and the live
 // drag clamp (MixerBar's resize handler) — one set of bounds, not two that
-// could drift apart.
+// could drift apart. The max bound guarantees the *whole* edit-mode bar
+// (fixed rows + pool panel) never exceeds the viewport, which is what lets
+// MixerBar drop the old outer-scroll safety net entirely: title, slots, and
+// controls are unconditionally reachable without ever needing their own
+// container to scroll, because the pool panel — the only resizable part —
+// is never allowed to make the total taller than the viewport in the first
+// place.
 export function clampPoolPanelHeight(px: number): number {
-  const max = window.innerHeight * POOL_HEIGHT_MAX_FRACTION;
+  const max = window.innerHeight - EDIT_MODE_FIXED_ROWS_HEIGHT;
   return Math.min(Math.max(px, POOL_HEIGHT_MIN), max);
 }
 

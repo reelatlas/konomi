@@ -8,7 +8,7 @@ import { LevelSelector } from "./LevelSelector";
 import { MatchSelector } from "./MatchSelector";
 import { RecommendButton } from "./RecommendButton";
 import { SortSelect } from "./SortSelect";
-import { clampPoolPanelHeight, setPoolPanelHeightPref, setSortPref, useLevel, usePoolPanelHeight, useSort } from "./tagPoolPrefs";
+import { clampPoolPanelHeight, POOL_HEIGHT_MIN, setPoolPanelHeightPref, setSortPref, useLevel, usePoolPanelHeight, useSort } from "./tagPoolPrefs";
 import { TagPoolBody } from "./TagPoolBody";
 import { TagSlot } from "./TagSlot";
 
@@ -39,19 +39,36 @@ interface MixerBarProps {
 
 // Formerly MixerSection — now the app's one bottom-anchored bar, always
 // present in a compact "browse" form (title/badge, slots, controls) that
-// expands in place into a taller "edit" form (same title row relabeled,
-// same slots pinned at the top, a pool panel appearing between slots and
-// controls, controls row gaining a Done button) instead of a second overlay
-// replacing it. See DESIGN_SYSTEM.md's "Super-mixer edit mode" section for
-// the full rationale — this comment covers only the mechanics.
+// expands in place into a taller "edit" form instead of a second overlay
+// replacing it. See DESIGN_SYSTEM.md's "MixerBar" section for the full
+// rationale — this comment covers only the mechanics.
+//
+// Edit mode's row order, top to bottom: resize handle (desktop only) →
+// title → pool panel → slots → controls. Title, slots, and controls are
+// FIXED — they never scroll, never resize, and never move, in either mode.
+// The pool panel is the only part of this bar that ever changes size, and
+// the only part that ever scrolls internally (via TagPoolBody's own
+// ScrollFadeArea, unchanged). This is a hard invariant, not a preference:
+// the bar's own outer container carries no scroll/overflow behavior at
+// all anymore — see the clamp math below for how that's guaranteed safe
+// rather than just hoped for.
+//
+// Pool panel sits directly below the title, above the slots — not
+// between the slots and controls. Opening/closing edit mode then only
+// ever inserts/removes this one block in a single spot, rather than
+// making the slots row itself shift position too (which the previous
+// row order did — pool panel used to sit *below* the slots, so toggling
+// edit mode moved both the pool panel's own space *and* pushed the slots'
+// neighbor, the controls row, down twice-removed). One block appearing/
+// disappearing in one place reads as calmer than that.
 //
 // `@container` moves to an inner wrapper (not the fixed root) deliberately:
 // once the root is `position:fixed inset-x-0`, its own inline-size becomes
 // the raw viewport width, which would silently shift the `@min-[480px]`
 // breakpoint below relative to what it measured back when this box was
 // laid out in-flow inside the page's own max-w-[1280px] wrapper. Keeping
-// that same max-w/mx-auto/px treatment on the inner @container element
-// keeps the breakpoint meaning what it always has.
+// that same max-w/mx-auto treatment on the inner @container element keeps
+// the breakpoint meaning what it always has.
 //
 // The pool panel (Level/Sort + TagPoolBody, which itself owns
 // SectionTabStrip + the chip area) is always mounted, never conditionally
@@ -63,6 +80,29 @@ interface MixerBarProps {
 // outside the live DOM, so unmounting this subtree on every close would
 // reset both every time — see TagPoolBody.tsx's own top comment, unchanged
 // from before, for why it already relies on exactly this guarantee.
+//
+// Esc and click-outside close edit mode on every device, mobile included —
+// neither is gated to desktop. (The resize handle *is* desktop/pointer-only
+// by design; don't confuse the two.)
+
+// Combined height of the Level/Sort row + SectionTabStrip + the gaps
+// between them and the chip area, inside the pool panel — subtracted from
+// the user's chosen pool-panel height before it's passed down as
+// TagPoolBody's chipAreaHeightPx, so the panel's *total* rendered height
+// (filters + tabs + chips) matches what was actually dragged to, rather
+// than the chip area alone matching it with filters/tabs added on top.
+// Measured live against the real rendered component (filters row 85px,
+// wraps to 2 lines — Level then Sort — below ~480px container width; +8px
+// mb-md gap to TagPoolBody; +12px TagPoolBody's own internal STRIP_GAP;
+// +30px SectionTabStrip = 135px total); retune by hand if
+// LevelSelector/SortSelect/SectionTabStrip's own heights, wrap behavior,
+// or any of these gaps change.
+const FILTERS_AND_TABS_HEIGHT = 135;
+// Floor for the chip area specifically, independent of POOL_HEIGHT_MIN
+// (which bounds the *pool panel's* total height) — guards against
+// FILTERS_AND_TABS_HEIGHT ever producing a negative or unusably tiny chip
+// area if the two constants drift out of sync.
+const CHIP_AREA_MIN = 60;
 export function MixerBar({
   slots,
   dragOverIndex,
@@ -111,11 +151,12 @@ export function MixerBar({
   const dialogRef = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
 
-  // Desktop-only close behaviors. Doesn't gate on pointer/viewport type —
-  // Esc and a genuine "click outside" simply don't occur during normal
-  // touch use, so no explicit device check is needed to make this
-  // effectively desktop-only in practice. A ref for the close callback
-  // (not a dependency) keeps this from re-subscribing on every MixerBar
+  // Esc and click-outside close edit mode on every device — mobile,
+  // desktop, all of them, not gated to any one input type. No explicit
+  // pointer/viewport check is needed either way: a real Esc keypress or an
+  // outside click/tap both naturally produce the browser events this
+  // listens for regardless of device. A ref for the close callback (not a
+  // dependency) keeps this from re-subscribing on every MixerBar
   // re-render — with slots/dragOverIndex among the props, that would mean
   // every dragover tick while dragging a chip, not just real edit-mode
   // toggles.
@@ -130,9 +171,17 @@ export function MixerBar({
       if (e.key === "Escape") onCloseEditModeRef.current();
     }
     function handlePointerDown(e: MouseEvent) {
-      if (barRef.current && !barRef.current.contains(e.target as Node)) {
-        onCloseEditModeRef.current();
-      }
+      const target = e.target as Node;
+      if (barRef.current?.contains(target)) return;
+      // Any click inside the main page content column (theme switcher,
+      // results header/Clear, every result card — tags, swap/lock, flip)
+      // has its own meaningful action and shouldn't also close edit mode
+      // as a side effect — only a click truly outside both this bar and
+      // that whole column (the page's own background/gutters) counts as
+      // "outside" here. See KonomiApp.tsx's data-konomi-content comment.
+      const mainContent = document.querySelector("[data-konomi-content]");
+      if (mainContent?.contains(target)) return;
+      onCloseEditModeRef.current();
     }
     document.addEventListener("keydown", handleKeyDown);
     document.addEventListener("mousedown", handlePointerDown);
@@ -162,21 +211,39 @@ export function MixerBar({
   // release, not on every mousemove.
   const persistedHeightPx = usePoolPanelHeight();
   const [dragHeightPx, setDragHeightPx] = useState<number | null>(null);
-  const effectiveHeightPx = dragHeightPx ?? persistedHeightPx ?? undefined;
+  // Computed once, at mount, not re-derived every render: "50% of the
+  // viewport" is only meant to establish where a first-ever open lands,
+  // not to keep tracking a live-resizing browser window afterward (that
+  // would make the panel silently change size mid-session with no drag
+  // involved, contradicting "only the handle changes this"). window is
+  // guarded for SSR — this value is never read before hydration anyway,
+  // since editMode starts false and the pool panel is collapsed until the
+  // user opens it.
+  const [defaultPoolHeightPx] = useState(() => (typeof window !== "undefined" ? window.innerHeight * 0.5 : POOL_HEIGHT_MIN));
+  // clampPoolPanelHeight applies uniformly to every source (default,
+  // persisted, or actively dragging) — one clamp, not "clamp the persisted
+  // value on read, then separately clamp drags" — so the guarantee (fixed
+  // rows are never pushed below the fold) holds regardless of where this
+  // number came from.
+  const effectiveHeightPx = clampPoolPanelHeight(dragHeightPx ?? persistedHeightPx ?? defaultPoolHeightPx);
+  // Reduced by the space Level/Sort + SectionTabStrip need, so the pool
+  // panel's *total* rendered height (filters + tabs + chips) matches
+  // effectiveHeightPx, rather than the chip area alone matching it with
+  // filters/tabs added on top of that. See TagPoolBody's chipAreaHeightPx
+  // doc comment.
+  const chipAreaHeightPx = Math.max(CHIP_AREA_MIN, effectiveHeightPx - FILTERS_AND_TABS_HEIGHT);
 
   function handleResizeStart(e: React.MouseEvent) {
-    // No persisted/in-progress height yet (never dragged this session) —
-    // seed the drag from the CSS default's live rendered size, since a
-    // delta-based drag needs a real starting number even when the panel is
-    // currently sized by a Tailwind class, not a style. window.innerHeight
-    // at drag-start, not a stored constant: 50dvh is viewport-relative, so
-    // its px equivalent only means anything computed fresh, live.
-    const startHeight = effectiveHeightPx ?? window.innerHeight * 0.5;
+    const startHeight = effectiveHeightPx;
     const startY = e.clientY;
     const liveHeightRef = { current: startHeight };
     function handleMouseMove(ev: MouseEvent) {
       // Dragging up (mouse Y decreases) grows the panel — matches the
       // physical "pull the sheet's ceiling up to make it taller" model.
+      // The handle itself sits above the title row, but what it actually
+      // resizes is still just the pool panel: title/slots/controls are
+      // fixed, so growing the *total* bar can only ever be absorbed by the
+      // one flexible region.
       const delta = startY - ev.clientY;
       const next = clampPoolPanelHeight(startHeight + delta);
       liveHeightRef.current = next;
@@ -193,21 +260,54 @@ export function MixerBar({
   }
 
   return (
-    // max-h-[100dvh] overflow-y-auto: a safety net, not a fitted design —
-    // on a very short viewport, letting the whole bar grow to full-viewport
-    // height (rather than trying to perfectly ration space between the
-    // pinned slots and the pool panel) is an accepted v1 compromise. This
-    // just guarantees the bar's own top content is reachable via internal
-    // scroll instead of silently rendering above y=0 and becoming
-    // inaccessible, since fixed-position elements don't scroll with the
-    // page behind them. Mobile feel gets refined in a later pass.
     <div
       ref={barRef}
-      className="fixed inset-x-0 bottom-0 z-[var(--z-overlay)] max-h-[100dvh] overflow-y-auto border-t-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)]"
+      className={[
+        // px-[var(--space-2xl)] lives here, on the full-bleed outer div —
+        // not on the max-w-[1280px] box below, and not both. This has to
+        // mirror KonomiApp's own root-div-then-max-w structure exactly
+        // (padding applied *before* the max-w box centers within it, never
+        // padding *inside* an already-centered max-w box) or the two
+        // columns' left/right edges only coincidentally match below
+        // ~1328px viewport width and silently diverge by a full 24px above
+        // it, once the page's own max-w box starts centering with margin
+        // beyond the root's padding instead of just filling it. Confirmed
+        // live: at 1400px this was a real, visible mismatch, not a false
+        // concern — see DESIGN_SYSTEM.md's "MixerBar" section.
+        //
+        // No overflow/max-h here at all, in either mode — title, slots,
+        // and controls must never scroll, and the pool panel's own height
+        // is already clamped (clampPoolPanelHeight) so the whole bar can
+        // never exceed the viewport in the first place. See this file's
+        // top comment.
+        "fixed inset-x-0 bottom-0 z-[var(--z-overlay)] px-[var(--space-2xl)] border-t-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)]",
+      ].join(" ")}
     >
-      <div className="@container max-w-[1280px] mx-auto px-[var(--space-2xl)] py-[var(--space-xl)]">
+      <div className="@container max-w-[1280px] mx-auto py-[var(--space-xl)]">
+        {/* Resize handle — above the title row, at the very top of the
+            edit surface, not between the slots and the pool panel. Desktop
+            only (hidden below the same 993px tier the controls-row divider
+            uses) — pointer/mouse-only, no touch handlers, no keyboard
+            equivalent; mobile keeps the plain default height. Dragging it
+            only ever visibly resizes the pool panel below (title/slots/
+            controls are fixed), but it's positioned as if it controls the
+            whole sheet's height, since that's the more natural mental
+            model for the user — "pull this to make the panel bigger." */}
+        {editMode && (
+          <div
+            role="separator"
+            aria-orientation="horizontal"
+            aria-label="Drag to resize edit panel"
+            onMouseDown={handleResizeStart}
+            className="hidden min-[993px]:flex items-center justify-center h-[14px] mb-[var(--space-sm)] cursor-ns-resize select-none"
+          >
+            <div className="w-[48px] h-[length:var(--border-thin)] bg-[var(--muted)]" />
+          </div>
+        )}
+
         {/* Row 1: title (mode-dependent) + filled-count badge, same shape
-            the old Mixer section title row used. */}
+            the old Mixer section title row used. Fixed — never resizes,
+            never scrolls. */}
         <div className="flex items-end justify-between mb-[var(--space-lg)]">
           <div className="flex items-center gap-[var(--space-md)]">
             <h2 className="font-display text-[length:var(--text-xl)] leading-[var(--leading-display)] m-0 uppercase tracking-[var(--tracking-sm)]">
@@ -227,31 +327,32 @@ export function MixerBar({
           </span>
         </div>
 
-        {/* Row 2: the 3 tag slots — always rendered, always the first
-            content row, which is what "pins near the top of the edit
-            surface" means: it's already at the top before the pool panel
-            below ever appears. */}
-        <div className="flex gap-[var(--space-lg)] mb-[var(--space-lg)]">
-          {slots.map((tag, index) => (
-            <TagSlot
-              key={index}
-              index={index}
-              tag={tag}
-              isDragOver={dragOverIndex === index}
-              onDragOver={onSlotDragOver}
-              onDragLeave={onSlotDragLeave}
-              onDrop={onSlotDrop}
-              onClick={handleSlotClick}
-            />
-          ))}
-        </div>
+        {/* Row 2: the pool panel — always mounted (see file-top comment).
+            The only part of this bar that resizes or scrolls. Deliberately
+            no explicit height + overflow-hidden on THIS wrapper — only the
+            chip area inside TagPoolBody gets a fixed height
+            (chipAreaHeightPx). This wrapper's natural height is just
+            (Level/Sort row) + (TagPoolBody's own rendered height), which
+            sums to ~effectiveHeightPx by construction since
+            chipAreaHeightPx was already reduced by FILTERS_AND_TABS_HEIGHT
+            below. Explicit height + overflow-hidden was tried here first
+            and reverted: a flex-col container whose explicit height is
+            *smaller* than its natural content height clips from the START
+            (top) under overflow:hidden, not the end — confirmed live via
+            getBoundingClientRect (the filters row measured *above* its own
+            parent's top edge once clipped), which is exactly backwards
+            from what's wanted here (filters/tabs should stay visible;
+            chips are what should ever be the clipped/scrolled part).
 
-        {/* Row 3: the pool panel — always mounted (see file-top comment),
-            capped at 50dvh (dvh not vh: this app's first viewport-height
-            usage, chosen specifically to avoid the well-known mobile
-            Safari/Chrome dynamic-toolbar jump vh produces) when open. Not a
-            hard guarantee on short viewports — see the outer max-h-[100dvh]
-            comment above. */}
+            Sits directly below the header, above the slots — not between
+            the slots and controls, where an earlier version placed it.
+            Placing it here means opening/closing edit mode only ever
+            inserts/removes this one block in a single spot (right after
+            the header), rather than also shifting the slots row itself
+            down and back — everything below the header before this panel
+            existed (nothing) stays exactly where it was; only what comes
+            after shifts, same as before, just with one less row appearing
+            to "jump" past. */}
         <div
           ref={dialogRef}
           role="dialog"
@@ -260,23 +361,6 @@ export function MixerBar({
           tabIndex={-1}
           className={editMode ? "flex flex-col mb-[var(--space-lg)] outline-none" : "max-h-0 overflow-hidden"}
         >
-          {/* Desktop-only (hidden below the same 993px tier the row-4
-              divider uses) drag handle for the pool panel's height —
-              pointer/mouse-only, no touch handlers, no keyboard
-              equivalent; mobile keeps the plain 50dvh cap. Sits above the
-              Level/Sort row specifically: the slots row above it and the
-              controls row below the pool panel are both fixed in height,
-              so this is the one boundary that actually determines how
-              tall the whole bar grows. */}
-          <div
-            role="separator"
-            aria-orientation="horizontal"
-            aria-label="Drag to resize tag pool"
-            onMouseDown={handleResizeStart}
-            className="hidden min-[993px]:flex items-center justify-center h-[14px] mb-[var(--space-sm)] cursor-ns-resize select-none"
-          >
-            <div className="w-[48px] h-[length:var(--border-thin)] bg-[var(--muted)]" />
-          </div>
           <div className="flex items-center gap-[var(--space-lg)] flex-wrap mb-[var(--space-md)]">
             <div className="flex items-center gap-[var(--space-sm)]">
               <TagIcon className="text-[var(--ink)]" />
@@ -293,8 +377,25 @@ export function MixerBar({
             totalSeriesCount={totalSeriesCount}
             level={level}
             onChipToggle={onChipToggle}
-            chipAreaHeightPx={effectiveHeightPx}
+            chipAreaHeightPx={chipAreaHeightPx}
           />
+        </div>
+
+        {/* Row 3: the 3 tag slots. Fixed — never resizes, never scrolls,
+            regardless of how tall the pool panel above gets dragged. */}
+        <div className="flex gap-[var(--space-lg)] mb-[var(--space-lg)]">
+          {slots.map((tag, index) => (
+            <TagSlot
+              key={index}
+              index={index}
+              tag={tag}
+              isDragOver={dragOverIndex === index}
+              onDragOver={onSlotDragOver}
+              onDragLeave={onSlotDragLeave}
+              onDrop={onSlotDrop}
+              onClick={handleSlotClick}
+            />
+          ))}
         </div>
 
         {/* Row 4: MIN TAG MATCH, Random/Clear, Recommend — unchanged from

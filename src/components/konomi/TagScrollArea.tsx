@@ -84,6 +84,16 @@ export function TagScrollArea({ tags, selectedTags, onChipToggle }: TagScrollAre
     // (0.25 → 0.375 → 0.9375 → 1.25 → 1.5).
     <ScrollFadeArea
       height={TAG_AREA_HEIGHT}
+      // "reveal-nested", not ScrollFadeArea's own "reveal" default: this
+      // instance is nested inside the results carousel's own ScrollFadeArea
+      // (RecommendationsBody), which also uses hover-reveal arrows under
+      // the same default name. Sharing that name meant hovering anywhere
+      // in the outer carousel — an ancestor of every card — satisfied
+      // *every* nested card's own group-hover condition simultaneously
+      // (confirmed live as a real bug: hovering a card's title revealed
+      // every card's tag-scroll arrows at once, not just that card's own).
+      // See RevealGroup's comment in IconButton.tsx for the full mechanism.
+      groupName="reveal-nested"
       scrollStep={VISIBLE_ROWS * ROW_STEP_PX}
       snap
       scrollPaddingStart={TOP_RESERVE_PX}

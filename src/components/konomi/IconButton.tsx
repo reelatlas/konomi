@@ -1,5 +1,26 @@
 import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from "react";
 
+// The Tailwind group name backing hover-reveal — a closed set of literal
+// strings, not an arbitrary one: Tailwind's scanner needs `group/name` and
+// `group-hover/name:` to appear as complete static text to generate CSS for
+// them, so a template-interpolated group name would be invisible to it
+// (same constraint "Runtime-computed dimensions" documents for arbitrary-
+// value classes elsewhere — see DESIGN_SYSTEM.md). Two variants exist
+// because ScrollFadeArea's own root always carries one of these group
+// classes, and one caller (TagScrollArea) nests its ScrollFadeArea inside
+// another (the results carousel's) — sharing one name there meant hovering
+// anywhere in the outer carousel satisfied `group-hover/name:hover` for
+// every nested instance too, since CSS's descendant-combinator matching
+// doesn't care which specific ancestor with that class is hovered
+// (confirmed live as a real bug: hovering a card's title revealed every
+// card's tag-scroll arrows at once). See ScrollFadeArea.tsx's own comment
+// for the full story.
+export type RevealGroup = "reveal" | "reveal-nested";
+const REVEAL_CLASSES: Record<RevealGroup, string> = {
+  reveal: "opacity-0 group-hover/reveal:opacity-100 transition-opacity",
+  "reveal-nested": "opacity-0 group-hover/reveal-nested:opacity-100 transition-opacity",
+};
+
 interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "className" | "style" | "disabled"> {
   width: number;
   // Merged with (and able to override) the width/height/color values this
@@ -16,10 +37,10 @@ interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 
   shadow?: boolean;
   backgroundColor?: string;
   textColor?: string;
-  // opacity-0, revealed via the *ancestor* carrying `group/reveal` (see
-  // this component's own doc comment below for why the group name can't be
-  // a prop).
-  revealOnHover?: boolean;
+  // opacity-0, revealed via an ancestor carrying the matching group class —
+  // see RevealGroup above for why this takes one of a closed set of named
+  // groups rather than a plain boolean.
+  revealOnHover?: RevealGroup;
   // opacity-40 + cursor-not-allowed *without* the native `disabled`
   // attribute — a real `disabled` button can silently stop firing hover
   // events in some browsers, which breaks hover-driven hints (ResultCard's
@@ -47,16 +68,12 @@ interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 
 // size treatment with small variations — see DESIGN_SYSTEM.md for the full
 // inventory this was built from.
 //
-// `revealOnHover` cannot take a group name as a prop: Tailwind's
-// `group-hover/name:` variant has to exist as complete literal text in the
-// source for its scanner to generate the CSS at build time — a
-// template-interpolated class name (`group-hover/${name}:opacity-100`)
-// would never be recognized. Rather than work around that, both hover-reveal
-// callers (ScrollFadeArea, the results carousel) were standardized on one
-// shared ancestor group name, `group/reveal`, instead — they're the same
-// interaction pattern already, so this is a naming unification, not a
-// compromise. Any caller using `revealOnHover` must ensure an ancestor
-// carries `group/reveal`.
+// `revealOnHover` takes one of RevealGroup's two literal values, not an
+// arbitrary group name — see RevealGroup's own comment above for why (a
+// template-interpolated class name would be invisible to Tailwind's
+// scanner) and why two variants exist at all rather than one shared name.
+// Any caller using `revealOnHover` must ensure an ancestor carries the
+// matching `group/<name>` class (ScrollFadeArea's own root always does).
 // Complete literal class strings, not a template-interpolated
 // `border-[length:var(--border-${border})]` — Tailwind's scanner needs the
 // full class as static source text to generate it; a runtime-interpolated
@@ -94,7 +111,7 @@ export function IconButton({
         "border-[var(--ink)]",
         shape === "circle" ? "rounded-full" : "",
         shadow ? "shadow-[var(--elev-1)]" : "",
-        revealOnHover ? "opacity-0 group-hover/reveal:opacity-100 transition-opacity" : "",
+        revealOnHover ? REVEAL_CLASSES[revealOnHover] : "",
         visuallyDisabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer",
         className ?? "",
       ].join(" ")}
