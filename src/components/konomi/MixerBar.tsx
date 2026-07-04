@@ -15,6 +15,7 @@ import {
   useDefaultPoolPanelHeight,
   useLevel,
   usePoolPanelHeight,
+  usePoolPanelMaxHeight,
   useSort,
 } from "./tagPoolPrefs";
 import { TagPoolBody } from "./TagPoolBody";
@@ -229,12 +230,17 @@ export function MixerBar({
   // the latter was tried first and produced a real hydration mismatch,
   // not just a hoped-for non-issue.
   const defaultPoolHeightPx = useDefaultPoolPanelHeight();
+  // The viewport-dependent ceiling clampPoolPanelHeight bounds against —
+  // read via its own hook (not inline `window.innerHeight` math) for the
+  // same hydration-safety reason useDefaultPoolPanelHeight exists: see
+  // usePoolPanelMaxHeight's own comment in tagPoolPrefs.ts.
+  const poolPanelMaxHeight = usePoolPanelMaxHeight();
   // clampPoolPanelHeight applies uniformly to every source (default,
   // persisted, or actively dragging) — one clamp, not "clamp the persisted
   // value on read, then separately clamp drags" — so the guarantee (fixed
   // rows are never pushed below the fold) holds regardless of where this
   // number came from.
-  const effectiveHeightPx = clampPoolPanelHeight(dragHeightPx ?? persistedHeightPx ?? defaultPoolHeightPx);
+  const effectiveHeightPx = clampPoolPanelHeight(dragHeightPx ?? persistedHeightPx ?? defaultPoolHeightPx, poolPanelMaxHeight);
   // Reduced by the space Level/Sort + SectionTabStrip need, so the pool
   // panel's *total* rendered height (filters + tabs + chips) matches
   // effectiveHeightPx, rather than the chip area alone matching it with
@@ -267,7 +273,7 @@ export function MixerBar({
       // controls are fixed, so growing the *total* bar can only ever be
       // absorbed by the one flexible region.
       const delta = startY - clientY;
-      const next = clampPoolPanelHeight(startHeight + delta);
+      const next = clampPoolPanelHeight(startHeight + delta, poolPanelMaxHeight);
       liveHeightRef.current = next;
       setDragHeightPx(next);
     }
@@ -289,27 +295,77 @@ export function MixerBar({
     <div
       ref={barRef}
       className={[
-        // px-[var(--space-2xl)] lives here, on the full-bleed outer div —
-        // not on the max-w-[1280px] box below, and not both. This has to
-        // mirror KonomiApp's own root-div-then-max-w structure exactly
-        // (padding applied *before* the max-w box centers within it, never
-        // padding *inside* an already-centered max-w box) or the two
-        // columns' left/right edges only coincidentally match below
-        // ~1328px viewport width and silently diverge by a full 24px above
-        // it, once the page's own max-w box starts centering with margin
-        // beyond the root's padding instead of just filling it. Confirmed
-        // live: at 1400px this was a real, visible mismatch, not a false
-        // concern — see DESIGN_SYSTEM.md's "MixerBar" section.
+        // Transparent positioning wrapper only — no bg/border/shadow here
+        // anymore, those live on the capped card below. px-[var(--space-2xl)]
+        // still lives here (not on the max-w-[1280px] card below, and not
+        // both) for the same reason it always has: it has to mirror
+        // KonomiApp's own root-div-then-max-w structure exactly (padding
+        // applied *before* the max-w box centers within it, never padding
+        // *inside* an already-centered max-w box) or the two columns'
+        // left/right edges only coincidentally match below ~1328px viewport
+        // width and silently diverge by a full 24px above it, once the
+        // page's own max-w box starts centering with margin beyond the
+        // root's padding instead of just filling it. Confirmed live: at
+        // 1400px this was a real, visible mismatch, not a false concern —
+        // see DESIGN_SYSTEM.md's "MixerBar" section.
+        //
+        // pb-[var(--space-2xl)] is new: the bottom gutter that lets page
+        // background show *below* the card too, now that the card is a
+        // contained floating object rather than flush-to-viewport-bottom
+        // full-bleed chrome. Matches KonomiApp's own pt-[var(--space-2xl)]
+        // at the top of the page — same token, so the gap below the
+        // floating card mirrors the gap above the masthead. Flat at every
+        // breakpoint, same reasoning as px above.
         //
         // No overflow/max-h here at all, in either mode — title, slots,
         // and controls must never scroll, and the pool panel's own height
         // is already clamped (clampPoolPanelHeight) so the whole bar can
         // never exceed the viewport in the first place. See this file's
         // top comment.
-        "fixed inset-x-0 bottom-0 z-[var(--z-overlay)] px-[var(--space-2xl)] border-t-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)]",
+        "fixed inset-x-0 bottom-0 z-[var(--z-overlay)] px-[var(--space-2xl)] pb-[var(--space-2xl)]",
       ].join(" ")}
     >
-      <div className="@container max-w-[1280px] mx-auto py-[var(--space-xl)]">
+      <div
+        className={[
+          // The visible floating card — capped width, centered, matching
+          // the app's other card chrome (square corners, standard border,
+          // hard offset shadow). elev-4 matches ResultCard's card-level
+          // elevation, not Masthead's elev-5 — Masthead's heavier shadow is
+          // paired with its one-off rotate flourish, not the app's default
+          // "flat card" treatment this bar should match instead.
+          //
+          // @container stays on this box, not the transparent wrapper
+          // above — see this file's top comment for why (measuring the raw
+          // viewport width instead of this capped width would silently
+          // shift the @min-[480px] breakpoint below).
+          //
+          // px here is new and *additional* to the wrapper's own
+          // px-[var(--space-2xl)] above — this box's content now needs its
+          // own breathing room from its own border, which the wrapper's
+          // padding no longer provides now that the border lives here
+          // instead of on the wrapper. space-2xl (24px) — the standard card
+          // padding this app already uses (Masthead's own px-[var(--space-2xl)])
+          // — not a smaller mobile-specific value: a couple of earlier
+          // passes tried shrinking this (down to space-lg, even space-xs)
+          // specifically to avoid tipping the controls row's wrap at 390px
+          // from 2 lines to 3, but real, standard card padding (in both
+          // browse and edit mode alike, same box) matters more than
+          // preserving the exact old wrap count.
+          //
+          // Deliberately flat at every breakpoint — no min-[993px] step to
+          // a larger desktop value, unlike the alignment-critical wrapper
+          // padding above (which has no choice — it must match KonomiApp's
+          // root padding exactly at every width). This one stays constant
+          // from smallest to largest viewport; revisit by hand later if it
+          // reads as too generous on narrow mobile once tested live.
+          //
+          // The controls row wrapping to a 3rd line (Recommend drops below
+          // Random/Clear) at 390px is an accepted, minor consequence of
+          // this — see EDIT_MODE_FIXED_ROWS_HEIGHT and MIXER_BAR_SPACER,
+          // both re-measured live against this.
+          "@container max-w-[1280px] mx-auto px-[var(--space-2xl)] py-[var(--space-xl)] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-4)]",
+        ].join(" ")}
+      >
         {/* Resize handle — above the title row, at the very top of the
             edit surface, not between the slots and the pool panel. Usable
             at every breakpoint (mouse *and* touch, see handleResizeStart) —

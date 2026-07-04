@@ -16,23 +16,30 @@ interface KonomiAppProps {
   initialTags: TagInfo[];
 }
 
-// Height of MixerBar's browse-mode (collapsed: title + slots + controls,
-// no pool panel) rendered form — measured live against the real component,
-// same "retune by hand if this changes" approach TagPoolBody's
-// CHIP_AREA_HEIGHT constant already uses. Reserves exactly enough space at
-// the bottom of the scrolling page so browse-mode content (results, the
-// "+ Tag Pool" affordance, footer tagline) never sits underneath the fixed
-// bar. Edit mode's taller form is deliberately allowed to overlay content
+// Height of MixerBar's browse-mode (collapsed: floating card — title +
+// slots + controls, no pool panel — plus the wrapper's own bottom gutter)
+// rendered form — measured live against the real component, same "retune
+// by hand if this changes" approach TagPoolBody's CHIP_AREA_HEIGHT
+// constant already uses. Reserves exactly enough space at the bottom of
+// the scrolling page so browse-mode content (results, the "+ Tag Pool"
+// affordance, footer tagline) never sits underneath the fixed card, *plus*
+// an extra space-2xl (24px) beyond that so the last piece of scrolled
+// content gets the same breathing room above the card that the page's own
+// pt-[var(--space-2xl)] gives the masthead below the viewport top — see
+// MixerBar.tsx's pb-[var(--space-2xl)] comment, same token, mirrored gap.
+// Edit mode's taller form is deliberately allowed to overlay content
 // instead of reserving space for it too — expected bottom-sheet behavior,
 // not a bug; see MixerBar.tsx's own top comment.
 //
-// The controls row wraps to 2 lines at narrow widths (Random/Clear/
-// Recommend drop below MIN TAG MATCH once the divider disappears below
-// 993px), making the bar taller on mobile (273px measured live at 390px)
-// than desktop (224.5px at 1400px) — this constant covers the taller,
-// mobile case with a little headroom, since that's the width tier where
-// the spacer actually matters most for this mobile-first pass.
-const MIXER_BAR_SPACER = "pb-[290px]";
+// The controls row wraps to 3 lines at narrow widths (Recommend drops
+// below Random/Clear, which itself already dropped below MIN TAG MATCH),
+// making the bar taller on mobile (331.5px card + 24px wrapper gutter =
+// 355.5px measured live at 390px) than desktop (226.5px card + 24px
+// gutter = 250.5px at 1400px) — this constant covers the taller mobile
+// case (355.5 + 24px extra breathing room = 379.5px) with a little
+// headroom, since that's the width tier where the spacer actually matters
+// most for this mobile-first pass.
+const MIXER_BAR_SPACER = "pb-[385px]";
 
 export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
   const k = useKonomi(initialSeries, initialTags);

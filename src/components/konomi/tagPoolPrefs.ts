@@ -28,46 +28,78 @@ const DEFAULT_SORT: SortKey = "popular";
 export const POOL_HEIGHT_MIN = 160;
 // Combined rendered height of everything in MixerBar's edit mode that is
 // NOT the pool panel — resize handle, title row, slots row, controls row,
-// plus the bar's own vertical padding and inter-row gaps — measured live
-// at the narrowest (mobile, 390px) width, where the controls row wraps to
-// 2 lines and this is tallest (341.5px measured; 345 leaves a small
-// buffer). Desktop (1400px) measures a shorter 256.5px — using the mobile
-// worst case everywhere is intentionally conservative there (a few px of
-// pool panel headroom left unused) rather than precise, same tradeoff
-// KonomiApp's MIXER_BAR_SPACER already makes. Retune by hand if any of
-// those rows' own height changes. This is what makes the pool panel's max
-// height *exact* rather than a rough fraction: title/slots/controls must
-// never scroll or be pushed off-screen, so the pool panel is only ever
-// allowed to grow up to whatever's left after those fixed rows are
-// guaranteed their own space — see clampPoolPanelHeight below.
-export const EDIT_MODE_FIXED_ROWS_HEIGHT = 345;
+// the card's own border + vertical padding, the outer wrapper's bottom
+// gutter (see MixerBar.tsx's pb-[var(--space-2xl)]), and inter-row gaps —
+// measured live at the narrowest (mobile, 390px) width, where the controls
+// row wraps to 3 lines (Recommend on its own line, below Random/Clear —
+// see MixerBar.tsx's card-padding comment) and this is tallest (387.5px
+// measured; 390 leaves a small buffer). Desktop (1400px) measures a
+// shorter 282.5px — using the mobile worst case everywhere is
+// intentionally conservative there (a few px of pool panel headroom left
+// unused) rather than precise, same tradeoff KonomiApp's MIXER_BAR_SPACER
+// already makes. Retune by hand if any of those rows' own height, the
+// card's padding/border, or the wrapper's bottom gutter changes. This is
+// what makes the pool panel's max height *exact* rather than a rough
+// fraction: title/slots/controls must never scroll or be pushed
+// off-screen, so the pool panel is only ever allowed to grow up to
+// whatever's left after those fixed rows are guaranteed their own space —
+// see clampPoolPanelHeight below.
+export const EDIT_MODE_FIXED_ROWS_HEIGHT = 390;
 
 const levelListeners = new Set<() => void>();
 const sortListeners = new Set<() => void>();
 const poolHeightListeners = new Set<() => void>();
 
-// Shared by both the read-path clamp (getPoolHeightSnapshot) and the live
-// drag clamp (MixerBar's resize handler) — one set of bounds, not two that
-// could drift apart. The max bound guarantees the *whole* edit-mode bar
-// (fixed rows + pool panel) never exceeds the viewport, which is what lets
-// MixerBar drop the old outer-scroll safety net entirely: title, slots, and
-// controls are unconditionally reachable without ever needing their own
-// container to scroll, because the pool panel — the only resizable part —
-// is never allowed to make the total taller than the viewport in the first
-// place.
-// Guarded for SSR: MixerBar calls this directly in its render body (not
-// just through usePoolPanelHeight's useSyncExternalStore, which already
-// skips getPoolHeightSnapshot server-side via its getServerSnapshot
-// argument), so this needs its own guard rather than relying on the
-// caller to only ever run client-side. The exact SSR fallback value
-// doesn't matter visually — editMode always starts false on first render,
-// so the pool panel is `max-h-0 overflow-hidden` and this number goes
-// unused until the user actually opens edit mode, which can only happen
-// post-hydration, where `window` is always available by then.
-export function clampPoolPanelHeight(px: number): number {
-  if (typeof window === "undefined") return Math.max(px, POOL_HEIGHT_MIN);
-  const max = window.innerHeight - EDIT_MODE_FIXED_ROWS_HEIGHT;
+// Pure — no window access at all. `max` is supplied by the caller (see
+// usePoolPanelMaxHeight below) rather than computed in here directly.
+// An earlier version read `window.innerHeight` inline, guarded only by
+// `typeof window === "undefined"` — that guard stops the SSR *crash*
+// (this is called directly in MixerBar's render body, not only through
+// usePoolPanelHeight's useSyncExternalStore, which already skips
+// getPoolHeightSnapshot server-side via its own getServerSnapshot), but
+// crash-safe and hydration-safe are not the same guarantee. `window` is a
+// plain global, immediately real on the client's very first render —
+// unlike a useSyncExternalStore snapshot, which React deliberately holds
+// back until *after* hydration completes. So the server always took the
+// fallback branch (floor only, no ceiling) while the client's first
+// render immediately took the real branch (a real, viewport-dependent
+// ceiling) — two different answers for the same input whenever that
+// ceiling would actually pull the value down, i.e. on a short viewport.
+// (At the constants in place when this was found, `CHIP_AREA_MIN`'s own
+// floor happened to absorb the entire gap before it reached anything
+// actually rendered — confirmed live at a 400px-tall viewport, no visible
+// mismatch — but that was incidental to those specific numbers, not a
+// real guarantee; changing any of POOL_HEIGHT_MIN/FILTERS_AND_TABS_HEIGHT/
+// CHIP_AREA_MIN/EDIT_MODE_FIXED_ROWS_HEIGHT could have silently reopened a
+// visible one.) Moving the ceiling itself out to its own
+// useSyncExternalStore-backed hook closes this properly, the same way
+// useDefaultPoolPanelHeight already does for the default height value —
+// see that hook for why "guard against crashing" and "guard against a
+// hydration mismatch" require different mechanisms.
+export function clampPoolPanelHeight(px: number, max: number): number {
   return Math.min(Math.max(px, POOL_HEIGHT_MIN), max);
+}
+
+function getPoolPanelMaxHeightSnapshot(): number {
+  return window.innerHeight - EDIT_MODE_FIXED_ROWS_HEIGHT;
+}
+
+// The viewport-dependent ceiling clampPoolPanelHeight bounds against —
+// split out into its own hook (rather than read directly inside
+// clampPoolPanelHeight) specifically so the client's first render can be
+// held back to a value matching the server's, the same mechanism
+// useDefaultPoolPanelHeight already relies on. getServerSnapshot returns
+// Infinity (no ceiling) rather than trying to guess a real one — safe
+// because the only value ever clamped against it before hydration
+// completes is POOL_HEIGHT_MIN itself (via useDefaultPoolPanelHeight,
+// also held back the same way), and POOL_HEIGHT_MIN trivially satisfies
+// "no ceiling" on both server and client.
+export function usePoolPanelMaxHeight(): number {
+  return useSyncExternalStore(
+    () => () => {},
+    getPoolPanelMaxHeightSnapshot,
+    () => Number.POSITIVE_INFINITY,
+  );
 }
 
 function isLevelKey(value: string | null): value is LevelKey {
@@ -90,11 +122,19 @@ function getSortSnapshot(): SortKey {
 
 // null = never dragged (no stored key, or a corrupt/non-numeric one) — the
 // caller falls back to the CSS 50dvh default in that case, not a numeric 0.
+// Reads window.innerHeight directly here (rather than through
+// usePoolPanelMaxHeight) because this function is only ever invoked as
+// useSyncExternalStore's getSnapshot argument — React guarantees that
+// never runs during SSR or the client's hydration-matching first render,
+// only afterward, so there's no "must match the server" constraint on
+// this specific read the way there is on clampPoolPanelHeight's own
+// direct callers.
 function getPoolHeightSnapshot(): number | null {
   const stored = window.localStorage.getItem(POOL_HEIGHT_STORAGE_KEY);
   if (stored === null) return null;
   const parsed = Number(stored);
-  return Number.isFinite(parsed) && parsed > 0 ? clampPoolPanelHeight(parsed) : null;
+  if (!Number.isFinite(parsed) || parsed <= 0) return null;
+  return clampPoolPanelHeight(parsed, window.innerHeight - EDIT_MODE_FIXED_ROWS_HEIGHT);
 }
 
 export function useLevel(): LevelKey {

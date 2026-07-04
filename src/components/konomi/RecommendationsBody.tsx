@@ -142,19 +142,99 @@ export function RecommendationsBody({
         // caller's own markup), and each ResultCard's own snap-start
         // (max-[1152px]:snap-start, in ResultCard.tsx) — snap points come
         // from the children, same as TagScrollArea's chips.
-        <div className="-mr-[5px] -mb-[5px]">
+        // max-[1152px]:-ml-[22px] / -mr-[22px] below: a measured constant,
+        // not an arbitrary round number — 22 = the trailing/leading
+        // spacer's own w-[6px] (both further down, near their
+        // results.map) + this row's gap-[var(--space-xl)] (16px), which
+        // also applies before/after each spacer the same as between every
+        // card. If gap-xl's value changes, or either spacer's own width
+        // changes, these two margins must be re-derived to match (6+16
+        // again, with whatever the new numbers are) or the corresponding
+        // edge card will drift off the content column's edge again — same
+        // "retune by hand if this changes" coupling as MIXER_BAR_SPACER/
+        // EDIT_MODE_FIXED_ROWS_HEIGHT elsewhere in this app, and for the
+        // same reason those stayed comments instead of a shared JS
+        // constant: Tailwind's arbitrary-value classes need to be static
+        // source text for its scanner to generate CSS for them at all — a
+        // computed `-ml-[${n}px]` string would silently produce no rule,
+        // not a wrong one, which is a worse failure mode than a comment
+        // someone has to remember to update.
+        <div className="-mt-[40px] -mr-[5px] -mb-[40px] max-[1152px]:-ml-[22px] max-[1152px]:-mr-[22px]">
           {/* ScrollFadeArea's scroll viewport is unconditionally
               overflow-x-auto/overflow-y-hidden now (not gated to
               max-[1152px] the way the old bespoke implementation was), so
-              the elev-4 shadow-clipping risk this pr/pb-[5px] + -mr/-mb-[5px]
-              pair fixes is no longer confined to the carousel breakpoint —
-              a card flush against the grid's own right/bottom edge above
-              1152px is just as exposed. Both halves of the fix are
-              unconditional here for exactly that reason (see
-              ScrollFadeArea.tsx's own overflow-x/-y comment for the root
-              cause: setting only one axis non-visible silently coerces the
-              other from `visible` to `auto`, clipping any box-shadow
-              bleeding past that edge). */}
+              the elev-4 shadow-clipping risk the pr/pb + -mr/-mb pair below
+              fixes is no longer confined to the carousel breakpoint — a
+              card flush against the grid's own right/bottom edge above
+              1152px is just as exposed.
+
+              pt/pb are 40px, not the original 5px: a flip in progress
+              (ResultCard's rotateY, [transform:rotateY]) needs far more
+              room than the static shadow does. Confirmed live via
+              Animation.setPlaybackRate(0.02)/Animation.seekAnimations +
+              getBoundingClientRect on the rotating faces mid-flip: the
+              rotation's real bulge is mostly *vertical* (top/bottom) — up
+              to ~33.5px above and ~28.5px below the card's own resting box
+              at the widest measured tier (the 85%-width mobile carousel
+              card; desktop's 22%-width grid cards bulge a bit less,
+              ~27/22px). 40px covers both measured maxes with a small
+              buffer, and — since 40 > 5 — also covers the original shadow
+              bleed on its own, so pb doesn't need to account for both
+              separately.
+
+              Padding this side of ScrollFadeArea's own real overflow-hidden
+              clip (scrollRef, inside ScrollFadeArea.tsx) reserves 40px of
+              *clipped-but-unclipped-relative-to-content* space above/below
+              the grid for the flip to bleed into. The matching -mt/-mb on
+              this wrapper — outside ScrollFadeArea's clip boundary
+              entirely — cancels that padding back out at rest: it pulls
+              this whole wrapper (clip boundary included) up/in by the same
+              40px the grid's own padding pushed its content down/in by, so
+              the *visible* card position and height are unchanged. Same
+              net-zero trick the original 5px pair already used, just
+              extended to the axis (vertical) the flip actually needs.
+              Confirmed live: first-card top, last-card bottom, and the
+              gaps to the header above and the "+ Tag Pool" affordance
+              below are byte-identical before and after this change, at
+              both a desktop grid width and the mobile carousel's tightest
+              tier — the padding is genuinely inert at rest, not merely
+              small. flow-root on this component's own root div (above)
+              is what makes -mt safe here the same way it already made -mb
+              safe: without that BFC boundary, a negative *top* margin
+              collapses through parent/child edges just as readily as a
+              negative bottom one, and would have eaten into
+              ResultsHeader's own spacing above this row instead of
+              staying contained to the padding it's meant to cancel.
+
+              Below 1152px, both the first and last card get a small real
+              spacer *inside* the row instead of more padding on this same
+              grid — see those two divs' own comments for why padding can't
+              do this job on the horizontal axis the way pt/pb does
+              vertically. Both need a matching margin on THIS wrapper
+              (max-[1152px]:-ml-[22px] / -mr-[22px]) for the same net-zero
+              reason as -mt/-mb above, just aimed at a different problem: a
+              plain visible gap after the *visual* card (before the true
+              scroll edge) reads as an unintentional dead zone once you
+              scroll all the way over — confirmed live, an earlier version
+              without this margin left the last card sitting 22px short of
+              the content column's own right edge, an obvious "indent" that
+              didn't match the grid tier's flush alignment. Pulling this
+              wrapper (and so ScrollFadeArea's own scroll container) 22px
+              wider on BOTH sides pushes each spacer's real, reachable
+              buffer out past the content column's own edges — into the
+              page's own gutter, where it's invisible margin either way —
+              while the actual first/last *card* renders exactly flush with
+              that edge, matching the grid tier's look. Confirmed live at
+              multiple carousel-tier widths: card width, left edge, and
+              right edge all landed within a fraction of a px of the
+              content column's own edges, both at rest and scrolled to the
+              true end. (An even earlier version added only -mr, sized to
+              the spacer's raw width with no thought for the row's own
+              gap-xl also contributing — that one really was wrong, and
+              genuinely widened the visible row itself rather than just
+              relocating the spacer into the gutter; the difference is
+              accounting for the *total* footprint, gap included, not just
+              the spacer's own declared width.) */}
           <ScrollFadeArea
             orientation="horizontal"
             snap
@@ -167,7 +247,64 @@ export function RecommendationsBody({
             arrowShadow
             arrowInset="var(--space-md)"
           >
-            <div ref={rowRef} className="grid grid-cols-[repeat(auto-fill,minmax(208px,1fr))] gap-[var(--space-xl)] pr-[5px] pb-[5px] max-[1152px]:flex max-[1152px]:flex-nowrap">
+            <div ref={rowRef} className="grid grid-cols-[repeat(auto-fill,minmax(208px,1fr))] gap-[var(--space-xl)] pt-[40px] pr-[5px] pb-[40px] max-[1152px]:flex max-[1152px]:flex-nowrap">
+              {/* Leading spacer, carousel tier only (hidden above 1152px,
+                  same reasoning as the trailing one below: display:none
+                  removes it from the grid entirely, so it's never a 6th
+                  grid cell). Guards the first card's left edge specifically
+                  during the *reverse* flip (back face rotating to show the
+                  front again) — confirmed live this is the one direction
+                  that clips: a forward flip (front→back) never showed any
+                  left excess at any width, but the reverse animation's
+                  second half peaked at ~2.4px of real excess past the
+                  scroll container's true left edge (measured via
+                  Animation.seekAnimations at 450px width, a single-card
+                  carousel tier).
+
+                  w-[6px] (space-sm), plus this row's own gap-xl (16px)
+                  before it — 22px total, comfortably past the ~2.4px
+                  measured bulge. This 6+16=22 pairs with the outer
+                  wrapper's own max-[1152px]:-ml-[22px] (this row's
+                  top-of-block comment) — change this width or the row's
+                  gap-xl and that margin needs to move to match, or this
+                  spacer's buffer stops landing invisibly in the page's own
+                  gutter and starts showing as a real indent again. Not w-0:
+                  a first pass used w-0 here (relying on the gap alone) and,
+                  symmetrically with the trailing
+                  spacer (see its own comment), a *separate* first pass tried
+                  netting an even smaller total via a negative margin eating
+                  into that gap. Both were reverted for the same reason
+                  documented there: a zero-width flex item at the overflowing
+                  edge of a flex-nowrap row doesn't reliably get its
+                  preceding/following gap counted toward scrollWidth, and
+                  negative margins compound that further — confirmed live via
+                  the trailing spacer's case (this one doesn't depend on
+                  scrollWidth math the same way, since it's about the
+                  *resting*, not reachable-via-scroll, position, but kept the
+                  same real-width fix for consistency once the trailing
+                  side's fix was known-good).
+
+                  This wrapper's own max-[1152px]:-ml-[22px] (below) cancels
+                  that 22px back out at rest, relocating it into the page's
+                  own left gutter instead of a visible gap before card 1 —
+                  see this row's top-of-block comment for why the trailing
+                  spacer needs the equivalent -mr treatment too, even though
+                  it's only ever visible once scrolled to the end.
+
+                  [scroll-snap-align:start] on this spacer (not just
+                  flex-none) is load-bearing, not decoration: a first
+                  attempt gave the spacer real width with no snap-align of
+                  its own, and that alone made scroll-snap treat resting
+                  scrollLeft 0 as "unaligned" — confirmed live the browser
+                  force-corrected scrollLeft to 17 on load and kept
+                  snapping straight back to 17 even after an explicit reset
+                  to 0, because shifting the first *card's* own offset away
+                  from 0 meant 0 no longer matched any card's snap-start
+                  math. Making the spacer itself a valid snap-start target
+                  means scrollLeft 0 (spacer visible, card 1 right behind
+                  it) is a legitimate resting position again — confirmed
+                  live this keeps scrollLeft at 0 at rest. */}
+              <div aria-hidden className="hidden max-[1152px]:block max-[1152px]:w-[6px] flex-none [scroll-snap-align:start]" />
               {results.map((entry) => (
                 <ResultCard
                   key={entry.series.title}
@@ -188,6 +325,64 @@ export function RecommendationsBody({
                   sort={sort}
                 />
               ))}
+              {/* Trailing spacer, carousel tier only (hidden — display:none
+                  removes it from the grid entirely above 1152px, so it
+                  never becomes a 6th grid cell or perturbs that tier's
+                  1152px-tuned column math). Guards the last card's right
+                  edge — its elev-4 shadow (5px) and any right-side flip
+                  bulge. A real DOM child, not padding on the row above,
+                  because a flex-nowrap row whose children overflow their
+                  own container renders the *container's own box* at its
+                  available (viewport) width, not its overflowing children's
+                  true combined width — confirmed live (getBoundingClientRect
+                  on the grid itself reported exactly clientWidth, not the
+                  wider content extent), so pr *padding on that box* sits at
+                  the edge of a box narrower than the real scrollable
+                  content, nowhere near the actual last card. Also confirmed
+                  live that scroll-padding-right doesn't help either: it only
+                  adjusts where a *snap-end/center*-aligned target settles,
+                  and every card here is snap-*start* (ResultCard.tsx), so
+                  padding on the trailing edge never enters that alignment
+                  calculation at all — the row kept settling with ~0 buffer
+                  at the true scroll-max regardless. A real flex child, by
+                  contrast, IS part of the overflowing content, so it
+                  reliably sits directly next to the last card, and — unlike
+                  the leading spacer above — doesn't shift any existing
+                  card's own offset, so it doesn't need scroll-snap-align:
+                  resting at the true scroll-max is always a valid mandatory-
+                  snap position with nothing further to snap to, confirmed
+                  live scrollLeft settles there cleanly.
+
+                  w-[6px] (space-sm), not w-0 or a negative margin — both
+                  tried first, both reverted. This 6+16(gap)=22 pairs with
+                  the outer wrapper's own max-[1152px]:-mr-[22px] (this
+                  row's top-of-block comment) — change this width or the
+                  row's gap-xl and that margin needs to move to match, same
+                  coupling as the leading spacer's own note above. This
+                  row's own gap-xl (16px) applies before this spacer too, so
+                  the temptation is to
+                  let the gap alone be the buffer (w-0) or shrink it further
+                  with a negative margin eating into that gap for something
+                  closer to the exact 5px the shadow needs. Confirmed live
+                  that *either* one breaks scrollWidth accounting for a
+                  zero-width trailing flex item in an overflowing
+                  flex-nowrap row: getBoundingClientRect on the spacer showed
+                  it rendering past the scroll container's own right edge
+                  even at scrollLeft set to the true max (scrollWidth −
+                  clientWidth) — the browser silently doesn't count a
+                  zero-width last item's own preceding gap toward
+                  scrollWidth, so the "reachable" buffer this spacer exists
+                  to create was never actually reachable. A real, non-zero
+                  width (6px here) is what makes the browser count it
+                  correctly — confirmed live, scrollWidth then matches the
+                  spacer's true rendered extent and the last card's shadow
+                  renders fully unclipped once scrolled to the end. Total
+                  reachable trailing space is 16 (gap) + 6 = 22px — see the
+                  outer wrapper's own max-[1152px]:-mr-[22px] (this row's
+                  top-of-block comment) for why that 22px lands in the
+                  page's own gutter rather than as a visible gap after this
+                  spacer's own card. */}
+              <div aria-hidden className="hidden max-[1152px]:block max-[1152px]:w-[6px] flex-none" />
             </div>
           </ScrollFadeArea>
         </div>
