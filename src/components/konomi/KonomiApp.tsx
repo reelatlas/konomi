@@ -132,10 +132,6 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
             totalSeriesCount={k.totalSeriesCount}
           />
         </section>
-
-        <p className="font-mono text-[length:var(--text-xs)] text-[var(--subtext)] text-center mt-[var(--space-3xl)] mb-0">
-          drag tags between the pool, mixer &amp; results to remix · the end…?
-        </p>
       </div>
 
       {/* Sibling of the max-w-[1280px] z-raised wrapper above, not nested
