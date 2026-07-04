@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { LevelKey, MatchKey, MixerError, Slot, TagInfo } from "@/lib/konomi/types";
 import { ActionButton } from "./ActionButton";
-import { GreaterEqualIcon, SortIcon, TagIcon } from "./icons";
+import { GreaterEqualIcon, ResetIcon, SortIcon, TagIcon } from "./icons";
+import { IconButton } from "./IconButton";
 import { LevelSelector } from "./LevelSelector";
 import { MatchSelector } from "./MatchSelector";
 import { RecommendButton } from "./RecommendButton";
@@ -320,6 +321,14 @@ export function MixerBar({
   // doc comment.
   const chipAreaHeightPx = Math.max(CHIP_AREA_MIN, effectiveHeightPx - TABS_HEIGHT);
 
+  // Temporary testing aid — see its IconButton's own comment in the JSX
+  // below. Clears any in-flight drag too, not just the persisted value, so
+  // this is a real reset even if somehow triggered mid-drag.
+  function handleResetPoolHeight() {
+    setDragHeightPx(null);
+    setPoolPanelHeightPref(POOL_HEIGHT_MIN);
+  }
+
   // Mouse AND touch — this has to work at every breakpoint, not just
   // desktop/pointer. Mirrors the same dual mouse+touch handling
   // ScrollFadeArea's own press-and-hold arrows already use, rather than
@@ -481,7 +490,7 @@ export function MixerBar({
               {editMode ? "Super Mixer" : "Mixer"}
             </h2>
             <span className="font-body font-bold leading-[var(--leading-tight)] text-[var(--primary)] text-[length:var(--text-md)]">
-              {editMode ? "昇龍拳" : "ミックス"}
+              {editMode ? "ショウリュウケン" : "ミックス"}
             </span>
             <span
               className={[
@@ -595,6 +604,20 @@ export function MixerBar({
             <TagIcon className="text-[var(--ink)]" />
             <GreaterEqualIcon className="text-[var(--ink)]" />
             <MatchSelector value={minMatch} onChange={onSetMatch} />
+            {/* Temporary testing aid, edit-mode only — resets the pool panel
+                back to POOL_HEIGHT_MIN, the same height a first-ever open
+                now lands at, so the default can be re-checked without
+                clearing localStorage by hand. Likely removed once that's
+                verified. Gated to editMode unlike the rest of this row
+                (Min Tag Match/Random/Clear/Recommend all stay visible in
+                browse mode too): there's no pool panel to reset when it's
+                collapsed, so showing this in browse mode would just be a
+                dead control. */}
+            {editMode && (
+              <IconButton width={22} aria-label="Reset pool panel to default height" onClick={handleResetPoolHeight}>
+                <ResetIcon className="text-[var(--ink)]" />
+              </IconButton>
+            )}
           </div>
           <div className="ml-auto flex items-center gap-[var(--space-lg)]">
             <ActionButton variant="filled" onClick={onRandomTags}>

@@ -107,6 +107,26 @@ export function GreaterEqualIcon({ className }: IconProps) {
   );
 }
 
+// A circular arrow — reset/restore glyph.
+export function ResetIcon({ className }: IconProps) {
+  return (
+    <svg
+      className={className}
+      width="15"
+      height="15"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M4 12a8 8 0 1 1 2.34 5.66" />
+      <path d="M4 20v-6h6" />
+    </svg>
+  );
+}
+
 // A rotated label/price-tag silhouette with a small hole — standard tag glyph.
 export function TagIcon({ className }: IconProps) {
   return (
