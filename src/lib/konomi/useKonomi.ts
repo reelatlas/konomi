@@ -234,7 +234,16 @@ function reducer(state: KonomiState, action: Action): KonomiState {
       if (!action.tag) return state;
       const s = [...state.slots];
       const ex = s.indexOf(action.tag);
-      if (ex >= 0) s[ex] = null;
+      if (ex === action.index) return state; // dropped back onto its own slot — no-op
+      // Swap, not destroy: if the dragged tag came from another slot (ex >= 0)
+      // and the target slot already held a different tag, that displaced tag
+      // moves into the source's old spot instead of just vanishing — dragging
+      // between two filled slots in the 3-tag group trades their positions.
+      // Dragging in from the pool (ex === -1, the tag wasn't in any slot yet)
+      // skips this branch entirely, leaving the target's previous tag simply
+      // overwritten/deselected, same as before this change.
+      const displaced = s[action.index];
+      if (ex >= 0) s[ex] = displaced;
       s[action.index] = action.tag;
       return { ...state, slots: s, dragOverIndex: -1, error: clearErrorForTagChange(state, s) };
     }

@@ -105,7 +105,16 @@ export function IconButton({
     <button
       type="button"
       className={[
-        "flex-none items-center justify-center p-0",
+        // pointer-events-auto: a button should always be directly
+        // clickable regardless of what an ancestor's own pointer-events
+        // value happens to be — this is inherited by default, so without
+        // an explicit override here, a button rendered inside a
+        // pointer-events-none ancestor (e.g. ScrollFadeArea's structural
+        // wrapper divs, when disableWrapperPointerEvents is set — see that
+        // component's own comment) would silently stop receiving clicks
+        // too, purely as a side effect of layout plumbing that has nothing
+        // to do with this button's own intended behavior.
+        "pointer-events-auto flex-none items-center justify-center p-0",
         display,
         BORDER_CLASSES[border],
         "border-[var(--ink)]",

@@ -172,7 +172,14 @@ export function ResultCard({
       // The 1152px ceiling itself is unchanged: coupled to
       // DEFAULT_RESULT_COUNT (config.ts) — re-derive (5×208 + 4×16 gaps +
       // 48px page margins = 1152) if that count ever changes.
-      className="h-[var(--result-card-height)] [perspective:1100px] cursor-pointer max-[1152px]:flex-none max-[1152px]:snap-start min-[993px]:max-[1152px]:w-[22%] min-[741px]:max-[993px]:w-[30%] min-[501px]:max-[741px]:w-[46%] max-[501px]:w-[85%]"
+      //
+      // pointer-events-auto: the parent grid (RecommendationsBody) sets
+      // pointer-events-none on itself so its own pt/pb-[40px] flip-bulge
+      // padding (blank, but real layout space) doesn't intercept clicks
+      // meant for whatever's actually above/below the row — see that
+      // grid's own comment. Every card opts back in explicitly here, or
+      // none of them would be clickable at all.
+      className="h-[var(--result-card-height)] [perspective:1100px] cursor-pointer pointer-events-auto max-[1152px]:flex-none max-[1152px]:snap-start min-[993px]:max-[1152px]:w-[22%] min-[741px]:max-[993px]:w-[30%] min-[501px]:max-[741px]:w-[46%] max-[501px]:w-[85%]"
     >
       <div
         className={[

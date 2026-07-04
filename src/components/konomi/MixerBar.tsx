@@ -93,22 +93,22 @@ interface MixerBarProps {
 // Esc, click-outside, and the resize handle all work at every breakpoint —
 // none of the three is gated to desktop/pointer specifically.
 
-// Combined height of the Level/Sort row + SectionTabStrip + the gaps
-// between them and the chip area, inside the pool panel — subtracted from
-// the user's chosen pool-panel height before it's passed down as
-// TagPoolBody's chipAreaHeightPx, so the panel's *total* rendered height
-// (filters + tabs + chips) matches what was actually dragged to, rather
-// than the chip area alone matching it with filters/tabs added on top.
-// Measured live against the real rendered component (filters row 85px,
-// wraps to 2 lines — Level then Sort — below ~480px container width; +8px
-// mb-md gap to TagPoolBody; +12px TagPoolBody's own internal STRIP_GAP;
-// +30px SectionTabStrip = 135px total); retune by hand if
-// LevelSelector/SortSelect/SectionTabStrip's own heights, wrap behavior,
-// or any of these gaps change.
-const FILTERS_AND_TABS_HEIGHT = 135;
+// Combined height of SectionTabStrip + the gap above it inside the pool
+// panel — subtracted from the user's chosen pool-panel height before it's
+// passed down as TagPoolBody's chipAreaHeightPx, so the panel's *total*
+// rendered height (tabs + chips) matches what was actually dragged to,
+// rather than the chip area alone matching it with tabs added on top.
+// Named TABS_HEIGHT, not FILTERS_AND_TABS_HEIGHT: Level/Sort used to live
+// in this same pool panel and count toward this constant (135px total,
+// filters row + gaps + tabs) — they moved up into Row 1 above (always
+// visible now, not edit-mode-only; see that row's own comment), so this is
+// just TagPoolBody's own internal STRIP_GAP (12px) + SectionTabStrip
+// (30px) = 42px now. Retune by hand if TagPoolBody's own STRIP_GAP or
+// SectionTabStrip's height changes.
+const TABS_HEIGHT = 42;
 // Floor for the chip area specifically, independent of POOL_HEIGHT_MIN
 // (which bounds the *pool panel's* total height) — guards against
-// FILTERS_AND_TABS_HEIGHT ever producing a negative or unusably tiny chip
+// TABS_HEIGHT ever producing a negative or unusably tiny chip
 // area if the two constants drift out of sync.
 const CHIP_AREA_MIN = 60;
 export function MixerBar({
@@ -199,6 +199,47 @@ export function MixerBar({
     };
   }, [editMode]);
 
+  // Wheel/touch scroll anywhere over this bar — collapsed or expanded,
+  // desktop or mobile — must never fall through to scroll the page behind
+  // it: this bar reads as its own fixed surface sitting on top of the
+  // page, not a transparent window onto it scrolling underneath. The one
+  // exception is the pool panel's own chip area (TagPoolBody's
+  // ScrollFadeArea, inside dialogRef), which must keep scrolling
+  // internally exactly as before — dialogRef.contains(target) is that
+  // exclusion, checked once here rather than duplicated per gesture type.
+  //
+  // Both wheel and touchmove are native, non-passive addEventListener
+  // calls, not JSX onWheel/onTouchMove props — confirmed live this is
+  // required, not just extra caution: React registers its own delegated
+  // listener for *both* event types as passive by default (a deliberate
+  // perf default matching browser guidance, since most handlers for
+  // either never call preventDefault), so a JSX prop's preventDefault()
+  // call is silently a no-op regardless of what the synthetic layer built
+  // on top of it tries to do — an actual console error
+  // ("Unable to preventDefault inside passive event listener invocation")
+  // the first time this was tried as plain onWheel/onTouchMove props. The
+  // resize handle above already had to work around the identical gotcha
+  // for its own touchmove handling, for the same reason. Always active
+  // (not gated to editMode) since browse mode's collapsed bar has the same
+  // "don't let scroll leak to the page" expectation as the expanded one —
+  // there's just nothing inside dialogRef to exclude yet in that state
+  // (it's max-h-0).
+  useEffect(() => {
+    const bar = barRef.current;
+    if (!bar) return;
+    function blockScrollThrough(e: WheelEvent | TouchEvent) {
+      const target = e.target as Node;
+      if (dialogRef.current?.contains(target)) return;
+      e.preventDefault();
+    }
+    bar.addEventListener("wheel", blockScrollThrough, { passive: false });
+    bar.addEventListener("touchmove", blockScrollThrough, { passive: false });
+    return () => {
+      bar.removeEventListener("wheel", blockScrollThrough);
+      bar.removeEventListener("touchmove", blockScrollThrough);
+    };
+  }, []);
+
   // Visually modal, not behaviorally trapped (no Tab-cycle constraint) —
   // an accepted v1 gap, see DESIGN_SYSTEM.md. This still moves focus in on
   // open and back to whatever triggered it on close, which is the cheap,
@@ -246,7 +287,7 @@ export function MixerBar({
   // effectiveHeightPx, rather than the chip area alone matching it with
   // filters/tabs added on top of that. See TagPoolBody's chipAreaHeightPx
   // doc comment.
-  const chipAreaHeightPx = Math.max(CHIP_AREA_MIN, effectiveHeightPx - FILTERS_AND_TABS_HEIGHT);
+  const chipAreaHeightPx = Math.max(CHIP_AREA_MIN, effectiveHeightPx - TABS_HEIGHT);
 
   // Mouse AND touch — this has to work at every breakpoint, not just
   // desktop/pointer. Mirrors the same dual mouse+touch handling
@@ -390,26 +431,54 @@ export function MixerBar({
           </div>
         )}
 
-        {/* Row 1: title (mode-dependent) + filled-count badge, same shape
-            the old Mixer section title row used. Fixed — never resizes,
-            never scrolls. */}
-        <div className="flex items-end justify-between mb-[var(--space-lg)]">
+        {/* Row 1: title (mode-dependent) + filled-count badge grouped
+            together on the left; Tag Density/Sort filters right-aligned,
+            edit mode only — these moved here from the pool panel below,
+            but only ever show alongside it (editMode gates both
+            identically), unlike an earlier pass that made them always
+            visible. Fixed — never resizes, never scrolls, in either mode;
+            the only things that change between modes are this text swap
+            and whether the filters group renders at all. Label + icon +
+            selector for each filter mirrors Row 4's own "Min Tag Match"
+            treatment exactly (same label classes, same hidden-below-
+            @480px responsive behavior) — one consistent pattern for every
+            labeled filter control in this bar, not a one-off for this
+            row. */}
+        <div className="flex items-end justify-between flex-wrap gap-x-[var(--space-lg)] gap-y-[var(--space-sm)] mb-[var(--space-lg)]">
           <div className="flex items-center gap-[var(--space-md)]">
             <h2 className="font-display text-[length:var(--text-xl)] leading-[var(--leading-display)] m-0 uppercase tracking-[var(--tracking-sm)]">
-              {editMode ? "Edit Tags" : "Mixer"}
+              {editMode ? "Super Mixer" : "Mixer"}
             </h2>
             <span className="font-body font-bold leading-[var(--leading-tight)] text-[var(--primary)] text-[length:var(--text-md)]">
-              {editMode ? "タグ編集" : "ミックス"}
+              {editMode ? "スーパーミックス" : "ミックス"}
+            </span>
+            <span
+              className={[
+                "font-mono font-bold text-[length:var(--text-sm)] border-[length:var(--border-thin)] border-[var(--ink)] px-[var(--space-md)] py-[var(--space-xs)]",
+                filledCount === 0 ? "bg-[var(--slot-empty)] text-[var(--disabled-text)]" : "bg-[var(--fill)] text-[var(--ink)]",
+              ].join(" ")}
+            >
+              {lockedLabel}
             </span>
           </div>
-          <span
-            className={[
-              "font-mono font-bold text-[length:var(--text-sm)] border-[length:var(--border-thin)] border-[var(--ink)] px-[var(--space-md)] py-[var(--space-xs)]",
-              filledCount === 0 ? "bg-[var(--slot-empty)] text-[var(--disabled-text)]" : "bg-[var(--fill)] text-[var(--ink)]",
-            ].join(" ")}
-          >
-            {lockedLabel}
-          </span>
+          {editMode && (
+            <div className="flex items-end gap-[var(--space-lg)] flex-wrap">
+              <div className="flex items-center gap-[var(--space-sm)]">
+                <span className="hidden @min-[480px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
+                  Tag Density
+                </span>
+                <TagIcon className="text-[var(--ink)]" />
+                <LevelSelector value={level} onChange={onLevelChange} />
+              </div>
+              <div className="flex items-center gap-[var(--space-sm)]">
+                <span className="hidden @min-[480px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
+                  Sort
+                </span>
+                <SortIcon className="text-[var(--ink)]" />
+                <SortSelect value={sort} onChange={setSortPref} />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Row 2: the pool panel — always mounted (see file-top comment).
@@ -417,17 +486,20 @@ export function MixerBar({
             no explicit height + overflow-hidden on THIS wrapper — only the
             chip area inside TagPoolBody gets a fixed height
             (chipAreaHeightPx). This wrapper's natural height is just
-            (Level/Sort row) + (TagPoolBody's own rendered height), which
-            sums to ~effectiveHeightPx by construction since
-            chipAreaHeightPx was already reduced by FILTERS_AND_TABS_HEIGHT
-            below. Explicit height + overflow-hidden was tried here first
-            and reverted: a flex-col container whose explicit height is
-            *smaller* than its natural content height clips from the START
-            (top) under overflow:hidden, not the end — confirmed live via
-            getBoundingClientRect (the filters row measured *above* its own
-            parent's top edge once clipped), which is exactly backwards
-            from what's wanted here (filters/tabs should stay visible;
-            chips are what should ever be the clipped/scrolled part).
+            TagPoolBody's own rendered height, which sums to
+            ~effectiveHeightPx by construction since chipAreaHeightPx was
+            already reduced by TABS_HEIGHT below (Level/Sort used to live in
+            here too and count toward that reduction — they moved up into
+            Row 1 above, always-visible now instead of edit-mode-only, so
+            this panel is just TagPoolBody directly). Explicit height +
+            overflow-hidden was tried here first and reverted: a flex-col
+            container whose explicit height is *smaller* than its natural
+            content height clips from the START (top) under overflow:hidden,
+            not the end — confirmed live via getBoundingClientRect (the tab
+            strip measured *above* its own parent's top edge once clipped),
+            which is exactly backwards from what's wanted here (tabs should
+            stay visible; chips are what should ever be the clipped/scrolled
+            part).
 
             Sits directly below the header, above the slots — not between
             the slots and controls, where an earlier version placed it.
@@ -446,16 +518,6 @@ export function MixerBar({
           tabIndex={-1}
           className={editMode ? "flex flex-col mb-[var(--space-lg)] outline-none" : "max-h-0 overflow-hidden"}
         >
-          <div className="flex items-center gap-[var(--space-lg)] flex-wrap mb-[var(--space-md)]">
-            <div className="flex items-center gap-[var(--space-sm)]">
-              <TagIcon className="text-[var(--ink)]" />
-              <LevelSelector value={level} onChange={onLevelChange} />
-            </div>
-            <div className="flex items-center gap-[var(--space-sm)]">
-              <SortIcon className="text-[var(--ink)]" />
-              <SortSelect value={sort} onChange={setSortPref} />
-            </div>
-          </div>
           <TagPoolBody
             allTags={allTags}
             selectedTags={selectedTags}
@@ -484,7 +546,16 @@ export function MixerBar({
         </div>
 
         {/* Row 4: MIN TAG MATCH, Random/Clear, Recommend — unchanged from
-            the old Mixer controls row, plus Done (edit mode only). */}
+            the old Mixer controls row — plus a persistent Tag Pool
+            open/close toggle, replacing both the old edit-mode-only
+            "Done ✓" button here and the standalone "+ Tag Pool" affordance
+            that used to sit in the page's main content column (removed
+            from KonomiApp.tsx — see its own git history). One button now
+            covers both directions: closed state opens edit mode (same as
+            tapping an empty slot), open state closes it, same as Done
+            always did. A text-style ActionButton, not an icon — consistent
+            with every other control in this row rather than introducing a
+            new affordance shape for just this one action. */}
         <div className="flex flex-wrap items-center gap-x-[var(--space-lg)] gap-y-[var(--space-lg)]">
           <div className="flex items-center gap-[var(--space-sm)]">
             <span className="hidden @min-[480px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
@@ -506,11 +577,9 @@ export function MixerBar({
           <div className="min-[686px]:max-[993px]:ml-[var(--space-lg)] max-[674px]:ml-auto">
             <RecommendButton filledCount={filledCount} onRecommend={onRecommend} error={error} />
           </div>
-          {editMode && (
-            <ActionButton variant="outline" onClick={onCloseEditMode}>
-              Done ✓
-            </ActionButton>
-          )}
+          <ActionButton variant="outline" onClick={editMode ? onCloseEditMode : onOpenEditMode}>
+            {editMode ? "Done ✓" : "+ Tag Pool"}
+          </ActionButton>
         </div>
       </div>
     </div>

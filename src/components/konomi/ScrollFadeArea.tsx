@@ -102,6 +102,30 @@ interface ScrollFadeAreaProps {
   // (e.g. "var(--space-md)", which the results carousel uses to stay
   // token-linked rather than hardcoding the current --space-md value).
   arrowInset?: number | string;
+  // Opt-in only: sets pointer-events-none on every structural wrapper div
+  // this component owns (its own root, the scroll viewport, and the
+  // content wrapper around `children`) — none of which have any visible
+  // content of their own, they just size themselves to fit whatever's
+  // inside. That "fit the content" sizing is exactly the problem this
+  // exists for: a caller whose children carry real-but-invisible padding
+  // (RecommendationsBody's flip-bulge pt/pb-[40px], canceled back to zero
+  // *visually* via a negative margin on an ancestor, but still real,
+  // hit-testable layout space on every wrapper in between) makes those
+  // wrappers geometrically overlap whatever sits next to this component on
+  // the page — confirmed live as a real bug: RecommendationsBody's own
+  // padding made this component's contentRef div silently swallow clicks
+  // meant for ResultsHeader's Clear ✕ button sitting just above it, even
+  // though nothing was visibly covering it. pointer-events-none on these
+  // wrappers makes them transparent to clicks, falling through to whatever
+  // page content is actually there; every piece of *real* interactive
+  // content inside must then explicitly set its own pointer-events-auto to
+  // opt back in (ResultCard.tsx does; IconButton.tsx now always does,
+  // unconditionally, so this component's own arrow buttons — direct
+  // children of the root this flips to none — don't need special-casing
+  // here). Defaults to false/unset: every other ScrollFadeArea consumer
+  // (the chip area, section tabs, per-card tag rows) has no equivalent
+  // padding trick and no reason to pay this cost.
+  disableWrapperPointerEvents?: boolean;
   children: React.ReactNode;
 }
 
@@ -145,6 +169,7 @@ export function ScrollFadeArea({
   arrowHeight = DEFAULT_ARROW_HEIGHT,
   arrowShadow = false,
   arrowInset = 0,
+  disableWrapperPointerEvents = false,
   children,
 }: ScrollFadeAreaProps) {
   const horizontal = orientation === "horizontal";
@@ -323,7 +348,7 @@ export function ScrollFadeArea({
   const showEndGradient = hasOverflow && !atEnd;
 
   return (
-    <div className={GROUP_CLASSES[groupName]}>
+    <div className={[GROUP_CLASSES[groupName], disableWrapperPointerEvents ? "pointer-events-none" : ""].join(" ")}>
       {/* No onWheel handler here, deliberately — an earlier horizontal-only
           version summed e.deltaX + e.deltaY into scrollLeft, specifically
           so a plain vertical mouse wheel (no native horizontal capability)
@@ -356,9 +381,26 @@ export function ScrollFadeArea({
           horizontal ? "w-full overflow-x-auto overflow-y-hidden" : `${heightPx !== undefined ? "" : height} overflow-y-auto overflow-x-hidden`,
           "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
           snap ? (horizontal ? "snap-x snap-mandatory" : "snap-y snap-mandatory") : "",
+          // overscroll-contain: once this viewport hits its own scroll
+          // bounds (e.g. MixerBar's pool panel chip area scrolled all the
+          // way down), continuing the same gesture must not chain into
+          // scrolling whatever's behind/beneath this component — the page
+          // itself for the pool panel, since MixerBar is a fixed overlay
+          // that visually reads as its own surface, not a transparent
+          // window onto the page scrolling underneath it. Native
+          // browser behavior (default overscroll-behavior: auto) chains to
+          // the next scrollable ancestor once a nested scroll container
+          // bottoms out — this opts every ScrollFadeArea instance out of
+          // that, not just the pool panel, since a contained scroll area
+          // silently leaking scroll to whatever's behind it is never
+          // actually wanted here.
+          "overscroll-contain",
+          disableWrapperPointerEvents ? "pointer-events-none" : "",
         ].join(" ")}
       >
-        <div ref={contentRef}>{children}</div>
+        <div ref={contentRef} className={disableWrapperPointerEvents ? "pointer-events-none" : undefined}>
+          {children}
+        </div>
       </div>
 
       {/* fadeSize > 0 gates rendering entirely, not just a size of 0 —

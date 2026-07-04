@@ -17,28 +17,33 @@ interface KonomiAppProps {
 }
 
 // Height of MixerBar's browse-mode (collapsed: floating card — title +
-// slots + controls, no pool panel — plus the wrapper's own bottom gutter)
-// rendered form — measured live against the real component, same "retune
-// by hand if this changes" approach TagPoolBody's CHIP_AREA_HEIGHT
-// constant already uses. Reserves exactly enough space at the bottom of
-// the scrolling page so browse-mode content (results, the "+ Tag Pool"
-// affordance, footer tagline) never sits underneath the fixed card, *plus*
-// an extra space-2xl (24px) beyond that so the last piece of scrolled
-// content gets the same breathing room above the card that the page's own
-// pt-[var(--space-2xl)] gives the masthead below the viewport top — see
-// MixerBar.tsx's pb-[var(--space-2xl)] comment, same token, mirrored gap.
-// Edit mode's taller form is deliberately allowed to overlay content
-// instead of reserving space for it too — expected bottom-sheet behavior,
-// not a bug; see MixerBar.tsx's own top comment.
+// badge + slots + controls, no filters, no pool panel — plus the
+// wrapper's own bottom gutter) rendered form — measured live against the
+// real component, same "retune by hand if this changes" approach
+// TagPoolBody's CHIP_AREA_HEIGHT constant already uses. Reserves exactly
+// enough space at the bottom of the scrolling page so browse-mode content
+// (results, the footer tagline) never sits underneath the fixed card,
+// *plus* an extra space-2xl (24px) beyond that so the last piece of
+// scrolled content gets the same breathing room above the card that the
+// page's own pt-[var(--space-2xl)] gives the masthead below the viewport
+// top — see MixerBar.tsx's pb-[var(--space-2xl)] comment, same token,
+// mirrored gap. Edit mode's taller form is deliberately allowed to overlay
+// content instead of reserving space for it too — expected bottom-sheet
+// behavior, not a bug; see MixerBar.tsx's own top comment.
 //
-// The controls row wraps to 3 lines at narrow widths (Recommend drops
-// below Random/Clear, which itself already dropped below MIN TAG MATCH),
-// making the bar taller on mobile (331.5px card + 24px wrapper gutter =
-// 355.5px measured live at 390px) than desktop (226.5px card + 24px
-// gutter = 250.5px at 1400px) — this constant covers the taller mobile
-// case (355.5 + 24px extra breathing room = 379.5px) with a little
-// headroom, since that's the width tier where the spacer actually matters
-// most for this mobile-first pass.
+// The Tag Density/Sort filters briefly lived always-visible in the title
+// row (both modes), which needed a much taller value here (510, mobile
+// card height 456.9px) since browse mode's own title row grew too; they
+// moved back to edit-mode-only and right-aligned since (MixerBar.tsx's Row
+// 1 comment), so browse mode's own height is back to what it was before
+// that detour. The controls row still wraps to 3 lines at narrow widths
+// (Recommend drops below Random/Clear, which itself already dropped below
+// MIN TAG MATCH), making the bar taller on mobile (331.5px card + 24px
+// wrapper gutter = 355.5px measured live at 390px) than desktop (226.5px
+// card + 24px gutter = 250.5px at 1400px) — this constant covers the
+// taller mobile case (355.5 + 24px extra breathing room = 379.5px) with a
+// little headroom, since that's the width tier where the spacer actually
+// matters most for this mobile-first pass.
 const MIXER_BAR_SPACER = "pb-[385px]";
 
 export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
@@ -126,20 +131,6 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
             tagInfoByName={k.tagInfoByName}
             totalSeriesCount={k.totalSeriesCount}
           />
-
-          {/* The other trigger into edit mode, alongside tapping an empty
-              slot in MixerBar below — always visible in browse mode,
-              regardless of whether results exist yet. Its own label
-              supersedes the retired PanelToggleHeader's "drag or tap to
-              load a slot" hover hint, which had no home once that
-              component was deleted. */}
-          <button
-            type="button"
-            onClick={() => setEditMode(true)}
-            className="w-full mt-[var(--space-xl)] border-[length:var(--border-base)] border-dashed border-[var(--muted)] bg-transparent text-[var(--primary)] font-mono font-bold text-[length:var(--text-sm)] uppercase tracking-[var(--tracking-sm)] py-[var(--space-lg)] cursor-pointer"
-          >
-            + Tag Pool — tap to add tags
-          </button>
         </section>
 
         <p className="font-mono text-[length:var(--text-xs)] text-[var(--subtext)] text-center mt-[var(--space-3xl)] mb-0">

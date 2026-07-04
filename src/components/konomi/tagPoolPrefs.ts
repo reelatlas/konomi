@@ -27,24 +27,36 @@ const DEFAULT_LEVEL: LevelKey = "1";
 const DEFAULT_SORT: SortKey = "popular";
 export const POOL_HEIGHT_MIN = 160;
 // Combined rendered height of everything in MixerBar's edit mode that is
-// NOT the pool panel — resize handle, title row, slots row, controls row,
-// the card's own border + vertical padding, the outer wrapper's bottom
-// gutter (see MixerBar.tsx's pb-[var(--space-2xl)]), and inter-row gaps —
-// measured live at the narrowest (mobile, 390px) width, where the controls
-// row wraps to 3 lines (Recommend on its own line, below Random/Clear —
-// see MixerBar.tsx's card-padding comment) and this is tallest (387.5px
-// measured; 390 leaves a small buffer). Desktop (1400px) measures a
-// shorter 282.5px — using the mobile worst case everywhere is
+// NOT the pool panel — resize handle, title/badge row (plus the Tag
+// Density/Sort filters, edit-mode-only and right-aligned on that same
+// row), slots row, controls row, the card's own border + vertical
+// padding, the outer wrapper's bottom gutter (see MixerBar.tsx's
+// pb-[var(--space-2xl)]), and inter-row gaps — measured live at the
+// narrowest (mobile, 390px) width, where the controls row wraps to 3
+// lines (Recommend on its own line, below Random/Clear) and this is
+// tallest (472.5px measured; 476 leaves a small buffer). Desktop (1400px)
+// measures a shorter 265px — using the mobile worst case everywhere is
 // intentionally conservative there (a few px of pool panel headroom left
 // unused) rather than precise, same tradeoff KonomiApp's MIXER_BAR_SPACER
-// already makes. Retune by hand if any of those rows' own height, the
-// card's padding/border, or the wrapper's bottom gutter changes. This is
-// what makes the pool panel's max height *exact* rather than a rough
-// fraction: title/slots/controls must never scroll or be pushed
-// off-screen, so the pool panel is only ever allowed to grow up to
-// whatever's left after those fixed rows are guaranteed their own space —
-// see clampPoolPanelHeight below.
-export const EDIT_MODE_FIXED_ROWS_HEIGHT = 390;
+// already makes.
+//
+// The Tag Density/Sort filters briefly lived always-visible in the title
+// row (both modes) rather than edit-mode-only — during that pass this
+// constant needed a much bigger jump (to 492) since the title row was then
+// taller in *every* mode, not just edit mode; confirmed live at the time
+// that leaving it at the old value produced a real, silent overflow (the
+// bar's top edge landing at a negative screen position, -12.9px, pushing
+// the resize handle off the top of the viewport). Filters moved back to
+// edit-mode-only since, so this constant only has to account for their
+// height in the one mode that still renders them — which is exactly what
+// EDIT_MODE_FIXED_ROWS_HEIGHT already means. Retune by hand again if any
+// of those rows' own height, the card's padding/border, or the wrapper's
+// bottom gutter changes. This is what makes the pool panel's max height
+// *exact* rather than a rough fraction: title/slots/controls must never
+// scroll or be pushed off-screen, so the pool panel is only ever allowed
+// to grow up to whatever's left after those fixed rows are guaranteed
+// their own space — see clampPoolPanelHeight below.
+export const EDIT_MODE_FIXED_ROWS_HEIGHT = 476;
 
 const levelListeners = new Set<() => void>();
 const sortListeners = new Set<() => void>();

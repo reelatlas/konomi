@@ -246,8 +246,39 @@ export function RecommendationsBody({
             arrowHeight={36}
             arrowShadow
             arrowInset="var(--space-md)"
+            disableWrapperPointerEvents
           >
-            <div ref={rowRef} className="grid grid-cols-[repeat(auto-fill,minmax(208px,1fr))] gap-[var(--space-xl)] pt-[40px] pr-[5px] pb-[40px] max-[1152px]:flex max-[1152px]:flex-nowrap">
+            {/* pointer-events-none here, on this file's ScrollFadeArea
+                (disableWrapperPointerEvents), and on ScrollFadeArea's own
+                three structural wrappers (root/scrollRef/contentRef — see
+                that component's own comment) — every layer between this
+                grid and the page needed it, not just this one. The
+                pt/pb-[40px] pair below is real, empty layout space, not
+                just a visual illusion — canceling it back out via the
+                wrapper's -mt/-mb makes the *cards* look right, but every
+                ancestor that just sizes itself to fit its content (this
+                grid, and then ScrollFadeArea's contentRef/scrollRef/root
+                on top of it) still geometrically occupies that 40px
+                above/below the cards, and being later in paint order than
+                whatever's above it (ResultsHeader's Clear ✕, specifically),
+                each one independently intercepts clicks there even though
+                nothing is visibly present. Confirmed live via
+                elementFromPoint swept across Clear ✕'s own box: the top
+                portion hit the button, but partway down, hits landed on
+                this grid — then, once this grid alone was fixed, on
+                ScrollFadeArea's contentRef instead, one level up — a real
+                reported bug ("the lower half won't even let me click") that
+                took two passes to fully close. pointer-events-none at every
+                level makes the whole stack transparent to pointer events,
+                falling through to whatever's actually there; each card's
+                own pointer-events-auto (ResultCard.tsx) and every
+                IconButton's own unconditional pointer-events-auto
+                (IconButton.tsx, covers the arrow buttons here) opt the real
+                interactive content back in. */}
+            <div
+              ref={rowRef}
+              className="grid grid-cols-[repeat(auto-fill,minmax(208px,1fr))] gap-[var(--space-xl)] pt-[40px] pr-[5px] pb-[40px] max-[1152px]:flex max-[1152px]:flex-nowrap pointer-events-none"
+            >
               {/* Leading spacer, carousel tier only (hidden above 1152px,
                   same reasoning as the trailing one below: display:none
                   removes it from the grid entirely, so it's never a 6th
