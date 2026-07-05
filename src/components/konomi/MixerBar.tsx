@@ -490,7 +490,7 @@ export function MixerBar({
               {editMode ? "Super Mixer" : "Mixer"}
             </h2>
             <span className="font-body font-bold leading-[var(--leading-tight)] text-[var(--primary)] text-[length:var(--text-md)]">
-              {editMode ? "ショウリュウケン" : "ミックス"}
+              {editMode ? "ショウリュウケン" : "フレーバー"}
             </span>
             <span
               className={[
