@@ -22,6 +22,7 @@ import {
 } from "./tagPoolPrefs";
 import { TagPoolBody } from "./TagPoolBody";
 import { TagSlot } from "./TagSlot";
+import { TitleWithSubtitle } from "./TitleWithSubtitle";
 
 interface MixerBarProps {
   slots: Slot[];
@@ -486,12 +487,7 @@ export function MixerBar({
             row. */}
         <div className="flex items-end justify-between flex-wrap gap-x-[var(--space-lg)] gap-y-[var(--space-sm)] mb-[var(--space-lg)]">
           <div className="flex items-center gap-[var(--space-md)]">
-            <h2 className="font-display text-[length:var(--text-xl)] leading-[var(--leading-display)] m-0 uppercase tracking-[var(--tracking-sm)]">
-              {editMode ? "Super Mixer" : "Mixer"}
-            </h2>
-            <span className="font-body font-bold leading-[var(--leading-tight)] text-[var(--primary)] text-[length:var(--text-md)]">
-              {editMode ? "ショウリュウケン" : "フレーバー"}
-            </span>
+            <TitleWithSubtitle title={editMode ? "Super Mixer" : "Mixer"} subtitle={editMode ? "ショウリュウケン" : "フレーバー"} />
             <span
               className={[
                 "font-mono font-bold text-[length:var(--text-sm)] border-[length:var(--border-thin)] border-[var(--ink)] px-[var(--space-md)] py-[var(--space-xs)]",
