@@ -163,6 +163,33 @@ export function TagPoolIcon({ className }: IconProps) {
   );
 }
 
+// A plain up arrow spanning the icon's full height (tail at y=20, tip at
+// y=4) — MixerBar's edit-mode "resize to 100%" button, where 100% means
+// the pool panel's own max-resize ceiling (poolPanelMaxHeight), not the
+// raw viewport.
+export function ArrowUpIcon({ className }: IconProps) {
+  return (
+    <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 20V4" />
+      <path d="M6 10l6-6 6 6" />
+    </svg>
+  );
+}
+
+// The "resize to 50%" companion to ArrowUpIcon above — same tail start
+// (y=20) and same chevron shape, but the whole arrow only reaches the
+// icon's own vertical midpoint (tip at y=12, half of ArrowUpIcon's y=4)
+// instead of its top — the arrow itself visually stops at "halfway up,"
+// rather than being a differently-styled glyph paired by convention alone.
+export function ArrowUpHalfIcon({ className }: IconProps) {
+  return (
+    <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 20V12" />
+      <path d="M6 17l6-6 6 6" />
+    </svg>
+  );
+}
+
 // A tilted eraser block with a diagonal two-tone split and a baseline —
 // standard "clear/erase" glyph.
 export function EraserIcon({ className }: IconProps) {

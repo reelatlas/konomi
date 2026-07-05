@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { LevelKey, MatchKey, MixerError, Slot, TagInfo } from "@/lib/konomi/types";
 import { ActionButton } from "./ActionButton";
-import { CheckIcon, DiceIcon, EraserIcon, GreaterEqualIcon, ResetIcon, SortIcon, TagIcon, TagPoolIcon } from "./icons";
+import { ArrowUpHalfIcon, ArrowUpIcon, CheckIcon, DiceIcon, EraserIcon, GreaterEqualIcon, ResetIcon, SortIcon, TagIcon, TagPoolIcon } from "./icons";
 import { IconButton } from "./IconButton";
 import { LevelSelector } from "./LevelSelector";
 import { MatchSelector } from "./MatchSelector";
@@ -322,13 +322,26 @@ export function MixerBar({
   // doc comment.
   const chipAreaHeightPx = Math.max(CHIP_AREA_MIN, effectiveHeightPx - TABS_HEIGHT);
 
-  // Temporary testing aid — see its IconButton's own comment in the JSX
-  // below. Clears any in-flight drag too, not just the persisted value, so
-  // this is a real reset even if somehow triggered mid-drag.
+  // Quick-resize buttons in the resize-handle row — 50%/100% are both
+  // fractions of the SAME reference, poolPanelMaxHeight (the live-measured
+  // ceiling the drag handle itself already respects), not the raw
+  // viewport — one consistent basis for the pair rather than two different
+  // ones. Clears any in-flight drag too, not just the persisted value, so
+  // this is a real, immediate jump even if triggered mid-drag.
+  function handleSnapPoolHeight(fraction: number) {
+    setDragHeightPx(null);
+    setPoolPanelHeightPref(poolPanelMaxHeight * fraction);
+  }
   function handleResetPoolHeight() {
     setDragHeightPx(null);
     setPoolPanelHeightPref(POOL_HEIGHT_MIN);
   }
+  // Reset only shows once the panel has actually moved off its default —
+  // checked against the live effectiveHeightPx (not just the last-saved
+  // value) so it appears/disappears in real time during a manual drag too,
+  // not only after the 50%/100% buttons or a drag-release. 1px tolerance
+  // for float rounding, not an exact equality check.
+  const isAtDefaultHeight = Math.abs(effectiveHeightPx - POOL_HEIGHT_MIN) <= 1;
 
   // Mouse AND touch — this has to work at every breakpoint, not just
   // desktop/pointer. Mirrors the same dual mouse+touch handling
@@ -458,7 +471,21 @@ export function MixerBar({
             the pool panel below (title/slots/controls are fixed), but it's
             positioned as if it controls the whole sheet's height, since
             that's the more natural mental model for the user — "pull this
-            to make the panel bigger." */}
+            to make the panel bigger."
+
+            The whole row is the drag target (onMouseDown/onTouchStart live
+            here, on the outer div, not just around the centered indicator
+            bar) — the quick-resize buttons on the right sit inside a
+            sub-container that stops mousedown/touchstart from bubbling up
+            to this row's own handlers, so clicking a button never also
+            starts a resize-drag. size="sm" (30px, ResultCard's own icon
+            size) deliberately smaller than this bar's standard size="md"
+            icon buttons below — these are quick secondary shortcuts, not
+            primary actions. Reset is conditionally rendered (only once the
+            panel has actually left its default height — see
+            isAtDefaultHeight above) since 50%/100% cover the "I want it
+            bigger" cases on their own; Reset exists for "put it back,"
+            which only means something once it's already been moved. */}
         {editMode && (
           <div
             role="separator"
@@ -466,9 +493,31 @@ export function MixerBar({
             aria-label="Drag to resize edit panel"
             onMouseDown={handleResizeStart}
             onTouchStart={handleResizeStart}
-            className="flex items-center justify-center h-[14px] mb-[var(--space-sm)] cursor-ns-resize select-none touch-none"
+            className="relative flex items-center justify-center h-[30px] mb-[var(--space-sm)] cursor-ns-resize select-none touch-none"
           >
             <div className="w-[48px] h-[length:var(--border-thin)] bg-[var(--muted)]" />
+            <div
+              className="absolute right-0 flex items-center gap-[var(--space-xs)] cursor-auto"
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+            >
+              <IconButton size="sm" title="Resize to 50%" aria-label="Resize to 50%" onClick={() => handleSnapPoolHeight(0.5)}>
+                <ArrowUpHalfIcon className="text-[var(--ink)]" />
+              </IconButton>
+              <IconButton size="sm" title="Resize to 100%" aria-label="Resize to 100%" onClick={() => handleSnapPoolHeight(1)}>
+                <ArrowUpIcon className="text-[var(--ink)]" />
+              </IconButton>
+              {!isAtDefaultHeight && (
+                <IconButton
+                  size="sm"
+                  title="Reset pool panel to default height"
+                  aria-label="Reset pool panel to default height"
+                  onClick={handleResetPoolHeight}
+                >
+                  <ResetIcon className="text-[var(--ink)]" />
+                </IconButton>
+              )}
+            </div>
           </div>
         )}
 
@@ -601,28 +650,6 @@ export function MixerBar({
             <TagIcon className="text-[var(--ink)]" />
             <GreaterEqualIcon className="text-[var(--ink)]" />
             <MatchSelector value={minMatch} onChange={onSetMatch} />
-            {/* Temporary testing aid, edit-mode only — resets the pool panel
-                back to POOL_HEIGHT_MIN, the same height a first-ever open
-                now lands at, so the default can be re-checked without
-                clearing localStorage by hand. Likely removed once that's
-                verified. Gated to editMode unlike the rest of this row
-                (Min Tag Match/Random/Clear/Recommend all stay visible in
-                browse mode too): there's no pool panel to reset when it's
-                collapsed, so showing this in browse mode would just be a
-                dead control. */}
-            {editMode && (
-              <IconButton
-                size="md"
-                border="base"
-                shadow="elev-2"
-                backgroundColor="transparent"
-                title="Reset pool panel to default height"
-                aria-label="Reset pool panel to default height"
-                onClick={handleResetPoolHeight}
-              >
-                <ResetIcon className="text-[var(--ink)]" />
-              </IconButton>
-            )}
           </div>
           {/* Random/Clear render as icon buttons below min-[993px] (the
               same breakpoint the divider right after this group already
