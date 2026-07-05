@@ -125,7 +125,7 @@ export function TagSlot({ index, tag, isDragOver, onDragOver, onDragLeave, onDro
               above — no index at this tier, so this is the slot's only
               label, not a second line under one. */}
           <div className="sm:hidden font-mono text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] text-[var(--muted)]">
-            + ADD TAG
+            ADD TAG
           </div>
         </div>
       )}
