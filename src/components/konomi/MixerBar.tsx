@@ -628,12 +628,25 @@ export function MixerBar({
             </ActionButton>
           </div>
           <div className="hidden min-[993px]:block ml-[calc(var(--space-xl)_+_2px)] mr-[var(--space-xl)] w-[length:var(--border-thin)] h-[32px] bg-[var(--ink)]" />
-          <div className="min-[686px]:max-[993px]:ml-[var(--space-lg)] max-[674px]:ml-auto">
+          {/* Position swapped with RecommendButton below — this is now the
+              element immediately after the divider, so it inherits that
+              slot's own breathing-room margin (`min-[686px]:max-[993px]:
+              ml-[space-lg]`); RecommendButton, now last, inherits the
+              wraps-alone `max-[674px]:ml-auto` instead. Both thresholds
+              stay the same numbers (686px/674px/993px) as before the swap
+              — re-verified live, not just assumed: they're properties of
+              the row's *total* content width and how much a 12px margin
+              shifts its one-line-vs-wrap point, neither of which changes
+              just because two same-total-width elements traded places. See
+              DESIGN_SYSTEM.md's "Divider and RECOMMEND-wrap thresholds". */}
+          <div className="min-[686px]:max-[993px]:ml-[var(--space-lg)]">
+            <ActionButton variant="outline" onClick={editMode ? onCloseEditMode : onOpenEditMode}>
+              {editMode ? "Done ✓" : "+ Tag Pool"}
+            </ActionButton>
+          </div>
+          <div className="max-[674px]:ml-auto">
             <RecommendButton filledCount={filledCount} onRecommend={onRecommend} error={error} />
           </div>
-          <ActionButton variant="outline" onClick={editMode ? onCloseEditMode : onOpenEditMode}>
-            {editMode ? "Done ✓" : "+ Tag Pool"}
-          </ActionButton>
         </div>
       </div>
     </div>

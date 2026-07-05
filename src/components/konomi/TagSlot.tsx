@@ -57,7 +57,16 @@ export function TagSlot({ index, tag, isDragOver, onDragOver, onDragLeave, onDro
         filled ? "border-solid" : "border-dashed",
         filled ? "bg-[var(--primary)]" : isDragOver ? "bg-[var(--secondary)]" : "bg-[var(--slot-empty)]",
         filled ? "shadow-[var(--elev-3-accent)]" : "shadow-none",
-        isDragOver ? "-translate-x-[2px] -translate-y-[2px]" : "translate-x-0 translate-y-0",
+        // No transform at all when not drag-over — a no-op
+        // `translate-x-0 translate-y-0` was applied unconditionally before,
+        // which still forces its own compositing layer on every slot at all
+        // times for zero visual benefit. Suspected contributor to a
+        // real-iOS-WebKit-only bug (border-dashed clipping at its left/right
+        // edge on this row, not reproducible in desktop Chrome emulation) —
+        // WebKit has known issues rasterizing fractional-width borders on
+        // transformed/composited layers. Only ever needs an actual
+        // transform during the brief drag-over offset.
+        isDragOver ? "-translate-x-[2px] -translate-y-[2px]" : "",
       ].join(" ")}
     >
       {filled ? (
