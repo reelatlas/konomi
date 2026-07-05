@@ -1,5 +1,3 @@
-import { DashedBox } from "./DashedBox";
-
 interface TagSlotProps {
   index: number;
   tag: string | null;
@@ -13,13 +11,12 @@ interface TagSlotProps {
 export function TagSlot({ index, tag, isDragOver, onDragOver, onDragLeave, onDrop, onClick }: TagSlotProps) {
   const filled = Boolean(tag);
 
-  // Shared between both branches below — filled renders a plain <div>
-  // (unchanged), empty renders <DashedBox> (see that file's own comment for
-  // why) instead of a real CSS border-dashed, but both need the exact same
-  // handlers, a11y attributes, sizing/position classes, and no-op-free
-  // transform. Splitting into two branches (rather than one div with a
-  // conditional border-style class, as before) is what makes "filled slots
-  // stay exactly as they are" a structural guarantee, not just a visual one.
+  // Shared between both branches below — both render a plain <div>, but
+  // empty uses `outline-dashed` instead of `border-dashed` for its visible
+  // edge (see that branch's own comment for why), so keeping them as two
+  // full branches rather than one div with a conditional border/outline
+  // class string is what makes "filled slots stay exactly as they are" a
+  // structural guarantee, not just a visual one.
   const sharedProps = {
     "data-slot": index,
     // Filled slots are also a drag *source* now, not just a drop target —
@@ -67,24 +64,57 @@ export function TagSlot({ index, tag, isDragOver, onDragOver, onDragLeave, onDro
     // `translate-x-0 translate-y-0` was applied unconditionally before,
     // which still forces its own compositing layer on every slot at all
     // times for zero visual benefit. Was suspected as a contributor to the
-    // real-iOS-WebKit-only border-dashed clipping bug (see DashedBox.tsx) —
-    // ruled out live (still clipped after removing it), but kept anyway
-    // since it's an independently correct simplification either way. Only
-    // ever needs an actual transform during the brief drag-over offset.
+    // real-iOS-WebKit-only border-dashed clipping bug below — ruled out
+    // live (still clipped after removing it), but kept anyway since it's
+    // an independently correct simplification either way. Only ever needs
+    // an actual transform during the brief drag-over offset.
     isDragOver ? "-translate-x-[2px] -translate-y-[2px]" : "",
   ].join(" ");
 
   if (!filled) {
     return (
-      <DashedBox
+      <div
         {...sharedProps}
-        // border-solid + transparent, not border-none — this reserves the
-        // exact same border-box space border-base always did (border-style:
-        // none collapses that space entirely), so DashedBox's own SVG
-        // outline paints inside the identical footprint a real border
-        // would have, and filling this slot never shifts its size. See
-        // DashedBox.tsx for the rest of the dashed-outline mechanics.
-        className={`${sharedClassName} border-[length:var(--border-base)] border-solid border-transparent`}
+        // Real iOS WebKit (not reproducible in desktop Chrome emulation)
+        // drops border-dashed's left/right edge segments — a known
+        // engine-specific border-renderer bug with no CSS-only fix on
+        // `border` itself. `outline` goes through a different WebKit
+        // render path (it was never part of the box model border
+        // renderer to begin with — historically implemented as its own
+        // separate paint step, which is exactly why it doesn't follow
+        // `border-radius` either), so `outline-dashed` sidesteps the same
+        // bug without needing an SVG replacement (tried first — see git
+        // history for `DashedBox.tsx` — worked, but its continuous
+        // `stroke-dasharray` path slides/re-gaps at the corners on resize,
+        // which isn't acceptable; CSS `outline`'s dash corners are fixed,
+        // not a continuously-recomputed path, so they don't share that
+        // failure mode). `border-radius` not applying to `outline` is a
+        // non-issue here — this app is square-cornered (`--radius-none`)
+        // everywhere.
+        //
+        // `border-solid border-transparent` (not `border-none`) still
+        // reserves the exact same border-box space `border-base` always
+        // did — `border-style: none` collapses that space entirely, and
+        // losing it would shrink this box relative to a filled sibling's
+        // real border, shifting the slot's size the instant it filled.
+        // `outline` never affects box-model layout size either way (it
+        // paints outside the border box, like `box-shadow`), so it can't
+        // provide this reservation itself — only the (invisible) border
+        // can.
+        //
+        // `outline-offset-[calc(-1*var(--border-base))]` pulls the
+        // outline back *into* that reserved ring rather than letting it
+        // sit just outside the box (`outline`'s own default position) —
+        // negative offset by exactly one outline-width means the outline
+        // band spans from (edge − border-base) to (edge), the same ring a
+        // real inset border would have occupied, so the dashed line reads
+        // as flush with the box's outer edge instead of floating outside
+        // it.
+        className={[
+          sharedClassName,
+          "border-[length:var(--border-base)] border-solid border-transparent",
+          "outline-[length:var(--border-base)] outline-dashed outline-[var(--ink)] outline-offset-[calc(-1*var(--border-base))]",
+        ].join(" ")}
       >
         <div className="text-center pointer-events-none">
           <div className="hidden sm:block font-display text-[length:var(--text-lg)] lg:text-[length:var(--text-2xl)] leading-none text-[var(--muted)]">
@@ -100,7 +130,7 @@ export function TagSlot({ index, tag, isDragOver, onDragOver, onDragLeave, onDro
             ADD TAG
           </div>
         </div>
-      </DashedBox>
+      </div>
     );
   }
 
