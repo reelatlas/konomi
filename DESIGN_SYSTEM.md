@@ -127,6 +127,10 @@ Tailwind's class scanner needs the *complete* arbitrary-value class to appear as
 
 **The fix is `padding-bottom` on the clamped element itself, not more `line-height`.** `overflow: hidden` (which `line-clamp` sets) clips at the element's *padding* box, not its content box, so a few px of bottom padding buys descenders real room without touching `line-height` or how many lines count as "the limit." `TagSlot` uses `pb-[4px]` — tested live at 2/3/4px; 4px was the first value where a real descender ("Cute Girls Doing **Cute Things**") rendered its full loop with no clipping. Reset to `pb-0` at any tier where the clamp itself resets to `line-clamp-none` (nothing to protect against once unclamped).
 
+## Dashed borders: iOS WebKit clips them — accepted, not fixed
+
+iOS WebKit drops the left/right segments of `border-dashed` on empty states (`TagSlot`'s empty tag slots, `RecommendationsBody`'s "MIX TAGS" placeholder) — not reproducible in desktop Chrome emulation, only confirmed live on-device. Investigated fully — outline-dashed also clips; SVG stroke-dasharray renders correctly but its continuous perimeter path slides/gaps at corners on resize. Accepted the cosmetic clip as the best trade (empty-states only, ~half of mobile traffic, no functional impact). Don't re-litigate.
+
 ## What's intentionally *not* tokenized
 
 A few categories of number show up in components but aren't part of the scale above — they're one-off implementation details, not reusable design values, so folding them into `tokens.ts` would just be noise:

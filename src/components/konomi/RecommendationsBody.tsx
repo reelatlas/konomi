@@ -104,17 +104,11 @@ export function RecommendationsBody({
         // content at once — min-height needs a real centering mechanism
         // instead, since padding alone doesn't grow to fill leftover
         // min-height space).
-        // border-dashed → outline-dashed: real iOS WebKit drops
-        // border-dashed's left/right edge segments (see TagSlot.tsx's own
-        // full writeup — same bug, same fix, applied here too). The
-        // border-solid/border-transparent pair still reserves the same
-        // border-box space border-base always did, so this placeholder's
-        // min-h-[var(--result-card-height)] math (shared with ResultCard,
-        // see this section's own comment above) is unaffected; the outline
-        // (color matched to the original border-[var(--muted)]) paints the
-        // visible dashed line flush with the box's outer edge via the same
-        // negative outline-offset trick.
-        <div className="border-[length:var(--border-base)] border-solid border-transparent outline-[length:var(--border-base)] outline-dashed outline-[var(--muted)] outline-offset-[calc(-1*var(--border-base))] bg-[var(--surface)] min-h-[var(--result-card-height)] flex flex-col items-center justify-center gap-[var(--space-md)] px-[var(--space-2xl)] py-[var(--space-2xl)] text-center">
+        // border-dashed clips its left/right edges on iOS WebKit (all iOS
+        // browsers) — cosmetic, empty-state only. Accepted. Do not "fix"
+        // by swapping to outline-dashed (also clips) or SVG stroke
+        // (corners slide on resize). See DESIGN_SYSTEM.md.
+        <div className="border-[length:var(--border-base)] border-dashed border-[var(--muted)] bg-[var(--surface)] min-h-[var(--result-card-height)] flex flex-col items-center justify-center gap-[var(--space-md)] px-[var(--space-2xl)] py-[var(--space-2xl)] text-center">
           <div className="font-display text-[length:var(--text-2xl)] text-[var(--muted)] uppercase">mix tags</div>
           <p className="font-mono text-[length:var(--text-base)] text-[var(--primary)] m-0">
             load 1–3 tags into the mixer then RECOMMEND
