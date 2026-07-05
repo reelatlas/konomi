@@ -569,8 +569,25 @@ export function MixerBar({
         </div>
 
         {/* Row 3: the 3 tag slots. Fixed — never resizes, never scrolls,
-            regardless of how tall the pool panel above gets dragged. */}
-        <div className="flex gap-[var(--space-lg)] mb-[var(--space-lg)]">
+            regardless of how tall the pool panel above gets dragged.
+
+            px-[2px]: a tiny inward inset for the outermost two slots'
+            left/right dashed borders specifically — real iOS WebKit (not
+            reproducible in desktop Chrome emulation) was clipping those
+            borders at the narrowest widths. Root cause suspected to be a
+            fractional/subpixel viewport-edge boundary landing exactly on
+            the border itself; removing TagSlot's always-on no-op transform
+            (a separate, independently-justified cleanup — see TagSlot.tsx)
+            didn't resolve it on-device. This 2px inset nudges both
+            outermost borders off whatever exact fractional pixel WebKit
+            was clipping, without touching KonomiApp's root
+            `overflow-x-hidden` (kept intact deliberately — it's there to
+            contain other components' documented intentional overflow, e.g.
+            RecommendButton's star, and narrowing its scope risks
+            reintroducing a horizontal scrollbar). Needs on-device
+            confirmation — not verifiable in this environment, no real iOS
+            WebKit access. */}
+        <div className="flex gap-[var(--space-lg)] mb-[var(--space-lg)] px-[2px]">
           {slots.map((tag, index) => (
             <TagSlot
               key={index}
