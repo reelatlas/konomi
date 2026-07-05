@@ -147,29 +147,18 @@ export function TagIcon({ className }: IconProps) {
   );
 }
 
-// Two overlapping tag silhouettes — the plural/stacked companion to
-// TagIcon above, used where the action is "open the whole pool of tags"
-// rather than "this one tag" (MixerBar's Tag Pool button sits in the same
-// bar as TagIcon's own "Min Tag Match"/"Tag Density" labels, so a visibly
-// distinct glyph matters there). The back tag skips the hole/circle detail
-// (kept only on the front one) so the pair doesn't read as visually busy
-// at icon size.
-export function TagsIcon({ className }: IconProps) {
+// Straight from Tabler's own layout-grid-add — used as-is. MixerBar's Tag
+// Pool button (opens the tag pool/grid of tags to pick from) went through
+// a few earlier glyphs first (a hand-drawn double-tag, Lucide's tags icon)
+// before landing here; "add a cell to a grid layout" reads as a cleaner
+// match for "open the pool" than any tag-shaped glyph did.
+export function TagPoolIcon({ className }: IconProps) {
   return (
-    <svg
-      className={className}
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2.2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M14.5 2.5H9a1.2 1.2 0 0 0-.85.35L2.85 8.15a1.2 1.2 0 0 0 0 1.7l6.8 6.8a1.2 1.2 0 0 0 1.7 0l5.3-5.3a1.2 1.2 0 0 0 .35-.85V5Z" opacity={0.55} />
-      <path d="M19.5 7.5H14a1.2 1.2 0 0 0-.85.35l-5.3 5.3a1.2 1.2 0 0 0 0 1.7l6.8 6.8a1.2 1.2 0 0 0 1.7 0l5.3-5.3a1.2 1.2 0 0 0 .35-.85V10Z" />
-      <circle cx="17" cy="13" r="1.1" fill="currentColor" stroke="none" />
+    <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -4" />
+      <path d="M14 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -4" />
+      <path d="M4 15a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -4" />
+      <path d="M14 17h6m-3 -3v6" />
     </svg>
   );
 }

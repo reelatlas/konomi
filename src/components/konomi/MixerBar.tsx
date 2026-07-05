@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { LevelKey, MatchKey, MixerError, Slot, TagInfo } from "@/lib/konomi/types";
 import { ActionButton } from "./ActionButton";
-import { CheckIcon, DiceIcon, EraserIcon, GreaterEqualIcon, ResetIcon, SortIcon, TagIcon, TagsIcon } from "./icons";
+import { CheckIcon, DiceIcon, EraserIcon, GreaterEqualIcon, ResetIcon, SortIcon, TagIcon, TagPoolIcon } from "./icons";
 import { IconButton } from "./IconButton";
 import { LevelSelector } from "./LevelSelector";
 import { MatchSelector } from "./MatchSelector";
@@ -590,7 +590,7 @@ export function MixerBar({
             covers both directions: closed state opens edit mode (same as
             tapping an empty slot), open state closes it, same as Done
             always did. Random/Clear/this toggle are icon-only IconButtons
-            now (TagsIcon/CheckIcon here) — RECOMMEND is the one control in
+            now (TagPoolIcon/CheckIcon here) — RECOMMEND is the one control in
             this row still a labeled text button, deliberately: it's the
             hero action, not icon-ified alongside the others. */}
         <div className="flex flex-wrap items-center gap-x-[var(--space-lg)] gap-y-[var(--space-lg)]">
@@ -695,7 +695,7 @@ export function MixerBar({
             <div>
               {/* min-[993px] icon-below/text-at-desktop split, same as
                   Random/Clear above. Icon-only in both states, not text in
-                  one and icon in the other — TagsIcon (browse, "open the
+                  one and icon in the other — TagPoolIcon (browse, "open the
                   pool") swaps for CheckIcon (edit mode, "close/confirm")
                   rather than falling back to a text button for Done, so the
                   icon form reads as one consistent icon button regardless
@@ -711,7 +711,7 @@ export function MixerBar({
                   aria-label={editMode ? "Done" : "Tag Pool"}
                   onClick={editMode ? onCloseEditMode : onOpenEditMode}
                 >
-                  {editMode ? <CheckIcon className="text-[var(--ink)]" /> : <TagsIcon className="text-[var(--ink)]" />}
+                  {editMode ? <CheckIcon className="text-[var(--ink)]" /> : <TagPoolIcon className="text-[var(--ink)]" />}
                 </IconButton>
               </div>
               <div className="hidden min-[993px]:block">
