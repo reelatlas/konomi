@@ -91,7 +91,7 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
   return (
     <div
       data-theme={k.theme}
-      className={`relative min-h-screen overflow-x-hidden px-[var(--space-2xl)] pt-[var(--space-2xl)] font-body bg-[var(--bg)] text-[var(--ink)] ${MIXER_BAR_SPACER}`}
+      className={`relative min-h-screen px-[var(--space-2xl)] pt-[var(--space-2xl)] font-body bg-[var(--bg)] text-[var(--ink)] ${MIXER_BAR_SPACER}`}
     >
       {SHOW_HALFTONE && (
         <div className="absolute inset-0 pointer-events-none opacity-45 bg-[radial-gradient(var(--muted)_1.3px,transparent_1.4px)] [background-size:9px_9px] z-[var(--z-base)]" />
@@ -104,8 +104,32 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
           a click that lands truly outside this column (the page's own
           background/gutters) should ever close edit mode via outside-click
           — every other control on the page has its own meaningful action
-          and shouldn't also dismiss the sheet as a side effect. */}
-      <div data-konomi-content className="relative z-[var(--z-raised)] max-w-[1280px] mx-auto">
+          and shouldn't also dismiss the sheet as a side effect.
+
+          overflow-x-hidden lives here now, not on the root above — moved
+          down specifically so MixerBar (a fixed-position sibling of this
+          div, not a descendant of it) is no longer wrapped by any
+          overflow-clipping ancestor at all. Real iOS WebKit (not
+          reproducible in desktop Chrome emulation) was clipping the tag
+          slots' dashed borders at narrow widths, and WebKit is known to
+          (incorrectly, per spec) clip `position: fixed` descendants against
+          a non-transformed ancestor's overflow — Chromium doesn't. This
+          column is the one thing on the page with any real, if tiny,
+          horizontal-bleed risk (Masthead's `rotate-[-0.5deg]` can poke a
+          hair past its own bounding width) — RecommendButton's star, the
+          other documented intentional bleed, doesn't need to be contained
+          from here at all: it only ever renders inside MixerBar itself, so
+          it was never actually depending on this ancestor for containment,
+          and DESIGN_SYSTEM.md already documents that clipping it locally
+          was tried and explicitly reverted (the bleed is intentional).
+          Confirmed live before this change: removing overflow-x-hidden
+          from the page entirely produces zero horizontal scroll at every
+          breakpoint from 320px to 1920px, empty or populated — nothing was
+          actually relying on the root's own copy of this rule. Scoping it
+          here instead of dropping it outright keeps that same defensive
+          containment for whatever *is* still in this column, at zero cost
+          to MixerBar. */}
+      <div data-konomi-content className="relative z-[var(--z-raised)] max-w-[1280px] mx-auto overflow-x-hidden">
         <Masthead theme={k.theme} onThemeChange={k.setTheme} />
 
         {/* Results is now the persistent main surface, not a tab — always
