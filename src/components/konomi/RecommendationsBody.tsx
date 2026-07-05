@@ -108,7 +108,15 @@ export function RecommendationsBody({
         // browsers) — cosmetic, empty-state only. Accepted. Do not "fix"
         // by swapping to outline-dashed (also clips) or SVG stroke
         // (corners slide on resize). See DESIGN_SYSTEM.md.
-        <div className="border-[length:var(--border-base)] border-dashed border-[var(--muted)] bg-[var(--surface)] min-h-[var(--result-card-height)] flex flex-col items-center justify-center gap-[var(--space-md)] px-[var(--space-2xl)] py-[var(--space-2xl)] text-center">
+        // bg-[var(--slot-empty)], not --surface — matches TagSlot's own
+        // empty-state background exactly, so both of the app's "zero
+        // state" surfaces (an empty mixer slot, no results yet) read as
+        // one consistent color rather than two similar-but-different
+        // near-whites. (--slot-empty and --disabled-bg are already the
+        // same value in every theme by design — see tokens.ts/themes.ts —
+        // so this also already matches RECOMMEND's own disabled-state
+        // background for free.)
+        <div className="border-[length:var(--border-base)] border-dashed border-[var(--muted)] bg-[var(--slot-empty)] min-h-[var(--result-card-height)] flex flex-col items-center justify-center gap-[var(--space-md)] px-[var(--space-2xl)] py-[var(--space-2xl)] text-center">
           <div className="font-display text-[length:var(--text-2xl)] text-[var(--muted)] uppercase">mix tags</div>
           <p className="font-mono text-[length:var(--text-base)] text-[var(--primary)] m-0">
             load 1–3 tags into the mixer then RECOMMEND

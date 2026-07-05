@@ -232,7 +232,7 @@ export function ResultCard({
               ].join(" ")}
             >
               <IconButton
-                width={30}
+                size="sm"
                 aria-label={lockHint}
                 data-title={series.title}
                 onClick={(e) => {
@@ -250,7 +250,7 @@ export function ResultCard({
                 {locked ? <LockClosedIcon /> : <LockOpenIcon />}
               </IconButton>
               <IconButton
-                width={30}
+                size="sm"
                 aria-label={swapHint ?? "swap"}
                 aria-disabled={swapDisabled}
                 onClick={(e) => {

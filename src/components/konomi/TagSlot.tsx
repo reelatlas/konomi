@@ -53,12 +53,21 @@ export function TagSlot({ index, tag, isDragOver, onDragOver, onDragLeave, onDro
         "flex-1 min-w-[78px] h-[56px] sm:h-[76px] lg:h-[92px] px-[var(--space-xs)] sm:px-0",
         "flex items-center justify-center transition-transform duration-75",
         filled ? "cursor-grab" : "cursor-pointer",
-        "border-[length:var(--border-base)] border-[var(--ink)]",
+        "border-[length:var(--border-base)]",
         // border-dashed clips its left/right edges on iOS WebKit (all iOS
         // browsers) — cosmetic, empty-state only. Accepted. Do not "fix"
         // by swapping to outline-dashed (also clips) or SVG stroke
         // (corners slide on resize). See DESIGN_SYSTEM.md.
-        filled ? "border-solid" : "border-dashed",
+        //
+        // border-[var(--muted)], not --ink, for the empty/dashed state —
+        // matches the "MIX TAGS" empty-results placeholder's own dashed
+        // border color exactly (RecommendationsBody.tsx), so the app's two
+        // "zero state" dashed boxes read as one consistent color instead of
+        // two different ones (this was a real, confirmed mismatch across
+        // every theme, not just the default one — --ink and --muted are
+        // never the same value in any theme). Filled slots keep --ink
+        // (solid), unchanged.
+        filled ? "border-solid border-[var(--ink)]" : "border-dashed border-[var(--muted)]",
         filled ? "bg-[var(--primary)]" : isDragOver ? "bg-[var(--secondary)]" : "bg-[var(--slot-empty)]",
         filled ? "shadow-[var(--elev-3-accent)]" : "shadow-none",
         // No transform at all when not drag-over — a no-op

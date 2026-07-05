@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { LevelKey, MatchKey, MixerError, Slot, TagInfo } from "@/lib/konomi/types";
 import { ActionButton } from "./ActionButton";
-import { GreaterEqualIcon, ResetIcon, SortIcon, TagIcon } from "./icons";
+import { CheckIcon, DiceIcon, EraserIcon, GreaterEqualIcon, ResetIcon, SortIcon, TagIcon, TagsIcon } from "./icons";
 import { IconButton } from "./IconButton";
 import { LevelSelector } from "./LevelSelector";
 import { MatchSelector } from "./MatchSelector";
@@ -593,9 +593,10 @@ export function MixerBar({
             from KonomiApp.tsx — see its own git history). One button now
             covers both directions: closed state opens edit mode (same as
             tapping an empty slot), open state closes it, same as Done
-            always did. A text-style ActionButton, not an icon — consistent
-            with every other control in this row rather than introducing a
-            new affordance shape for just this one action. */}
+            always did. Random/Clear/this toggle are icon-only IconButtons
+            now (TagsIcon/CheckIcon here) — RECOMMEND is the one control in
+            this row still a labeled text button, deliberately: it's the
+            hero action, not icon-ified alongside the others. */}
         <div className="flex flex-wrap items-center gap-x-[var(--space-lg)] gap-y-[var(--space-lg)]">
           <div className="flex items-center gap-[var(--space-sm)]">
             <span className="hidden @min-[480px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
@@ -614,37 +615,115 @@ export function MixerBar({
                 collapsed, so showing this in browse mode would just be a
                 dead control. */}
             {editMode && (
-              <IconButton width={22} aria-label="Reset pool panel to default height" onClick={handleResetPoolHeight}>
+              <IconButton
+                size="md"
+                border="base"
+                shadow="elev-2"
+                backgroundColor="transparent"
+                title="Reset pool panel to default height"
+                aria-label="Reset pool panel to default height"
+                onClick={handleResetPoolHeight}
+              >
                 <ResetIcon className="text-[var(--ink)]" />
               </IconButton>
             )}
           </div>
+          {/* Random/Clear render as icon buttons below min-[993px] (the
+              same breakpoint the divider right after this group already
+              disappears at — reusing it, not inventing a new number, keeps
+              "not enough room for the full desktop layout" meaning one
+              thing everywhere in this row) and as the original ActionButton
+              text buttons at 993px and up — icons exist specifically to
+              conserve horizontal space at narrower widths; at the widest
+              tier there's room to spare, so the more self-explanatory
+              labeled buttons are what should show. Two full sets rendered,
+              each hidden/shown via the same breakpoint rather than one
+              set whose content swaps, so neither form has to compromise
+              its own markup to accommodate the other.
+              size="md" + border="base" + shadow="elev-2" on the icon set
+              matches ActionButton's own md rendered height/border/shadow
+              exactly, so these read as the same button family as RECOMMEND
+              (still a labeled ActionButton at every width, deliberately
+              not icon-ified — hero action) whichever form is showing.
+              backgroundColor on the icon buttons mirrors each one's
+              ActionButton variant: Random is "filled" (bg-fill), Clear is
+              "outline" (bg-transparent) — same distinction, both forms. */}
           <div className="ml-auto flex items-center gap-[var(--space-lg)]">
-            <ActionButton variant="filled" onClick={onRandomTags}>
-              Random ×3
-            </ActionButton>
-            <ActionButton variant="outline" onClick={onClearSlots}>
-              Clear ✕
-            </ActionButton>
+            <div className="min-[993px]:hidden flex items-center gap-[var(--space-lg)]">
+              <IconButton
+                size="md"
+                border="base"
+                shadow="elev-2"
+                backgroundColor="var(--fill)"
+                title="Random ×3"
+                aria-label="Random ×3"
+                onClick={onRandomTags}
+              >
+                <DiceIcon className="text-[var(--ink)]" />
+              </IconButton>
+              <IconButton size="md" border="base" shadow="elev-2" backgroundColor="transparent" title="Clear" aria-label="Clear" onClick={onClearSlots}>
+                <EraserIcon className="text-[var(--ink)]" />
+              </IconButton>
+            </div>
+            <div className="hidden min-[993px]:flex items-center gap-[var(--space-lg)]">
+              <ActionButton variant="filled" onClick={onRandomTags}>
+                Random ×3
+              </ActionButton>
+              <ActionButton variant="outline" onClick={onClearSlots}>
+                Clear ✕
+              </ActionButton>
+            </div>
           </div>
           <div className="hidden min-[993px]:block ml-[calc(var(--space-xl)_+_2px)] mr-[var(--space-xl)] w-[length:var(--border-thin)] h-[32px] bg-[var(--ink)]" />
-          {/* Position swapped with RecommendButton below — this is now the
-              element immediately after the divider, so it inherits that
-              slot's own breathing-room margin (`min-[686px]:max-[993px]:
-              ml-[space-lg]`); RecommendButton, now last, inherits the
-              wraps-alone `max-[674px]:ml-auto` instead. Both thresholds
-              stay the same numbers (686px/674px/993px) as before the swap
-              — re-verified live, not just assumed: they're properties of
-              the row's *total* content width and how much a 12px margin
-              shifts its one-line-vs-wrap point, neither of which changes
-              just because two same-total-width elements traded places. See
-              DESIGN_SYSTEM.md's "Divider and RECOMMEND-wrap thresholds". */}
-          <div className="min-[686px]:max-[993px]:ml-[var(--space-lg)]">
-            <ActionButton variant="outline" onClick={editMode ? onCloseEditMode : onOpenEditMode}>
-              {editMode ? "Done ✓" : "+ Tag Pool"}
-            </ActionButton>
-          </div>
-          <div className="max-[674px]:ml-auto">
+          {/* Tag Pool + RECOMMEND grouped in one shared flex wrapper, not
+              two independent flex-wrap items — confirmed live this was a
+              real bug otherwise: flex-wrap breaks strictly by available
+              width per top-level item, with no concept of "keep these two
+              together," so at some widths (500px, confirmed) Tag Pool
+              stayed on Random/Clear's line while RECOMMEND alone wrapped
+              to the next one, splitting a pair that reads as one unit
+              (Tag Pool opens the editor RECOMMEND then acts on). Nesting
+              them in one wrapper makes the *pair* the flex-wrap unit —
+              either both fit on the current line or both move to the next
+              one together, never split apart or merged into Random/Clear's
+              group.
+              The breathing-room margin (`min-[686px]:max-[993px]:
+              ml-[space-lg]`, for the element right after the divider) and
+              the wraps-alone right-alignment (`max-[674px]:ml-auto`) both
+              move to this outer wrapper accordingly — same two numbers as
+              before (686px/674px/993px, still tied to the same external
+              breakpoints — see DESIGN_SYSTEM.md's "Divider and RECOMMEND-
+              wrap thresholds"), just now guarding the pair as a whole
+              rather than guarding RECOMMEND alone. */}
+          <div className="flex items-center gap-[var(--space-lg)] min-[686px]:max-[993px]:ml-[var(--space-lg)] max-[674px]:ml-auto">
+            <div>
+              {/* min-[993px] icon-below/text-at-desktop split, same as
+                  Random/Clear above. Icon-only in both states, not text in
+                  one and icon in the other — TagsIcon (browse, "open the
+                  pool") swaps for CheckIcon (edit mode, "close/confirm")
+                  rather than falling back to a text button for Done, so the
+                  icon form reads as one consistent icon button regardless
+                  of mode; the text form below mirrors that with its own
+                  "+ Tag Pool"/"Done ✓" swap, unchanged from before. */}
+              <div className="min-[993px]:hidden">
+                <IconButton
+                  size="md"
+                  border="base"
+                  shadow="elev-2"
+                  backgroundColor="transparent"
+                  title={editMode ? "Done" : "Tag Pool"}
+                  aria-label={editMode ? "Done" : "Tag Pool"}
+                  onClick={editMode ? onCloseEditMode : onOpenEditMode}
+                >
+                  {editMode ? <CheckIcon className="text-[var(--ink)]" /> : <TagsIcon className="text-[var(--ink)]" />}
+                </IconButton>
+              </div>
+              <div className="hidden min-[993px]:block">
+                <ActionButton variant="outline" onClick={editMode ? onCloseEditMode : onOpenEditMode}>
+                  {editMode ? "Done ✓" : "+ Tag Pool"}
+                </ActionButton>
+              </div>
+            </div>
             <RecommendButton filledCount={filledCount} onRecommend={onRecommend} error={error} />
           </div>
         </div>

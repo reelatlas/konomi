@@ -146,3 +146,71 @@ export function TagIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+// Two overlapping tag silhouettes — the plural/stacked companion to
+// TagIcon above, used where the action is "open the whole pool of tags"
+// rather than "this one tag" (MixerBar's Tag Pool button sits in the same
+// bar as TagIcon's own "Min Tag Match"/"Tag Density" labels, so a visibly
+// distinct glyph matters there). The back tag skips the hole/circle detail
+// (kept only on the front one) so the pair doesn't read as visually busy
+// at icon size.
+export function TagsIcon({ className }: IconProps) {
+  return (
+    <svg
+      className={className}
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M14.5 2.5H9a1.2 1.2 0 0 0-.85.35L2.85 8.15a1.2 1.2 0 0 0 0 1.7l6.8 6.8a1.2 1.2 0 0 0 1.7 0l5.3-5.3a1.2 1.2 0 0 0 .35-.85V5Z" opacity={0.55} />
+      <path d="M19.5 7.5H14a1.2 1.2 0 0 0-.85.35l-5.3 5.3a1.2 1.2 0 0 0 0 1.7l6.8 6.8a1.2 1.2 0 0 0 1.7 0l5.3-5.3a1.2 1.2 0 0 0 .35-.85V10Z" />
+      <circle cx="17" cy="13" r="1.1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+// A tilted eraser block with a diagonal two-tone split and a baseline —
+// standard "clear/erase" glyph.
+export function EraserIcon({ className }: IconProps) {
+  return (
+    <svg
+      className={className}
+      width="17"
+      height="17"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M9.5 20H20" />
+      <path d="M4.6 15.4 13.8 6.2a2 2 0 0 1 2.83 0l3.17 3.17a2 2 0 0 1 0 2.83L11 21H8Z" />
+      <path d="M16 12.5 10.5 7" />
+    </svg>
+  );
+}
+
+// A simple checkmark — "confirm/done" glyph.
+export function CheckIcon({ className }: IconProps) {
+  return (
+    <svg
+      className={className}
+      width="17"
+      height="17"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.4}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M4 12.5 9.5 18 20 6.5" />
+    </svg>
+  );
+}

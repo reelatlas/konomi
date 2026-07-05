@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from "react";
+import type { ActionButtonSize } from "./ActionButton";
 
 // The Tailwind group name backing hover-reveal — a closed set of literal
 // strings, not an arbitrary one: Tailwind's scanner needs `group/name` and
@@ -21,20 +22,47 @@ const REVEAL_CLASSES: Record<RevealGroup, string> = {
   "reveal-nested": "opacity-0 group-hover/reveal-nested:opacity-100 transition-opacity",
 };
 
-interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "className" | "style" | "disabled"> {
-  width: number;
-  // Merged with (and able to override) the width/height/color values this
-  // component computes itself — callers that position themselves via
-  // inline `top`/`bottom` offsets (ScrollFadeArea's arrows, which shift
-  // dynamically with `topInset`) need this rather than a static className,
-  // since that offset is a runtime value, not a fixed utility class.
+// Mirrors ActionButton's own md/sm names exactly (imported, not
+// redeclared) — the whole point is that a mixer icon button and a mixer
+// text button share one size vocabulary, and a ResultCard icon button
+// shares the other, rather than icon buttons inventing a parallel scheme
+// that happens to use different words for the same two scales. Values are
+// each context's real rendered size, measured live: 44.5px matches
+// ActionButton's own md height exactly (Random ×3/Clear ✕/Done ✓/RECOMMEND
+// in MixerBar); 30px is ResultCard's own lock/swap buttons' pre-existing
+// size, unchanged by this scale's introduction — sm exists to *name* that
+// value, not to move it.
+const SIZE_PX: Record<ActionButtonSize, number> = {
+  md: 44.5,
+  sm: 30,
+};
+
+// `size` and `width`/`height` are mutually exclusive, not just "size wins
+// if both given" — ScrollFadeArea's scroll arrows (18×16 default, 36×36 on
+// the results carousel) are a genuinely different, per-instance, often
+// non-square dimension unrelated to the ActionButtonSize scale, so that
+// caller keeps the raw width/height escape hatch; every action-button-style
+// caller (ResultCard, MixerBar) uses `size` instead so the pixel value
+// itself only ever lives in SIZE_PX, not copy-pasted at each call site.
+type IconButtonSizeProps = { size: ActionButtonSize; width?: undefined; height?: undefined } | { size?: undefined; width: number; height?: number };
+
+type IconButtonBaseProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "className" | "style" | "disabled"> & {
   style?: CSSProperties;
-  // Defaults to `width` (square) — only ScrollFadeArea's scroll arrows are
-  // genuinely non-square (18×16), confirmed against the original markup.
-  height?: number;
   shape?: "circle" | "square";
-  border?: "hair" | "thin";
-  shadow?: boolean;
+  // "base" (border-base, 2.5px) added alongside the existing two — needed
+  // so a size="md" icon button sitting next to Random ×3/Clear ✕ (both
+  // border-base) reads as the same visual weight, not just the same
+  // height. size="sm" (ResultCard) keeps the pre-existing "thin" default,
+  // unchanged.
+  border?: "hair" | "thin" | "base";
+  // boolean keeps every existing caller (ResultCard's `shadow`,
+  // ScrollFadeArea's `shadow={arrowShadow}`) working unchanged — `true`
+  // still means exactly what it always did (elev-1). "elev-2" is the one
+  // new option, needed so size="md" can match ActionButton's own md/sm
+  // shadow (elev-2), which is stronger than IconButton's old boolean-only
+  // elev-1 default. size="sm" (ResultCard) keeps passing plain `shadow`
+  // (elev-1), unchanged.
+  shadow?: boolean | "elev-1" | "elev-2";
   backgroundColor?: string;
   textColor?: string;
   // opacity-0, revealed via an ancestor carrying the matching group class —
@@ -59,7 +87,9 @@ interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 
   display?: string;
   className?: string;
   children: ReactNode;
-}
+};
+
+type IconButtonProps = IconButtonBaseProps & IconButtonSizeProps;
 
 // Consolidates three previously hand-rolled icon buttons (ResultCard's
 // lock/swap, ScrollFadeArea's scroll arrows, the results carousel's arrows)
@@ -70,7 +100,7 @@ interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 
 //
 // `revealOnHover` takes one of RevealGroup's two literal values, not an
 // arbitrary group name — see RevealGroup's own comment above for why (a
-// template-interpolated class name would be invisible to Tailwind's
+// template-interpolated group name would be invisible to Tailwind's
 // scanner) and why two variants exist at all rather than one shared name.
 // Any caller using `revealOnHover` must ensure an ancestor carries the
 // matching `group/<name>` class (ScrollFadeArea's own root always does).
@@ -80,12 +110,14 @@ interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 
 // version is invisible to it and would silently never make it into the
 // compiled CSS. Same constraint `revealOnHover`'s doc comment above
 // describes for group names.
-const BORDER_CLASSES: Record<"hair" | "thin", string> = {
+const BORDER_CLASSES: Record<"hair" | "thin" | "base", string> = {
   hair: "border-[length:var(--border-hair)]",
   thin: "border-[length:var(--border-thin)]",
+  base: "border-[length:var(--border-base)]",
 };
 
 export function IconButton({
+  size,
   width,
   height,
   style,
@@ -101,6 +133,10 @@ export function IconButton({
   children,
   ...rest
 }: IconButtonProps) {
+  const resolvedWidth = size ? SIZE_PX[size] : width;
+  const resolvedHeight = size ? SIZE_PX[size] : (height ?? width);
+  const shadowClass = shadow === "elev-2" ? "shadow-[var(--elev-2)]" : shadow ? "shadow-[var(--elev-1)]" : "";
+
   return (
     <button
       type="button"
@@ -119,12 +155,12 @@ export function IconButton({
         BORDER_CLASSES[border],
         "border-[var(--ink)]",
         shape === "circle" ? "rounded-full" : "",
-        shadow ? "shadow-[var(--elev-1)]" : "",
+        shadowClass,
         revealOnHover ? REVEAL_CLASSES[revealOnHover] : "",
         visuallyDisabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer",
         className ?? "",
       ].join(" ")}
-      style={{ width, height: height ?? width, backgroundColor, color: textColor, ...style }}
+      style={{ width: resolvedWidth, height: resolvedHeight, backgroundColor, color: textColor, ...style }}
       {...rest}
     >
       {children}
