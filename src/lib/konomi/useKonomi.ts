@@ -418,7 +418,7 @@ export function useKonomi(initialSeries: Series[], initialTags: TagInfo[]) {
     minNum,
     canSwap,
     resultsHint,
-    lockedLabel: `${filledCount} / ${SLOT_COUNT}`,
+    lockedLabel: `${filledCount}/${SLOT_COUNT}`,
     hasResults: state.generated && state.results.length > 0,
     mixerError: state.error,
     recommendGen: state.recommendGen,
