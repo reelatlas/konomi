@@ -460,6 +460,15 @@ export function MixerBar({
   // re-clamp.
   const canReachHalfHeight = poolPanelMaxHeight * 0.5 > POOL_HEIGHT_MIN;
   const canReachFullHeight = poolPanelMaxHeight > POOL_HEIGHT_MIN;
+  // Same "don't show a control that would do nothing" rule as Reset above,
+  // applied to 50%/100% themselves — hidden not just when unreachable but
+  // also when the panel is already sitting at that exact target (dragged
+  // there by hand, or already snapped via the button), reappearing the
+  // moment a resize (drag, the other snap button, or the viewport ceiling
+  // itself moving) takes it elsewhere. Same 1px float tolerance as
+  // isAtDefaultHeight, same reasoning.
+  const isAtHalfHeight = Math.abs(effectiveHeightPx - poolPanelMaxHeight * 0.5) <= 1;
+  const isAtFullHeight = Math.abs(effectiveHeightPx - poolPanelMaxHeight) <= 1;
 
   // Mouse AND touch — this has to work at every breakpoint, not just
   // desktop/pointer. Mirrors the same dual mouse+touch handling
@@ -634,7 +643,7 @@ export function MixerBar({
               onMouseDown={(e) => e.stopPropagation()}
               onTouchStart={(e) => e.stopPropagation()}
             >
-              {canReachHalfHeight && (
+              {canReachHalfHeight && !isAtHalfHeight && (
                 <IconButton
                   size="sm"
                   border="none"
@@ -646,7 +655,7 @@ export function MixerBar({
                   <ArrowUpHalfIcon className="text-[var(--muted)]" />
                 </IconButton>
               )}
-              {canReachFullHeight && (
+              {canReachFullHeight && !isAtFullHeight && (
                 <IconButton
                   size="sm"
                   border="none"
@@ -899,13 +908,12 @@ export function MixerBar({
               "outline" (bg-transparent) — same distinction, both forms.
 
               The label form now carries the same glyph too, label-then-
-              icon, not label-only — "Random ×3" keeps its "×3" (real
-              information: how many tags get randomized, not decorative)
-              and gains DiceIcon after it; "Clear ✕" drops its "✕" (that one
-              WAS purely decorative) in favor of the real EraserIcon in the
-              same trailing spot, so both buttons read "label, then the
-              icon this same action collapses to below 993px" instead of
-              introducing a third, unrelated glyph just for the wide form. */}
+              icon, not label-only — both "Random ×3" and "Clear ✕" drop
+              their trailing decorative glyph ("×3", "✕") in favor of the
+              real DiceIcon/EraserIcon in the same spot, so each button
+              reads "label, then the icon this same action collapses to
+              below 993px" instead of carrying a redundant second symbol
+              alongside the real one. */}
           <div className="ml-auto flex items-center gap-[var(--space-lg)]">
             <div className="min-[993px]:hidden flex items-center gap-[var(--space-lg)]">
               <IconButton
@@ -913,8 +921,8 @@ export function MixerBar({
                 border="base"
                 shadow="elev-2"
                 backgroundColor="var(--fill)"
-                title="Random ×3"
-                aria-label="Random ×3"
+                title="Random"
+                aria-label="Random"
                 onClick={onRandomTags}
               >
                 <DiceIcon className="text-[var(--ink)]" />
@@ -926,7 +934,7 @@ export function MixerBar({
             <div className="hidden min-[993px]:flex items-center gap-[var(--space-lg)]">
               <ActionButton variant="filled" onClick={onRandomTags}>
                 <span className="inline-flex items-center gap-[var(--space-sm)]">
-                  Random ×3
+                  Random
                   <DiceIcon className="text-[var(--ink)]" />
                 </span>
               </ActionButton>
