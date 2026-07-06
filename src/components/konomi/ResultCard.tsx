@@ -535,7 +535,27 @@ export function ResultCard({
             flipped ? "opacity-0 pointer-events-none z-[var(--z-base)]" : "opacity-100 pointer-events-auto z-[var(--z-raised)]",
           ].join(" ")}
         >
-          <div ref={coverRef} className="relative h-[295px] border-b-[length:var(--border-base)] border-b-[var(--ink)] bg-[var(--fill)] overflow-hidden">
+          {/* overflow-y-auto overflow-x-hidden (was overflow-hidden) — TRIAL:
+              this box has no content that actually overflows either axis,
+              so this should be visually/behaviorally identical at rest
+              (auto only shows a scrollbar/enables scrolling when there's
+              real overflow — there isn't). The point is purely to make
+              this a genuine scroll container, putting it on the same
+              native touch-chaining fast path the tag area's own vertical
+              scroller already uses — confirmed on a real device that
+              plain overflow:hidden boxes (this, and BACK) don't get touch
+              gestures chained to the carousel, while the tag area (a real
+              scroll container) does. This was tried once before and
+              reverted — it broke wheel-over-cover at the time — but that
+              was before the perspective-relocation fix (see the article's
+              own comment), which appears to have fixed the same
+              underlying native-chaining issue for wheel too; retesting
+              now that the earlier blocker may no longer apply. Watch: any
+              content here tall enough to genuinely overflow 295px (the
+              hover-hint chip, if it ever wrapped enough) would now show a
+              thin scrollbar instead of silently clipping — a minor,
+              unlikely-to-hit cosmetic difference, not a functional one. */}
+          <div ref={coverRef} className="relative h-[295px] border-b-[length:var(--border-base)] border-b-[var(--ink)] bg-[var(--fill)] overflow-y-auto overflow-x-hidden">
             {hasImage ? (
               <Image
                 src={series.coverImageUrl as string}
@@ -981,11 +1001,23 @@ export function ResultCard({
             FRONT is showing — FRONT sits above it in z-index whenever not
             flipped, so this shouldn't change anything about FRONT's own
             interactivity; confirm that live after this change, not just
-            assume it from the stacking order. */}
+            assume it from the stacking order.
+            overflow-y-auto overflow-x-hidden (was overflow-hidden) — same
+            TRIAL/reasoning as the cover's own (see its own comment): this
+            face's total content (the WATCH ON header + the streams list,
+            which already clips its own overflow internally via its own
+            flex-1 overflow-hidden wrapper) never actually exceeds this
+            box's fixed height, so this should be visually identical at
+            rest — purely to make BACK a genuine scroll container too, on
+            the same native touch-chaining fast path as the tag area.
+            Watch: confirm the back-fill image and the streams list still
+            render/clip correctly, and that this doesn't interfere with
+            the flip itself (it shouldn't — overflow doesn't affect
+            backface-visibility/transform behavior). */}
         <div
           ref={backRef}
           className={[
-            "touch-auto absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] border-[length:var(--border-base)] border-[var(--ink)] overflow-hidden flex flex-col transition-opacity duration-200 bg-[var(--fill)] shadow-[var(--elev-4)] pointer-events-auto",
+            "touch-auto absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] border-[length:var(--border-base)] border-[var(--ink)] overflow-y-auto overflow-x-hidden flex flex-col transition-opacity duration-200 bg-[var(--fill)] shadow-[var(--elev-4)] pointer-events-auto",
             flipped ? "opacity-100 z-[var(--z-raised)]" : "opacity-0 z-[var(--z-base)]",
           ].join(" ")}
         >
