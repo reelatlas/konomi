@@ -504,20 +504,41 @@ export function ScrollFadeArea({
           // one thing that wasn't already an explicit call: the browser's
           // own automatic snap correction.
           snap ? "scroll-smooth" : "",
-          // overscroll-contain: once this viewport hits its own scroll
-          // bounds (e.g. MixerBar's pool panel chip area scrolled all the
-          // way down), continuing the same gesture must not chain into
-          // scrolling whatever's behind/beneath this component — the page
+          // overscroll-y/x-contain (axis-scoped, not the unsuffixed
+          // overscroll-contain that used to sit here): once this viewport
+          // hits its own scroll bounds on its OWN axis (e.g. MixerBar's
+          // pool panel chip area scrolled all the way down), continuing
+          // the same gesture must not chain into scrolling whatever's
+          // behind/beneath this component on that SAME axis — the page
           // itself for the pool panel, since MixerBar is a fixed overlay
           // that visually reads as its own surface, not a transparent
-          // window onto the page scrolling underneath it. Native
-          // browser behavior (default overscroll-behavior: auto) chains to
-          // the next scrollable ancestor once a nested scroll container
+          // window onto the page scrolling underneath it. Native browser
+          // behavior (default overscroll-behavior: auto) chains to the
+          // next scrollable ancestor once a nested scroll container
           // bottoms out — this opts every ScrollFadeArea instance out of
-          // that, not just the pool panel, since a contained scroll area
-          // silently leaking scroll to whatever's behind it is never
-          // actually wanted here.
-          "overscroll-contain",
+          // that on its own axis, not just the pool panel, since a
+          // contained scroll area silently leaking scroll to whatever's
+          // behind it is never actually wanted here.
+          //
+          // Axis-scoped, not the unsuffixed overscroll-contain (which sets
+          // -x AND -y to contain) — confirmed live as a real bug on mobile:
+          // TagScrollArea (vertical-only, no horizontal range of its own at
+          // all) sat inside the horizontal results carousel, and the
+          // unsuffixed class also set its overscroll-behavior-**x** to
+          // contain even though this element can never scroll on X. Per
+          // spec, overscroll-behavior-x: contain blocks a horizontal
+          // gesture from *chaining* to any ancestor once this element
+          // can't move further on that axis — since it can never move on X
+          // at all, every horizontal swipe that started over a card's tag
+          // area was swallowed outright instead of reaching the carousel
+          // underneath it, and the carousel never scrolled. Verified with
+          // a real touch simulation (CDP dispatchTouchEvent): stripping
+          // just overscroll-behavior-x (leaving -y: contain) made that same
+          // swipe correctly reach the carousel. Scoping this to only the
+          // axis each instance actually scrolls keeps the original same-
+          // axis chaining fix intact while no longer blocking the
+          // orthogonal axis on a nested, cross-axis scroller.
+          horizontal ? "overscroll-x-contain" : "overscroll-y-contain",
           disableWrapperPointerEvents ? "pointer-events-none" : "",
         ].join(" ")}
       >
