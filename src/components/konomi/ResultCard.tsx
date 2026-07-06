@@ -15,22 +15,21 @@ const DOT_CLASSES = ["bg-[var(--secondary)]", "bg-[var(--primary)]", "bg-[var(--
 // comment), so it's one shared constant rather than two numbers that could
 // silently drift apart.
 const COVER_HEIGHT_PX = 295;
-// Two flat blur zones, not a gradient ramp — tied to E's own content
-// structure rather than a computed percentage: the continuation image
-// (real, revealed art, not a reflection at all) gets a light 1px blur; the
-// mirror image (the actual reflection) steps up to 3px, since reflections
-// read softer than the thing they're reflecting. This is a hard step, not
-// a cross-fade, and it lands exactly at the reflection's own true start
-// point for free — no per-cover measurement needed to find that boundary,
-// the same way the upright/mirror seam itself already does (see the
-// filmstrip's own comment): applying a different blur filter directly to
-// each of the two already-separate <img> elements puts the step exactly
-// at the seam between them, which by construction IS where the reflection
-// begins, for any cover's aspect ratio. Bare — no veil, no fade, no masks —
-// deliberately, so this can be judged on its own before anything else gets
-// layered back on top of it.
+// Both 1px — matching, not stepped (an earlier version stepped this to 3px
+// for the reflection). Tested live whether the hairline seam at the
+// boundary (masked below with a 1px marginTop overlap on the mirror
+// image) was actually caused by the mismatched blur radii rather than the
+// sub-pixel rasterization first diagnosed: with both images temporarily
+// at the same 1px and the overlap removed, the seam was STILL measurably
+// there (pixel-sampled the exact seam row across several cards — a real,
+// if faint, brightness spike right at the boundary, not blur-mismatch-
+// dependent). So matching the blur wasn't the fix; the overlap (see the
+// mirror image's own comment below, and its own -3px tuning) is what's
+// actually doing the work — confirmed by re-adding it and re-running the
+// same pixel-sample check, which is also how -3 specifically was chosen
+// over the original -1.
 const REFLECTION_BLUR_CONTINUATION_PX = 1;
-const REFLECTION_BLUR_REFLECTED_PX = 3;
+const REFLECTION_BLUR_REFLECTED_PX = 1;
 
 interface ResultCardProps {
   entry: ResultEntry;
@@ -484,36 +483,55 @@ export function ResultCard({
                       style={{ top: COVER_HEIGHT_PX }}
                     />
                   </div>
-                  {/* marginTop: -1 — a deliberate 1px overlap onto the
+                  {/* marginTop: -3 — a deliberate overlap onto the
                       continuation image above, not a gap-closer for a real
-                      layout gap (there isn't one: getBoundingClientRect
-                      confirmed these two images' boxes already meet with
-                      zero space between them). This is a sub-pixel
-                      rasterization seam instead — confirmed live by
-                      disabling both images' blur entirely and finding the
-                      thin line still there, so it isn't blur-edge
-                      starvation either. Applying `transform` here (to flip
-                      it) very likely promotes this image to its own
-                      compositing layer, rasterized independently of the
-                      plain, untransformed image above it — two
+                      layout gap (getBoundingClientRect confirms these two
+                      images' boxes already meet with zero space between
+                      them). This is a sub-pixel rasterization seam instead:
+                      confirmed live by disabling both images' blur
+                      entirely (line stayed) and by matching both images to
+                      the same 1px blur with no overlap (line stayed,
+                      pixel-sampled, not eyeballed) — ruling out both "the
+                      blur is starved at the edge" and "the two blur radii
+                      don't match" as the cause. Applying `transform` here
+                      (to flip it) very likely promotes this image to its
+                      own compositing layer, rasterized independently of
+                      the plain, untransformed image above it — two
                       independently-snapped layers meeting at a fractional
                       CSS pixel boundary (this filmstrip's own height is
-                      never a whole number, since it's a scaled cover image)
-                      can each round to a different device pixel, leaving a
-                      hairline gap neither layer's content actually covers.
-                      Overlapping by 1px, not just closing a 0px gap, is
-                      what actually fixes this: this image paints after the
-                      one above in DOM order, so the overlap simply shows
-                      its own (mirrored, near-identical) content over the
-                      seam, regardless of which way either layer's
-                      sub-pixel edge happened to round. */}
+                      never a whole number, since it's a scaled cover
+                      image) can each round to a different device pixel,
+                      leaving a hairline gap neither layer's content
+                      actually covers.
+
+                      -3, not -1: pixel-sampled the boundary row (brightness
+                      delta against its own ±3-row neighbors, compared
+                      against a same-column control sample well away from
+                      any seam, to separate real seam artifact from normal
+                      image texture) across several cards at -1 through -8.
+                      -1 clearly helped but left a measurable residual
+                      spike in every card tested. -2 improved on -1 in every
+                      sample. -3 improved further on -2 in most samples
+                      (one minor exception). Beyond -3 (at -4 and up).
+                      results were mixed — flat in some cards, measurably
+                      *worse* in others — so more overlap isn't simply
+                      better past this point. -3 is the practical minimum
+                      from this data, not a perfect zero-residual fix: a
+                      small residual remains in some covers even here,
+                      apparently entangled with each image's own real
+                      content near the boundary, not purely the rasterization
+                      mismatch. This image paints after the one above in DOM
+                      order, so the overlap simply shows its own (mirrored,
+                      near-identical) content over the seam, regardless of
+                      which way either layer's sub-pixel edge happened to
+                      round. */}
                   {/* eslint-disable-next-line @next/next/no-img-element -- see comment above */}
                   <img
                     src={series.coverImageUrl as string}
                     alt=""
                     aria-hidden="true"
                     className="block w-full h-auto [transform:scaleY(-1)]"
-                    style={{ filter: `blur(${REFLECTION_BLUR_REFLECTED_PX}px)`, marginTop: -1 }}
+                    style={{ filter: `blur(${REFLECTION_BLUR_REFLECTED_PX}px)`, marginTop: -3 }}
                   />
                 </div>
               </>
