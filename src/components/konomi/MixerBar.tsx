@@ -8,6 +8,7 @@ import { IconButton } from "./IconButton";
 import { LevelSelector } from "./LevelSelector";
 import { MatchSelector } from "./MatchSelector";
 import { RecommendButton } from "./RecommendButton";
+import { ScrollFadeArea } from "./ScrollFadeArea";
 import { SortSelect } from "./SortSelect";
 import {
   clampPoolPanelHeight,
@@ -160,6 +161,15 @@ export function MixerBar({
 
   const barRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
+  // The Tag Density/Sort filters' own ScrollFadeArea, in Row 1 — outside
+  // dialogRef (which only wraps the pool panel below). Needed so
+  // blockScrollThrough's own dialogRef exemption (see that effect) can be
+  // extended to this second scrollable area too; without it, a genuine
+  // trackpad/wheel horizontal scroll gesture here gets preventDefault()'d
+  // by that handler before it ever reaches this area's native overflow-x
+  // scrolling — confirmed live as a real bug: only the arrow buttons (a
+  // separate, non-wheel click→scrollBy path) worked, trackpad swipe didn't.
+  const filtersScrollRef = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
 
   // Esc and click-outside close edit mode on every device — mobile,
@@ -211,6 +221,22 @@ export function MixerBar({
   // internally exactly as before — dialogRef.contains(target) is that
   // exclusion, checked once here rather than duplicated per gesture type.
   //
+  // Row 1's own filters ScrollFadeArea (filtersScrollRef, Tag Density/Sort)
+  // needs a second, narrower exclusion — narrower because unlike dialogRef,
+  // it isn't a modal surface with nothing of its own below it; it's a thin
+  // strip sitting directly above page content, so only a genuinely
+  // horizontal gesture should be let through. A vertical gesture over it
+  // must still fall through to preventDefault below, exactly like anywhere
+  // else on the bar — otherwise it'd scroll-chain to the page, the same
+  // leak this whole handler exists to plug. Direction is derived, not
+  // assumed: WheelEvent carries deltaX/deltaY directly, but TouchEvent's
+  // touchmove doesn't, so the touch case tracks the gesture's start point
+  // (touchstart, below) and locks an axis off the first touchmove that
+  // clears a small noise threshold, holding that lock for the rest of the
+  // gesture rather than re-deciding every event (a gesture that starts
+  // diagonal would otherwise flip between "let through" and "block" as it
+  // settles).
+  //
   // Both wheel and touchmove are native, non-passive addEventListener
   // calls, not JSX onWheel/onTouchMove props — confirmed live this is
   // required, not just extra caution: React registers its own delegated
@@ -230,15 +256,50 @@ export function MixerBar({
   useEffect(() => {
     const bar = barRef.current;
     if (!bar) return;
+
+    let touchStart: { x: number; y: number } | null = null;
+    let touchAxis: "horizontal" | "vertical" | null = null;
+
+    function handleTouchStart(e: TouchEvent) {
+      const target = e.target as Node;
+      if (filtersScrollRef.current?.contains(target)) {
+        const t = e.touches[0];
+        touchStart = { x: t.clientX, y: t.clientY };
+        touchAxis = null;
+      } else {
+        touchStart = null;
+        touchAxis = null;
+      }
+    }
+
     function blockScrollThrough(e: WheelEvent | TouchEvent) {
       const target = e.target as Node;
       if (dialogRef.current?.contains(target)) return;
+
+      if (filtersScrollRef.current?.contains(target)) {
+        if (e instanceof WheelEvent) {
+          if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+        } else {
+          const t = e.touches[0];
+          if (touchAxis === null && touchStart) {
+            const dx = t.clientX - touchStart.x;
+            const dy = t.clientY - touchStart.y;
+            if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+              touchAxis = Math.abs(dx) > Math.abs(dy) ? "horizontal" : "vertical";
+            }
+          }
+          if (touchAxis === "horizontal") return;
+        }
+      }
+
       e.preventDefault();
     }
     bar.addEventListener("wheel", blockScrollThrough, { passive: false });
+    bar.addEventListener("touchstart", handleTouchStart, { passive: true });
     bar.addEventListener("touchmove", blockScrollThrough, { passive: false });
     return () => {
       bar.removeEventListener("wheel", blockScrollThrough);
+      bar.removeEventListener("touchstart", handleTouchStart);
       bar.removeEventListener("touchmove", blockScrollThrough);
     };
   }, []);
@@ -526,14 +587,28 @@ export function MixerBar({
             edit mode only — these moved here from the pool panel below,
             but only ever show alongside it (editMode gates both
             identically), unlike an earlier pass that made them always
-            visible. Fixed — never resizes, never scrolls, in either mode;
-            the only things that change between modes are this text swap
-            and whether the filters group renders at all. Label + icon +
-            selector for each filter mirrors Row 4's own "Min Tag Match"
-            treatment exactly (same label classes, same hidden-below-
-            @480px responsive behavior) — one consistent pattern for every
-            labeled filter control in this bar, not a one-off for this
-            row. */}
+            visible. Label + icon + selector for each filter mirrors Row 4's
+            own "Min Tag Match" treatment exactly (same label classes, same
+            hidden-below-@480px responsive behavior) — one consistent
+            pattern for every labeled filter control in this bar, not a
+            one-off for this row.
+
+            Outer row keeps its original flex-wrap — title/filters still
+            split to 2 lines at the same widths as before, unchanged. What's
+            different is what happens on the filters' own line once that
+            split has already happened: the two filter groups (Tag Density,
+            Sort) used to flex-wrap onto a 3rd/4th line of their own at the
+            very narrowest widths; now they scroll horizontally instead,
+            reusing ScrollFadeArea the same plain way TagScrollArea does
+            (no extra ARIA/tablist logic — unlike SectionTabStrip's, these
+            are two independent controls, not a tab set, so there's nothing
+            for roving-tabindex to manage). min-w-0 on the wrapping div is
+            still needed even with the outer wrap restored — without it,
+            this flex item defaults to min-width:auto and can't shrink
+            below its own content's natural width, which would make
+            ScrollFadeArea's overflow detection never trigger (confirmed
+            live: an earlier version without it left the scroll area
+            stretching the whole row wider instead of scrolling). */}
         <div className="flex items-end justify-between flex-wrap gap-x-[var(--space-lg)] gap-y-[var(--space-sm)] mb-[var(--space-lg)]">
           <div className="flex items-center gap-[var(--space-md)]">
             <TitleWithSubtitle title={editMode ? "Super Mixer" : "Mixer"} subtitle={editMode ? "ショウリュウケン" : "フレーバー"} />
@@ -547,21 +622,64 @@ export function MixerBar({
             </span>
           </div>
           {editMode && (
-            <div className="flex items-end gap-[var(--space-lg)] flex-wrap">
-              <div className="flex items-center gap-[var(--space-sm)]">
-                <span className="hidden @min-[480px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
-                  Tag Density
-                </span>
-                <TagIcon className="text-[var(--ink)]" />
-                <LevelSelector value={level} onChange={onLevelChange} />
-              </div>
-              <div className="flex items-center gap-[var(--space-sm)]">
-                <span className="hidden @min-[480px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
-                  Sort
-                </span>
-                <SortIcon className="text-[var(--ink)]" />
-                <SortSelect value={sort} onChange={setSortPref} />
-              </div>
+            // -mb-[26px]/-mr-[4px] here exactly cancel the pb-[26px]/pr-[4px]
+            // on the scrollable content below — pad-then-cancel, not
+            // pad-and-let-grow (ResultsHeader's min-h fix used the latter,
+            // correctly, since that row had no alignment to protect; this
+            // one does: Row 1's items-end bottom-aligns this wrapper against
+            // the title, and letting the padding show through here inflated
+            // this wrapper's own box by the same 26px/4px, which visibly
+            // dropped the *visible* filter controls below the title's own
+            // baseline even though the boxes' bottoms technically still
+            // lined up — confirmed live: 62.5px wrapper height vs the
+            // title's 30px). Applying the negative margin out here, not on
+            // the padded div itself, is what makes this work — canceling it
+            // on the *same* element that has the padding would also shrink
+            // ScrollFadeArea's own internal viewport back down, reopening
+            // the exact clipping bug the padding exists to fix. Net effect:
+            // zero extra row space from Row 1's perspective, matching how
+            // every other hover-subtext in this app (ThemeSwitcher,
+            // LevelSelector elsewhere) already costs nothing — the padding
+            // only ever mattered to ScrollFadeArea's own internal
+            // overflow-hidden boundary, never to this outer layout.
+            <div ref={filtersScrollRef} className="min-w-0 w-fit -mb-[26px] -mr-[4px]">
+              <ScrollFadeArea orientation="horizontal" scrollStep={140} fadeSize={12}>
+                {/* pb-[26px]/pr-[4px]: ScrollFadeArea's horizontal viewport
+                    is unconditionally overflow-y-hidden — with
+                    LevelSelector/SortSelect now living inside it (a genuinely
+                    new usage; every prior ScrollFadeArea caller's content
+                    had nothing bleeding past its own box), their
+                    shadow-[var(--elev-2)] (3px right/bottom bleed) and
+                    LevelSelector's own absolute hover-subtext hint (further
+                    below, past the shadow) both started getting hard-clipped
+                    instead of just visually fading — same root cause
+                    DESIGN_SYSTEM.md already documents for the results
+                    carousel's card shadows. This padding is canceled by an
+                    equal negative margin on the outer wrapper above (not
+                    "let it grow" — see that comment) so it costs nothing
+                    from Row 1's perspective. 26px covers the hover-subtext's
+                    worst case (control bottom + mt-space-sm + its own
+                    text-xs line height) — not pixel-exact, and that's fine
+                    per explicit request: visible now, perfect spacing is a
+                    later triage, not a blocker. 4px covers the shadow's 3px
+                    bleed at the scrollable content's trailing edge. */}
+                <div className="flex items-center gap-[var(--space-lg)] flex-nowrap pb-[26px] pr-[4px]">
+                  <div className="flex items-center gap-[var(--space-sm)] shrink-0">
+                    <span className="hidden @min-[480px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
+                      Tag Density
+                    </span>
+                    <TagIcon className="text-[var(--ink)]" />
+                    <LevelSelector value={level} onChange={onLevelChange} />
+                  </div>
+                  <div className="flex items-center gap-[var(--space-sm)] shrink-0">
+                    <span className="hidden @min-[480px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
+                      Sort
+                    </span>
+                    <SortIcon className="text-[var(--ink)]" />
+                    <SortSelect value={sort} onChange={setSortPref} />
+                  </div>
+                </div>
+              </ScrollFadeArea>
             </div>
           )}
         </div>
