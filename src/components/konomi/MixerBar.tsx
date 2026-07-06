@@ -601,33 +601,102 @@ export function MixerBar({
             which only means something once it's already been moved. */}
         {editMode && (
           <div
-            role={canShowResizeHandleRow ? "separator" : undefined}
-            aria-orientation={canShowResizeHandleRow ? "horizontal" : undefined}
-            aria-label={canShowResizeHandleRow ? "Drag to resize edit panel" : undefined}
-            onMouseDown={canShowResizeHandleRow ? handleResizeStart : undefined}
-            onTouchStart={canShowResizeHandleRow ? handleResizeStart : undefined}
             className={[
+              // justify-between — filters group (first in DOM) pins to the
+              // row's left edge, the resize cluster (last in DOM) pins to
+              // its right edge, with whatever width is left between them.
+              // Filters is still min-w-0 (below), so it's still the one
+              // that gives way as the row narrows — justify-content only
+              // decides how any *leftover* space is distributed when the
+              // row isn't squeezed; it doesn't change which side shrinks
+              // under pressure.
+              //
               // mb-xl (16px) — one step more than the slots-row-to-controls
               // rhythm elsewhere in this bar (space-lg/12px): confirmed
               // live that this row's own content (grip+arrows plus filters,
               // heavier than a plain fixed row) reads better with a bit
               // more separation from the tabs row below it than that
               // baseline rhythm gives.
-              "flex items-center justify-between gap-x-[var(--space-lg)] mb-[var(--space-xl)] select-none",
-              canShowResizeHandleRow ? "cursor-ns-resize touch-none" : "",
+              //
+              // No role/cursor/drag-handlers on this outer row anymore —
+              // only the grip icon itself is the drag target now (see its
+              // own comment below), not the whole row. Confirmed live this
+              // was worth doing: with the whole row draggable, an
+              // accidental drag-start from anywhere between the filters
+              // and the grip (or from a hover meant for a filter control)
+              // was too easy to trigger by mistake.
+              "flex items-center justify-between gap-x-[var(--space-lg)] mb-[var(--space-xl)]",
             ].join(" ")}
           >
-            {/* Grip icon is a direct child of the row, NOT inside the
-                stopPropagation sub-container below — it's part of the drag
-                surface (the visual "this is draggable" affordance), not a
-                clickable control, so a mousedown/touchstart on it must
-                still bubble up to the row's own handleResizeStart.
-                Confirmed live as a real bug when this was tried the other
-                way (grip nested inside the stopPropagation div alongside
-                the snap/reset buttons): dragging from the grip icon itself
-                stopped working, since its own mousedown never reached the
-                row. Only the snap/reset buttons need stopPropagation —
-                clicking one of those must never also start a resize-drag.
+            {/* Filters group comes FIRST in DOM now (resize cluster is
+                second/rightmost — see below), so it's the one that gives
+                way as the row narrows: min-w-0 lets this flex item shrink
+                below its own content's natural (w-fit/max-content) width
+                once the row runs out of room, which is what lets
+                ScrollFadeArea's overflow-x-auto viewport actually detect
+                real overflow and start scrolling — unaffected by the
+                reorder, since flex-shrink math doesn't care about a flex
+                item's position, only its own min-w-0/shrink-0 and the
+                row's total available width. The resize cluster below is
+                shrink-0 (fixed, never shrinks), so 100% of the squeeze
+                lands on this group, exactly as before the reorder.
+                -mb-[26px]/-mr-[4px] cancel the pb-[26px]/pr-[4px] on the
+                scrollable content below — pad-then-cancel, not
+                pad-and-let-grow, so ScrollFadeArea's own overflow-y-hidden
+                viewport doesn't clip LevelSelector/SortSelect's shadow
+                bleed or LevelSelector's hover-subtext (which renders
+                *below* the control — see LevelSelector's own comment).
+                26px covers the hover-subtext's worst case (control bottom +
+                mt-space-sm + its own text-xs line height); 4px covers the
+                controls' own shadow-[var(--elev-2)] bleed at the trailing
+                edge. fitContent: this group's children (label/icon/
+                selector pairs) are naturally sized — see ScrollFadeArea's
+                own comment on that prop. */}
+            <div ref={filtersScrollRef} className="min-w-0 w-fit -mb-[26px] -mr-[4px]">
+              <ScrollFadeArea orientation="horizontal" scrollStep={140} fadeSize={12} fitContent>
+                <div className="flex items-center gap-[var(--space-lg)] flex-nowrap pb-[26px] pr-[4px]">
+                  <div className="flex items-center gap-[var(--space-sm)] shrink-0">
+                    {/* hidden @min-[480px]:inline — same breakpoint Row 3's
+                        own "Min Tag Match" label already uses in this same
+                        bar, not a new one bisected for this row. No JS
+                        measurement needed: these filters no longer compete
+                        with anything else for this row's width (the grip/
+                        arrows group is fixed-size and small; filters have
+                        their own horizontal scroll, above, as the fallback
+                        once even icon-only stops fitting) — a plain
+                        container query is enough. */}
+                    <span className="hidden @min-[480px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
+                      Tag Density
+                    </span>
+                    <TagIcon className="text-[var(--ink)]" />
+                    <LevelSelector value={level} onChange={onLevelChange} />
+                  </div>
+                  <div className="flex items-center gap-[var(--space-sm)] shrink-0">
+                    <span className="hidden @min-[480px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
+                      Sort
+                    </span>
+                    <SortIcon className="text-[var(--ink)]" />
+                    <SortSelect value={sort} onChange={setSortPref} />
+                  </div>
+                </div>
+              </ScrollFadeArea>
+            </div>
+            {/* Resize cluster is second/rightmost now, and shrink-0 (fixed
+                width, never shrinks) — the stable right anchor the filters
+                group above gives way to. Grip is last within this group
+                (previously first), so it ends up the single rightmost
+                element of the entire row, per the requested order:
+                arrows, then grip at the far-right end.
+
+                Only the grip itself is the drag target — role/aria-label/
+                onMouseDown/onTouchStart/cursor-ns-resize all live on its
+                own box now, not the outer row. Confirmed live this reads
+                better: with the whole row draggable, hovering a filter
+                control or the empty space between groups showed the
+                resize cursor and could start a drag by accident. The
+                arrow buttons no longer need their own stopPropagation
+                either, now that dragging isn't wired to anything above
+                them — clicking one only ever fires its own onClick.
 
                 The grip sits in its own 30×30 box (matching IconButton's
                 own size="sm" box the arrow buttons use) instead of just
@@ -636,18 +705,16 @@ export function MixerBar({
                 30×30 box, so two adjacent arrow buttons at gap-0 still
                 read ~14px apart glyph-to-glyph (7px of each button's own
                 inset on either side of the shared edge), while a bare
-                grip SVG butted directly against the first button's edge
+                grip SVG butted directly against the last button's edge
                 read only ~7px from its own edge to that button's glyph —
                 visibly tighter than the arrow-to-arrow spacing despite the
                 same gap-0. Matching the box size (not just the gap) makes
                 every icon's own inset identical, so gap-0 reads as evenly
-                spaced across all four. */}
+                spaced across all four; it's also a larger, easier drag
+                target than the bare icon glyph would be on its own. */}
             {canShowResizeHandleRow && (
               <div className="flex items-center gap-0 shrink-0">
-                <div className="flex items-center justify-center w-[30px] h-[30px]">
-                  <GripHorizontalIcon className="text-[var(--muted)]" />
-                </div>
-                <div className="flex items-center gap-0 cursor-auto" onMouseDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()}>
+                <div className="flex items-center gap-0">
                   {canReachHalfHeight && !isAtHalfHeight && (
                     <IconButton
                       size="sm"
@@ -695,51 +762,18 @@ export function MixerBar({
                     </IconButton>
                   )}
                 </div>
+                <div
+                  role="separator"
+                  aria-orientation="horizontal"
+                  aria-label="Drag to resize edit panel"
+                  onMouseDown={handleResizeStart}
+                  onTouchStart={handleResizeStart}
+                  className="flex items-center justify-center w-[30px] h-[30px] cursor-ns-resize select-none touch-none"
+                >
+                  <GripHorizontalIcon className="text-[var(--muted)]" />
+                </div>
               </div>
             )}
-            {/* -mb-[26px]/-mr-[4px] cancel the pb-[26px]/pr-[4px] on the
-                scrollable content below — pad-then-cancel, not
-                pad-and-let-grow, so ScrollFadeArea's own overflow-y-hidden
-                viewport doesn't clip LevelSelector/SortSelect's shadow
-                bleed or LevelSelector's hover-subtext (which renders
-                *below* the control — see LevelSelector's own comment).
-                Canceling it out on this wrapper (not the padded element
-                itself) keeps the clipping fix intact without inflating
-                this row's own box. 26px covers the hover-subtext's worst
-                case (control bottom + mt-space-sm + its own text-xs line
-                height); 4px covers the controls' own shadow-[var(--elev-2)]
-                bleed at the trailing edge. fitContent: this group's
-                children (label/icon/selector pairs) are naturally sized —
-                see ScrollFadeArea's own comment on that prop. */}
-            <div ref={filtersScrollRef} className="min-w-0 w-fit -mb-[26px] -mr-[4px]">
-              <ScrollFadeArea orientation="horizontal" scrollStep={140} fadeSize={12} fitContent>
-                <div className="flex items-center gap-[var(--space-lg)] flex-nowrap pb-[26px] pr-[4px]">
-                  <div className="flex items-center gap-[var(--space-sm)] shrink-0">
-                    {/* hidden @min-[480px]:inline — same breakpoint Row 3's
-                        own "Min Tag Match" label already uses in this same
-                        bar, not a new one bisected for this row. No JS
-                        measurement needed: these filters no longer compete
-                        with anything else for this row's width (the grip/
-                        arrows group is fixed-size and small; filters have
-                        their own horizontal scroll, above, as the fallback
-                        once even icon-only stops fitting) — a plain
-                        container query is enough. */}
-                    <span className="hidden @min-[480px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
-                      Tag Density
-                    </span>
-                    <TagIcon className="text-[var(--ink)]" />
-                    <LevelSelector value={level} onChange={onLevelChange} />
-                  </div>
-                  <div className="flex items-center gap-[var(--space-sm)] shrink-0">
-                    <span className="hidden @min-[480px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
-                      Sort
-                    </span>
-                    <SortIcon className="text-[var(--ink)]" />
-                    <SortSelect value={sort} onChange={setSortPref} />
-                  </div>
-                </div>
-              </ScrollFadeArea>
-            </div>
           </div>
         )}
 
