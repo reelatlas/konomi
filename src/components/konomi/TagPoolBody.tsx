@@ -29,6 +29,22 @@ interface TagPoolBodyProps {
   poolPanelHeightPx?: number;
 }
 
+// Combined width of "Tag Density"/"Sort" labels plus the gap each one
+// leaves behind once hidden (gap only applies between actually-rendered
+// flex children, so hiding a label collapses its own leading gap too) —
+// measured live: "Tag Density" 72.6px + "Sort" 26.4px + 2×6px (gap-sm)
+// = 111px. A fixed, retune-by-hand constant (font/label text don't change
+// at runtime), not a live measurement — used to reconstruct "how wide
+// would the filters be with labels shown/hidden" from whichever state is
+// currently rendered, without ever rendering the other one. See the
+// icon-collapse/stack derivation below for how this is used.
+const LABEL_DELTA_PX = 111;
+// The combined row's own gap between tabs and filters when inline —
+// duplicated from the JSX's gap-x-[var(--space-lg)] class below rather
+// than read from the DOM, since it's a fixed token value or the two would
+// need to be kept in sync anyway; retune both together if that gap token
+// ever changes.
+const GAP_X_PX = 12;
 const STRIP_GAP = 12; // --space-lg
 // Bootstrap-only fallback for rowHeightPx (below) before the first real
 // ResizeObserver measurement lands — STRIP_GAP + SectionTabStrip's own
@@ -116,18 +132,93 @@ export function TagPoolBody({ allTags, selectedTags, totalSeriesCount, onLevelCh
   // vs. live ResizeObserver" tradeoff MixerBar's own fixedOverheadPx
   // already made for the same reason. rowRef wraps both children (tabs +
   // filters) together, not each separately, since it's their *combined*
-  // rendered height being subtracted from poolPanelHeightPx below.
+  // rendered height being subtracted from poolPanelHeightPx below. Also
+  // doubles as the source of rowWidthPx (below) — this row's own width is
+  // exactly "how much total horizontal space tabs+filters have to split
+  // between them," stable regardless of which of them currently has it,
+  // so one ResizeObserver on one element covers both needs.
   const rowRef = useRef<HTMLDivElement>(null);
   const [rowHeightPx, setRowHeightPx] = useState<number | null>(null);
+  const [rowWidthPx, setRowWidthPx] = useState<number | null>(null);
   useEffect(() => {
     const row = rowRef.current;
     if (!row) return;
-    const observer = new ResizeObserver(([entry]) => setRowHeightPx(entry.contentRect.height));
+    const observer = new ResizeObserver(([entry]) => {
+      setRowHeightPx(entry.contentRect.height);
+      setRowWidthPx(entry.contentRect.width);
+    });
     observer.observe(row);
     return () => observer.disconnect();
   }, []);
   const chipAreaHeightPx =
     poolPanelHeightPx !== undefined ? Math.max(CHIP_AREA_MIN, poolPanelHeightPx - (rowHeightPx ?? ROW_HEIGHT_BOOTSTRAP) - STRIP_GAP) : undefined;
+
+  // The tab strip's and filters' own intrinsic content width — each fed by
+  // the same ScrollFadeArea measurement pass that drives that area's own
+  // hover arrows (onMeasure/onScrollWidthChange, see those components),
+  // not a second, competing measurement. Used below to reconstruct "would
+  // this overflow under the OTHER filters width" without ever rendering
+  // that other state.
+  const [tabsScrollWidth, setTabsScrollWidth] = useState(0);
+  const [filtersScrollWidth, setFiltersScrollWidth] = useState(0);
+
+  // Icon-collapse and stacking, driven by real overflow (reconstructed),
+  // not fixed px breakpoints — a fixed threshold (the previous
+  // @min-[700px]/min-[500px] pair) stays tuned to whatever content existed
+  // when it was bisected and drifts out of sync the moment tab counts
+  // change (a Level switch) or anything else about this row's content
+  // does. Both booleans below are settled during render (the same pattern
+  // canShowResizeHandleRow in MixerBar.tsx uses, not a useEffect — see
+  // that state's own comment for why a useEffect here would trip this
+  // repo's react-hooks/set-state-in-effect lint rule) rather than read as
+  // a raw comparison inline, because these transitions change the very
+  // widths they measure: collapsing labels frees width that could
+  // un-overflow the tabs (re-expanding labels, re-overflowing, re-
+  // collapsing — a loop), and stacking hands tabs the *entire* row's width
+  // (could un-overflow, un-stacking, re-sharing the row, re-overflowing,
+  // re-stacking — the same loop one level up). Settling each decision
+  // against the currently-committed state, rather than re-deriving it from
+  // scratch every render, is what breaks that.
+  //
+  // Both hypotheticals are reconstructed from the SAME three numbers
+  // (rowWidthPx, tabsScrollWidth, filtersScrollWidth) plus the two fixed
+  // constants above — none of which change as a *side effect* of
+  // filtersCompact/stacked flipping (confirmed, not assumed): rowWidthPx
+  // comes from the row's own container, unrelated to its children's
+  // states; tabsScrollWidth reflects only tab content (Level, not layout);
+  // filtersScrollWidth is the filters' ScrollFadeArea's own *content* div
+  // scrollWidth, which (thanks to the w-max/fitContent fix) already
+  // ignores whatever the outer wrapper's w-full/w-fit stretching is doing.
+  // That's what makes this safe to recompute fresh every render instead of
+  // needing the resize-handle-row's own "add the fixed amount back"
+  // reconstruction trick — there's no measurement here that the decision
+  // itself contaminates.
+  const [filtersCompact, setFiltersCompact] = useState(true);
+  const [stacked, setStacked] = useState(false);
+
+  // Bootstrap guard: rowWidthPx starts null and both scroll widths start
+  // at 0 before their first real ResizeObserver/onMeasure callback lands
+  // (same one-render gap fixedOverheadPx/rowHeightPx already have
+  // elsewhere in this file) — and rowRef, the tab strip's ScrollFadeArea,
+  // and the filters' ScrollFadeArea are three *separate* ResizeObserver
+  // instances, not guaranteed to land in the same render even though they
+  // usually do in practice, so this checks all three rather than just
+  // rowWidthPx. Without it, a partial state (e.g. rowWidthPx already real
+  // but tabsScrollWidth still its placeholder 0) reads as "tabs never
+  // overflow," which would flip filtersCompact away from its safe true
+  // default on a measurement that hasn't actually happened yet. Holding
+  // off the settle-adjustment until all three are real avoids that; the
+  // safe initial defaults (compact, unstacked) stand until then.
+  const measurementsReady = rowWidthPx !== null && tabsScrollWidth > 0 && filtersScrollWidth > 0;
+  const filtersScrollWidthFullLabel = filtersCompact ? filtersScrollWidth + LABEL_DELTA_PX : filtersScrollWidth;
+  const filtersScrollWidthIconOnly = filtersCompact ? filtersScrollWidth : filtersScrollWidth - LABEL_DELTA_PX;
+  const tabsAvailableFullLabel = measurementsReady ? rowWidthPx - filtersScrollWidthFullLabel - GAP_X_PX : Number.POSITIVE_INFINITY;
+  const tabsAvailableIconOnly = measurementsReady ? rowWidthPx - filtersScrollWidthIconOnly - GAP_X_PX : Number.POSITIVE_INFINITY;
+  const wouldOverflowFullLabel = tabsScrollWidth > tabsAvailableFullLabel;
+  const wouldOverflowIconOnly = tabsScrollWidth > tabsAvailableIconOnly;
+
+  if (measurementsReady && wouldOverflowFullLabel !== filtersCompact) setFiltersCompact(wouldOverflowFullLabel);
+  if (measurementsReady && wouldOverflowIconOnly !== stacked) setStacked(wouldOverflowIconOnly);
 
   // Every section with at least one tag at the current level — hidden
   // entirely (not shown as a disabled tab), matching the old collapsible
@@ -158,63 +249,42 @@ export function TagPoolBody({ allTags, selectedTags, totalSeriesCount, onLevelCh
           comment) to sit inline with the section tabs instead, rather than
           keeping a whole separate header row just for two filter controls.
 
-          Three independent, separately-tunable breakpoints govern this row,
-          not one shared number — confirmed live as a real bug otherwise:
-          the filters' own label-hide used to reuse MixerBar's Min Tag
-          Match @min-[480px] threshold verbatim, coincidentally, not because
-          the two rows have anything to do with each other. That accidental
-          coupling also made the responsive ladder backwards — labels
-          stayed full well *after* the row had already been forced to stack
-          (confirmed: stacks below ~695px, but labels didn't hide until
-          ~550-600px), so tabs lost width to full-labeled filters for a
-          whole range where dropping the labels first would have kept
-          everything on one line instead:
+          filtersCompact/stacked (above) replace what used to be two fixed
+          CSS breakpoints (@min-[700px] labels, min-[500px] stack) — those
+          were bisected against one specific tab/filter combination and
+          silently drifted out of sync the moment content changed (a Level
+          switch changing which tabs render), which is exactly the bug this
+          rewrite fixes. Same responsive ladder as before, now driven by
+          real (reconstructed) overflow instead of a guessed pixel width:
+          shrink labels first (frees room, stays inline), stack only if
+          that alone isn't enough, tabs' own horizontal scroll
+          (SectionTabStrip's ScrollFadeArea) as the automatic last resort.
 
-          1. FILTERS_LABEL_BREAKPOINT (@min-[700px], on the label spans
-             below) — width below which "Tag Density"/"Sort" text hides,
-             icon-only, *while still inline*. Deliberately its own number,
-             not Min Tag Match's 480 — that one lives in a completely
-             different row (MixerBar's controls row) and has no bearing on
-             when this row's own content needs to shrink.
-          2. TABS_FILTERS_STACK_BREAKPOINT (min-[500px]:flex-row below) —
-             width below which even icon-only filters + tabs still don't
-             fit on one line, so filters wrap onto their own row above
-             tabs. Set *narrower* than FILTERS_LABEL_BREAKPOINT on purpose:
-             decreasing width hits the label-hide breakpoint first (frees
-             room, stays inline), and only stacks if that alone isn't
-             enough — shrink, then wrap, not wrap immediately.
-          3. Tabs' own horizontal scroll (SectionTabStrip's own
-             ScrollFadeArea) needs no breakpoint of its own — already
-             automatic at any tier once its content exceeds whatever width
-             it's given, stacked or not.
-
-          flex-col-reverse + a single min-[Npx]:flex-row switch at tier 2
-          (the same "hard breakpoint, not organic flex-wrap" technique
-          ResultsHeader already uses for its own two-group row, not
-          flex-wrap's independent per-item reflow): DOM order is
-          [tabs, filters], so col-reverse alone — no order-* utilities
-          needed — puts filters visually *above* tabs once stacked (filters
-          is second in DOM, which col-reverse renders first/top), while
-          flex-row at the wider tier reads that same DOM order left-to-right
-          as-is (tabs left, filters right). Both wrappers need w-full in
-          the stacked state, not just the tabs one — confirmed live as a
-          real bug otherwise: w-fit's cross-axis sizing in a *column* flex
-          container isn't clamped by the parent's own width the way
-          min-w-0 clamps a *row* item along the main axis (there's no
-          flex-shrink math on the cross axis), so the filters wrapper
-          rendered at its full unclamped content width and visibly bled
-          past the card's right edge at narrow viewports instead of
-          triggering ScrollFadeArea's own overflow-scroll. w-full below the
-          breakpoint, min-[Npx]:w-fit only once inline (where the row is
-          back to flex-row and w-fit's natural-width/right-aligned sizing
-          is exactly what's wanted next to flex-1's tabs). items-center/
-          justify-between are scoped to the flex-row tier only —
-          meaningless (and not what's wanted) in the stacked column state.
-
-          Both breakpoints bisected live against this row's real content
-          (tabs, full-label filters, icon-only filters — not guessed). */}
-      <div ref={rowRef} className="flex flex-col-reverse gap-y-[var(--space-sm)] min-[500px]:flex-row min-[500px]:items-center min-[500px]:justify-between min-[500px]:gap-x-[var(--space-lg)]">
-        <div className="min-w-0 min-[500px]:flex-1">
+          flex-col-reverse + a JS-computed flex-row switch (the same "hard
+          breakpoint, not organic flex-wrap" *shape* ResultsHeader's own
+          two-group row uses, now driven by `stacked` instead of a
+          Tailwind breakpoint): DOM order is [tabs, filters], so
+          col-reverse alone — no order-* utilities needed — puts filters
+          visually *above* tabs once stacked (filters is second in DOM,
+          which col-reverse renders first/top), while flex-row reads that
+          same DOM order left-to-right as-is (tabs left, filters right).
+          Both wrappers need w-full in the stacked state, not just the tabs
+          one — confirmed live as a real bug otherwise: w-fit's cross-axis
+          sizing in a *column* flex container isn't clamped by the parent's
+          own width the way min-w-0 clamps a *row* item along the main axis
+          (there's no flex-shrink math on the cross axis), so the filters
+          wrapper rendered at its full unclamped content width and visibly
+          bled past the card's right edge instead of triggering
+          ScrollFadeArea's own overflow-scroll. items-center/justify-between
+          only apply when NOT stacked — meaningless (and not what's wanted)
+          in the stacked column state. */}
+      <div
+        ref={rowRef}
+        className={["flex gap-y-[var(--space-sm)]", stacked ? "flex-col-reverse" : "flex-row items-center justify-between gap-x-[var(--space-lg)]"].join(
+          " ",
+        )}
+      >
+        <div className={["min-w-0", stacked ? "" : "flex-1"].join(" ")}>
           <SectionTabStrip
             sections={visibleSections.map(({ section, tags }) => ({
               key: section.key,
@@ -223,6 +293,7 @@ export function TagPoolBody({ allTags, selectedTags, totalSeriesCount, onLevelCh
             }))}
             activeKey={active.section.key}
             onChange={setActiveSectionKey}
+            onScrollWidthChange={setTabsScrollWidth}
           />
         </div>
         {/* -mt-[20px]/-mb-[4px]/-mr-[4px] cancel the pt-[20px]/pb-[4px]/
@@ -243,20 +314,27 @@ export function TagPoolBody({ allTags, selectedTags, totalSeriesCount, onLevelCh
             line height); pb-4/pr-4 only need to cover the controls' own
             shadow-[var(--elev-2)] bleed (3px bottom/right), unrelated to
             the subtext, unchanged in direction from before. */}
-        <div className="min-w-0 w-full min-[500px]:w-fit -mt-[20px] -mb-[4px] -mr-[4px]">
-          <ScrollFadeArea orientation="horizontal" scrollStep={140} fadeSize={12}>
+        <div className={["min-w-0 -mt-[20px] -mb-[4px] -mr-[4px]", stacked ? "w-full" : "w-fit"].join(" ")}>
+          {/* fitContent: this group's children (label/icon/selector pairs)
+              are naturally sized, same reasoning as SectionTabStrip's own
+              fitContent — see ScrollFadeArea's own comment on that prop. */}
+          <ScrollFadeArea orientation="horizontal" scrollStep={140} fadeSize={12} fitContent onMeasure={setFiltersScrollWidth}>
             <div className="flex items-center gap-[var(--space-lg)] flex-nowrap pt-[20px] pb-[4px] pr-[4px]">
               <div className="flex items-center gap-[var(--space-sm)] shrink-0">
-                <span className="hidden @min-[700px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
-                  Tag Density
-                </span>
+                {!filtersCompact && (
+                  <span className="font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
+                    Tag Density
+                  </span>
+                )}
                 <TagIcon className="text-[var(--ink)]" />
                 <LevelSelector value={level} onChange={onLevelChange} />
               </div>
               <div className="flex items-center gap-[var(--space-sm)] shrink-0">
-                <span className="hidden @min-[700px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
-                  Sort
-                </span>
+                {!filtersCompact && (
+                  <span className="font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
+                    Sort
+                  </span>
+                )}
                 <SortIcon className="text-[var(--ink)]" />
                 <SortSelect value={sort} onChange={setSortPref} />
               </div>

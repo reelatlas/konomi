@@ -126,6 +126,39 @@ interface ScrollFadeAreaProps {
   // (the chip area, section tabs, per-card tag rows) has no equivalent
   // padding trick and no reason to pay this cost.
   disableWrapperPointerEvents?: boolean;
+  // Fires the content's own intrinsic scroll size (scrollWidth for
+  // horizontal, scrollHeight for vertical) every time updateScrollState
+  // runs — the exact same computation pass that sets this component's own
+  // internal hasOverflow, not a second measurement. Exists so a caller that
+  // needs to react to *how much room this content needs*, not just whether
+  // it currently overflows, can — e.g. TagPoolBody's combined tabs+filters
+  // row, which reconstructs "would this overflow under a different filters
+  // width" from the tabs' and filters' own scrollWidth rather than
+  // duplicating a second ResizeObserver. Optional: every other caller has
+  // no reason to read this.
+  onMeasure?: (scrollSize: number) => void;
+  // Horizontal-only. Makes the content wrapper's own width track its
+  // child's true intrinsic (max-content) width instead of the default —
+  // filling the viewport's own width regardless of what the child needs —
+  // needed for hasOverflow/onMeasure to correctly reflect a *naturally-
+  // sized* flex-nowrap child (SectionTabStrip's tablist, TagPoolBody's
+  // filters row) whose own width should drive the measurement.
+  // Deliberately opt-in, not the default for every horizontal caller: a
+  // child that itself needs the *available* width to size against — the
+  // results carousel's CSS grid (`grid-template-columns:
+  // repeat(auto-fill, minmax(208px, 1fr))`, sizing its own `1fr` tracks
+  // and auto-fill column count from whatever width it's given) — breaks
+  // if its container's width becomes intrinsic/content-based instead:
+  // confirmed live as a real regression, not a hypothetical — applying
+  // this unconditionally to every horizontal instance collapsed the
+  // carousel's grid toward its own minmax() floor, squishing cards into
+  // vertical slivers, since auto-fill/1fr have no real "available space"
+  // left to resolve against once the width computation runs in the other
+  // direction (container sized from content, not content sized from
+  // container). Only pass this where the child's own natural width is
+  // exactly what should be measured, never where the child needs a real
+  // available width to lay itself out against.
+  fitContent?: boolean;
   children: React.ReactNode;
 }
 
@@ -176,6 +209,8 @@ export function ScrollFadeArea({
   arrowShadow = false,
   arrowInset = 0,
   disableWrapperPointerEvents = false,
+  onMeasure,
+  fitContent = false,
   children,
 }: ScrollFadeAreaProps) {
   const horizontal = orientation === "horizontal";
@@ -184,6 +219,16 @@ export function ScrollFadeArea({
   const [hasOverflow, setHasOverflow] = useState(false);
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(true);
+  // Read through a ref, not called directly as the closed-over prop — the
+  // ResizeObserver below is set up once (its effect deps are just
+  // [horizontal]) and calls whichever updateScrollState closure existed at
+  // that time, which would otherwise mean a stale onMeasure if the caller
+  // ever passes a new one across renders. onCloseEditModeRef in MixerBar
+  // solves the identical problem the identical way.
+  const onMeasureRef = useRef(onMeasure);
+  useEffect(() => {
+    onMeasureRef.current = onMeasure;
+  });
   // Tracks an in-progress press so a single mouseup/touchend/mouseleave
   // handler can tell "was this a quick click" from "was this a hold that's
   // already been continuously scrolling" — see handlePressEnd below.
@@ -208,15 +253,33 @@ export function ScrollFadeArea({
 
   const updateScrollState = () => {
     const el = scrollRef.current;
+    const content = contentRef.current;
     if (!el) return;
     if (horizontal) {
       setHasOverflow(el.scrollWidth > el.clientWidth + 1);
       setAtStart(el.scrollLeft <= 0);
       setAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 1);
+      // content.scrollWidth, not el.scrollWidth: el's own scrollWidth is
+      // floored at its clientWidth (a scrollable element's scrollWidth is
+      // never smaller than its own viewport), so once el is stretched
+      // wider than what content actually needs (e.g. already stacked to
+      // w-full), el.scrollWidth just reports el's own width back —
+      // confirmed live as a real bug: both the tab strip's and the
+      // filters' onMeasure calls reported the full row width (1180px)
+      // instead of their own true, much smaller content width the moment
+      // either got stretched to fill the row, corrupting the
+      // icon-collapse/stack reconstruction built on top of them. content
+      // itself only has a real width to report at all because of
+      // fitContent/w-max (see that prop) — without it this would be
+      // reading a plain block div's width:auto, which has the identical
+      // "matches its container, not its children" problem this whole fix
+      // exists to solve.
+      onMeasureRef.current?.(content?.scrollWidth ?? el.scrollWidth);
     } else {
       setHasOverflow(el.scrollHeight > el.clientHeight + 1);
       setAtStart(el.scrollTop <= 0);
       setAtEnd(el.scrollTop + el.clientHeight >= el.scrollHeight - 1);
+      onMeasureRef.current?.(content?.scrollHeight ?? el.scrollHeight);
     }
   };
 
@@ -420,29 +483,34 @@ export function ScrollFadeArea({
           disableWrapperPointerEvents ? "pointer-events-none" : "",
         ].join(" ")}
       >
-        {/* w-max, horizontal orientation only: a plain block div's
-            width:auto (the default, with no explicit sizing class) fills
-            its *containing block* — the same width as the viewport this
-            sits inside — regardless of how wide its own children want to
-            be; it does not shrink/grow to fit them the way height:auto
-            already does for vertical stacking. A flex-nowrap child (e.g.
-            SectionTabStrip's role=tablist row) that's wider than that
-            simply overflows this div's own box without changing what this
-            div itself reports as its size — so the hasOverflow-driving
-            ResizeObserver above, which watches this div specifically to
-            catch children changing size, never fires when a *horizontal*
-            child grows/shrinks (e.g. more/fewer section tabs after a Tag
-            Density/level change): confirmed live as a real bug, distinct
-            from the resize-driven one that ResizeObserver fix (above)
-            already covers — hasOverflow stayed stuck at its pre-change
-            value with the hover arrows failing to appear (or appearing
-            when they shouldn't) until an actual scroll's onScroll handler
-            forced a fresh recompute. w-max (width:max-content) makes this
-            div's own box track its child's true intrinsic width instead,
-            the same way its height already naturally tracks a vertical
-            child's — so the existing ResizeObserver on this element
-            starts seeing the real size changes it was always meant to. */}
-        <div ref={contentRef} className={[horizontal ? "w-max" : "", disableWrapperPointerEvents ? "pointer-events-none" : ""].join(" ")}>
+        {/* w-max, fitContent opt-in only (not just horizontal — see that
+            prop's own comment for why this can't be unconditional): a
+            plain block div's width:auto (the default, with no explicit
+            sizing class) fills its *containing block* — the same width as
+            the viewport this sits inside — regardless of how wide its own
+            children want to be; it does not shrink/grow to fit them the
+            way height:auto already does for vertical stacking. A
+            flex-nowrap child (e.g. SectionTabStrip's role=tablist row)
+            that's wider than that simply overflows this div's own box
+            without changing what this div itself reports as its size — so
+            the hasOverflow-driving ResizeObserver above, which watches
+            this div specifically to catch children changing size, never
+            fires when a *horizontal* child grows/shrinks (e.g. more/fewer
+            section tabs after a Tag Density/level change): confirmed live
+            as a real bug, distinct from the resize-driven one that
+            ResizeObserver fix (above) already covers — hasOverflow stayed
+            stuck at its pre-change value with the hover arrows failing to
+            appear (or appearing when they shouldn't) until an actual
+            scroll's onScroll handler forced a fresh recompute. w-max
+            (width:max-content) makes this div's own box track its child's
+            true intrinsic width instead, the same way its height already
+            naturally tracks a vertical child's — so the existing
+            ResizeObserver on this element starts seeing the real size
+            changes it was always meant to. */}
+        <div
+          ref={contentRef}
+          className={[fitContent ? "w-max" : "", disableWrapperPointerEvents ? "pointer-events-none" : ""].join(" ")}
+        >
           {children}
         </div>
       </div>
