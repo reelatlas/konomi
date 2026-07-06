@@ -647,7 +647,13 @@ export function MixerBar({
             <span className="hidden @min-[480px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
               Min Tag Match
             </span>
-            <TagIcon className="text-[var(--ink)]" />
+            {/* Dropped below max-[474px] (the same width this row's own
+                Tag Pool+RECOMMEND wrap threshold uses) only — GreaterEqualIcon
+                (≥) is what actually communicates "minimum match," this tag
+                glyph is just reinforcement, so it's the cheapest thing to
+                give up first when space is genuinely tight. Kept at every
+                wider breakpoint, unchanged. */}
+            <TagIcon className="max-[474px]:hidden text-[var(--ink)]" />
             <GreaterEqualIcon className="text-[var(--ink)]" />
             <MatchSelector value={minMatch} onChange={onSetMatch} />
           </div>
