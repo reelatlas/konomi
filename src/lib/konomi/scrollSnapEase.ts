@@ -8,11 +8,13 @@
 //
 // There's no CSS-level "scroll-snap-duration" or easing-curve property to
 // tune the native correction with, so this animates the settle manually
-// instead, with full control over both. DEFAULT_SNAP_EASE_DURATION_MS/the
-// ease-out-cubic curve are starting guesses, not measured values — tune
-// live against real trackpad/touch feel, the same way this app's other
-// empirically-tuned scroll constants were.
-export const DEFAULT_SNAP_EASE_DURATION_MS = 320;
+// instead, with full control over both. 320 → 460: confirmed live (real
+// device, front cover) that 320ms read as a fast/aggressive snap rather
+// than a gentle glide — still a starting guess for this specific value, not
+// a measured final one, but a deliberate lengthening in response to real
+// feedback, not an arbitrary pick. Tune further live the same way this
+// app's other empirically-tuned scroll constants were.
+export const DEFAULT_SNAP_EASE_DURATION_MS = 460;
 
 // Computes the nearest scroll-snap-align:start target ourselves, rather
 // than letting native scroll-snap resolve it — ScrollFadeArea always wraps

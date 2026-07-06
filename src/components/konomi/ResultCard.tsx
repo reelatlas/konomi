@@ -116,14 +116,23 @@ function useHorizontalTouchForward(elRef: RefObject<HTMLDivElement | null>) {
 
     const AXIS_LOCK_NOISE_PX = 3;
     const VELOCITY_WINDOW_MS = 100;
-    // px/ms thresholds — starting guesses, not measured values; tune live
-    // against real touch feel, the same way this app's other empirically-
-    // tuned scroll constants were.
-    const MIN_FLING_VELOCITY = 0.05;
+    // px/ms thresholds — confirmed live (real device) that the original
+    // values (0.05 min, 0.95 friction) read as too fast/aggressive overall,
+    // not just the settle — still starting guesses for these specific
+    // values, not measured final ones, but deliberately raised/lowered in
+    // response to real feedback rather than arbitrary picks. 0.08 (up from
+    // 0.05): fewer marginal releases trigger a fling at all, favoring the
+    // calmer direct-to-settle path more often for slower/more deliberate
+    // releases. Tune further live the same way this app's other
+    // empirically-tuned scroll constants were.
+    const MIN_FLING_VELOCITY = 0.08;
     const FLING_STOP_VELOCITY = 0.02;
-    // Multiplicative decay applied per ~16ms frame — 0.95 means velocity
-    // roughly halves every ~13 frames (~215ms); tune live.
-    const FLING_FRICTION = 0.95;
+    // Multiplicative decay applied per ~16ms frame. 0.90 (down from 0.95):
+    // velocity now roughly halves every ~7 frames (~115ms) instead of ~13
+    // (~215ms) — a shorter, calmer tail that travels less distance per
+    // release, instead of carrying far enough to read as an overshoot.
+    // Tune live.
+    const FLING_FRICTION = 0.9;
 
     function cancelFling() {
       if (flingRafId !== null) {
