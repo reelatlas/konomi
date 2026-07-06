@@ -16,6 +16,23 @@
 // app's other empirically-tuned scroll constants were.
 export const DEFAULT_SNAP_EASE_DURATION_MS = 460;
 
+// Named easing curves for the settle tween below — duration alone can't
+// change the *shape* of how the settle accelerates/decelerates, and that
+// shape is its own real feel-lever, distinct from how long it takes.
+// cubicCurrent is this module's original, still-default curve (kept, not
+// replaced, so it stays selectable and comparable against the others);
+// the rest are plain polynomial approximations of their named CSS
+// counterparts — close enough to feel the difference for tuning purposes,
+// not meant to byte-for-byte match a real cubic-bezier() curve.
+export type EasingCurveName = "linear" | "easeOut" | "easeInOut" | "cubicCurrent";
+
+export const EASING_CURVES: Record<EasingCurveName, (t: number) => number> = {
+  linear: (t) => t,
+  easeOut: (t) => 1 - (1 - t) ** 2,
+  easeInOut: (t) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2),
+  cubicCurrent: (t) => 1 - (1 - t) ** 3,
+};
+
 // Walks up from `el` to find the nearest ancestor that's actually a scroll
 // container on either axis (auto/scroll overflow) — used below to make
 // sure a candidate snap item genuinely belongs to the ancestor we're
@@ -95,13 +112,26 @@ export function getNearestSnapLeft(ancestor: HTMLElement): number {
 // (on the same shared carousel, possibly from a different card) while a
 // previous settle is still animating; without a way to stop the old one,
 // both would keep writing to the same scrollLeft at once and fight.
-export function easeToSnap(ancestor: HTMLElement, to: number, durationMs: number, onDone: () => void): () => void {
+//
+// easingFn defaults to this module's original curve (cubicCurrent) so
+// existing callers that don't pass one keep their current behavior;
+// callers that want the live-tunable curve pass
+// EASING_CURVES[scrollTuning.easingCurve] explicitly (kept out of this
+// module itself, which shouldn't depend on the temporary scrollTuning
+// mechanism — see that file's own comment).
+export function easeToSnap(
+  ancestor: HTMLElement,
+  to: number,
+  durationMs: number,
+  onDone: () => void,
+  easingFn: (t: number) => number = EASING_CURVES.cubicCurrent
+): () => void {
   const from = ancestor.scrollLeft;
   const start = performance.now();
   let rafId: number;
   function step(now: number) {
     const t = Math.min(1, (now - start) / durationMs);
-    const eased = 1 - Math.pow(1 - t, 3);
+    const eased = easingFn(t);
     ancestor.scrollLeft = from + (to - from) * eased;
     if (t < 1) {
       rafId = requestAnimationFrame(step);

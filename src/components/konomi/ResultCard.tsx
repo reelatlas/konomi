@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { type RefObject, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { scoreSeries, streamsFor } from "@/lib/konomi/scoring";
-import { easeToSnap, getNearestSnapLeft } from "@/lib/konomi/scrollSnapEase";
+import { EASING_CURVES, easeToSnap, getNearestSnapLeft } from "@/lib/konomi/scrollSnapEase";
 // TEMPORARY — see scrollTuning.ts's own comment; delete this import (and
 // switch FLING_FRICTION/MIN_FLING_VELOCITY/the settle duration back to
 // plain local constants) once tuning is done.
@@ -135,10 +135,16 @@ function useHorizontalTouchForward(elRef: RefObject<HTMLDivElement | null>) {
 
     function settleTo(ancestor: HTMLElement) {
       const target = getNearestSnapLeft(ancestor);
-      activeCoverFlingCancel = easeToSnap(ancestor, target, scrollTuning.snapEaseDurationMs, () => {
-        ancestor.style.scrollSnapType = "";
-        activeCoverFlingCancel = null;
-      });
+      activeCoverFlingCancel = easeToSnap(
+        ancestor,
+        target,
+        scrollTuning.snapEaseDurationMs,
+        () => {
+          ancestor.style.scrollSnapType = "";
+          activeCoverFlingCancel = null;
+        },
+        EASING_CURVES[scrollTuning.easingCurve]
+      );
     }
 
     function handleTouchStart(e: TouchEvent) {

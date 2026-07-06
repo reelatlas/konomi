@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { EasingCurveName } from "@/lib/konomi/scrollSnapEase";
 import { scrollTuning } from "@/lib/konomi/scrollTuning";
 
 // TEMPORARY — on-screen debug panel for live-tuning the wheel/touch scroll
@@ -17,8 +18,10 @@ import { scrollTuning } from "@/lib/konomi/scrollTuning";
 // visitor who doesn't know to add the param.
 const QUERY_FLAG = "scrollDebug";
 
+type NumericTuningKey = "snapEaseDurationMs" | "flingFriction" | "minFlingVelocity";
+
 interface SliderConfig {
-  key: keyof typeof scrollTuning;
+  key: NumericTuningKey;
   label: string;
   min: number;
   max: number;
@@ -27,8 +30,17 @@ interface SliderConfig {
 
 const SLIDERS: SliderConfig[] = [
   { key: "snapEaseDurationMs", label: "Snap ease duration (ms)", min: 0, max: 900, step: 10 },
-  { key: "flingFriction", label: "Fling friction", min: 0.25, max: 1.5, step: 0.01 },
+  { key: "flingFriction", label: "Fling friction", min: 0, max: 1.5, step: 0.01 },
   { key: "minFlingVelocity", label: "Min fling velocity (px/ms)", min: 0, max: 1, step: 0.01 },
+];
+
+// The settle's shape, not just its duration — see EASING_CURVES' own
+// comment (scrollSnapEase.ts) for what each option actually is.
+const CURVE_OPTIONS: { value: EasingCurveName; label: string }[] = [
+  { value: "cubicCurrent", label: "Cubic (current)" },
+  { value: "easeOut", label: "Ease-out" },
+  { value: "easeInOut", label: "Ease-in-out" },
+  { value: "linear", label: "Linear" },
 ];
 
 export function ScrollTuningPanel() {
@@ -72,6 +84,23 @@ export function ScrollTuningPanel() {
           />
         </label>
       ))}
+      <div className="flex flex-col gap-[var(--space-xs)]">
+        <span>Snap ease curve</span>
+        {CURVE_OPTIONS.map(({ value, label }) => (
+          <label key={value} className="flex items-center gap-[var(--space-xs)]">
+            <input
+              type="radio"
+              name="easingCurve"
+              checked={values.easingCurve === value}
+              onChange={() => {
+                scrollTuning.easingCurve = value;
+                setValues((v) => ({ ...v, easingCurve: value }));
+              }}
+            />
+            {label}
+          </label>
+        ))}
+      </div>
     </div>
   );
 }
