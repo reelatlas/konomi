@@ -26,9 +26,9 @@ interface SliderConfig {
 }
 
 const SLIDERS: SliderConfig[] = [
-  { key: "snapEaseDurationMs", label: "Snap ease duration (ms)", min: 100, max: 900, step: 10 },
-  { key: "flingFriction", label: "Fling friction", min: 0.7, max: 0.99, step: 0.01 },
-  { key: "minFlingVelocity", label: "Min fling velocity (px/ms)", min: 0.01, max: 0.3, step: 0.01 },
+  { key: "snapEaseDurationMs", label: "Snap ease duration (ms)", min: 0, max: 900, step: 10 },
+  { key: "flingFriction", label: "Fling friction", min: 0.25, max: 1.5, step: 0.01 },
+  { key: "minFlingVelocity", label: "Min fling velocity (px/ms)", min: 0, max: 1, step: 0.01 },
 ];
 
 export function ScrollTuningPanel() {
