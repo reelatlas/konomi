@@ -16,18 +16,56 @@
 // app's other empirically-tuned scroll constants were.
 export const DEFAULT_SNAP_EASE_DURATION_MS = 460;
 
+// Walks up from `el` to find the nearest ancestor that's actually a scroll
+// container on either axis (auto/scroll overflow) — used below to make
+// sure a candidate snap item genuinely belongs to the ancestor we're
+// computing a target for, not some OTHER, nested scroll container between
+// them.
+function nearestScrollableAncestor(el: HTMLElement): HTMLElement | null {
+  let node = el.parentElement;
+  while (node) {
+    const style = getComputedStyle(node);
+    if (style.overflowX === "auto" || style.overflowX === "scroll" || style.overflowY === "auto" || style.overflowY === "scroll") {
+      return node;
+    }
+    node = node.parentElement;
+  }
+  return null;
+}
+
 // Computes the nearest scroll-snap-align:start target ourselves, rather
-// than letting native scroll-snap resolve it — ScrollFadeArea always wraps
-// its `children` in exactly one contentRef div, so `ancestor`'s own first
-// child is that wrapper and ITS children are the actual snap items
-// (ResultCard articles, for the results carousel). scrollPaddingLeft is
-// read from the ancestor's own computed style rather than assumed, since
-// callers pass it as a CSS length (e.g. "6%"), not a fixed px this
-// function could otherwise hardcode.
+// than letting native scroll-snap resolve it. Finds the actual snap items
+// by their own computed scroll-snap-align (not "none"), scanning
+// descendants — not by assuming a fixed DOM depth (e.g. "ancestor's first
+// child's children") the way an earlier version of this function did.
+// Confirmed live as a real, pre-existing bug: RecommendationsBody nests the
+// real snap items (a leading spacer + each ResultCard's own <article>, both
+// carrying scroll-snap-align via Tailwind's snap-start or an arbitrary
+// [scroll-snap-align:start] value) two levels below ancestor's own
+// contentRef wrapper (contentRef → the results grid div → the actual
+// items), not one — so the old "first child's children" assumption found
+// exactly one non-item (that grid div's own parent wrapper), always
+// measured its offsetLeft as 0, and this function always "found" that one
+// candidate nearest regardless of actual scroll position, snapping every
+// settle back to the very first card no matter how far the scroll had
+// gone.
+//
+// A plain descendant scan by itself isn't enough, though — also confirmed
+// live: each ResultCard's own tag chips carry scroll-snap-align too (for
+// the tag area's own, separate vertical scroll), and a blind scan picks
+// those up as false candidates, with offsetLeft values measured relative
+// to whatever THEIR nearest positioned ancestor is (some div inside the
+// tag chip row), completely irrelevant to this carousel's own horizontal
+// scrollLeft math. nearestScrollableAncestor filters to only items whose
+// own closest real scroll container is THIS ancestor specifically — the
+// tag chips' nearest scrollable ancestor is the tag area's own scroll div,
+// not the carousel, so they're correctly excluded; the actual cards'
+// nearest scrollable ancestor genuinely is the carousel.
 export function getNearestSnapLeft(ancestor: HTMLElement): number {
-  const contentWrapper = ancestor.children[0] as HTMLElement | undefined;
-  if (!contentWrapper) return ancestor.scrollLeft;
-  const items = Array.from(contentWrapper.children) as HTMLElement[];
+  const items = Array.from(ancestor.querySelectorAll<HTMLElement>("*")).filter(
+    (el) => getComputedStyle(el).scrollSnapAlign !== "none" && nearestScrollableAncestor(el) === ancestor
+  );
+  if (items.length === 0) return ancestor.scrollLeft;
   const scrollPaddingLeft = parseFloat(getComputedStyle(ancestor).scrollPaddingLeft) || 0;
   const current = ancestor.scrollLeft;
   const maxScrollLeft = ancestor.scrollWidth - ancestor.clientWidth;
