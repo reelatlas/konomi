@@ -10,6 +10,28 @@ import { TagScrollArea } from "./TagScrollArea";
 
 const DOT_CLASSES = ["bg-[var(--secondary)]", "bg-[var(--primary)]", "bg-[var(--muted)]"];
 
+// Cover box's own fixed height, matching h-[295px] on that div below — the
+// reflection's vertical offset has to equal this exactly (see its own
+// comment), so it's one shared constant rather than two numbers that could
+// silently drift apart.
+const COVER_HEIGHT_PX = 295;
+// Two flat blur zones, not a gradient ramp — tied to E's own content
+// structure rather than a computed percentage: the continuation image
+// (real, revealed art, not a reflection at all) gets a light 1px blur; the
+// mirror image (the actual reflection) steps up to 3px, since reflections
+// read softer than the thing they're reflecting. This is a hard step, not
+// a cross-fade, and it lands exactly at the reflection's own true start
+// point for free — no per-cover measurement needed to find that boundary,
+// the same way the upright/mirror seam itself already does (see the
+// filmstrip's own comment): applying a different blur filter directly to
+// each of the two already-separate <img> elements puts the step exactly
+// at the seam between them, which by construction IS where the reflection
+// begins, for any cover's aspect ratio. Bare — no veil, no fade, no masks —
+// deliberately, so this can be judged on its own before anything else gets
+// layered back on top of it.
+const REFLECTION_BLUR_CONTINUATION_PX = 1;
+const REFLECTION_BLUR_REFLECTED_PX = 3;
+
 interface ResultCardProps {
   entry: ResultEntry;
   selectedTags: string[];
@@ -357,86 +379,178 @@ export function ResultCard({
           <div className="relative overflow-hidden flex-1 px-[var(--space-lg)] pt-[var(--space-lg)] pb-[var(--space-lg)]">
             {hasImage && !reflectionBroken && (
               <>
-                {/* Reflection: the same cover, flipped and heavily blurred —
-                    "pure color/mood, no recognizable detail," not a literal
-                    mirror continuation of the sharp cover's exact pixels
-                    (the two crops are independent regions of very
-                    different heights, so pixel-for-pixel continuity at the
-                    seam was never achievable here, and the blur makes it a
-                    non-issue anyway). aria-hidden: purely decorative, the
-                    real alt text lives on the sharp cover above.
-                    sizes="48px" (vs. the sharp cover's own "208px") is
-                    deliberate — this only needs to read as a soft color
-                    wash after ~18px of blur, so a much smaller optimized
-                    variant keeps the download/decode cost low without any
-                    visible quality loss once blurred; see this file's own
-                    top-level notes on why this stayed a plain CSS blur
-                    rather than a separate pre-blurred asset. */}
-                <div className="absolute inset-0 overflow-hidden">
-                  {/* -inset-[24px]: overscans this box by more than the
-                      18px blur radius on every side, so the blur always has
-                      real image pixels to draw from right up to the
-                      visible edge — confirmed live as a real bug otherwise:
-                      without this, `filter: blur` has nothing to sample
-                      beyond the element's own rendered content, so the
-                      edges nearest the box boundary come out visibly
-                      lighter/faded (less "energy" in the Gaussian kernel),
-                      an unwanted vignette rather than a uniform wash. The
-                      outer div's own overflow-hidden clips this back down
-                      to the true visible box. */}
-                  <div className="absolute -inset-[24px]">
-                    <Image
+                {/* Reflection: physically continuous, not a flat blur wash —
+                    the tag area shows the cover's OWN art continuing
+                    downward, upright, from exactly where the sharp crop
+                    above cut off (real hidden lower art, never shown by
+                    that crop), and only once THAT reaches the source's own
+                    true bottom edge does a mirrored copy begin. Verified
+                    against several real covers via a disposable prototype
+                    (built, compared, deleted — not part of this codebase)
+                    before building this: for ordinary anime cover aspect
+                    ratios, the handoff to the mirror reliably lands well
+                    within this tag area's own height, with room to spare —
+                    real cards show more of the cover than that prototype
+                    did (a taller tag area, more headroom before the source
+                    runs out), so it lands even more comfortably here.
+
+                    One filmstrip, two flat blur zones — not a gradient
+                    ramp: the continuation image (real, revealed art) gets
+                    a light 1px blur; the mirror image directly below it
+                    (the actual reflection) steps up to 3px. This is a hard
+                    step at the seam between the two <img> elements, not a
+                    cross-fade — and that seam, by construction (see the
+                    filmstrip's own comment), already lands exactly where
+                    the reflection begins, for any cover's aspect ratio, so
+                    the blur step needs no separate measurement to find
+                    that boundary — it's just each image's own filter.
+                    Deliberately bare right now — no veil, no opacity fade,
+                    no masked layers (all present in earlier versions of
+                    this effect, all stripped so this two-blur baseline can
+                    be judged on its own first). Plain <img>, not next/image:
+                    this needs `width:100%;
+                    height:auto` — rendering at exactly the same scale the
+                    sharp cover's own object-fit:cover crop used — and
+                    next/image's `fill` mode hardcodes `position:absolute;
+                    height:100%; width:100%` as inline styles a className
+                    can't override. Both images share the same src, so the
+                    browser's own HTTP cache means this reflection is still
+                    one extra request per card, not two. aria-hidden on
+                    both: purely decorative, the real alt text lives on the
+                    sharp cover above.
+
+                    top: -COVER_HEIGHT_PX (inline, not a Tailwind class —
+                    it's the same shared constant the cover's own h-[295px]
+                    is built from, so the two can't drift out of sync the
+                    way two separately-hardcoded literals could). Shifts
+                    this whole (unclipped) filmstrip up by exactly what the
+                    sharp crop already consumed, so the visible window
+                    below (this box's own overflow-hidden bounds) picks up
+                    precisely where that crop left off — no gap, no
+                    repeat. block (not the default inline) on both
+                    images: an inline image carries a few px of baseline/
+                    line-height gap below it, which would otherwise open a
+                    hairline seam between the two stacked copies — confirmed
+                    live as a real, if subtle, artifact. */}
+                <div className="absolute left-0 w-full" style={{ top: -COVER_HEIGHT_PX }}>
+                  {/* relative: sizes itself to exactly the continuation
+                      image's own box (a plain div wrapping one block-level
+                      img takes on that img's height automatically, whatever
+                      it happens to render at for this card's width/cover
+                      aspect ratio), giving the scrim below an inset-0
+                      target that's scoped to the continuation zone only —
+                      never the reflection zone past it. */}
+                  <div className="relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- see comment above: needs width:100%/height:auto, which next/image's fill mode can't do */}
+                    <img
                       src={series.coverImageUrl as string}
                       alt=""
                       aria-hidden="true"
-                      fill
-                      sizes="48px"
-                      className="object-cover object-top [transform:scaleY(-1)] [filter:blur(18px)]"
+                      className="block w-full h-auto"
+                      style={{ filter: `blur(${REFLECTION_BLUR_CONTINUATION_PX}px)` }}
                       onError={() => setReflectionBroken(true)}
                     />
+                    {/* The cover's own bottom scrim (h-[100px] bg-gradient-to-t
+                        from-[var(--on-secondary)] to-transparent), mirrored
+                        and re-scaled: solid --on-secondary right at the seam
+                        (matching the cover's own bottom edge exactly, so the
+                        darkness is continuous across the two, not a jump),
+                        fading to fully transparent by the point the
+                        continuation ends and the reflection begins —
+                        bg-gradient-to-b (not -to-t).
+
+                        top: COVER_HEIGHT_PX, not inset-0 — this <img> above
+                        renders the ENTIRE uncropped source (that's how it
+                        reveals hidden art below the crop), so its own box
+                        starts at the source's true top, same as the sharp
+                        cover, not at the seam. inset-0 was tried first and
+                        confirmed live as a real bug: the gradient's "solid,
+                        0%" stop landed at the image's own top — hidden
+                        behind the cover, never actually visible — so by the
+                        time the gradient reached the seam (the only part of
+                        this box that's actually shown; the rest is clipped
+                        by the wrapper below), it had already faded ~90% of
+                        the way to transparent, reading as barely-there
+                        instead of matching the cover's own solid edge.
+                        top: COVER_HEIGHT_PX + bottom-0 scopes this to just
+                        the visible remainder instead — the browser
+                        computes the resulting height as "this wrapper's
+                        full height (the image's own) minus COVER_HEIGHT_PX"
+                        automatically, which is exactly the continuation's
+                        own visible span, whatever it happens to be for this
+                        cover's aspect ratio, without needing to measure it. */}
+                    <div
+                      className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-b from-[var(--on-secondary)] to-transparent"
+                      style={{ top: COVER_HEIGHT_PX }}
+                    />
                   </div>
+                  {/* marginTop: -1 — a deliberate 1px overlap onto the
+                      continuation image above, not a gap-closer for a real
+                      layout gap (there isn't one: getBoundingClientRect
+                      confirmed these two images' boxes already meet with
+                      zero space between them). This is a sub-pixel
+                      rasterization seam instead — confirmed live by
+                      disabling both images' blur entirely and finding the
+                      thin line still there, so it isn't blur-edge
+                      starvation either. Applying `transform` here (to flip
+                      it) very likely promotes this image to its own
+                      compositing layer, rasterized independently of the
+                      plain, untransformed image above it — two
+                      independently-snapped layers meeting at a fractional
+                      CSS pixel boundary (this filmstrip's own height is
+                      never a whole number, since it's a scaled cover image)
+                      can each round to a different device pixel, leaving a
+                      hairline gap neither layer's content actually covers.
+                      Overlapping by 1px, not just closing a 0px gap, is
+                      what actually fixes this: this image paints after the
+                      one above in DOM order, so the overlap simply shows
+                      its own (mirrored, near-identical) content over the
+                      seam, regardless of which way either layer's
+                      sub-pixel edge happened to round. */}
+                  {/* eslint-disable-next-line @next/next/no-img-element -- see comment above */}
+                  <img
+                    src={series.coverImageUrl as string}
+                    alt=""
+                    aria-hidden="true"
+                    className="block w-full h-auto [transform:scaleY(-1)]"
+                    style={{ filter: `blur(${REFLECTION_BLUR_REFLECTED_PX}px)`, marginTop: -1 }}
+                  />
                 </div>
-                {/* Veil: --cover-reflection-veil (globals.css) — a
-                    translucent wash of this theme's --slot-empty over the
-                    reflection, so the tag area reads as this app's own
-                    muted surface with a hint of the cover's mood, on any
-                    cover, dark or bright — not the photo itself bleeding
-                    through. Bump that token's opacity (not this file) if a
-                    future cover is ever found to need more. */}
-                <div className="absolute inset-0 bg-[var(--cover-reflection-veil)]" />
               </>
             )}
             {/* relative: keeps this in front of the two absolutely
-                positioned decorative layers above regardless of paint-order
+                positioned reflection images above regardless of paint-order
                 edge cases — normal-flow content after positioned siblings
                 already paints on top in every browser, but this is cheap
                 insurance and matches how the rest of this file treats
                 local front/back stacking explicitly rather than relying on
-                implicit DOM-order behavior. surfaceColor matches the same
-                veil token, but fadeSize is 0 whenever the veil is active —
-                tried keeping the 4px fade (matching surfaceColor) first,
-                and it read as a visible seam, not a blend: the fade adds
-                more of the *same* translucent veil color on top of the
-                veil that's already covering the whole area, so the strip
-                right at the scroll edge came out visibly more washed-out
-                than the rest of the tag area — confirmed live as a real,
-                distracting artifact, not a hypothetical. The peek (a
-                partially-visible next row) already signals "there's more
-                to scroll" on its own, so dropping this depth cue only in
-                the veiled case isn't a regression. arrowBackgroundColor
-                stays plain --surface (opaque) regardless of fadeSize:
-                passing the translucent veil there too made the hover
-                arrows nearly invisible against the image behind them
-                (confirmed live as a separate real regression), so the
-                arrows need their own solid backing either way. */}
+                implicit DOM-order behavior. surfaceColor="transparent":
+                ScrollFadeArea's scroll-edge fade is `linear-gradient(...,
+                surfaceColor, transparent)` — TagScrollArea's own default
+                (--surface, opaque) was tried first here and confirmed live
+                as a real, visible seam: a flat opaque-white gradient over
+                the raw reflection reads as a hard edge, not a blend, since
+                there's no single flat color behind it anymore for that
+                gradient to correctly fade into. Fading transparent→
+                transparent instead has no color of its own to mismatch
+                with, so it's seamless against the bare reflection now AND
+                automatically stays seamless if a veil (any color) comes
+                back later — nothing here would need to change again.
+                arrowBackgroundColor stays plain --surface (opaque)
+                though — ScrollFadeArea's arrowBackgroundColor defaults to
+                surfaceColor when not given its own value, and an
+                arrow that inherited "transparent" here would disappear
+                against the reflection the exact same way the veil-era
+                arrow legibility fix was needed for; overriding it
+                separately keeps the arrows visible regardless of what
+                surfaceColor is doing. */}
             <div className="relative">
               <TagScrollArea
                 tags={cardTags}
                 selectedTags={selectedTags}
                 onChipToggle={onChipToggle}
-                surfaceColor={hasImage && !reflectionBroken ? "var(--cover-reflection-veil)" : "var(--surface)"}
+                surfaceColor="transparent"
                 arrowBackgroundColor="var(--surface)"
-                fadeSize={hasImage && !reflectionBroken ? 0 : 4}
               />
             </div>
           </div>
