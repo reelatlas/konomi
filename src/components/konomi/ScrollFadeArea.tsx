@@ -1,7 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { DEFAULT_SNAP_EASE_DURATION_MS, easeToSnap, getNearestSnapLeft } from "@/lib/konomi/scrollSnapEase";
+import { easeToSnap, getNearestSnapLeft } from "@/lib/konomi/scrollSnapEase";
+// TEMPORARY — see scrollTuning.ts's own comment; delete this import (and
+// switch back to a plain local constant) once tuning is done.
+import { scrollTuning } from "@/lib/konomi/scrollTuning";
 import { IconButton, type RevealGroup } from "./IconButton";
 
 type Orientation = "vertical" | "horizontal";
@@ -412,7 +415,7 @@ export function ScrollFadeArea({
       restoreSnapTimer = window.setTimeout(() => {
         const el = ancestor as HTMLElement;
         const target = getNearestSnapLeft(el);
-        cancelEase = easeToSnap(el, target, DEFAULT_SNAP_EASE_DURATION_MS, () => {
+        cancelEase = easeToSnap(el, target, scrollTuning.snapEaseDurationMs, () => {
           el.style.scrollSnapType = "";
           cancelEase = null;
         });

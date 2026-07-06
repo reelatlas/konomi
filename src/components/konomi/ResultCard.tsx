@@ -1,7 +1,11 @@
 import Image from "next/image";
 import { type RefObject, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { scoreSeries, streamsFor } from "@/lib/konomi/scoring";
-import { DEFAULT_SNAP_EASE_DURATION_MS, easeToSnap, getNearestSnapLeft } from "@/lib/konomi/scrollSnapEase";
+import { easeToSnap, getNearestSnapLeft } from "@/lib/konomi/scrollSnapEase";
+// TEMPORARY — see scrollTuning.ts's own comment; delete this import (and
+// switch FLING_FRICTION/MIN_FLING_VELOCITY/the settle duration back to
+// plain local constants) once tuning is done.
+import { scrollTuning } from "@/lib/konomi/scrollTuning";
 import { isTagVisibleAtLevel, sortTags } from "@/lib/konomi/tagPool";
 import type { LevelKey, ResultEntry, SortKey, TagInfo } from "@/lib/konomi/types";
 import { DiceIcon, LockClosedIcon, LockOpenIcon } from "./icons";
@@ -116,23 +120,11 @@ function useHorizontalTouchForward(elRef: RefObject<HTMLDivElement | null>) {
 
     const AXIS_LOCK_NOISE_PX = 3;
     const VELOCITY_WINDOW_MS = 100;
-    // px/ms thresholds — confirmed live (real device) that the original
-    // values (0.05 min, 0.95 friction) read as too fast/aggressive overall,
-    // not just the settle — still starting guesses for these specific
-    // values, not measured final ones, but deliberately raised/lowered in
-    // response to real feedback rather than arbitrary picks. 0.08 (up from
-    // 0.05): fewer marginal releases trigger a fling at all, favoring the
-    // calmer direct-to-settle path more often for slower/more deliberate
-    // releases. Tune further live the same way this app's other
-    // empirically-tuned scroll constants were.
-    const MIN_FLING_VELOCITY = 0.08;
     const FLING_STOP_VELOCITY = 0.02;
-    // Multiplicative decay applied per ~16ms frame. 0.90 (down from 0.95):
-    // velocity now roughly halves every ~7 frames (~115ms) instead of ~13
-    // (~215ms) — a shorter, calmer tail that travels less distance per
-    // release, instead of carrying far enough to read as an overshoot.
-    // Tune live.
-    const FLING_FRICTION = 0.9;
+    // MIN_FLING_VELOCITY/FLING_FRICTION/the settle duration below read live
+    // from scrollTuning (TEMPORARY — see that file's own comment) instead
+    // of being frozen local constants, so ScrollTuningPanel's sliders take
+    // effect on the very next gesture with no remount needed.
 
     function cancelFling() {
       if (flingRafId !== null) {
@@ -143,7 +135,7 @@ function useHorizontalTouchForward(elRef: RefObject<HTMLDivElement | null>) {
 
     function settleTo(ancestor: HTMLElement) {
       const target = getNearestSnapLeft(ancestor);
-      activeCoverFlingCancel = easeToSnap(ancestor, target, DEFAULT_SNAP_EASE_DURATION_MS, () => {
+      activeCoverFlingCancel = easeToSnap(ancestor, target, scrollTuning.snapEaseDurationMs, () => {
         ancestor.style.scrollSnapType = "";
         activeCoverFlingCancel = null;
       });
@@ -232,7 +224,7 @@ function useHorizontalTouchForward(elRef: RefObject<HTMLDivElement | null>) {
         if (dt > 0) velocity = (newest.x - oldest.x) / dt;
       }
 
-      if (Math.abs(velocity) < MIN_FLING_VELOCITY) {
+      if (Math.abs(velocity) < scrollTuning.minFlingVelocity) {
         settleTo(ancestor);
         return;
       }
@@ -242,7 +234,7 @@ function useHorizontalTouchForward(elRef: RefObject<HTMLDivElement | null>) {
       function flingStep(now: number) {
         const dt = now - lastFrameTime;
         lastFrameTime = now;
-        v *= Math.pow(FLING_FRICTION, dt / 16);
+        v *= Math.pow(scrollTuning.flingFriction, dt / 16);
         ancestor.scrollBy({ left: -v * dt, behavior: "instant" });
         if (Math.abs(v) > FLING_STOP_VELOCITY) {
           flingRafId = requestAnimationFrame(flingStep);
