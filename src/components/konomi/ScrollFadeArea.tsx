@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { DEFAULT_SNAP_EASE_DURATION_MS, easeToSnap, getNearestSnapLeft } from "@/lib/konomi/scrollSnapEase";
 import { IconButton, type RevealGroup } from "./IconButton";
 
 type Orientation = "vertical" | "horizontal";
@@ -372,6 +373,11 @@ export function ScrollFadeArea({
     let accumY = 0;
     let lastEventTime = 0;
     let restoreSnapTimer: number | null = null;
+    // Cancels an in-progress easeToSnap — a new gesture starting (possibly
+    // from a different card sharing this same carousel, e.g. the cover
+    // touch-forwarder in ResultCard.tsx) while a previous settle is still
+    // animating would otherwise fight it over the same scrollLeft.
+    let cancelEase: (() => void) | null = null;
 
     const GESTURE_GAP_MS = 200;
     const AXIS_LOCK_NOISE_PX = 4;
@@ -382,63 +388,6 @@ export function ScrollFadeArea({
     // before the snap-settle even started once you stopped scrolling.
     // Shorter, tunable independently of the axis-lock timing.
     const SNAP_RESTORE_DEBOUNCE_MS = 80;
-    // How long our own eased settle (below) takes to glide from wherever
-    // forwarding left off to the nearest snap point. Replaces relying on
-    // the carousel's native scroll-smooth correction for this — confirmed
-    // live that the native correction reads as too short/aggressive, and
-    // there's no CSS-level duration/easing knob to soften it (no
-    // "scroll-snap-duration" property exists) — so this animates the
-    // settle ourselves instead, with full control over both. 320ms/ease-out
-    // cubic is a starting guess, not a measured value — tune live the same
-    // way this file's other empirically-tuned constants were.
-    const SNAP_EASE_DURATION_MS = 320;
-
-    // Computes the nearest scroll-snap-align:start target ourselves —
-    // ScrollFadeArea always wraps `children` in exactly one contentRef div
-    // (see the JSX below), so horizontalAncestor's own first child is that
-    // wrapper and ITS children are the actual snap items (ResultCard
-    // articles, here). scrollPaddingLeft is read from the ancestor's own
-    // computed style rather than assumed, since callers pass it as a CSS
-    // length (e.g. "6%"), not a fixed px this function could otherwise
-    // hardcode.
-    function getNearestSnapLeft(ancestor: HTMLElement): number {
-      const contentWrapper = ancestor.children[0] as HTMLElement | undefined;
-      if (!contentWrapper) return ancestor.scrollLeft;
-      const items = Array.from(contentWrapper.children) as HTMLElement[];
-      const scrollPaddingLeft = parseFloat(getComputedStyle(ancestor).scrollPaddingLeft) || 0;
-      const current = ancestor.scrollLeft;
-      const maxScrollLeft = ancestor.scrollWidth - ancestor.clientWidth;
-      let nearest = current;
-      let nearestDist = Infinity;
-      for (const item of items) {
-        const target = Math.max(0, Math.min(item.offsetLeft - scrollPaddingLeft, maxScrollLeft));
-        const dist = Math.abs(target - current);
-        if (dist < nearestDist) {
-          nearestDist = dist;
-          nearest = target;
-        }
-      }
-      return nearest;
-    }
-
-    // Eases from the current position to `to` over `durationMs`, ourselves
-    // — scroll-snap-type stays "none" for the whole tween (set by
-    // disableSnap below, only cleared once this finishes) so nothing else
-    // fights it mid-flight; by the time snap re-engages, the position is
-    // already exactly on a valid snap point, so the native re-engage is a
-    // no-op rather than a second, competing correction.
-    function easeToSnap(ancestor: HTMLElement, to: number, onDone: () => void) {
-      const from = ancestor.scrollLeft;
-      const start = performance.now();
-      function step(now: number) {
-        const t = Math.min(1, (now - start) / SNAP_EASE_DURATION_MS);
-        const eased = 1 - Math.pow(1 - t, 3);
-        ancestor.scrollLeft = from + (to - from) * eased;
-        if (t < 1) requestAnimationFrame(step);
-        else onDone();
-      }
-      requestAnimationFrame(step);
-    }
 
     // Scale alone didn't explain "jumps multiple cards" — confirmed live:
     // the carousel's own scroll-snap-mandatory was still active while this
@@ -455,12 +404,17 @@ export function ScrollFadeArea({
     // clear — fixes this the same way.
     function disableSnap(ancestor: Element) {
       if (restoreSnapTimer !== null) window.clearTimeout(restoreSnapTimer);
+      if (cancelEase) {
+        cancelEase();
+        cancelEase = null;
+      }
       (ancestor as HTMLElement).style.scrollSnapType = "none";
       restoreSnapTimer = window.setTimeout(() => {
         const el = ancestor as HTMLElement;
         const target = getNearestSnapLeft(el);
-        easeToSnap(el, target, () => {
+        cancelEase = easeToSnap(el, target, DEFAULT_SNAP_EASE_DURATION_MS, () => {
           el.style.scrollSnapType = "";
+          cancelEase = null;
         });
         restoreSnapTimer = null;
       }, SNAP_RESTORE_DEBOUNCE_MS);
@@ -522,6 +476,7 @@ export function ScrollFadeArea({
     return () => {
       el.removeEventListener("wheel", handleWheel);
       if (restoreSnapTimer !== null) window.clearTimeout(restoreSnapTimer);
+      if (cancelEase) cancelEase();
     };
   }, [forwardHorizontalWheel]);
 

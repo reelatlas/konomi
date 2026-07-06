@@ -1,6 +1,7 @@
 import Image from "next/image";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { type RefObject, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { scoreSeries, streamsFor } from "@/lib/konomi/scoring";
+import { DEFAULT_SNAP_EASE_DURATION_MS, easeToSnap, getNearestSnapLeft } from "@/lib/konomi/scrollSnapEase";
 import { isTagVisibleAtLevel, sortTags } from "@/lib/konomi/tagPool";
 import type { LevelKey, ResultEntry, SortKey, TagInfo } from "@/lib/konomi/types";
 import { DiceIcon, LockClosedIcon, LockOpenIcon } from "./icons";
@@ -48,6 +49,229 @@ const BACK_FILL_SCALE_DOWN = 4;
 // (below) is the real, permanent fix, not a fallback — always on.
 const COVER_TOUCH_FORWARD_ENABLED = true;
 
+// Cancels a fling/settle in progress on the shared carousel from a
+// DIFFERENT card's touch-forwarder — module-level (not per-card, not per-
+// hook-call) since the carousel itself is one shared ancestor across every
+// card, and a new gesture starting on card B while card A's release-fling
+// is still animating would otherwise fight it over the same scrollLeft.
+let activeCoverFlingCancel: (() => void) | null = null;
+
+// Manually drives the results carousel from a horizontal swipe that starts
+// on `elRef`'s own element, instead of relying on the browser's own native
+// touch-scroll chaining reaching it. Native chaining was tried thoroughly
+// and confirmed, on a real device, to be a dead end for this 3D flip
+// structure: touch-action explicitly restated at every level of the
+// transform stack (auto, then pan-y on the article, then pan-y on the
+// flip-container/BACK too) never got both faces scrolling reliably — pan-y
+// fixed FRONT alone, then broke FRONT again once applied more broadly, and
+// never fixed BACK at all. This hook doesn't depend on any of that: it
+// drives the scroll itself, by hand, from raw touch coordinates. Called
+// once per face (FRONT's cover, the whole BACK face) — each call is its own
+// independent listener/closure, since they're genuinely different elements
+// a gesture can start on.
+//
+// Same axis-lock shape as MixerBar's own touch handling
+// (handleTouchStart/blockScrollThrough there): accumulate displacement from
+// the gesture's start, decide the axis once a small noise threshold is
+// cleared, hold that decision for the rest of the gesture. Below the
+// threshold, this does nothing at all — no preventDefault, no scrollBy —
+// so a plain tap never gets touched by this and tap-to-flip (the article's
+// own onClick) keeps working exactly as before; a genuine vertical gesture
+// (page scroll) that happens to start here is left alone the same way,
+// once locked "vertical".
+//
+// While dragging, forwarding uses the *frame-to-frame* delta (current touch
+// position vs. the previous move's position), not the gesture's cumulative
+// total from start — a drag-to-scroll needs "how far did the finger move
+// since the last frame," the same quantity a native touch-scroll would
+// apply each frame. Sign is negated (scrollBy({left: -frameDeltaX})): the
+// finger moving left (frameDeltaX negative) should reveal content to the
+// right, i.e. increase scrollLeft — content follows the finger, same
+// direction native touch-scrolling already uses.
+//
+// On release, a rolling window of recent {time, x} samples (not just the
+// single last frame's delta, which is noisy and often smaller than the
+// gesture's real speed since natural deceleration already started right at
+// release) estimates a velocity; if it clears a small threshold, a
+// decelerating fling continues the scroll on its own via rAF before handing
+// off to the shared scrollSnapEase settle (the same one the wheel forwarder
+// uses) for the final glide into the exact snap point. This is what makes
+// the forwarder feel like native momentum instead of stopping dead the
+// instant the finger lifts.
+function useHorizontalTouchForward(elRef: RefObject<HTMLDivElement | null>) {
+  useEffect(() => {
+    if (!COVER_TOUCH_FORWARD_ENABLED) return;
+    const el = elRef.current;
+    if (!el) return;
+
+    let axis: "horizontal" | "vertical" | null = null;
+    let startX = 0;
+    let startY = 0;
+    let lastX = 0;
+    let snapDisabledOn: HTMLElement | null = null;
+    let flingRafId: number | null = null;
+    // Rolling buffer of recent {time, x} samples, trimmed to the last
+    // VELOCITY_WINDOW_MS — the window a release velocity is estimated from.
+    let samples: { time: number; x: number }[] = [];
+
+    const AXIS_LOCK_NOISE_PX = 3;
+    const VELOCITY_WINDOW_MS = 100;
+    // px/ms thresholds — starting guesses, not measured values; tune live
+    // against real touch feel, the same way this app's other empirically-
+    // tuned scroll constants were.
+    const MIN_FLING_VELOCITY = 0.05;
+    const FLING_STOP_VELOCITY = 0.02;
+    // Multiplicative decay applied per ~16ms frame — 0.95 means velocity
+    // roughly halves every ~13 frames (~215ms); tune live.
+    const FLING_FRICTION = 0.95;
+
+    function cancelFling() {
+      if (flingRafId !== null) {
+        cancelAnimationFrame(flingRafId);
+        flingRafId = null;
+      }
+    }
+
+    function settleTo(ancestor: HTMLElement) {
+      const target = getNearestSnapLeft(ancestor);
+      activeCoverFlingCancel = easeToSnap(ancestor, target, DEFAULT_SNAP_EASE_DURATION_MS, () => {
+        ancestor.style.scrollSnapType = "";
+        activeCoverFlingCancel = null;
+      });
+    }
+
+    function handleTouchStart(e: TouchEvent) {
+      // Cancel any in-flight fling/settle — from THIS element or another
+      // one sharing the same carousel (e.g. this card's cover mid-fling
+      // when a swipe starts on a different card) — before starting a new
+      // gesture; two of these driving the same scrollLeft at once would
+      // fight each other, the same reason MixerBar's own
+      // startContinuousScroll cancels any prior loop first.
+      if (activeCoverFlingCancel) {
+        activeCoverFlingCancel();
+        activeCoverFlingCancel = null;
+      }
+      cancelFling();
+      const t = e.touches[0];
+      axis = null;
+      startX = t.clientX;
+      startY = t.clientY;
+      lastX = t.clientX;
+      samples = [{ time: performance.now(), x: t.clientX }];
+    }
+
+    function handleTouchMove(e: TouchEvent) {
+      const t = e.touches[0];
+      const dx = t.clientX - startX;
+      const dy = t.clientY - startY;
+
+      if (axis === null && (Math.abs(dx) > AXIS_LOCK_NOISE_PX || Math.abs(dy) > AXIS_LOCK_NOISE_PX)) {
+        axis = Math.abs(dx) > Math.abs(dy) ? "horizontal" : "vertical";
+      }
+      if (axis !== "horizontal") return;
+
+      const horizontalAncestor = el!.closest("[data-scroll-fade-area-horizontal]") as HTMLElement | null;
+      const frameDeltaX = t.clientX - lastX;
+      lastX = t.clientX;
+      if (!horizontalAncestor) return;
+      e.preventDefault();
+      // Disable scroll-snap-type for the duration of this drag, same
+      // reason and same mechanism as the wheel forwarder's identical fix in
+      // ScrollFadeArea.tsx (see its own comment) — without it, every
+      // forwarded scrollBy lands on a non-snap resting position and gets
+      // immediately corrected to the *next full snap point*, regardless of
+      // how small the per-frame amount was, which is what actually caused
+      // "jumps multiple cards" (not the forwarded amount itself). Cleared
+      // once the fling+settle sequence below finishes, not immediately on
+      // touchend, so nothing re-engages snap mid-fling.
+      horizontalAncestor.style.scrollSnapType = "none";
+      snapDisabledOn = horizontalAncestor;
+      // behavior: "instant", not "auto" — same reason as the wheel
+      // forwarder's identical fix in ScrollFadeArea.tsx (see its own
+      // comment): the carousel carries scroll-smooth from the snap-release
+      // easing fix, so "auto" would defer to that CSS and animate each
+      // tiny per-frame forward instead of applying it immediately, which a
+      // rapid touchmove stream would turn into stutter/near-no-movement.
+      horizontalAncestor.scrollBy({ left: -frameDeltaX, behavior: "instant" });
+
+      const now = performance.now();
+      samples.push({ time: now, x: t.clientX });
+      while (samples.length > 1 && now - samples[0].time > VELOCITY_WINDOW_MS) samples.shift();
+    }
+
+    function handleTouchEnd() {
+      const wasHorizontal = axis === "horizontal";
+      axis = null;
+      const ancestorOrNull = snapDisabledOn;
+      snapDisabledOn = null;
+      if (!wasHorizontal || !ancestorOrNull) return;
+      // Reassigned to a variable TS can prove non-null inside the nested
+      // flingStep closure below (control-flow narrowing on ancestorOrNull
+      // itself doesn't reach into a function expression declared later in
+      // this scope).
+      const ancestor: HTMLElement = ancestorOrNull;
+
+      // Velocity estimate (px of finger movement per ms) from the rolling
+      // window — same sign convention as frameDeltaX during the drag
+      // (positive = finger moving right), negated the same way when
+      // applied in the fling loop below.
+      let velocity = 0;
+      if (samples.length >= 2) {
+        const oldest = samples[0];
+        const newest = samples[samples.length - 1];
+        const dt = newest.time - oldest.time;
+        if (dt > 0) velocity = (newest.x - oldest.x) / dt;
+      }
+
+      if (Math.abs(velocity) < MIN_FLING_VELOCITY) {
+        settleTo(ancestor);
+        return;
+      }
+
+      let v = velocity;
+      let lastFrameTime = performance.now();
+      function flingStep(now: number) {
+        const dt = now - lastFrameTime;
+        lastFrameTime = now;
+        v *= Math.pow(FLING_FRICTION, dt / 16);
+        ancestor.scrollBy({ left: -v * dt, behavior: "instant" });
+        if (Math.abs(v) > FLING_STOP_VELOCITY) {
+          flingRafId = requestAnimationFrame(flingStep);
+        } else {
+          flingRafId = null;
+          settleTo(ancestor);
+        }
+      }
+      flingRafId = requestAnimationFrame(flingStep);
+      activeCoverFlingCancel = () => {
+        cancelFling();
+        ancestor.style.scrollSnapType = "";
+      };
+    }
+
+    function handleTouchCancel() {
+      axis = null;
+      cancelFling();
+      if (snapDisabledOn) {
+        snapDisabledOn.style.scrollSnapType = "";
+        snapDisabledOn = null;
+      }
+    }
+
+    el.addEventListener("touchstart", handleTouchStart, { passive: true });
+    el.addEventListener("touchmove", handleTouchMove, { passive: false });
+    el.addEventListener("touchend", handleTouchEnd, { passive: true });
+    el.addEventListener("touchcancel", handleTouchCancel, { passive: true });
+    return () => {
+      el.removeEventListener("touchstart", handleTouchStart);
+      el.removeEventListener("touchmove", handleTouchMove);
+      el.removeEventListener("touchend", handleTouchEnd);
+      el.removeEventListener("touchcancel", handleTouchCancel);
+      cancelFling();
+    };
+  }, [elRef]);
+}
+
 interface ResultCardProps {
   entry: ResultEntry;
   selectedTags: string[];
@@ -91,8 +315,14 @@ export function ResultCard({
   // (no URL, or a URL that 404s/fails to decode) falls back to the same
   // flat --surface tint the tag area always had — see the JSX below.
   const [reflectionBroken, setReflectionBroken] = useState(false);
-  // Cover-area touch forwarder's own element ref — see the effect below.
+  // Touch-forwarder element refs — see useHorizontalTouchForward below.
+  // Two separate refs/hook calls, not one shared ref: the cover (FRONT) and
+  // the whole BACK face are two different DOM elements, and a swipe
+  // starting on either one needs to reach the carousel. An earlier version
+  // only wired this up on coverRef — confirmed live as a real bug: BACK
+  // never scrolled horizontally at all, since it never had a listener.
   const coverRef = useRef<HTMLDivElement>(null);
+  const backRef = useRef<HTMLDivElement>(null);
   const { series } = entry;
   // Recomputed live against the current tag selection on every render — not
   // taken from entry.score, which is frozen at whatever moment this card was
@@ -172,113 +402,14 @@ export function ResultCard({
   // media) — omit whichever part is missing instead of rendering "null".
   const meta = [series.year ?? "TBA", series.eps != null ? `${series.eps} EP` : null].filter(Boolean).join(" · ");
 
-  // Cover-area touch forwarder: manually drives the results carousel from a
-  // horizontal swipe that starts over the cover, instead of relying on the
-  // browser's own native touch-scroll chaining reaching it. Native chaining
-  // was tried thoroughly and confirmed, on a real device, to be a dead end
-  // for this 3D flip structure: touch-action explicitly restated at every
-  // level of the transform stack (auto, then pan-y on the article, then
-  // pan-y on the flip-container/BACK too) never got both faces scrolling
-  // reliably — pan-y fixed FRONT alone, then broke FRONT again once applied
-  // more broadly, and never fixed BACK at all. This handler doesn't depend
-  // on any of that: it drives the scroll itself, by hand, from raw touch
-  // coordinates.
-  //
-  // Same axis-lock shape as MixerBar's own touch handling
-  // (handleTouchStart/blockScrollThrough there): accumulate displacement
-  // from the gesture's start, decide the axis once a small noise threshold
-  // is cleared, hold that decision for the rest of the gesture. Below the
-  // threshold, this does nothing at all — no preventDefault, no
-  // scrollBy — so a plain tap never gets touched by this and tap-to-flip
-  // (the article's own onClick) keeps working exactly as before; a genuine
-  // vertical gesture (page scroll) that happens to start on the cover is
-  // left alone the same way, once locked "vertical".
-  //
-  // Once locked "horizontal", forwarding uses the *frame-to-frame* delta
-  // (current touch position vs. the previous move's position), not the
-  // gesture's cumulative total from start — a drag-to-scroll needs "how far
-  // did the finger move since the last frame," the same quantity a native
-  // touch-scroll would apply each frame; using the cumulative total instead
-  // would try to re-apply the whole gesture's distance on every single
-  // move event. Sign is negated (scrollBy({left: -frameDeltaX})): the
-  // finger moving left (frameDeltaX negative) should reveal content to the
-  // right, i.e. increase scrollLeft — content follows the finger, same
-  // direction native touch-scrolling already uses.
-  useEffect(() => {
-    if (!COVER_TOUCH_FORWARD_ENABLED) return;
-    const el = coverRef.current;
-    if (!el) return;
-
-    let axis: "horizontal" | "vertical" | null = null;
-    let startX = 0;
-    let startY = 0;
-    let lastX = 0;
-    let snapDisabledOn: HTMLElement | null = null;
-    const AXIS_LOCK_NOISE_PX = 3;
-
-    function handleTouchStart(e: TouchEvent) {
-      const t = e.touches[0];
-      axis = null;
-      startX = t.clientX;
-      startY = t.clientY;
-      lastX = t.clientX;
-    }
-
-    function handleTouchMove(e: TouchEvent) {
-      const t = e.touches[0];
-      const dx = t.clientX - startX;
-      const dy = t.clientY - startY;
-
-      if (axis === null && (Math.abs(dx) > AXIS_LOCK_NOISE_PX || Math.abs(dy) > AXIS_LOCK_NOISE_PX)) {
-        axis = Math.abs(dx) > Math.abs(dy) ? "horizontal" : "vertical";
-      }
-      if (axis !== "horizontal") return;
-
-      const horizontalAncestor = el!.closest("[data-scroll-fade-area-horizontal]") as HTMLElement | null;
-      const frameDeltaX = t.clientX - lastX;
-      lastX = t.clientX;
-      if (!horizontalAncestor) return;
-      e.preventDefault();
-      // Disable scroll-snap-type for the duration of this drag, same
-      // reason and same mechanism as the wheel forwarder's identical fix in
-      // ScrollFadeArea.tsx (see its own comment) — without it, every
-      // forwarded scrollBy lands on a non-snap resting position and gets
-      // immediately corrected to the *next full snap point*, regardless of
-      // how small the per-frame amount was, which is what actually caused
-      // "jumps multiple cards" (not the forwarded amount itself). Touch has
-      // a real gesture-end event (touchend/touchcancel below), so this can
-      // restore it precisely there instead of needing a debounced timer
-      // the way wheel does.
-      horizontalAncestor.style.scrollSnapType = "none";
-      snapDisabledOn = horizontalAncestor;
-      // behavior: "instant", not "auto" — same reason as the wheel
-      // forwarder's identical fix in ScrollFadeArea.tsx (see its own
-      // comment): the carousel carries scroll-smooth from the snap-release
-      // easing fix, so "auto" would defer to that CSS and animate each
-      // tiny per-frame forward instead of applying it immediately, which a
-      // rapid touchmove stream would turn into stutter/near-no-movement.
-      horizontalAncestor.scrollBy({ left: -frameDeltaX, behavior: "instant" });
-    }
-
-    function handleTouchEnd() {
-      axis = null;
-      if (snapDisabledOn) {
-        snapDisabledOn.style.scrollSnapType = "";
-        snapDisabledOn = null;
-      }
-    }
-
-    el.addEventListener("touchstart", handleTouchStart, { passive: true });
-    el.addEventListener("touchmove", handleTouchMove, { passive: false });
-    el.addEventListener("touchend", handleTouchEnd, { passive: true });
-    el.addEventListener("touchcancel", handleTouchEnd, { passive: true });
-    return () => {
-      el.removeEventListener("touchstart", handleTouchStart);
-      el.removeEventListener("touchmove", handleTouchMove);
-      el.removeEventListener("touchend", handleTouchEnd);
-      el.removeEventListener("touchcancel", handleTouchEnd);
-    };
-  }, []);
+  // Touch forwarder for both faces — see useHorizontalTouchForward's own
+  // top comment (below, module scope) for the full mechanism/rationale.
+  // Two calls, not one: the cover (FRONT) and the whole BACK face are two
+  // different DOM elements, and a swipe starting on either needs to reach
+  // the carousel — confirmed live as a real bug when this was only wired
+  // up on coverRef: BACK never scrolled horizontally at all.
+  useHorizontalTouchForward(coverRef);
+  useHorizontalTouchForward(backRef);
 
   return (
     <article
@@ -808,6 +939,7 @@ export function ResultCard({
             chaining either; the manual touch-forward handler is the real
             fix now. */}
         <div
+          ref={backRef}
           className={[
             "touch-auto absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] border-[length:var(--border-base)] border-[var(--ink)] overflow-hidden flex flex-col transition-opacity duration-200 bg-[var(--fill)] shadow-[var(--elev-4)]",
             flipped ? "opacity-100 pointer-events-auto z-[var(--z-raised)]" : "opacity-0 pointer-events-none z-[var(--z-base)]",
