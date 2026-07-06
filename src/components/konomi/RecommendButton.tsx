@@ -1,6 +1,7 @@
 import { DEFAULT_ACCENT } from "@/lib/konomi/config";
 import type { MixerError } from "@/lib/konomi/types";
 import { ActionButton } from "./ActionButton";
+import { ArrowRightFilledIcon } from "./icons";
 
 const STAR_CLIP = "[clip-path:polygon(50%_0,61%_35%,98%_35%,68%_57%,79%_91%,50%_70%,21%_91%,32%_57%,2%_35%,39%_35%)]";
 
@@ -94,14 +95,28 @@ export function RecommendButton({ filledCount, onRecommend, error }: RecommendBu
             is this button's own one-off, layered on top via `className` — it
             needs to paint above the star layers behind it, which no other
             ActionButton caller needs. */}
+        {/* Icon-only below min-[640px] — bisected live against MixerBar's
+            own controls row: at full text, the row first wraps into 2
+            lines somewhere in the 500-630px band (noisy, not a single
+            clean threshold — other responsive bits, e.g. "Min Tag Match"'s
+            own @480px label toggle, interact with it), and stays wrapped
+            all the way down. 640px sits safely above that whole noisy
+            range, confirmed one-line there with full text; the icon form
+            is narrow enough that it keeps the row on one line all the way
+            down to the smallest realistic width. aria-label carries the
+            accessible name unconditionally (not just below 640px) since a
+            CSS breakpoint can't toggle an ARIA attribute at runtime — one
+            static label covers both visual forms. */}
         <ActionButton
           variant="accent"
           accentColor={accent}
           disabled={!enabled}
           onClick={onRecommend}
+          aria-label="Recommend"
           className="relative z-[var(--z-raised)]"
         >
-          RECOMMEND ▸
+          <span className="hidden min-[640px]:inline">RECOMMEND ▸</span>
+          <ArrowRightFilledIcon className="min-[640px]:hidden" />
         </ActionButton>
         {error && (
           // --primary-deep, not --secondary: a bold, high-contrast variant

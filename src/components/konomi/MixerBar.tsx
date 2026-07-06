@@ -702,23 +702,36 @@ export function MixerBar({
               two independent flex-wrap items — confirmed live this was a
               real bug otherwise: flex-wrap breaks strictly by available
               width per top-level item, with no concept of "keep these two
-              together," so at some widths (500px, confirmed) Tag Pool
-              stayed on Random/Clear's line while RECOMMEND alone wrapped
-              to the next one, splitting a pair that reads as one unit
-              (Tag Pool opens the editor RECOMMEND then acts on). Nesting
-              them in one wrapper makes the *pair* the flex-wrap unit —
-              either both fit on the current line or both move to the next
-              one together, never split apart or merged into Random/Clear's
-              group.
-              The breathing-room margin (`min-[686px]:max-[993px]:
-              ml-[space-lg]`, for the element right after the divider) and
-              the wraps-alone right-alignment (`max-[674px]:ml-auto`) both
-              move to this outer wrapper accordingly — same two numbers as
-              before (686px/674px/993px, still tied to the same external
-              breakpoints — see DESIGN_SYSTEM.md's "Divider and RECOMMEND-
-              wrap thresholds"), just now guarding the pair as a whole
-              rather than guarding RECOMMEND alone. */}
-          <div className="flex items-center gap-[var(--space-lg)] min-[686px]:max-[993px]:ml-[var(--space-lg)] max-[674px]:ml-auto">
+              together," so at some widths Tag Pool stayed on Random/Clear's
+              line while RECOMMEND alone wrapped to the next one, splitting
+              a pair that reads as one unit (Tag Pool opens the editor
+              RECOMMEND then acts on). Nesting them in one wrapper makes the
+              *pair* the flex-wrap unit — either both fit on the current
+              line or both move to the next one together, never split apart
+              or merged into Random/Clear's group.
+
+              The wraps-alone right-alignment (`ml-auto`) threshold was
+              674px, but that number went stale once RECOMMEND gained its
+              own icon-only fallback below 640px (see RecommendButton.tsx) —
+              the icon form is so much narrower that the row stopped
+              needing to wrap into 2 lines at all through most of the old
+              674-993 range, yet this wrapper's `ml-auto` was still keyed to
+              674px and kept firing anyway. That's a real, confirmed-live
+              bug, not a hypothetical: with the row genuinely back to one
+              line but this `ml-auto` still active, it competed with Random/
+              Clear's own `ml-auto` for the *same* line's leftover space —
+              CSS splits available space evenly across every auto-margin
+              sharing a line, so both groups visibly got pulled toward the
+              row's center instead of docking at the right edge (same
+              failure mode DESIGN_SYSTEM.md's "Divider and RECOMMEND-wrap
+              thresholds" already documents for the pre-grouping version of
+              this exact bug). Re-bisected live against the *current*
+              (icon-Recommend) content: one line down to 474px, wraps at
+              473px — that's the new number, replacing the stale 674.
+              min-[686px]:max-[993px]:ml-[space-lg] (breathing room right
+              after the divider disappears) is untouched — unaffected by
+              the Recommend-icon change, still correct. */}
+          <div className="flex items-center gap-[var(--space-lg)] min-[686px]:max-[993px]:ml-[var(--space-lg)] max-[474px]:ml-auto">
             <div>
               {/* min-[993px] icon-below/text-at-desktop split, same as
                   Random/Clear above. Icon-only in both states, not text in

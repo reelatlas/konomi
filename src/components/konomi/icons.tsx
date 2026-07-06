@@ -230,3 +230,18 @@ export function CheckIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+// A solid filled triangle (play-button shape), not a thin chevron outline —
+// RecommendButton's own icon-only fallback below the width where
+// "RECOMMEND ▸" no longer fits alongside the rest of MixerBar's controls
+// row on one line (see that component's own comment). Filled rather than
+// stroked specifically to match the weight of the "▸" glyph it replaces —
+// a thin 2-line chevron was tried first and read as visually thinner/
+// weaker than the bold triangle it's standing in for.
+export function ArrowRightFilledIcon({ className }: IconProps) {
+  return (
+    <svg className={className} width="15" height="15" viewBox="0 0 24 24">
+      <path d="M7 4v16l14-8Z" fill="currentColor" />
+    </svg>
+  );
+}

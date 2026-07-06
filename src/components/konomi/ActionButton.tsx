@@ -12,6 +12,12 @@ interface ActionButtonProps {
   size?: ActionButtonSize;
   disabled?: boolean;
   onClick?: () => void;
+  // Only needed by callers whose visible children can be icon-only at some
+  // breakpoint (RecommendButton, below a certain width) — a hidden/CSS-only
+  // child contributes nothing to the button's accessible name, so those
+  // callers need an explicit one. Every other caller's children stay
+  // visible text at all times and doesn't need this.
+  "aria-label"?: string;
   // For one-off, caller-specific extras that aren't a general "action
   // button" concern — e.g. RecommendButton's own `relative z-[var(--z-raised)]`
   // for its star-layer stacking. Appended after the variant/size classes so
@@ -41,7 +47,7 @@ const SIZE_CLASSES: Record<ActionButtonSize, string> = {
 // disables, but this keeps Random/Clear's own disabled treatment defined
 // and consistent for whenever (if ever) they need one, rather than a second
 // disabled code path only accent variants get.
-export function ActionButton({ variant, accentColor, size = "md", disabled, onClick, className, children }: ActionButtonProps) {
+export function ActionButton({ variant, accentColor, size = "md", disabled, onClick, "aria-label": ariaLabel, className, children }: ActionButtonProps) {
   const variantClasses = disabled
     ? "bg-[var(--disabled-bg)] text-[var(--disabled-text)] shadow-none cursor-not-allowed"
     : {
@@ -64,6 +70,7 @@ export function ActionButton({ variant, accentColor, size = "md", disabled, onCl
       type="button"
       onClick={onClick}
       disabled={disabled}
+      aria-label={ariaLabel}
       className={[
         "border-[length:var(--border-base)] border-[var(--ink)] font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap",
         SIZE_CLASSES[size],
