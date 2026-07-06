@@ -15,10 +15,62 @@ const HINTS: Record<MatchKey, string> = {
 interface MatchSelectorProps {
   value: MatchKey;
   onChange: (key: MatchKey) => void;
+  // Final responsive step, driven entirely by the caller (MixerBar renders
+  // two full sibling instances — one plain, one collapsed=true — each
+  // hidden/shown via its own max-[451px] viewport class, same dual-render
+  // idiom as Random/Clear's icon⇄text swap). Collapsed swaps the 3-segment
+  // row for one button showing just the active value, tapping cycles
+  // 1→2→3→1 — shortest possible width, no chevrons.
+  collapsed?: boolean;
 }
 
-export function MatchSelector({ value, onChange }: MatchSelectorProps) {
+function nextMatch(key: MatchKey): MatchKey {
+  return OPTIONS[(OPTIONS.indexOf(key) + 1) % OPTIONS.length];
+}
+
+export function MatchSelector({ value, onChange, collapsed }: MatchSelectorProps) {
   const [hovered, setHovered] = useState<MatchKey | null>(null);
+  // Collapsed's own reveal state, separate from `hovered` above — that one
+  // tracks *which segment* is being previewed among 3 (a hover-preview of a
+  // value that isn't necessarily active yet); collapsed has only one button
+  // showing the live active value, so there's nothing to distinguish by key.
+  // A plain boolean plus reading HINTS[value] directly (not a captured
+  // snapshot) is what makes the hint auto-advance on every click: onFocus
+  // and onClick fire from the same tap and land in the same React batch, so
+  // by the time this renders, `value` is already the newly-cycled one —
+  // each subsequent tap (already focused, onFocus doesn't refire) still
+  // updates the hint because it's derived from `value`, not stored. Same
+  // onFocus/onBlur show/dismiss wiring as the lock icon's already-working
+  // mobile tap-hint (ResultCard.tsx) — tap shows it, tap elsewhere blurs it.
+  const [shown, setShown] = useState(false);
+
+  if (collapsed) {
+    return (
+      <div className="relative flex border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-2)]">
+        <button
+          type="button"
+          aria-label={HINTS[value]}
+          onClick={() => onChange(nextMatch(value))}
+          onMouseEnter={() => setShown(true)}
+          onMouseLeave={() => setShown(false)}
+          onFocus={() => setShown(true)}
+          onBlur={() => setShown(false)}
+          className="py-[var(--space-md)] px-[var(--space-lg)] border-0 cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] bg-[var(--primary)] text-[var(--surface)]"
+        >
+          {value}
+        </button>
+        <span
+          aria-hidden={!shown}
+          className={[
+            "absolute top-full left-0 mt-[var(--space-sm)] whitespace-nowrap font-mono text-[length:var(--text-xs)] text-[var(--subtext)] transition-opacity duration-150",
+            shown ? "opacity-100" : "opacity-0",
+          ].join(" ")}
+        >
+          {shown ? HINTS[value] : ""}
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-2)]">

@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import type { ResultEntry, TagInfo } from "@/lib/konomi/types";
 import { ResultCard } from "./ResultCard";
 import { ScrollFadeArea } from "./ScrollFadeArea";
@@ -46,6 +46,18 @@ export function RecommendationsBody({
 }: RecommendationsBodyProps) {
   const level = useLevel();
   const sort = useSort();
+  // Which grid position just had its card swapped, so the brand-new
+  // ResultCard instance that mounts there can seed its own hoveredIcon
+  // state to "swap" (see ResultCard's own startWithSwapHint comment) —
+  // confirmed live as a real bug otherwise: ResultCard keys each card by
+  // series.title (see the map below), and swap replaces that title, so
+  // React tears down the old instance and mounts a brand new one for the
+  // new series — resetting ResultCard's own local hoveredIcon state along
+  // with it, unlike lock (which never changes the title, so the same
+  // instance and its state persist across a toggle). Indexed by grid
+  // position, not title — the whole point is surviving a title change at
+  // the same slot, which a title-keyed tracker couldn't do by definition.
+  const [justSwappedIndex, setJustSwappedIndex] = useState<number | null>(null);
   // ScrollFadeArea (horizontal orientation) now owns the scroll/fade/arrow
   // mechanics here — the same primitive the Tag Pool's section tab strip
   // uses (SectionTabStrip.tsx) — via getScrollStep/scrollResetKey/arrow*
@@ -348,7 +360,7 @@ export function RecommendationsBody({
                   it) is a legitimate resting position again — confirmed
                   live this keeps scrollLeft at 0 at rest. */}
               <div aria-hidden className="hidden max-[1152px]:block max-[1152px]:w-[6px] flex-none [scroll-snap-align:start]" />
-              {results.map((entry) => (
+              {results.map((entry, index) => (
                 <ResultCard
                   key={entry.series.title}
                   entry={entry}
@@ -360,7 +372,16 @@ export function RecommendationsBody({
                   canSwap={canSwap}
                   onFlip={onFlip}
                   onToggleLock={onToggleLock}
-                  onReplace={onReplace}
+                  // Notes which grid position initiated the swap (see
+                  // justSwappedIndex's own comment above) before actually
+                  // performing it, so the brand-new instance that mounts
+                  // here already knows to seed its hint on its very first
+                  // render.
+                  onReplace={(title) => {
+                    setJustSwappedIndex(index);
+                    onReplace(title);
+                  }}
+                  startWithSwapHint={justSwappedIndex === index}
                   onChipToggle={onChipToggle}
                   tagInfoByName={tagInfoByName}
                   totalSeriesCount={totalSeriesCount}

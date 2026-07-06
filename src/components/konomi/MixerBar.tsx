@@ -678,7 +678,7 @@ export function MixerBar({
             <div ref={filtersScrollRef} className="min-w-0 w-fit -mb-[26px] -mr-[4px]">
               <ScrollFadeArea orientation="horizontal" scrollStep={140} fadeSize={12} fitContent>
                 <div className="flex items-center gap-[var(--space-lg)] flex-nowrap pb-[26px] pr-[4px]">
-                  <div className="flex items-center gap-[var(--space-sm)] shrink-0">
+                  <div className="@max-[352px]:hidden flex items-center gap-[var(--space-sm)] shrink-0">
                     {/* hidden @min-[480px]:inline — same breakpoint Row 3's
                         own "Min Tag Match" label already uses in this same
                         bar, not a new one bisected for this row. No JS
@@ -693,6 +693,23 @@ export function MixerBar({
                     </span>
                     <TagIcon className="text-[var(--ink)]" />
                     <LevelSelector value={level} onChange={onLevelChange} />
+                  </div>
+                  {/* Collapsed final step — two full sibling forms, same
+                      dual-render idiom as Row 3's Min Tag Match above, just
+                      container- rather than viewport-scoped (this row keys
+                      its own label-hide off @min-[480px] already, not a
+                      viewport query). @max-[352px] (not 351 — Tailwind's
+                      @max-[Npx] compiles to "not (min-width: Npx)", strictly
+                      narrower than N, so 352 is what actually fires at
+                      351px and below) is Row 3's own live-bisected 452/451px
+                      wrap threshold translated to this container's content-
+                      box (a fixed, confirmed 100px offset from viewport
+                      width at every width tested) — same step-down point,
+                      expressed as this row's own query type rather than a
+                      fresh guess. */}
+                  <div className="hidden @max-[352px]:flex items-center gap-[var(--space-sm)] shrink-0">
+                    <TagIcon className="text-[var(--ink)]" />
+                    <LevelSelector value={level} onChange={onLevelChange} collapsed />
                   </div>
                   <div className="flex items-center gap-[var(--space-sm)] shrink-0">
                     <span className="hidden @min-[480px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
@@ -872,7 +889,15 @@ export function MixerBar({
             this row still a labeled text button, deliberately: it's the
             hero action, not icon-ified alongside the others. */}
         <div className="flex flex-wrap items-center gap-x-[var(--space-lg)] gap-y-[var(--space-lg)]">
-          <div className="flex items-center gap-[var(--space-sm)]">
+          {/* Two full sibling forms, not one component branching internally
+              — same dual-render idiom as Random/Clear below. This row's own
+              live-bisected wrap threshold is fits-at-452px/wraps-at-451px;
+              Tailwind's max-[Npx] compiles to "not (min-width: Npx)" — i.e.
+              strictly narrower than N, not "N and below" — so max-[452px]
+              (not 451) is what actually fires at 451px and below. The
+              collapse engages exactly where the row would otherwise wrap,
+              not a guessed number. */}
+          <div className="max-[452px]:hidden flex items-center gap-[var(--space-sm)]">
             <span className="hidden @min-[480px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
               Min Tag Match
             </span>
@@ -885,6 +910,11 @@ export function MixerBar({
             <TagIcon className="max-[474px]:hidden text-[var(--ink)]" />
             <GreaterEqualIcon className="text-[var(--ink)]" />
             <MatchSelector value={minMatch} onChange={onSetMatch} />
+          </div>
+          <div className="hidden max-[452px]:flex items-center gap-[var(--space-sm)]">
+            <TagIcon className="text-[var(--ink)]" />
+            <GreaterEqualIcon className="text-[var(--ink)]" />
+            <MatchSelector value={minMatch} onChange={onSetMatch} collapsed />
           </div>
           {/* Random/Clear render as icon buttons below min-[993px] (the
               same breakpoint the divider right after this group already

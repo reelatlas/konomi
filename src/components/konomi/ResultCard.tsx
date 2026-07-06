@@ -57,6 +57,14 @@ interface ResultCardProps {
   totalSeriesCount: number;
   level: LevelKey;
   sort: SortKey;
+  // True for exactly the first render of the brand-new instance mounted
+  // right after a swap replaced this grid slot's series (see
+  // RecommendationsBody's own justSwappedIndex comment for why a new
+  // instance mounts at all). Seeds hoveredIcon (below) so the swap hint
+  // shows immediately, matching lock's own tap-to-show UX — lock never
+  // needs this since toggling it never changes series.title, so the same
+  // instance and its state persist across that toggle already.
+  startWithSwapHint?: boolean;
 }
 
 export function ResultCard({
@@ -75,8 +83,12 @@ export function ResultCard({
   totalSeriesCount,
   level,
   sort,
+  startWithSwapHint,
 }: ResultCardProps) {
-  const [hoveredIcon, setHoveredIcon] = useState<"lock" | "swap" | null>(null);
+  // Lazy initializer — only runs on this instance's actual first render, so
+  // a later re-render with a still-true startWithSwapHint prop (harmless
+  // leftover in the parent, see its own comment) can't re-trigger this.
+  const [hoveredIcon, setHoveredIcon] = useState<"lock" | "swap" | null>(() => (startWithSwapHint ? "swap" : null));
   // Separate from `hasImage` below — that only tells us a URL exists, not
   // that it actually decoded. Scoped to just the reflection's own <Image>
   // instance (not the sharp cover's), so a failure here can't affect
@@ -334,6 +346,16 @@ export function ResultCard({
                 size="sm"
                 aria-label={swapHint ?? "swap"}
                 aria-disabled={swapDisabled}
+                // autoFocus, tied to startWithSwapHint (only ever true on
+                // this exact instance's first render — see hoveredIcon's
+                // own comment): setting the STATE to "swap" alone isn't
+                // enough to make "tap elsewhere dismisses it" work, since
+                // this is a brand-new DOM node that was never actually
+                // focused — the existing onBlur below only fires for an
+                // element that HAD focus and lost it. Actually focusing it
+                // natively here is what makes that same onBlur correctly
+                // dismiss the hint later, exactly like lock's already does.
+                autoFocus={startWithSwapHint}
                 onClick={(e) => {
                   e.stopPropagation();
                   // aria-disabled, not the native disabled attribute — a

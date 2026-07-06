@@ -5,6 +5,21 @@ import type { LevelKey } from "@/lib/konomi/types";
 interface LevelSelectorProps {
   value: LevelKey;
   onChange: (key: LevelKey) => void;
+  // Final responsive step, driven entirely by the caller (MixerBar renders
+  // two full sibling instances — one plain, one collapsed=true — each
+  // hidden/shown via its own @max-[351px] container-query class, same
+  // dual-render idiom as Random/Clear's icon⇄text swap, just container-
+  // rather than viewport-scoped since this row already keys its own
+  // label-hide off a container query). Collapsed swaps the 3-segment row
+  // for one button hugging the active word's own width (unlike
+  // MatchSelector's fixed-width digit, these labels vary in length), tap
+  // cycles Casual→Seasoned→Otaku→Casual.
+  collapsed?: boolean;
+}
+
+function nextLevel(key: LevelKey): LevelKey {
+  const i = LEVEL_OPTIONS.findIndex((o) => o.key === key);
+  return LEVEL_OPTIONS[(i + 1) % LEVEL_OPTIONS.length].key;
 }
 
 // Same segmented-button structure as MatchSelector/SortSelect — a separate
@@ -15,9 +30,52 @@ interface LevelSelectorProps {
 // same pattern ThemeSwitcher's swatches use — not a native `title` tooltip
 // (hence `aria-label`, not `title`, on each button) and not a single shared
 // line for just the active option.
-export function LevelSelector({ value, onChange }: LevelSelectorProps) {
+export function LevelSelector({ value, onChange, collapsed }: LevelSelectorProps) {
   const [hovered, setHovered] = useState<LevelKey | null>(null);
   const hoveredOption = LEVEL_OPTIONS.find((o) => o.key === hovered);
+  const activeOption = LEVEL_OPTIONS.find((o) => o.key === value)!;
+  // Collapsed's own reveal state, separate from `hovered` above — that one
+  // tracks *which segment* is being previewed among 3 (a hover-preview of a
+  // value that isn't necessarily active yet); collapsed has only one button
+  // showing the live active option, so there's nothing to distinguish by
+  // key. A plain boolean plus reading activeOption directly (not a captured
+  // snapshot) is what makes the hint auto-advance on every click: onFocus
+  // and onClick fire from the same tap and land in the same React batch, so
+  // by the time this renders, `value`/activeOption is already the newly-
+  // cycled one — each subsequent tap (already focused, onFocus doesn't
+  // refire) still updates the hint because it's derived from `value`, not
+  // stored. Same onFocus/onBlur show/dismiss wiring as the lock icon's
+  // already-working mobile tap-hint (ResultCard.tsx) — tap shows it, tap
+  // elsewhere blurs it.
+  const [shown, setShown] = useState(false);
+
+  if (collapsed) {
+    return (
+      <div className="relative flex border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-2)]">
+        <button
+          type="button"
+          aria-label={activeOption.hint}
+          onClick={() => onChange(nextLevel(value))}
+          onMouseEnter={() => setShown(true)}
+          onMouseLeave={() => setShown(false)}
+          onFocus={() => setShown(true)}
+          onBlur={() => setShown(false)}
+          className="py-[var(--space-md)] px-[var(--space-lg)] border-0 cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] whitespace-nowrap bg-[var(--primary)] text-[var(--surface)]"
+        >
+          {activeOption.label}
+        </button>
+        <span
+          aria-hidden={!shown}
+          className={[
+            "absolute top-full left-0 mt-[var(--space-sm)] whitespace-nowrap font-mono text-[length:var(--text-xs)] text-[var(--subtext)] transition-opacity duration-150",
+            shown ? "opacity-100" : "opacity-0",
+          ].join(" ")}
+        >
+          {shown ? activeOption.hint : ""}
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-2)]">
