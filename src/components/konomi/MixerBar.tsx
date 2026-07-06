@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { LevelKey, MatchKey, MixerError, Slot, TagInfo } from "@/lib/konomi/types";
 import { ActionButton } from "./ActionButton";
-import { ArrowUpHalfIcon, ArrowUpIcon, CheckIcon, DiceIcon, EraserIcon, GreaterEqualIcon, ResetIcon, SortIcon, TagIcon, TagPoolIcon } from "./icons";
+import { ArrowDownIcon, ArrowUpHalfIcon, ArrowUpIcon, CheckIcon, DiceIcon, EraserIcon, GreaterEqualIcon, SortIcon, TagIcon, TagPoolIcon } from "./icons";
 import { IconButton } from "./IconButton";
 import { LevelSelector } from "./LevelSelector";
 import { MatchSelector } from "./MatchSelector";
@@ -677,7 +677,7 @@ export function MixerBar({
                   aria-label="Reset pool panel to default height"
                   onClick={handleResetPoolHeight}
                 >
-                  <ResetIcon className="text-[var(--muted)]" />
+                  <ArrowDownIcon className="text-[var(--muted)]" />
                 </IconButton>
               )}
             </div>
@@ -896,7 +896,16 @@ export function MixerBar({
               not icon-ified — hero action) whichever form is showing.
               backgroundColor on the icon buttons mirrors each one's
               ActionButton variant: Random is "filled" (bg-fill), Clear is
-              "outline" (bg-transparent) — same distinction, both forms. */}
+              "outline" (bg-transparent) — same distinction, both forms.
+
+              The label form now carries the same glyph too, label-then-
+              icon, not label-only — "Random ×3" keeps its "×3" (real
+              information: how many tags get randomized, not decorative)
+              and gains DiceIcon after it; "Clear ✕" drops its "✕" (that one
+              WAS purely decorative) in favor of the real EraserIcon in the
+              same trailing spot, so both buttons read "label, then the
+              icon this same action collapses to below 993px" instead of
+              introducing a third, unrelated glyph just for the wide form. */}
           <div className="ml-auto flex items-center gap-[var(--space-lg)]">
             <div className="min-[993px]:hidden flex items-center gap-[var(--space-lg)]">
               <IconButton
@@ -916,10 +925,16 @@ export function MixerBar({
             </div>
             <div className="hidden min-[993px]:flex items-center gap-[var(--space-lg)]">
               <ActionButton variant="filled" onClick={onRandomTags}>
-                Random ×3
+                <span className="inline-flex items-center gap-[var(--space-sm)]">
+                  Random ×3
+                  <DiceIcon className="text-[var(--ink)]" />
+                </span>
               </ActionButton>
               <ActionButton variant="outline" onClick={onClearSlots}>
-                Clear ✕
+                <span className="inline-flex items-center gap-[var(--space-sm)]">
+                  Clear
+                  <EraserIcon className="text-[var(--ink)]" />
+                </span>
               </ActionButton>
             </div>
           </div>
@@ -966,7 +981,18 @@ export function MixerBar({
                   rather than falling back to a text button for Done, so the
                   icon form reads as one consistent icon button regardless
                   of mode; the text form below mirrors that with its own
-                  "+ Tag Pool"/"Done ✓" swap, unchanged from before. */}
+                  "+ Tag Pool"/"Done ✓" swap, unchanged from before.
+
+                  Browse-mode label form only, not edit mode: "+ Tag Pool"
+                  drops its decorative "+" and gains TagPoolIcon after the
+                  text, label-then-icon like Random/Clear above — the same
+                  glyph the icon-only form below 993px already uses, not a
+                  new one just for this width. "Done ✓" is left exactly as
+                  it was — explicitly NOT given the bigger CheckIcon
+                  component alongside its label; that swap only happens in
+                  the icon-only form, where CheckIcon *is* the whole
+                  button's content rather than sitting beside text sized
+                  for it. */}
               <div className="min-[993px]:hidden">
                 <IconButton
                   size="md"
@@ -982,7 +1008,14 @@ export function MixerBar({
               </div>
               <div className="hidden min-[993px]:block">
                 <ActionButton variant="outline" onClick={editMode ? onCloseEditMode : onOpenEditMode}>
-                  {editMode ? "Done ✓" : "+ Tag Pool"}
+                  {editMode ? (
+                    "Done ✓"
+                  ) : (
+                    <span className="inline-flex items-center gap-[var(--space-sm)]">
+                      Tag Pool
+                      <TagPoolIcon className="text-[var(--ink)]" />
+                    </span>
+                  )}
                 </ActionButton>
               </div>
             </div>
