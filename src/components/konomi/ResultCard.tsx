@@ -31,6 +31,16 @@ const COVER_HEIGHT_PX = 295;
 const REFLECTION_BLUR_CONTINUATION_PX = 0;
 const REFLECTION_BLUR_REFLECTED_PX = 1;
 
+// BACK face's own full-bleed cover fill: a blurred copy of the cover as
+// BACK's background, mounted directly on BACK's own div (see its JSX
+// below) so it flips with the card. Gentle blur (detail would otherwise
+// still show through a sharper one) and a fairly high opacity — BACK's own
+// content (the WATCH ON header and stream list) still has to read on top
+// of it.
+const BACK_FILL_BLUR_PX = 10;
+const BACK_FILL_OPACITY = 0.9;
+const BACK_FILL_SCALE_DOWN = 4;
+
 interface ResultCardProps {
   entry: ResultEntry;
   selectedTags: string[];
@@ -215,10 +225,9 @@ export function ResultCard({
           flipped ? "[transform:rotateY(180deg)]" : "[transform:rotateY(0deg)]",
         ].join(" ")}
       >
-        {/* FRONT */}
         <div
           className={[
-            "absolute inset-0 [backface-visibility:hidden] border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-4)] overflow-hidden flex flex-col transition-opacity duration-200 bg-[var(--surface)]",
+            "absolute inset-0 [backface-visibility:hidden] border-[length:var(--border-base)] border-[var(--ink)] overflow-hidden flex flex-col transition-opacity duration-200 bg-[var(--surface)] shadow-[var(--elev-4)]",
             flipped ? "opacity-0 pointer-events-none z-[var(--z-base)]" : "opacity-100 pointer-events-auto z-[var(--z-raised)]",
           ].join(" ")}
         >
@@ -645,18 +654,49 @@ export function ResultCard({
           </div>
         </div>
 
-        {/* BACK */}
+        {/* BACK — the old dot-pattern bg is replaced by the full-bleed
+            blurred cover fill below. bg-[var(--fill)] stays as the base
+            color — the fallback for hasImage-false/broken cards, and
+            whatever shows through before the fill image loads. */}
         <div
           className={[
-            "absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-4)] overflow-hidden flex flex-col transition-opacity duration-200 bg-[var(--fill)] bg-[radial-gradient(var(--muted)_1.4px,transparent_1.5px)] [background-size:8px_8px]",
+            "absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] border-[length:var(--border-base)] border-[var(--ink)] overflow-hidden flex flex-col transition-opacity duration-200 bg-[var(--fill)] shadow-[var(--elev-4)]",
             flipped ? "opacity-100 pointer-events-auto z-[var(--z-raised)]" : "opacity-0 pointer-events-none z-[var(--z-base)]",
           ].join(" ")}
         >
-          <div className="bg-[var(--primary)] text-[var(--secondary)] font-display text-[length:var(--text-lg)] tracking-[var(--tracking-md)] px-[var(--space-lg)] py-[var(--space-md)] border-b-[length:var(--border-base)] border-b-[var(--ink)] uppercase flex gap-[var(--space-md)] items-baseline">
+          {/* Full-bleed cover fill — own BACK_FILL_* constants (see their
+              own comment). Plain inset-0, no offset/translate: fills the
+              WHOLE face. */}
+          {hasImage && !reflectionBroken && (
+            <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ opacity: BACK_FILL_OPACITY }}>
+              <div
+                className="absolute inset-0"
+                style={{
+                  width: `${100 / BACK_FILL_SCALE_DOWN}%`,
+                  height: `${100 / BACK_FILL_SCALE_DOWN}%`,
+                  transformOrigin: "top left",
+                  transform: `scale(${BACK_FILL_SCALE_DOWN})`,
+                }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element -- plain <img>, blurred well past next/image's own optimized sizes mattering, sharing the sharp cover's cached URL */}
+                <img
+                  src={series.coverImageUrl as string}
+                  alt=""
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    filter: `blur(${BACK_FILL_BLUR_PX / BACK_FILL_SCALE_DOWN}px)`,
+                  }}
+                />
+              </div>
+            </div>
+          )}
+          <div className="relative bg-[var(--primary)] text-[var(--secondary)] font-display text-[length:var(--text-lg)] tracking-[var(--tracking-md)] px-[var(--space-lg)] py-[var(--space-md)] border-b-[length:var(--border-base)] border-b-[var(--ink)] uppercase flex gap-[var(--space-md)] items-baseline">
             WATCH ON
             <span className="font-body font-bold text-[length:var(--text-base)] text-[var(--on-primary)]">配信</span>
           </div>
-          <div className="px-[var(--space-lg)] py-[var(--space-lg)] flex flex-col gap-[var(--space-md)] flex-1 overflow-hidden">
+          <div className="relative px-[var(--space-lg)] py-[var(--space-lg)] flex flex-col gap-[var(--space-md)] flex-1 overflow-hidden">
             {streams.map((name, di) => (
               <div
                 key={name}
