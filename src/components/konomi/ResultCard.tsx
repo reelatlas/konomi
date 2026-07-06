@@ -41,13 +41,12 @@ const BACK_FILL_BLUR_PX = 10;
 const BACK_FILL_OPACITY = 0.9;
 const BACK_FILL_SCALE_DOWN = 4;
 
-// TEMPORARILY DISABLED — testing whether touch-pan-y on the article alone
-// (see its own comment) is enough for native touch-scroll chaining to reach
-// the carousel from the cover, without this manual forwarder at all. If a
-// real device confirms native chaining now works: delete this constant and
-// the whole effect it gates below. If not: flip this back to true and keep
-// the manual forwarder.
-const COVER_TOUCH_FORWARD_ENABLED = false;
+// Confirmed on a real device: native touch-scroll chaining from the cover to
+// the carousel is a dead end for this 3D flip structure — touch-action:
+// pan-y (tried on the article, then also on the flip-container/BACK) broke
+// more than it fixed rather than completing the job. This manual forwarder
+// (below) is the real, permanent fix, not a fallback — always on.
+const COVER_TOUCH_FORWARD_ENABLED = true;
 
 interface ResultCardProps {
   entry: ResultEntry;
@@ -175,19 +174,15 @@ export function ResultCard({
 
   // Cover-area touch forwarder: manually drives the results carousel from a
   // horizontal swipe that starts over the cover, instead of relying on the
-  // browser's own native touch-scroll chaining reaching it. The cover box
-  // isn't a scroll container itself, so in principle a swipe over it should
-  // already fall through to the carousel with no help — and that's exactly
-  // what a synthetic touch test here showed. But on a real device it
-  // doesn't: confirmed live, swiping the cover still doesn't move the
-  // carousel, even with touch-action explicitly restated "auto" at every
-  // level of the 3D transform stack the cover sits inside (perspective on
-  // this article → preserve-3d/rotateY on the flip container → backface-
-  // visibility:hidden on this face) — a real-device-only compositor/hit-
-  // testing quirk our tooling can't reproduce to debug further. Doing the
-  // scroll ourselves, by hand, from raw touch coordinates sidesteps the
-  // question entirely: it doesn't depend on native chaining reaching the
-  // carousel at all.
+  // browser's own native touch-scroll chaining reaching it. Native chaining
+  // was tried thoroughly and confirmed, on a real device, to be a dead end
+  // for this 3D flip structure: touch-action explicitly restated at every
+  // level of the transform stack (auto, then pan-y on the article, then
+  // pan-y on the flip-container/BACK too) never got both faces scrolling
+  // reliably — pan-y fixed FRONT alone, then broke FRONT again once applied
+  // more broadly, and never fixed BACK at all. This handler doesn't depend
+  // on any of that: it drives the scroll itself, by hand, from raw touch
+  // coordinates.
   //
   // Same axis-lock shape as MixerBar's own touch handling
   // (handleTouchStart/blockScrollThrough there): accumulate displacement
@@ -346,43 +341,32 @@ export function ResultCard({
       // grid's own comment. Every card opts back in explicitly here, or
       // none of them would be clickable at all.
       //
-      // touch-pan-y (touch-action: pan-y) — TRIAL, unverified: this article
-      // is the actual carousel-scroll-participating element (snap-start,
-      // a direct child of the horizontal carousel) and is NOT itself
-      // 3D-transformed — only its child (the flip-container) is. The
-      // earlier touch-action trial restated "auto" on elements *inside*
-      // that 3D-transformed subtree (flip-container/FRONT/BACK) but never
-      // declared anything here, at the actual boundary between the
-      // carousel and the card, which on reflection is the more standard
-      // place to say it: pan-y is the textbook token for "this element
-      // only handles vertical panning itself; a horizontal gesture isn't
-      // mine, defer to my ancestor" — the normal fix for a nested-vertical-
-      // scroll-inside-horizontal-carousel, which this structurally is,
-      // 3D flip aside. Confirm on a real device whether this (rather than
-      // the manual touch-forward handler, gated off below while testing)
-      // is enough on its own.
-      className="touch-pan-y h-[var(--result-card-height)] [perspective:1100px] cursor-pointer pointer-events-auto max-[1152px]:flex-none max-[1152px]:snap-start min-[993px]:max-[1152px]:w-[22%] min-[741px]:max-[993px]:w-[30%] min-[501px]:max-[741px]:w-[46%] max-[501px]:w-[85%]"
+      // touch-action: no longer set here — pan-y was tried (see git
+      // history) and confirmed on a real device to break BOTH faces'
+      // native scroll chaining (front cover scroll stopped working, back
+      // never worked either), on top of already being confirmed
+      // insufficient on its own even where it partially helped. Native
+      // touch-scroll chaining to the carousel from either face is
+      // exhausted as an approach — the manual touch-forward handler below
+      // (COVER_TOUCH_FORWARD_ENABLED) is the real fix now, working
+      // independently of whatever touch-action/native-chaining behavior
+      // this element has, so there's nothing left for a touch-action
+      // override to usefully constrain here.
+      className="h-[var(--result-card-height)] [perspective:1100px] cursor-pointer pointer-events-auto max-[1152px]:flex-none max-[1152px]:snap-start min-[993px]:max-[1152px]:w-[22%] min-[741px]:max-[993px]:w-[30%] min-[501px]:max-[741px]:w-[46%] max-[501px]:w-[85%]"
     >
-      {/* touch-pan-y here (was touch-auto): confirmed on a real device that
-          touch-action: pan-y on the <article> alone fixed native touch-scroll
-          chaining for the FRONT face (cover swipes now reach the carousel),
-          but the BACK face stayed broken — plausibly because BACK carries
-          its OWN [transform:rotateY(180deg)] (see below), nesting a second
-          3D transform inside the flip-container's already-3D
-          preserve-3d/rotateY, doubly-transformed in a way FRONT (no
-          transform of its own, just backface-visibility:hidden) isn't.
-          article's own pan-y should already constrain this via touch-action's
-          ancestor intersection regardless of what's declared here (auto ∩
-          pan-y = pan-y already) — so if intersection alone isn't reaching
-          the doubly-transformed BACK correctly, restating pan-y explicitly
-          at this level, closer to the actual 3D-transformed elements, is the
-          next thing to try. FRONT's own declaration is left alone (still
-          "touch-auto" below) since it's already confirmed working and
-          doesn't need touching — this only changes the flip-container and
-          BACK. Revert to touch-auto here if this doesn't help either. */}
+      {/* touch-auto (touch-action: auto) here and on both faces below:
+          reverted from touch-pan-y — confirmed on a real device that
+          pan-y broke native touch-scroll chaining on BOTH faces (front
+          cover scroll stopped working, back never worked) rather than
+          completing the fix pan-y on the article alone had partially
+          started. Native touch-scroll chaining to the carousel from
+          either face is a dead end for this 3D flip structure; the manual
+          touch-forward handler below (COVER_TOUCH_FORWARD_ENABLED) is the
+          real fix. touch-auto is left here mostly as a harmless restatement
+          of the default, not load-bearing. */}
       <div
         className={[
-          "touch-pan-y relative w-full h-full [transform-style:preserve-3d] transition-transform duration-500 [transition-timing-function:cubic-bezier(.4,.2,.2,1)]",
+          "touch-auto relative w-full h-full [transform-style:preserve-3d] transition-transform duration-500 [transition-timing-function:cubic-bezier(.4,.2,.2,1)]",
           flipped ? "[transform:rotateY(180deg)]" : "[transform:rotateY(0deg)]",
         ].join(" ")}
       >
@@ -818,16 +802,14 @@ export function ResultCard({
         {/* BACK — the old dot-pattern bg is replaced by the full-bleed
             blurred cover fill below. bg-[var(--fill)] stays as the base
             color — the fallback for hasImage-false/broken cards, and
-            whatever shows through before the fill image loads.
-            touch-pan-y (was touch-auto) — see the flip-container's own
-            comment: this face carries its own rotateY(180deg) on top of the
-            flip-container's, a doubly-3D-transformed subtree FRONT isn't,
-            and is the specific thing that stayed broken on a real device
-            after touch-pan-y on the article alone fixed FRONT. Restating it
-            here too is the targeted fix being tried. */}
+            whatever shows through before the fill image loads. touch-auto
+            reverted from touch-pan-y (see the flip-container's own
+            comment) — pan-y here didn't fix this face's native scroll
+            chaining either; the manual touch-forward handler is the real
+            fix now. */}
         <div
           className={[
-            "touch-pan-y absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] border-[length:var(--border-base)] border-[var(--ink)] overflow-hidden flex flex-col transition-opacity duration-200 bg-[var(--fill)] shadow-[var(--elev-4)]",
+            "touch-auto absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] border-[length:var(--border-base)] border-[var(--ink)] overflow-hidden flex flex-col transition-opacity duration-200 bg-[var(--fill)] shadow-[var(--elev-4)]",
             flipped ? "opacity-100 pointer-events-auto z-[var(--z-raised)]" : "opacity-0 pointer-events-none z-[var(--z-base)]",
           ].join(" ")}
         >
