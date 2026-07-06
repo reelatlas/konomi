@@ -8,7 +8,7 @@ import { EASING_CURVES, easeToSnap, getNearestSnapLeft } from "@/lib/konomi/scro
 import { scrollTuning } from "@/lib/konomi/scrollTuning";
 import { isTagVisibleAtLevel, sortTags } from "@/lib/konomi/tagPool";
 import type { LevelKey, ResultEntry, SortKey, TagInfo } from "@/lib/konomi/types";
-import { DiceIcon, LockClosedIcon, LockOpenIcon } from "./icons";
+import { DiceIcon, FlipIcon, LockClosedIcon, LockOpenIcon } from "./icons";
 import { IconButton } from "./IconButton";
 import { ERROR_MESSAGE } from "./RecommendButton";
 import { TagScrollArea } from "./TagScrollArea";
@@ -285,6 +285,39 @@ function useHorizontalTouchForward(elRef: RefObject<HTMLDivElement | null>) {
   }, [elRef]);
 }
 
+// Whole-card tap-to-flip conflicted with native touch-scroll gestures
+// starting on the same element (cover/back) on a real device — confirmed
+// live, this is what actually blocked native scroll there, not the
+// overflow/scroll-container question explored earlier. Detects input type
+// via (pointer: coarse) — genuinely about the input device (a touchscreen),
+// not screen width/viewport size, which is what this needs: a touch laptop
+// at desktop width is still coarse; a resized desktop browser window is
+// still fine. Mobile (coarse) gets a dedicated flip button instead (see its
+// own JSX below) and loses whole-card tap; desktop (fine) is completely
+// unchanged — same onClick on the article as always.
+//
+// Starts false (matching what SSR renders, avoiding a hydration mismatch)
+// and corrects after mount — the brief window before that first effect run
+// where a touch device would still have the article's own tap-to-flip
+// wired is sub-frame and not something a user can actually act on in time,
+// same reasoning ScrollTuningPanel.tsx's own window-dependent check
+// already relies on. Also subscribes to the media query's own change
+// event, not just a one-time check on mount — a 2-in-1 device switching
+// between touch and mouse mid-session should be reflected without a full
+// reload.
+function useCoarsePointer(): boolean {
+  const [isCoarse, setIsCoarse] = useState(false);
+  useEffect(() => {
+    const mql = window.matchMedia("(pointer: coarse)");
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsCoarse(mql.matches);
+    const handleChange = (e: MediaQueryListEvent) => setIsCoarse(e.matches);
+    mql.addEventListener("change", handleChange);
+    return () => mql.removeEventListener("change", handleChange);
+  }, []);
+  return isCoarse;
+}
+
 interface ResultCardProps {
   entry: ResultEntry;
   selectedTags: string[];
@@ -336,6 +369,10 @@ export function ResultCard({
   // never scrolled horizontally at all, since it never had a listener.
   const coverRef = useRef<HTMLDivElement>(null);
   const backRef = useRef<HTMLDivElement>(null);
+  // See useCoarsePointer's own comment (module scope, above) for why this
+  // exists at all: mobile loses whole-card tap-to-flip in favor of a
+  // dedicated button (below), desktop keeps it unchanged.
+  const isCoarsePointer = useCoarsePointer();
   const { series } = entry;
   // Recomputed live against the current tag selection on every render — not
   // taken from entry.score, which is frozen at whatever moment this card was
@@ -433,7 +470,12 @@ export function ResultCard({
       // zone via a single closest() check, rather than special-casing each
       // control inside it. See MixerBar.tsx's own comment on the allowlist.
       data-result-card
-      onClick={() => onFlip(series.title)}
+      // undefined (not a no-op arrow function) on coarse pointers — the
+      // whole point is removing this as a tap target there at all, not
+      // just making it inert, so it doesn't shadow/compete with the
+      // dedicated flip button's own click for event-handling purposes.
+      // Desktop (fine pointer) is completely unchanged from before.
+      onClick={isCoarsePointer ? undefined : () => onFlip(series.title)}
       // h-[var(--result-card-height)], not a literal h-[421px]: shared with
       // RecommendationsSection's empty-state placeholder so the two can
       // never drift out of sync (see the token's own comment in
@@ -535,27 +577,18 @@ export function ResultCard({
             flipped ? "opacity-0 pointer-events-none z-[var(--z-base)]" : "opacity-100 pointer-events-auto z-[var(--z-raised)]",
           ].join(" ")}
         >
-          {/* overflow-y-auto overflow-x-hidden (was overflow-hidden) — TRIAL:
-              this box has no content that actually overflows either axis,
-              so this should be visually/behaviorally identical at rest
-              (auto only shows a scrollbar/enables scrolling when there's
-              real overflow — there isn't). The point is purely to make
-              this a genuine scroll container, putting it on the same
-              native touch-chaining fast path the tag area's own vertical
-              scroller already uses — confirmed on a real device that
-              plain overflow:hidden boxes (this, and BACK) don't get touch
-              gestures chained to the carousel, while the tag area (a real
-              scroll container) does. This was tried once before and
-              reverted — it broke wheel-over-cover at the time — but that
-              was before the perspective-relocation fix (see the article's
-              own comment), which appears to have fixed the same
-              underlying native-chaining issue for wheel too; retesting
-              now that the earlier blocker may no longer apply. Watch: any
-              content here tall enough to genuinely overflow 295px (the
-              hover-hint chip, if it ever wrapped enough) would now show a
-              thin scrollbar instead of silently clipping — a minor,
-              unlikely-to-hit cosmetic difference, not a functional one. */}
-          <div ref={coverRef} className="relative h-[295px] border-b-[length:var(--border-base)] border-b-[var(--ink)] bg-[var(--fill)] overflow-y-auto overflow-x-hidden">
+          {/* Reverted back to plain overflow-hidden — the overflow-y-auto
+              trial (making this a genuine, if empty, scroll container to
+              get onto the tag area's own native touch-chaining fast path)
+              turned out not to be the fix: confirmed on a real device that
+              the real conflict was whole-card tap-to-flip competing with
+              the touch-scroll gesture on the same element, not this box's
+              overflow value. With tap-to-flip moved to the dedicated
+              mobile button below (see useCoarsePointer's own comment) and
+              the cover no longer a tap target on coarse pointers, plain
+              overflow-hidden is no longer suspected of blocking anything,
+              so there's no reason to keep the scroll-container trial. */}
+          <div ref={coverRef} className="relative h-[295px] border-b-[length:var(--border-base)] border-b-[var(--ink)] bg-[var(--fill)] overflow-hidden">
             {hasImage ? (
               <Image
                 src={series.coverImageUrl as string}
@@ -665,6 +698,31 @@ export function ResultCard({
                 </span>
               )}
             </div>
+            {/* Mobile-only flip trigger — see useCoarsePointer's own
+                comment for why this exists at all. A separate, absolutely
+                positioned element (not a third item in the lock/swap row
+                above) so it doesn't disturb that row's own flex layout —
+                top-right specifically, opposite the lock/swap row's
+                top-left, so neither crowds the other. stopPropagation
+                isn't strictly needed today (the article's own onClick is
+                already undefined on coarse pointers, per its own comment),
+                but kept anyway, matching the lock/swap buttons' own
+                defensive pattern, in case a hybrid device ever has both
+                this button and the article's tap active at once. */}
+            {isCoarsePointer && (
+              <IconButton
+                size="sm"
+                aria-label="Flip card"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onFlip(series.title);
+                }}
+                shadow
+                className="absolute top-[var(--space-md)] right-[var(--space-md)]"
+              >
+                <FlipIcon />
+              </IconButton>
+            )}
             {/* Score badge + title/meta stack together, bottom-anchored, so
                 the badge naturally sits above the title with no manual
                 offset math. Both on-primary — guaranteed light in every
@@ -1002,25 +1060,45 @@ export function ResultCard({
             flipped, so this shouldn't change anything about FRONT's own
             interactivity; confirm that live after this change, not just
             assume it from the stacking order.
-            overflow-y-auto overflow-x-hidden (was overflow-hidden) — same
-            TRIAL/reasoning as the cover's own (see its own comment): this
-            face's total content (the WATCH ON header + the streams list,
-            which already clips its own overflow internally via its own
-            flex-1 overflow-hidden wrapper) never actually exceeds this
-            box's fixed height, so this should be visually identical at
-            rest — purely to make BACK a genuine scroll container too, on
-            the same native touch-chaining fast path as the tag area.
-            Watch: confirm the back-fill image and the streams list still
-            render/clip correctly, and that this doesn't interfere with
-            the flip itself (it shouldn't — overflow doesn't affect
-            backface-visibility/transform behavior). */}
+            Reverted back to plain overflow-hidden — same reasoning as the
+            cover's own revert (see its comment): the scroll-container
+            trial wasn't the actual fix, whole-card tap-to-flip competing
+            with the touch gesture was, and that's now solved by moving the
+            flip trigger to the dedicated mobile button below instead. */}
         <div
           ref={backRef}
           className={[
-            "touch-auto absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] border-[length:var(--border-base)] border-[var(--ink)] overflow-y-auto overflow-x-hidden flex flex-col transition-opacity duration-200 bg-[var(--fill)] shadow-[var(--elev-4)] pointer-events-auto",
+            "touch-auto absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] border-[length:var(--border-base)] border-[var(--ink)] overflow-hidden flex flex-col transition-opacity duration-200 bg-[var(--fill)] shadow-[var(--elev-4)] pointer-events-auto",
             flipped ? "opacity-100 z-[var(--z-raised)]" : "opacity-0 z-[var(--z-base)]",
           ].join(" ")}
         >
+          {/* Mobile-only flip trigger, mirroring FRONT's own (see its
+              comment) — same top-right position on this face too, so it
+              reads as the same control regardless of which face is
+              showing. z-[var(--z-overlay)] (not relying on DOM order, the
+              way FRONT's own placement after its Image/scrim gets away
+              with) — this sits earlier in the DOM than the back-fill layer
+              below, which is also absolutely positioned and would
+              otherwise paint on top of it (later same-stacking-level DOM
+              order wins ties); an explicit z-index here beats that
+              regardless of DOM position. Watch on device: the WATCH ON
+              header directly below spans the full width right up to this
+              same top edge — confirm the button doesn't visually crowd its
+              "配信" text on narrower cards. */}
+          {isCoarsePointer && (
+            <IconButton
+              size="sm"
+              aria-label="Flip card"
+              onClick={(e) => {
+                e.stopPropagation();
+                onFlip(series.title);
+              }}
+              shadow
+              className="absolute top-[var(--space-md)] right-[var(--space-md)] z-[var(--z-overlay)]"
+            >
+              <FlipIcon />
+            </IconButton>
+          )}
           {/* Full-bleed cover fill — own BACK_FILL_* constants (see their
               own comment). Plain inset-0, no offset/translate: fills the
               WHOLE face. */}

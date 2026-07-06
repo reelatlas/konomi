@@ -259,3 +259,27 @@ export function ArrowRightFilledIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+// Two opposing curved arrows forming a loop — a standard rotate/flip glyph.
+// ResultCard's mobile-only flip trigger (see that file's own comment on
+// useCoarsePointer): coarse-pointer devices lose whole-card tap-to-flip (it
+// conflicted with native touch-scroll gestures starting on the same
+// element) in favor of this dedicated button instead.
+export function FlipIcon({ className }: IconProps) {
+  return (
+    <svg
+      className={className}
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M4 12a8 8 0 0 1 14-5.3M20 4v4h-4" />
+      <path d="M20 12a8 8 0 0 1-14 5.3M4 20v-4h4" />
+    </svg>
+  );
+}
