@@ -3,33 +3,18 @@
 import { useEffect, useRef, useState } from "react";
 import type { LevelKey, MatchKey, MixerError, Slot, TagInfo } from "@/lib/konomi/types";
 import { ActionButton } from "./ActionButton";
-import { ArrowDownIcon, ArrowUpHalfIcon, ArrowUpIcon, CheckIcon, DiceIcon, EraserIcon, GreaterEqualIcon, SortIcon, TagIcon, TagPoolIcon } from "./icons";
+import { ArrowDownIcon, ArrowUpHalfIcon, ArrowUpIcon, CheckIcon, DiceIcon, EraserIcon, GreaterEqualIcon, TagIcon, TagPoolIcon } from "./icons";
 import { IconButton } from "./IconButton";
-import { LevelSelector } from "./LevelSelector";
 import { MatchSelector } from "./MatchSelector";
 import { RecommendButton } from "./RecommendButton";
-import { ScrollFadeArea } from "./ScrollFadeArea";
-import { SortSelect } from "./SortSelect";
-import {
-  clampPoolPanelHeight,
-  EDIT_MODE_FIXED_ROWS_HEIGHT,
-  POOL_HEIGHT_MIN,
-  setPoolPanelHeightPref,
-  setSortPref,
-  useLevel,
-  usePoolPanelHeight,
-  usePoolPanelMaxHeight,
-  useSort,
-} from "./tagPoolPrefs";
+import { clampPoolPanelHeight, EDIT_MODE_FIXED_ROWS_HEIGHT, POOL_HEIGHT_MIN, setPoolPanelHeightPref, usePoolPanelHeight, usePoolPanelMaxHeight } from "./tagPoolPrefs";
 import { TagPoolBody } from "./TagPoolBody";
 import { TagSlot } from "./TagSlot";
-import { TitleWithSubtitle } from "./TitleWithSubtitle";
 
 interface MixerBarProps {
   slots: Slot[];
   dragOverIndex: number;
   minMatch: MatchKey;
-  lockedLabel: string;
   filledCount: number;
   onSlotDragOver: (index: number) => void;
   onSlotDragLeave: () => void;
@@ -51,75 +36,66 @@ interface MixerBarProps {
 }
 
 // Formerly MixerSection — now the app's one bottom-anchored bar, always
-// present in a compact "browse" form (title/badge, slots, controls) that
-// expands in place into a taller "edit" form instead of a second overlay
-// replacing it. See DESIGN_SYSTEM.md's "MixerBar" section for the full
-// rationale — this comment covers only the mechanics.
+// present in a compact "browse" form (slots, controls) that expands in
+// place into a taller "edit" form instead of a second overlay replacing
+// it. See DESIGN_SYSTEM.md's "MixerBar" section for the full rationale —
+// this comment covers only the mechanics.
+//
+// No header row in either mode — no title, no JP subtitle, no filled-
+// count badge. Both used to occupy their own Row 1 above the pool panel;
+// removed entirely (not relocated) as a deliberate simplification, not an
+// oversight. Level/Sort (Tag Density/Sort filters) moved down into
+// TagPoolBody's own combined tabs+filters row instead of disappearing
+// alongside the rest of that header — see TagPoolBody.tsx's own top
+// comment for that row's responsive stacking behavior.
 //
 // Edit mode's row order, top to bottom: resize handle (desktop only) →
-// title → pool panel → slots → controls. Title, slots, and controls are
-// FIXED — they never scroll, never resize, and never move, in either mode.
-// The pool panel is the only part of this bar that ever changes size, and
-// the only part that ever scrolls internally (via TagPoolBody's own
+// pool panel → slots → controls. Slots and controls are FIXED — they
+// never scroll, never resize, and never move, in either mode. The pool
+// panel is the only part of this bar that ever changes size, and the
+// only part that ever scrolls internally (via TagPoolBody's own
 // ScrollFadeArea, unchanged). This is a hard invariant, not a preference:
 // the bar's own outer container carries no scroll/overflow behavior at
 // all anymore — see the clamp math below for how that's guaranteed safe
 // rather than just hoped for.
 //
-// Pool panel sits directly below the title, above the slots — not
-// between the slots and controls. Opening/closing edit mode then only
-// ever inserts/removes this one block in a single spot, rather than
-// making the slots row itself shift position too (which the previous
-// row order did — pool panel used to sit *below* the slots, so toggling
-// edit mode moved both the pool panel's own space *and* pushed the slots'
-// neighbor, the controls row, down twice-removed). One block appearing/
-// disappearing in one place reads as calmer than that.
+// Pool panel sits directly above the slots — not between the slots and
+// controls. Opening/closing edit mode then only ever inserts/removes this
+// one block in a single spot, rather than making the slots row itself
+// shift position too (which an earlier row order did — pool panel used
+// to sit *below* the slots, so toggling edit mode moved both the pool
+// panel's own space *and* pushed the slots' neighbor, the controls row,
+// down twice-removed). One block appearing/disappearing in one place
+// reads as calmer than that.
 //
 // `@container` moves to an inner wrapper (not the fixed root) deliberately:
 // once the root is `position:fixed inset-x-0`, its own inline-size becomes
 // the raw viewport width, which would silently shift the `@min-[480px]`
-// breakpoint below relative to what it measured back when this box was
-// laid out in-flow inside the page's own max-w-[1280px] wrapper. Keeping
-// that same max-w/mx-auto treatment on the inner @container element keeps
-// the breakpoint meaning what it always has.
+// breakpoint below (now inside TagPoolBody's filters, not this file)
+// relative to what it measured back when this box was laid out in-flow
+// inside the page's own max-w-[1280px] wrapper. Keeping that same
+// max-w/mx-auto treatment on the inner @container element keeps the
+// breakpoint meaning what it always has.
 //
-// The pool panel (Level/Sort + TagPoolBody, which itself owns
-// SectionTabStrip + the chip area) is always mounted, never conditionally
-// rendered — toggled via max-h-0 overflow-hidden keyed off `editMode`, the
-// same trick the retired TagPoolRecommendationsPanel used for tab-
-// switching, generalized from two tab keys to one boolean. This is
-// required, not stylistic: TagPoolBody's own activeSectionKey state and
-// every ScrollFadeArea scroll position inside it have no persistence
-// outside the live DOM, so unmounting this subtree on every close would
-// reset both every time — see TagPoolBody.tsx's own top comment, unchanged
-// from before, for why it already relies on exactly this guarantee.
+// The pool panel (TagPoolBody, which now owns its own combined
+// SectionTabStrip + Level/Sort row, plus the chip area) is always
+// mounted, never conditionally rendered — toggled via max-h-0
+// overflow-hidden keyed off `editMode`, the same trick the retired
+// TagPoolRecommendationsPanel used for tab-switching, generalized from
+// two tab keys to one boolean. This is required, not stylistic:
+// TagPoolBody's own activeSectionKey state and every ScrollFadeArea
+// scroll position inside it have no persistence outside the live DOM, so
+// unmounting this subtree on every close would reset both every time —
+// see TagPoolBody.tsx's own top comment, unchanged from before, for why
+// it already relies on exactly this guarantee.
 //
 // Esc, click-outside, and the resize handle all work at every breakpoint —
 // none of the three is gated to desktop/pointer specifically.
 
-// Combined height of SectionTabStrip + the gap above it inside the pool
-// panel — subtracted from the user's chosen pool-panel height before it's
-// passed down as TagPoolBody's chipAreaHeightPx, so the panel's *total*
-// rendered height (tabs + chips) matches what was actually dragged to,
-// rather than the chip area alone matching it with tabs added on top.
-// Named TABS_HEIGHT, not FILTERS_AND_TABS_HEIGHT: Level/Sort used to live
-// in this same pool panel and count toward this constant (135px total,
-// filters row + gaps + tabs) — they moved up into Row 1 above (always
-// visible now, not edit-mode-only; see that row's own comment), so this is
-// just TagPoolBody's own internal STRIP_GAP (12px) + SectionTabStrip
-// (30px) = 42px now. Retune by hand if TagPoolBody's own STRIP_GAP or
-// SectionTabStrip's height changes.
-const TABS_HEIGHT = 42;
-// Floor for the chip area specifically, independent of POOL_HEIGHT_MIN
-// (which bounds the *pool panel's* total height) — guards against
-// TABS_HEIGHT ever producing a negative or unusably tiny chip
-// area if the two constants drift out of sync.
-const CHIP_AREA_MIN = 60;
 export function MixerBar({
   slots,
   dragOverIndex,
   minMatch,
-  lockedLabel,
   filledCount,
   onSlotDragOver,
   onSlotDragLeave,
@@ -139,14 +115,6 @@ export function MixerBar({
   onLevelChange,
   onChipToggle,
 }: MixerBarProps) {
-  // Read-path/write-path for level intentionally differ: read live via
-  // useLevel() here (matching how RecommendationsBody/TagPoolBody already
-  // read tagPoolPrefs directly rather than via prop), but the *setter*
-  // still has to reach back into KonomiApp's pruneTags cascade, so that
-  // direction stays a prop. Not an inconsistency — two different concerns.
-  const level = useLevel();
-  const sort = useSort();
-
   // Tapping an empty slot opens edit mode instead of the no-op CLEAR_SLOT
   // dispatch it used to trigger; a filled slot still clears as before. This
   // decision has to live here (not in TagSlot or the reducer) since "open
@@ -161,15 +129,6 @@ export function MixerBar({
 
   const barRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
-  // The Tag Density/Sort filters' own ScrollFadeArea, in Row 1 — outside
-  // dialogRef (which only wraps the pool panel below). Needed so
-  // blockScrollThrough's own dialogRef exemption (see that effect) can be
-  // extended to this second scrollable area too; without it, a genuine
-  // trackpad/wheel horizontal scroll gesture here gets preventDefault()'d
-  // by that handler before it ever reaches this area's native overflow-x
-  // scrolling — confirmed live as a real bug: only the arrow buttons (a
-  // separate, non-wheel click→scrollBy path) worked, trackpad swipe didn't.
-  const filtersScrollRef = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
 
   // Esc and click-outside close edit mode on every device — mobile,
@@ -216,26 +175,25 @@ export function MixerBar({
   // desktop or mobile — must never fall through to scroll the page behind
   // it: this bar reads as its own fixed surface sitting on top of the
   // page, not a transparent window onto it scrolling underneath. The one
-  // exception is the pool panel's own chip area (TagPoolBody's
-  // ScrollFadeArea, inside dialogRef), which must keep scrolling
-  // internally exactly as before — dialogRef.contains(target) is that
-  // exclusion, checked once here rather than duplicated per gesture type.
-  //
-  // Row 1's own filters ScrollFadeArea (filtersScrollRef, Tag Density/Sort)
-  // needs a second, narrower exclusion — narrower because unlike dialogRef,
-  // it isn't a modal surface with nothing of its own below it; it's a thin
-  // strip sitting directly above page content, so only a genuinely
-  // horizontal gesture should be let through. A vertical gesture over it
-  // must still fall through to preventDefault below, exactly like anywhere
-  // else on the bar — otherwise it'd scroll-chain to the page, the same
-  // leak this whole handler exists to plug. Direction is derived, not
-  // assumed: WheelEvent carries deltaX/deltaY directly, but TouchEvent's
-  // touchmove doesn't, so the touch case tracks the gesture's start point
-  // (touchstart, below) and locks an axis off the first touchmove that
-  // clears a small noise threshold, holding that lock for the rest of the
-  // gesture rather than re-deciding every event (a gesture that starts
-  // diagonal would otherwise flip between "let through" and "block" as it
-  // settles).
+  // exception is the pool panel's own scrollable areas (TagPoolBody's
+  // chip area, section tabs, and Level/Sort filters, all inside dialogRef),
+  // which must keep scrolling internally exactly as before —
+  // dialogRef.contains(target) is that exclusion, checked once here rather
+  // than duplicated per gesture type or per scrollable area within it. A
+  // narrower, direction-aware exclusion (only letting a genuinely
+  // horizontal gesture through, so a vertical one still fell through to
+  // preventDefault below) used to be needed specifically for the filters'
+  // own ScrollFadeArea, back when it lived in this bar's own now-removed
+  // header row — outside dialogRef, and so not covered by this blanket
+  // exemption. Now that Level/Sort live inside TagPoolBody (see that
+  // file), they're inside dialogRef's subtree like every other scrollable
+  // area here, and the same blanket exemption already correctly covers
+  // them — confirmed live, matching how SectionTabStrip's own horizontal
+  // scroll already worked here without any direction-aware JS: each
+  // ScrollFadeArea's own overscroll-contain (see that component) stops a
+  // gesture from chaining past its own scroll bounds once native scroll
+  // handles it, so there's nothing left for this handler to get wrong by
+  // just exempting the whole dialog.
   //
   // Both wheel and touchmove are native, non-passive addEventListener
   // calls, not JSX onWheel/onTouchMove props — confirmed live this is
@@ -256,50 +214,15 @@ export function MixerBar({
   useEffect(() => {
     const bar = barRef.current;
     if (!bar) return;
-
-    let touchStart: { x: number; y: number } | null = null;
-    let touchAxis: "horizontal" | "vertical" | null = null;
-
-    function handleTouchStart(e: TouchEvent) {
-      const target = e.target as Node;
-      if (filtersScrollRef.current?.contains(target)) {
-        const t = e.touches[0];
-        touchStart = { x: t.clientX, y: t.clientY };
-        touchAxis = null;
-      } else {
-        touchStart = null;
-        touchAxis = null;
-      }
-    }
-
     function blockScrollThrough(e: WheelEvent | TouchEvent) {
       const target = e.target as Node;
       if (dialogRef.current?.contains(target)) return;
-
-      if (filtersScrollRef.current?.contains(target)) {
-        if (e instanceof WheelEvent) {
-          if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
-        } else {
-          const t = e.touches[0];
-          if (touchAxis === null && touchStart) {
-            const dx = t.clientX - touchStart.x;
-            const dy = t.clientY - touchStart.y;
-            if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
-              touchAxis = Math.abs(dx) > Math.abs(dy) ? "horizontal" : "vertical";
-            }
-          }
-          if (touchAxis === "horizontal") return;
-        }
-      }
-
       e.preventDefault();
     }
     bar.addEventListener("wheel", blockScrollThrough, { passive: false });
-    bar.addEventListener("touchstart", handleTouchStart, { passive: true });
     bar.addEventListener("touchmove", blockScrollThrough, { passive: false });
     return () => {
       bar.removeEventListener("wheel", blockScrollThrough);
-      bar.removeEventListener("touchstart", handleTouchStart);
       bar.removeEventListener("touchmove", blockScrollThrough);
     };
   }, []);
@@ -418,12 +341,6 @@ export function MixerBar({
   // rows are never pushed below the fold) holds regardless of where this
   // number came from.
   const effectiveHeightPx = clampPoolPanelHeight(dragHeightPx ?? persistedHeightPx ?? defaultPoolHeightPx, poolPanelMaxHeight);
-  // Reduced by the space Level/Sort + SectionTabStrip need, so the pool
-  // panel's *total* rendered height (filters + tabs + chips) matches
-  // effectiveHeightPx, rather than the chip area alone matching it with
-  // filters/tabs added on top of that. See TagPoolBody's chipAreaHeightPx
-  // doc comment.
-  const chipAreaHeightPx = Math.max(CHIP_AREA_MIN, effectiveHeightPx - TABS_HEIGHT);
 
   // Quick-resize buttons in the resize-handle row — 50%/100% are both
   // fractions of the SAME reference, poolPanelMaxHeight (the live-measured
@@ -693,119 +610,17 @@ export function MixerBar({
           </div>
         )}
 
-        {/* Row 1: title (mode-dependent) + filled-count badge grouped
-            together on the left; Tag Density/Sort filters right-aligned,
-            edit mode only — these moved here from the pool panel below,
-            but only ever show alongside it (editMode gates both
-            identically), unlike an earlier pass that made them always
-            visible. Label + icon + selector for each filter mirrors Row 4's
-            own "Min Tag Match" treatment exactly (same label classes, same
-            hidden-below-@480px responsive behavior) — one consistent
-            pattern for every labeled filter control in this bar, not a
-            one-off for this row.
-
-            Outer row keeps its original flex-wrap — title/filters still
-            split to 2 lines at the same widths as before, unchanged. What's
-            different is what happens on the filters' own line once that
-            split has already happened: the two filter groups (Tag Density,
-            Sort) used to flex-wrap onto a 3rd/4th line of their own at the
-            very narrowest widths; now they scroll horizontally instead,
-            reusing ScrollFadeArea the same plain way TagScrollArea does
-            (no extra ARIA/tablist logic — unlike SectionTabStrip's, these
-            are two independent controls, not a tab set, so there's nothing
-            for roving-tabindex to manage). min-w-0 on the wrapping div is
-            still needed even with the outer wrap restored — without it,
-            this flex item defaults to min-width:auto and can't shrink
-            below its own content's natural width, which would make
-            ScrollFadeArea's overflow detection never trigger (confirmed
-            live: an earlier version without it left the scroll area
-            stretching the whole row wider instead of scrolling). */}
-        <div className="flex items-end justify-between flex-wrap gap-x-[var(--space-lg)] gap-y-[var(--space-lg)] mb-[var(--space-lg)]">
-          <div className="flex items-center gap-[var(--space-md)]">
-            <TitleWithSubtitle title={editMode ? "Super Mixer" : "Mixer"} subtitle={editMode ? "ショウリュウケン" : "フレーバー"} />
-            <span
-              className={[
-                "font-mono font-bold text-[length:var(--text-sm)] border-[length:var(--border-thin)] border-[var(--ink)] px-[var(--space-md)] py-[var(--space-xs)]",
-                filledCount === 0 ? "bg-[var(--slot-empty)] text-[var(--disabled-text)]" : "bg-[var(--fill)] text-[var(--ink)]",
-              ].join(" ")}
-            >
-              {lockedLabel}
-            </span>
-          </div>
-          {editMode && (
-            // -mb-[26px]/-mr-[4px] here exactly cancel the pb-[26px]/pr-[4px]
-            // on the scrollable content below — pad-then-cancel, not
-            // pad-and-let-grow (ResultsHeader's min-h fix used the latter,
-            // correctly, since that row had no alignment to protect; this
-            // one does: Row 1's items-end bottom-aligns this wrapper against
-            // the title, and letting the padding show through here inflated
-            // this wrapper's own box by the same 26px/4px, which visibly
-            // dropped the *visible* filter controls below the title's own
-            // baseline even though the boxes' bottoms technically still
-            // lined up — confirmed live: 62.5px wrapper height vs the
-            // title's 30px). Applying the negative margin out here, not on
-            // the padded div itself, is what makes this work — canceling it
-            // on the *same* element that has the padding would also shrink
-            // ScrollFadeArea's own internal viewport back down, reopening
-            // the exact clipping bug the padding exists to fix. Net effect:
-            // zero extra row space from Row 1's perspective, matching how
-            // every other hover-subtext in this app (ThemeSwitcher,
-            // LevelSelector elsewhere) already costs nothing — the padding
-            // only ever mattered to ScrollFadeArea's own internal
-            // overflow-hidden boundary, never to this outer layout.
-            <div ref={filtersScrollRef} className="min-w-0 w-fit -mb-[26px] -mr-[4px]">
-              <ScrollFadeArea orientation="horizontal" scrollStep={140} fadeSize={12}>
-                {/* pb-[26px]/pr-[4px]: ScrollFadeArea's horizontal viewport
-                    is unconditionally overflow-y-hidden — with
-                    LevelSelector/SortSelect now living inside it (a genuinely
-                    new usage; every prior ScrollFadeArea caller's content
-                    had nothing bleeding past its own box), their
-                    shadow-[var(--elev-2)] (3px right/bottom bleed) and
-                    LevelSelector's own absolute hover-subtext hint (further
-                    below, past the shadow) both started getting hard-clipped
-                    instead of just visually fading — same root cause
-                    DESIGN_SYSTEM.md already documents for the results
-                    carousel's card shadows. This padding is canceled by an
-                    equal negative margin on the outer wrapper above (not
-                    "let it grow" — see that comment) so it costs nothing
-                    from Row 1's perspective. 26px covers the hover-subtext's
-                    worst case (control bottom + mt-space-sm + its own
-                    text-xs line height) — not pixel-exact, and that's fine
-                    per explicit request: visible now, perfect spacing is a
-                    later triage, not a blocker. 4px covers the shadow's 3px
-                    bleed at the scrollable content's trailing edge. */}
-                <div className="flex items-center gap-[var(--space-lg)] flex-nowrap pb-[26px] pr-[4px]">
-                  <div className="flex items-center gap-[var(--space-sm)] shrink-0">
-                    <span className="hidden @min-[480px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
-                      Tag Density
-                    </span>
-                    <TagIcon className="text-[var(--ink)]" />
-                    <LevelSelector value={level} onChange={onLevelChange} />
-                  </div>
-                  <div className="flex items-center gap-[var(--space-sm)] shrink-0">
-                    <span className="hidden @min-[480px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
-                      Sort
-                    </span>
-                    <SortIcon className="text-[var(--ink)]" />
-                    <SortSelect value={sort} onChange={setSortPref} />
-                  </div>
-                </div>
-              </ScrollFadeArea>
-            </div>
-          )}
-        </div>
-
-        {/* Row 2: the pool panel — always mounted (see file-top comment).
-            The only part of this bar that resizes or scrolls. Deliberately
-            no explicit height + overflow-hidden on THIS wrapper — only the
-            chip area inside TagPoolBody gets a fixed height
-            (chipAreaHeightPx). This wrapper's natural height is just
-            TagPoolBody's own rendered height, which sums to
-            ~effectiveHeightPx by construction since chipAreaHeightPx was
-            already reduced by TABS_HEIGHT below (Level/Sort used to live in
-            here too and count toward that reduction — they moved up into
-            Row 1 above, always-visible now instead of edit-mode-only, so
-            this panel is just TagPoolBody directly). Explicit height +
+        {/* Row 1 (formerly Row 2 — Row 1 was the title/badge/filters
+            header, now removed entirely; see this file's own top comment):
+            the pool panel — always mounted (see file-top comment). The
+            only part of this bar that resizes or scrolls. Deliberately no
+            explicit height + overflow-hidden on THIS wrapper — only the
+            chip area inside TagPoolBody gets a fixed height, computed
+            internally there now (poolPanelHeightPx in, chipAreaHeightPx
+            derived — see TagPoolBody's own top comment for why that
+            derivation moved out of this file). This wrapper's natural
+            height is just TagPoolBody's own rendered height, which sums to
+            ~effectiveHeightPx by construction. Explicit height +
             overflow-hidden was tried here first and reverted: a flex-col
             container whose explicit height is *smaller* than its natural
             content height clips from the START (top) under overflow:hidden,
@@ -815,15 +630,11 @@ export function MixerBar({
             stay visible; chips are what should ever be the clipped/scrolled
             part).
 
-            Sits directly below the header, above the slots — not between
-            the slots and controls, where an earlier version placed it.
-            Placing it here means opening/closing edit mode only ever
-            inserts/removes this one block in a single spot (right after
-            the header), rather than also shifting the slots row itself
-            down and back — everything below the header before this panel
-            existed (nothing) stays exactly where it was; only what comes
-            after shifts, same as before, just with one less row appearing
-            to "jump" past. */}
+            Sits directly above the slots — not between the slots and
+            controls, where an earlier version placed it. Placing it here
+            means opening/closing edit mode only ever inserts/removes this
+            one block in a single spot, rather than also shifting the
+            slots row itself down and back. */}
         <div
           ref={dialogRef}
           role="dialog"
@@ -836,13 +647,13 @@ export function MixerBar({
             allTags={allTags}
             selectedTags={selectedTags}
             totalSeriesCount={totalSeriesCount}
-            level={level}
+            onLevelChange={onLevelChange}
             onChipToggle={onChipToggle}
-            chipAreaHeightPx={chipAreaHeightPx}
+            poolPanelHeightPx={effectiveHeightPx}
           />
         </div>
 
-        {/* Row 3: the 3 tag slots. Fixed — never resizes, never scrolls,
+        {/* Row 2: the 3 tag slots. Fixed — never resizes, never scrolls,
             regardless of how tall the pool panel above gets dragged. */}
         <div className="flex gap-[var(--space-lg)] mb-[var(--space-lg)]">
           {slots.map((tag, index) => (
@@ -859,7 +670,7 @@ export function MixerBar({
           ))}
         </div>
 
-        {/* Row 4: MIN TAG MATCH, Random/Clear, Recommend — unchanged from
+        {/* Row 3: MIN TAG MATCH, Random/Clear, Recommend — unchanged from
             the old Mixer controls row — plus a persistent Tag Pool
             open/close toggle, replacing both the old edit-mode-only
             "Done ✓" button here and the standalone "+ Tag Pool" affordance

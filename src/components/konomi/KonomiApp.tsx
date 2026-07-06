@@ -16,35 +16,32 @@ interface KonomiAppProps {
   initialTags: TagInfo[];
 }
 
-// Height of MixerBar's browse-mode (collapsed: floating card — title +
-// badge + slots + controls, no filters, no pool panel — plus the
-// wrapper's own bottom gutter) rendered form — measured live against the
-// real component, same "retune by hand if this changes" approach
-// TagPoolBody's CHIP_AREA_HEIGHT constant already uses. Reserves exactly
-// enough space at the bottom of the scrolling page so browse-mode content
-// (results, the footer tagline) never sits underneath the fixed card,
-// *plus* an extra space-2xl (24px) beyond that so the last piece of
-// scrolled content gets the same breathing room above the card that the
-// page's own pt-[var(--space-2xl)] gives the masthead below the viewport
-// top — see MixerBar.tsx's pb-[var(--space-2xl)] comment, same token,
-// mirrored gap. Edit mode's taller form is deliberately allowed to overlay
-// content instead of reserving space for it too — expected bottom-sheet
-// behavior, not a bug; see MixerBar.tsx's own top comment.
+// Height of MixerBar's browse-mode (collapsed: floating card — slots +
+// controls, no header, no filters, no pool panel — plus the wrapper's own
+// bottom gutter) rendered form — measured live against the real component,
+// same "retune by hand if this changes" approach TagPoolBody's
+// CHIP_AREA_HEIGHT constant already uses. Reserves exactly enough space at
+// the bottom of the scrolling page so browse-mode content (results, the
+// footer tagline) never sits underneath the fixed card, *plus* an extra
+// space-2xl (24px) beyond that so the last piece of scrolled content gets
+// the same breathing room above the card that the page's own
+// pt-[var(--space-2xl)] gives the masthead below the viewport top — see
+// MixerBar.tsx's pb-[var(--space-2xl)] comment, same token, mirrored gap.
+// Edit mode's taller form is deliberately allowed to overlay content
+// instead of reserving space for it too — expected bottom-sheet behavior,
+// not a bug; see MixerBar.tsx's own top comment.
 //
-// The Tag Density/Sort filters briefly lived always-visible in the title
-// row (both modes), which needed a much taller value here (510, mobile
-// card height 456.9px) since browse mode's own title row grew too; they
-// moved back to edit-mode-only and right-aligned since (MixerBar.tsx's Row
-// 1 comment), so browse mode's own height is back to what it was before
-// that detour. The controls row still wraps to 3 lines at narrow widths
-// (Recommend drops below Random/Clear, which itself already dropped below
-// MIN TAG MATCH), making the bar taller on mobile (331.5px card + 24px
-// wrapper gutter = 355.5px measured live at 390px) than desktop (226.5px
-// card + 24px gutter = 250.5px at 1400px) — this constant covers the
-// taller mobile case (355.5 + 24px extra breathing room = 379.5px) with a
-// little headroom, since that's the width tier where the spacer actually
-// matters most for this mobile-first pass.
-const MIXER_BAR_SPACER = "pb-[385px]";
+// Retuned down from 385 once MixerBar's title/badge header row (and,
+// earlier still, the Tag Density/Sort filters that briefly lived
+// always-visible there too) was removed entirely rather than shrunk —
+// removing a whole row, not just shortening it. Worst case is now the
+// narrowest widths (300-320px, controls row at its most-wrapped), measured
+// live at 277.5px regardless of viewport width in that band or whether the
+// slots are filled or empty (TagSlot's own height doesn't vary with
+// content) — 280 leaves a small buffer. Wider viewports render a shorter
+// bar (172.5-229px measured across 340-1400px), so this remains the
+// mobile-first worst case, same tradeoff as before.
+const MIXER_BAR_SPACER = "pb-[280px]";
 
 export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
   const k = useKonomi(initialSeries, initialTags);
@@ -143,7 +140,6 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
         slots={k.slots}
         dragOverIndex={k.dragOverIndex}
         minMatch={k.minMatch}
-        lockedLabel={k.lockedLabel}
         filledCount={k.filledCount}
         onSlotDragOver={k.setDragOver}
         onSlotDragLeave={k.clearDragOver}
