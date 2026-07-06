@@ -420,7 +420,29 @@ export function ScrollFadeArea({
           disableWrapperPointerEvents ? "pointer-events-none" : "",
         ].join(" ")}
       >
-        <div ref={contentRef} className={disableWrapperPointerEvents ? "pointer-events-none" : undefined}>
+        {/* w-max, horizontal orientation only: a plain block div's
+            width:auto (the default, with no explicit sizing class) fills
+            its *containing block* — the same width as the viewport this
+            sits inside — regardless of how wide its own children want to
+            be; it does not shrink/grow to fit them the way height:auto
+            already does for vertical stacking. A flex-nowrap child (e.g.
+            SectionTabStrip's role=tablist row) that's wider than that
+            simply overflows this div's own box without changing what this
+            div itself reports as its size — so the hasOverflow-driving
+            ResizeObserver above, which watches this div specifically to
+            catch children changing size, never fires when a *horizontal*
+            child grows/shrinks (e.g. more/fewer section tabs after a Tag
+            Density/level change): confirmed live as a real bug, distinct
+            from the resize-driven one that ResizeObserver fix (above)
+            already covers — hasOverflow stayed stuck at its pre-change
+            value with the hover arrows failing to appear (or appearing
+            when they shouldn't) until an actual scroll's onScroll handler
+            forced a fresh recompute. w-max (width:max-content) makes this
+            div's own box track its child's true intrinsic width instead,
+            the same way its height already naturally tracks a vertical
+            child's — so the existing ResizeObserver on this element
+            starts seeing the real size changes it was always meant to. */}
+        <div ref={contentRef} className={[horizontal ? "w-max" : "", disableWrapperPointerEvents ? "pointer-events-none" : ""].join(" ")}>
           {children}
         </div>
       </div>

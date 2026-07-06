@@ -45,14 +45,24 @@ export function LevelSelector({ value, onChange }: LevelSelectorProps) {
       })}
       <span
         aria-hidden={!hoveredOption}
-        // mt-sm (6px), not mt-xs (4px) like ThemeSwitcher's equivalent
-        // subtext: this control's own shadow-[var(--elev-2)] drops a solid
-        // 3px below its box, so mt-xs left only ~1px of actual clear space
-        // before the subtext started — visually blending into the shadow.
-        // ThemeSwitcher's swatches don't carry a shadow this deep, so its
-        // mt-xs never had the same problem.
+        // bottom-full/mb-xs, not top-full/mt-sm — this control now lives in
+        // TagPoolBody's combined tabs+filters row (moved down from
+        // MixerBar's own now-removed header row), with the section tabs'
+        // own content sitting immediately below it in both the inline and
+        // stacked layouts. Below-positioning collided with that content —
+        // confirmed live as a real bug: the subtext rendered directly on
+        // top of the "Genres" tab label when the row was stacked, and on
+        // top of the first row of tag chips when inline, in both cases
+        // illegible. Rendering above the control instead sidesteps both,
+        // since nothing else in this row's own layout sits above it. mb-xs
+        // (4px), not mt-sm (6px) like the old below-positioned version:
+        // that extra 2px specifically cleared this control's own
+        // shadow-[var(--elev-2)], which bleeds 3px below its box — there's
+        // no equivalent bleed on the top edge (shadows in this design
+        // system are bottom/right-only), so the smaller default gap
+        // ThemeSwitcher's own subtext already uses is enough here too.
         className={[
-          "absolute top-full left-0 mt-[var(--space-sm)] whitespace-nowrap font-mono text-[length:var(--text-xs)] text-[var(--subtext)] transition-opacity duration-150",
+          "absolute bottom-full left-0 mb-[var(--space-xs)] whitespace-nowrap font-mono text-[length:var(--text-xs)] text-[var(--subtext)] transition-opacity duration-150",
           hoveredOption ? "opacity-100" : "opacity-0",
         ].join(" ")}
       >

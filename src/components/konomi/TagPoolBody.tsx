@@ -158,32 +158,63 @@ export function TagPoolBody({ allTags, selectedTags, totalSeriesCount, onLevelCh
           comment) to sit inline with the section tabs instead, rather than
           keeping a whole separate header row just for two filter controls.
 
-          flex-col-reverse + a single min-[Npx]:flex-row switch (the same
-          "hard breakpoint, not organic flex-wrap" technique ResultsHeader
-          already uses for its own two-group row, not flex-wrap's
-          independent per-item reflow): DOM order is [tabs, filters], so
-          col-reverse alone — no order-* utilities needed — puts filters
-          visually *above* tabs once stacked (filters is second in DOM,
-          which col-reverse renders first/top), while flex-row at the wider
-          tier reads DOM order left-to-right as-is (tabs left, filters
-          right). Both wrappers need w-full in the stacked state, not just
-          the tabs one — confirmed live as a real bug otherwise: w-fit's
-          cross-axis sizing in a *column* flex container isn't clamped by
-          the parent's own width the way min-w-0 clamps a *row* item along
-          the main axis (there's no flex-shrink math on the cross axis), so
-          the filters wrapper rendered at its full unclamped content width
-          (371px) and visibly bled past the card's right edge at 300px
-          instead of triggering ScrollFadeArea's own overflow-scroll. w-full
-          below the breakpoint, min-[Npx]:w-fit only once inline (where the
-          row is back to flex-row and w-fit's natural-width/right-aligned
-          sizing is exactly what's wanted next to flex-1's tabs).
-          items-center/justify-between are scoped to the flex-row tier only
-          — meaningless (and not what's wanted) in the stacked column state.
+          Three independent, separately-tunable breakpoints govern this row,
+          not one shared number — confirmed live as a real bug otherwise:
+          the filters' own label-hide used to reuse MixerBar's Min Tag
+          Match @min-[480px] threshold verbatim, coincidentally, not because
+          the two rows have anything to do with each other. That accidental
+          coupling also made the responsive ladder backwards — labels
+          stayed full well *after* the row had already been forced to stack
+          (confirmed: stacks below ~695px, but labels didn't hide until
+          ~550-600px), so tabs lost width to full-labeled filters for a
+          whole range where dropping the labels first would have kept
+          everything on one line instead:
 
-          Threshold bisected live against this row's real content (both
-          section tabs and filters, not guessed) — see the class below. */}
-      <div ref={rowRef} className="flex flex-col-reverse gap-y-[var(--space-sm)] min-[700px]:flex-row min-[700px]:items-center min-[700px]:justify-between min-[700px]:gap-x-[var(--space-lg)]">
-        <div className="min-w-0 min-[700px]:flex-1">
+          1. FILTERS_LABEL_BREAKPOINT (@min-[700px], on the label spans
+             below) — width below which "Tag Density"/"Sort" text hides,
+             icon-only, *while still inline*. Deliberately its own number,
+             not Min Tag Match's 480 — that one lives in a completely
+             different row (MixerBar's controls row) and has no bearing on
+             when this row's own content needs to shrink.
+          2. TABS_FILTERS_STACK_BREAKPOINT (min-[500px]:flex-row below) —
+             width below which even icon-only filters + tabs still don't
+             fit on one line, so filters wrap onto their own row above
+             tabs. Set *narrower* than FILTERS_LABEL_BREAKPOINT on purpose:
+             decreasing width hits the label-hide breakpoint first (frees
+             room, stays inline), and only stacks if that alone isn't
+             enough — shrink, then wrap, not wrap immediately.
+          3. Tabs' own horizontal scroll (SectionTabStrip's own
+             ScrollFadeArea) needs no breakpoint of its own — already
+             automatic at any tier once its content exceeds whatever width
+             it's given, stacked or not.
+
+          flex-col-reverse + a single min-[Npx]:flex-row switch at tier 2
+          (the same "hard breakpoint, not organic flex-wrap" technique
+          ResultsHeader already uses for its own two-group row, not
+          flex-wrap's independent per-item reflow): DOM order is
+          [tabs, filters], so col-reverse alone — no order-* utilities
+          needed — puts filters visually *above* tabs once stacked (filters
+          is second in DOM, which col-reverse renders first/top), while
+          flex-row at the wider tier reads that same DOM order left-to-right
+          as-is (tabs left, filters right). Both wrappers need w-full in
+          the stacked state, not just the tabs one — confirmed live as a
+          real bug otherwise: w-fit's cross-axis sizing in a *column* flex
+          container isn't clamped by the parent's own width the way
+          min-w-0 clamps a *row* item along the main axis (there's no
+          flex-shrink math on the cross axis), so the filters wrapper
+          rendered at its full unclamped content width and visibly bled
+          past the card's right edge at narrow viewports instead of
+          triggering ScrollFadeArea's own overflow-scroll. w-full below the
+          breakpoint, min-[Npx]:w-fit only once inline (where the row is
+          back to flex-row and w-fit's natural-width/right-aligned sizing
+          is exactly what's wanted next to flex-1's tabs). items-center/
+          justify-between are scoped to the flex-row tier only —
+          meaningless (and not what's wanted) in the stacked column state.
+
+          Both breakpoints bisected live against this row's real content
+          (tabs, full-label filters, icon-only filters — not guessed). */}
+      <div ref={rowRef} className="flex flex-col-reverse gap-y-[var(--space-sm)] min-[500px]:flex-row min-[500px]:items-center min-[500px]:justify-between min-[500px]:gap-x-[var(--space-lg)]">
+        <div className="min-w-0 min-[500px]:flex-1">
           <SectionTabStrip
             sections={visibleSections.map(({ section, tags }) => ({
               key: section.key,
@@ -194,28 +225,36 @@ export function TagPoolBody({ allTags, selectedTags, totalSeriesCount, onLevelCh
             onChange={setActiveSectionKey}
           />
         </div>
-        {/* -mb-[26px]/-mr-[4px] cancel the pb-[26px]/pr-[4px] on the
-            scrollable content below — pad-then-cancel, not pad-and-let-
-            grow, matching the same fix (and the same reasoning) this block
-            used back when it lived in MixerBar's Row 1 aligned against the
-            title: the padding exists so ScrollFadeArea's own
-            overflow-y-hidden viewport doesn't clip LevelSelector/SortSelect's
-            shadow bleed or hover-subtext, and canceling it out here (not on
-            the padded element itself) keeps that clipping fix intact while
-            stopping the padding from inflating this wrapper's own box and
-            throwing off its alignment against SectionTabStrip's tabs. */}
-        <div className="min-w-0 w-full min-[700px]:w-fit -mb-[26px] -mr-[4px]">
+        {/* -mt-[20px]/-mb-[4px]/-mr-[4px] cancel the pt-[20px]/pb-[4px]/
+            pr-[4px] on the scrollable content below — pad-then-cancel, not
+            pad-and-let-grow, matching the same fix (and the same
+            reasoning) this block used back when it lived in MixerBar's
+            Row 1 aligned against the title: the padding exists so
+            ScrollFadeArea's own overflow-y-hidden viewport doesn't clip
+            LevelSelector/SortSelect's shadow bleed or LevelSelector's
+            hover-subtext, and canceling it out here (not on the padded
+            element itself) keeps that clipping fix intact while stopping
+            the padding from inflating this wrapper's own box and throwing
+            off its alignment against SectionTabStrip's tabs. Padding is
+            asymmetric (pt-20 vs pb-4) because the hover-subtext now
+            renders *above* LevelSelector (see that component's own
+            comment for why), not below — pt-20 covers its worst case
+            (the control's own top edge + mb-space-xs + its own text-xs
+            line height); pb-4/pr-4 only need to cover the controls' own
+            shadow-[var(--elev-2)] bleed (3px bottom/right), unrelated to
+            the subtext, unchanged in direction from before. */}
+        <div className="min-w-0 w-full min-[500px]:w-fit -mt-[20px] -mb-[4px] -mr-[4px]">
           <ScrollFadeArea orientation="horizontal" scrollStep={140} fadeSize={12}>
-            <div className="flex items-center gap-[var(--space-lg)] flex-nowrap pb-[26px] pr-[4px]">
+            <div className="flex items-center gap-[var(--space-lg)] flex-nowrap pt-[20px] pb-[4px] pr-[4px]">
               <div className="flex items-center gap-[var(--space-sm)] shrink-0">
-                <span className="hidden @min-[480px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
+                <span className="hidden @min-[700px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
                   Tag Density
                 </span>
                 <TagIcon className="text-[var(--ink)]" />
                 <LevelSelector value={level} onChange={onLevelChange} />
               </div>
               <div className="flex items-center gap-[var(--space-sm)] shrink-0">
-                <span className="hidden @min-[480px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
+                <span className="hidden @min-[700px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
                   Sort
                 </span>
                 <SortIcon className="text-[var(--ink)]" />
