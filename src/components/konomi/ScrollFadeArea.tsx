@@ -300,10 +300,15 @@ export function ScrollFadeArea({
 
   // Scrolls back to the start edge whenever the caller's reset key changes
   // (also fires harmlessly on mount, since scrollTop/scrollLeft is already
-  // 0 then). Instant (no `behavior`), matching the carousel's original
-  // recommendGen-triggered reset.
+  // 0 then). behavior: "instant" explicit now (not just omitted), matching
+  // the carousel's original recommendGen-triggered reset — an explicit
+  // per-call behavior always overrides the container's own CSS
+  // scroll-behavior, so this stays instant regardless of the snap-release
+  // easing added below (scroll-smooth), which would otherwise animate this
+  // reset too since scrollTo with no `behavior` option falls back to
+  // whatever scroll-behavior the CSS says.
   useEffect(() => {
-    scrollRef.current?.scrollTo(horizontal ? { left: 0 } : { top: 0 });
+    scrollRef.current?.scrollTo(horizontal ? { left: 0, behavior: "instant" } : { top: 0, behavior: "instant" });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scrollResetKey]);
 
@@ -368,14 +373,24 @@ export function ScrollFadeArea({
     scrollRemainder.current = 0;
     const axisKey = horizontal ? "left" : "top";
     const step = () => {
-      // behavior: "auto" (instant), not "smooth" — this already runs every
-      // frame on its own, so it doesn't need the browser's own scroll
-      // animation stacking on top; "smooth" here would compound into
-      // increasingly laggy catch-up as frames pile up.
+      // behavior: "instant", not "auto" — this already runs every frame on
+      // its own, so it doesn't need the browser's own scroll animation
+      // stacking on top; "smooth" here would compound into increasingly
+      // laggy catch-up as frames pile up, which is also exactly why "auto"
+      // alone isn't safe: "auto" means "defer to this element's own CSS
+      // scroll-behavior," not "instant" — it only behaved like instant
+      // before scroll-smooth (below) existed, because scroll-behavior was
+      // unset (defaults to auto/instant) everywhere. Confirmed live as a
+      // real regression the moment scroll-smooth was added for the
+      // snap-release easing: every per-frame nudge started deferring to
+      // that new smooth default, so each one kicked off its own animated
+      // scroll that the next frame's call interrupted, netting almost no
+      // movement at all. "instant" forces this one call to stay instant
+      // regardless of whatever the container's CSS scroll-behavior says.
       scrollRemainder.current += direction * continuousScrollSpeed;
       const wholePixels = Math.trunc(scrollRemainder.current);
       if (wholePixels !== 0) {
-        scrollRef.current?.scrollBy({ [axisKey]: wholePixels, behavior: "auto" });
+        scrollRef.current?.scrollBy({ [axisKey]: wholePixels, behavior: "instant" });
         scrollRemainder.current -= wholePixels;
       }
       continuousScrollFrame.current = requestAnimationFrame(step);
@@ -474,6 +489,21 @@ export function ScrollFadeArea({
           horizontal ? "w-full overflow-x-auto overflow-y-hidden" : `${heightPx !== undefined ? "" : height} overflow-y-auto overflow-x-hidden`,
           "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
           snap ? (horizontal ? "snap-x snap-mandatory" : "snap-y snap-mandatory") : "",
+          // scroll-smooth (scroll-behavior: smooth), snap-only: with no
+          // explicit scroll-behavior at all, the browser's own re-snap
+          // correction — fired the instant stopContinuousScroll clears the
+          // inline scrollSnapType override and this element's snap-y/x
+          // class takes back over — jumps to the nearest snap point
+          // instantly, with no easing of its own. This is the one thing
+          // that actually governs that correction's speed; there's no
+          // separate "snap duration" CSS property to tune independently of
+          // it. Every scrollBy/scrollTo call this component makes already
+          // passes its own explicit `behavior` (see scrollBy and the
+          // scrollResetKey effect above), which always overrides the
+          // container's own CSS scroll-behavior — so this only affects the
+          // one thing that wasn't already an explicit call: the browser's
+          // own automatic snap correction.
+          snap ? "scroll-smooth" : "",
           // overscroll-contain: once this viewport hits its own scroll
           // bounds (e.g. MixerBar's pool panel chip area scrolled all the
           // way down), continuing the same gesture must not chain into
