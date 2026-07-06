@@ -175,6 +175,17 @@ interface ScrollFadeAreaProps {
   // TagScrollArea leaves this unset (no mask-image at all, not even a
   // trivial no-op one, so there's zero behavior change for them).
   edgeMaskSize?: number;
+  // Opt-in, vertical-only: forwards a horizontal-dominant wheel gesture
+  // (|deltaX| > |deltaY|) to the nearest ancestor horizontal ScrollFadeArea
+  // instance instead of leaving it stuck here — see the effect below for
+  // why this needs a real JS handler rather than a CSS-only fix.
+  // TagScrollArea passes this; every other vertical caller (Tag Pool chip
+  // area, MixerBar's filters) leaves it unset since none of them sit nested
+  // inside a horizontal scroller of their own — the marker attribute
+  // (data-scroll-fade-area-horizontal, below) simply won't be found as an
+  // ancestor for them, so the handler is a safe no-op even if it were
+  // turned on there too.
+  forwardHorizontalWheel?: boolean;
   children: React.ReactNode;
 }
 
@@ -228,6 +239,7 @@ export function ScrollFadeArea({
   disableWrapperPointerEvents = false,
   fitContent = false,
   edgeMaskSize,
+  forwardHorizontalWheel = false,
   children,
 }: ScrollFadeAreaProps) {
   const horizontal = orientation === "horizontal";
@@ -311,6 +323,45 @@ export function ScrollFadeArea({
     scrollRef.current?.scrollTo(horizontal ? { left: 0, behavior: "instant" } : { top: 0, behavior: "instant" });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scrollResetKey]);
+
+  // forwardHorizontalWheel: manually routes a horizontal-dominant wheel
+  // gesture to the nearest ancestor horizontal ScrollFadeArea instance —
+  // confirmed live as genuinely necessary, not something CSS alone can fix.
+  // overscroll-behavior (the fix for the equivalent touch-swipe bug) only
+  // governs scroll *chaining*: what happens once a scroller hits its own
+  // boundary in a *matching* axis. A wheel event's deltaX/deltaY are
+  // dispatched to whichever scrollable element the cursor is hit-testing
+  // over, and that element's own delta is consumed by it — browsers don't
+  // reroute an orthogonal, unusable axis of a wheel event to a different-
+  // axis ancestor on their own. Confirmed live: with this vertical
+  // viewport's overscroll-behavior set fully to "auto" on both axes (not
+  // just -x), a horizontal-dominant wheel gesture over it still didn't
+  // reach the horizontal carousel behind it — the cover area (not a scroll
+  // container itself) already let wheel events fall through to the
+  // carousel untouched, which is why only genuinely nested scrollers
+  // (this one) needed an explicit forward. data-scroll-fade-area-horizontal
+  // (below, on every horizontal instance's own viewport) is the marker
+  // this looks for via closest() — an ancestor search from this element,
+  // not a page-wide query, so this stays correct even if more than one
+  // horizontal ScrollFadeArea instance ever exists on the same page.
+  // Non-passive, raw addEventListener (not a JSX onWheel prop) for the
+  // same reason MixerBar's own blockScrollThrough uses one — React's
+  // delegated wheel listener is passive by default, so a JSX prop's
+  // preventDefault() would silently no-op.
+  useEffect(() => {
+    if (!forwardHorizontalWheel) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    function handleWheel(e: WheelEvent) {
+      if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+      const horizontalAncestor = el!.closest("[data-scroll-fade-area-horizontal]");
+      if (!horizontalAncestor) return;
+      e.preventDefault();
+      horizontalAncestor.scrollBy({ left: e.deltaX, behavior: "auto" });
+    }
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    return () => el.removeEventListener("wheel", handleWheel);
+  }, [forwardHorizontalWheel]);
 
   const scrollBy = (direction: 1 | -1) => {
     const step = getScrollStep ? getScrollStep() : scrollStep;
@@ -457,6 +508,11 @@ export function ScrollFadeArea({
           reinterpreting vertical scroll as horizontal. */}
       <div
         ref={scrollRef}
+        // data-scroll-fade-area-horizontal: the forwardHorizontalWheel
+        // effect's own ancestor marker (see that effect's comment) — every
+        // horizontal instance carries it, unconditionally; harmless for
+        // instances nothing ever searches for it.
+        data-scroll-fade-area-horizontal={horizontal ? true : undefined}
         onScroll={updateScrollState}
         style={{
           ...(scrollPaddingStart

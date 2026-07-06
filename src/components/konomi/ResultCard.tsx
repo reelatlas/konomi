@@ -225,15 +225,31 @@ export function ResultCard({
       // none of them would be clickable at all.
       className="h-[var(--result-card-height)] [perspective:1100px] cursor-pointer pointer-events-auto max-[1152px]:flex-none max-[1152px]:snap-start min-[993px]:max-[1152px]:w-[22%] min-[741px]:max-[993px]:w-[30%] min-[501px]:max-[741px]:w-[46%] max-[501px]:w-[85%]"
     >
+      {/* touch-auto (touch-action: auto) on this flip-container and both
+          faces below: TRIAL FIX, unverified — restates the already-default
+          computed value explicitly, on the theory that a real mobile
+          browser's touch-scroll hit-testing can fail to chain a horizontal
+          swipe from inside a composited 3D-transform subtree (perspective
+          on the article above + this preserve-3d/rotateY + backface-
+          visibility:hidden below) to the horizontal carousel ancestor, even
+          though every computed CSS value already reads "auto" — a
+          documented class of mobile Chrome/Safari compositor quirks. This
+          codebase's own synthetic touch testing (CDP dispatchTouchEvent)
+          could NOT reproduce the reported bug (swipes over the cover
+          already reached the carousel in that harness) and a parallel wheel
+          test in the same harness gave a false negative for a
+          confirmed-working case — so neither confirms nor rules this out.
+          Needs a real device to verify; revert this comment+classes if it
+          doesn't help. */}
       <div
         className={[
-          "relative w-full h-full [transform-style:preserve-3d] transition-transform duration-500 [transition-timing-function:cubic-bezier(.4,.2,.2,1)]",
+          "touch-auto relative w-full h-full [transform-style:preserve-3d] transition-transform duration-500 [transition-timing-function:cubic-bezier(.4,.2,.2,1)]",
           flipped ? "[transform:rotateY(180deg)]" : "[transform:rotateY(0deg)]",
         ].join(" ")}
       >
         <div
           className={[
-            "absolute inset-0 [backface-visibility:hidden] border-[length:var(--border-base)] border-[var(--ink)] overflow-hidden flex flex-col transition-opacity duration-200 bg-[var(--surface)] shadow-[var(--elev-4)]",
+            "touch-auto absolute inset-0 [backface-visibility:hidden] border-[length:var(--border-base)] border-[var(--ink)] overflow-hidden flex flex-col transition-opacity duration-200 bg-[var(--surface)] shadow-[var(--elev-4)]",
             flipped ? "opacity-0 pointer-events-none z-[var(--z-base)]" : "opacity-100 pointer-events-auto z-[var(--z-raised)]",
           ].join(" ")}
         >
@@ -666,7 +682,7 @@ export function ResultCard({
             whatever shows through before the fill image loads. */}
         <div
           className={[
-            "absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] border-[length:var(--border-base)] border-[var(--ink)] overflow-hidden flex flex-col transition-opacity duration-200 bg-[var(--fill)] shadow-[var(--elev-4)]",
+            "touch-auto absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] border-[length:var(--border-base)] border-[var(--ink)] overflow-hidden flex flex-col transition-opacity duration-200 bg-[var(--fill)] shadow-[var(--elev-4)]",
             flipped ? "opacity-100 pointer-events-auto z-[var(--z-raised)]" : "opacity-0 pointer-events-none z-[var(--z-base)]",
           ].join(" ")}
         >
