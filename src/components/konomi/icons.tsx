@@ -179,13 +179,13 @@ export function ArrowUpHalfIcon({ className }: IconProps) {
 // rather than blend in.
 export function GripHorizontalIcon({ className }: IconProps) {
   return (
-    <svg className={className} width="20" height="8" viewBox="0 0 20 8" fill="currentColor">
-      <circle cx="3" cy="2" r="1.4" />
-      <circle cx="10" cy="2" r="1.4" />
-      <circle cx="17" cy="2" r="1.4" />
-      <circle cx="3" cy="6" r="1.4" />
-      <circle cx="10" cy="6" r="1.4" />
-      <circle cx="17" cy="6" r="1.4" />
+    <svg className={className} width="16" height="8" viewBox="0 0 16 8" fill="currentColor">
+      <circle cx="2" cy="2" r="1.3" />
+      <circle cx="8" cy="2" r="1.3" />
+      <circle cx="14" cy="2" r="1.3" />
+      <circle cx="2" cy="6" r="1.3" />
+      <circle cx="8" cy="6" r="1.3" />
+      <circle cx="14" cy="6" r="1.3" />
     </svg>
   );
 }

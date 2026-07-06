@@ -607,7 +607,13 @@ export function MixerBar({
             onMouseDown={canShowResizeHandleRow ? handleResizeStart : undefined}
             onTouchStart={canShowResizeHandleRow ? handleResizeStart : undefined}
             className={[
-              "flex items-center justify-between gap-x-[var(--space-lg)] mb-[var(--space-sm)] select-none",
+              // mb-xl (16px) — one step more than the slots-row-to-controls
+              // rhythm elsewhere in this bar (space-lg/12px): confirmed
+              // live that this row's own content (grip+arrows plus filters,
+              // heavier than a plain fixed row) reads better with a bit
+              // more separation from the tabs row below it than that
+              // baseline rhythm gives.
+              "flex items-center justify-between gap-x-[var(--space-lg)] mb-[var(--space-xl)] select-none",
               canShowResizeHandleRow ? "cursor-ns-resize touch-none" : "",
             ].join(" ")}
           >
@@ -621,10 +627,26 @@ export function MixerBar({
                 the snap/reset buttons): dragging from the grip icon itself
                 stopped working, since its own mousedown never reached the
                 row. Only the snap/reset buttons need stopPropagation —
-                clicking one of those must never also start a resize-drag. */}
+                clicking one of those must never also start a resize-drag.
+
+                The grip sits in its own 30×30 box (matching IconButton's
+                own size="sm" box the arrow buttons use) instead of just
+                the bare 8px-tall SVG — confirmed live as a real bug
+                otherwise: IconButton centers its 16×16 glyph inside a
+                30×30 box, so two adjacent arrow buttons at gap-0 still
+                read ~14px apart glyph-to-glyph (7px of each button's own
+                inset on either side of the shared edge), while a bare
+                grip SVG butted directly against the first button's edge
+                read only ~7px from its own edge to that button's glyph —
+                visibly tighter than the arrow-to-arrow spacing despite the
+                same gap-0. Matching the box size (not just the gap) makes
+                every icon's own inset identical, so gap-0 reads as evenly
+                spaced across all four. */}
             {canShowResizeHandleRow && (
               <div className="flex items-center gap-0 shrink-0">
-                <GripHorizontalIcon className="text-[var(--muted)]" />
+                <div className="flex items-center justify-center w-[30px] h-[30px]">
+                  <GripHorizontalIcon className="text-[var(--muted)]" />
+                </div>
                 <div className="flex items-center gap-0 cursor-auto" onMouseDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()}>
                   {canReachHalfHeight && !isAtHalfHeight && (
                     <IconButton
@@ -675,23 +697,23 @@ export function MixerBar({
                 </div>
               </div>
             )}
-            {/* -mt-[20px]/-mb-[4px]/-mr-[4px] cancel the pt-[20px]/pb-[4px]/
-                pr-[4px] on the scrollable content below — pad-then-cancel,
-                not pad-and-let-grow, so ScrollFadeArea's own overflow-y-
-                hidden viewport doesn't clip LevelSelector/SortSelect's
-                shadow bleed or LevelSelector's hover-subtext (which renders
-                *above* the control — see LevelSelector's own comment —
-                and there's nothing above this row except the card's own
-                border/padding, so pt- reserves room for it here the same
-                way TagPoolBody's now-removed combined row used to).
+            {/* -mb-[26px]/-mr-[4px] cancel the pb-[26px]/pr-[4px] on the
+                scrollable content below — pad-then-cancel, not
+                pad-and-let-grow, so ScrollFadeArea's own overflow-y-hidden
+                viewport doesn't clip LevelSelector/SortSelect's shadow
+                bleed or LevelSelector's hover-subtext (which renders
+                *below* the control — see LevelSelector's own comment).
                 Canceling it out on this wrapper (not the padded element
                 itself) keeps the clipping fix intact without inflating
-                this row's own box. fitContent: this group's children
-                (label/icon/selector pairs) are naturally sized — see
-                ScrollFadeArea's own comment on that prop. */}
-            <div ref={filtersScrollRef} className="min-w-0 w-fit -mt-[20px] -mb-[4px] -mr-[4px]">
+                this row's own box. 26px covers the hover-subtext's worst
+                case (control bottom + mt-space-sm + its own text-xs line
+                height); 4px covers the controls' own shadow-[var(--elev-2)]
+                bleed at the trailing edge. fitContent: this group's
+                children (label/icon/selector pairs) are naturally sized —
+                see ScrollFadeArea's own comment on that prop. */}
+            <div ref={filtersScrollRef} className="min-w-0 w-fit -mb-[26px] -mr-[4px]">
               <ScrollFadeArea orientation="horizontal" scrollStep={140} fadeSize={12} fitContent>
-                <div className="flex items-center gap-[var(--space-lg)] flex-nowrap pt-[20px] pb-[4px] pr-[4px]">
+                <div className="flex items-center gap-[var(--space-lg)] flex-nowrap pb-[26px] pr-[4px]">
                   <div className="flex items-center gap-[var(--space-sm)] shrink-0">
                     {/* hidden @min-[480px]:inline — same breakpoint Row 3's
                         own "Min Tag Match" label already uses in this same

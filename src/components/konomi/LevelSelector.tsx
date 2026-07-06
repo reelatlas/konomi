@@ -45,24 +45,19 @@ export function LevelSelector({ value, onChange }: LevelSelectorProps) {
       })}
       <span
         aria-hidden={!hoveredOption}
-        // bottom-full/mb-xs, not top-full/mt-sm — this control now lives in
-        // TagPoolBody's combined tabs+filters row (moved down from
-        // MixerBar's own now-removed header row), with the section tabs'
-        // own content sitting immediately below it in both the inline and
-        // stacked layouts. Below-positioning collided with that content —
-        // confirmed live as a real bug: the subtext rendered directly on
-        // top of the "Genres" tab label when the row was stacked, and on
-        // top of the first row of tag chips when inline, in both cases
-        // illegible. Rendering above the control instead sidesteps both,
-        // since nothing else in this row's own layout sits above it. mb-xs
-        // (4px), not mt-sm (6px) like the old below-positioned version:
-        // that extra 2px specifically cleared this control's own
-        // shadow-[var(--elev-2)], which bleeds 3px below its box — there's
-        // no equivalent bleed on the top edge (shadows in this design
-        // system are bottom/right-only), so the smaller default gap
-        // ThemeSwitcher's own subtext already uses is enough here too.
+        // top-full/mt-sm, back to below the control — this filter now
+        // lives in MixerBar's resize-handle row, at the very top of the
+        // edit card, with nothing above it but the card's own border/
+        // padding and nothing directly below it that above-positioning
+        // was ever protecting against (that was TagPoolBody's combined
+        // tabs+filters row, which this control no longer sits in — see
+        // git history for that bug). mt-sm (6px), not mb-xs (4px): the
+        // original below-positioned value, which clears this control's
+        // own shadow-[var(--elev-2)] (3px bottom bleed) plus a bit more —
+        // there's no equivalent top-edge bleed to account for the way the
+        // above-positioned version needed the smaller gap for.
         className={[
-          "absolute bottom-full left-0 mb-[var(--space-xs)] whitespace-nowrap font-mono text-[length:var(--text-xs)] text-[var(--subtext)] transition-opacity duration-150",
+          "absolute top-full left-0 mt-[var(--space-sm)] whitespace-nowrap font-mono text-[length:var(--text-xs)] text-[var(--subtext)] transition-opacity duration-150",
           hoveredOption ? "opacity-100" : "opacity-0",
         ].join(" ")}
       >
