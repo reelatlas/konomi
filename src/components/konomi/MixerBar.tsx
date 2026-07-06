@@ -887,7 +887,30 @@ export function MixerBar({
             always did. Random/Clear/this toggle are icon-only IconButtons
             now (TagPoolIcon/CheckIcon here) — RECOMMEND is the one control in
             this row still a labeled text button, deliberately: it's the
-            hero action, not icon-ified alongside the others. */}
+            hero action, not icon-ified alongside the others.
+
+            This row's own responsive ladder, widest to narrowest — every
+            rung a flat CSS breakpoint toggling between two fully-rendered
+            forms, no ResizeObserver/JS measurement anywhere, so there's no
+            shared trigger for rungs to race or oscillate against:
+              - min-[993px]  — Tag Pool/Random/Clear: text+icon → icon-only
+                                (below 993px)
+              - min-[640px]  — RECOMMEND: text → icon-only (below 640px,
+                                RecommendButton.tsx's own breakpoint)
+              - max-[452px]  — Min Tag Match: full "1 2 3" segment → collapsed
+                                tap-to-cycle single button (live-bisected;
+                                wraps at 451px, see that div's own comment for
+                                the off-by-one reasoning)
+              - max-[408px]  — Tag Pool/Done button: hidden entirely, in both
+                                browse and edit mode (live-bisected; row wraps
+                                at 407px even with every action above already
+                                icon-only — removing this one button, not
+                                shrinking padding/gap/icon-size, is what Sean
+                                confirmed keeps this single-line down to
+                                ~310px)
+            Adding a new rung: give it its own breakpoint, don't reuse or
+            nudge one of the above — these were each bisected against real
+            rendered content independently. */}
         <div className="flex flex-wrap items-center gap-x-[var(--space-lg)] gap-y-[var(--space-lg)]">
           {/* Two full sibling forms, not one component branching internally
               — same dual-render idiom as Random/Clear below. This row's own
@@ -1009,9 +1032,32 @@ export function MixerBar({
               473px — that's the new number, replacing the stale 674.
               min-[686px]:max-[993px]:ml-[space-lg] (breathing room right
               after the divider disappears) is untouched — unaffected by
-              the Recommend-icon change, still correct. */}
-          <div className="flex items-center gap-[var(--space-lg)] min-[686px]:max-[993px]:ml-[var(--space-lg)] max-[474px]:ml-auto">
-            <div>
+              the Recommend-icon change, still correct.
+
+              min-[408px]:max-[474px]:ml-auto, not a plain max-[474px]:ml-auto
+              — scoped to stop exactly where Tag Pool (below) hides. Same
+              double-ml-auto collision as the paragraph above, re-triggered
+              by the new max-[408px] rung: once Tag Pool disappears this
+              wrapper holds only RecommendButton, but the class was still
+              unconditionally pushing it right, competing with Random/
+              Clear's own (always-on) `ml-auto` for the same line's leftover
+              space — confirmed live as the same "both groups pulled toward
+              center instead of docking at the edge" symptom. Below 408px,
+              Random/Clear's own ml-auto is what docks this whole remaining
+              cluster (Random/Clear + Recommend, Tag Pool gone) at the right
+              edge as one unit; this wrapper doesn't need its own anymore. */}
+          <div className="flex items-center gap-[var(--space-lg)] min-[686px]:max-[993px]:ml-[var(--space-lg)] min-[408px]:max-[474px]:ml-auto">
+            {/* max-[408px]:hidden — this row's narrowest rung (see the row's
+                own top comment for the full ladder). Live-bisected: Row 3
+                wraps at 407px even with every action already icon-only
+                (nothing left to shrink), so the fix is removing this one
+                button's footprint outright rather than tightening padding/
+                gap/icon-size — confirmed live this keeps the row single-line
+                down to ~310px in both browse and edit mode. Applies
+                regardless of editMode (hides both the TagPoolIcon/browse and
+                CheckIcon/edit-mode forms below), since it's a pure viewport
+                toggle, not conditioned on the button's own state. */}
+            <div className="max-[408px]:hidden">
               {/* min-[993px] icon-below/text-at-desktop split, same as
                   Random/Clear above. Icon-only in both states, not text in
                   one and icon in the other — TagPoolIcon (browse, "open the
