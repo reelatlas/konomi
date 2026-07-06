@@ -215,6 +215,20 @@
   --elev-5: 8px 8px 0 var(--ink);
   --elev-2-accent: 3px 3px 0 var(--secondary);
   --elev-3-accent: 4px 4px 0 var(--secondary);
+
+  /* ResultCard's tag-area background: a translucent wash of --slot-empty
+   * over the blurred cover reflection (see ResultCard.tsx's own comment) —
+   * derived here, once, rather than hand-picked hex+alpha per theme, so it
+   * automatically re-tints whenever --slot-empty does. 35% keeps the
+   * reflection's color/mood visible while still reading as "this app's own
+   * muted surface," not the cover itself — bump this (not the blur radius)
+   * if a future cover is ever found to make the tag area read as too busy;
+   * legibility of the tags themselves isn't actually at risk either way —
+   * TagChip's small variant already paints its own opaque fill/primary
+   * background — this veil is purely about the *mood* reading as
+   * intentional rather than a photo bleeding through gaps between chips.
+   */
+  --cover-reflection-veil: color-mix(in srgb, var(--slot-empty) 35%, transparent);
 }
 
 @layer base {

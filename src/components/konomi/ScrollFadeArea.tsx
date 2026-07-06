@@ -73,11 +73,22 @@ interface ScrollFadeAreaProps {
   // "recommendGen bumped, scroll back to card 0" behavior into a prop
   // instead of a caller-owned ref + effect.
   scrollResetKey?: unknown;
-  // What the fade gradients fade *from*, and what the hover arrows are
-  // filled with — i.e. "the color of whatever's actually behind this
-  // component," not a fixed choice. Defaults to --surface, correct for any
-  // caller sitting on a --surface card (TagScrollArea, inside ResultCard).
+  // What the fade gradients fade *from* — i.e. "the color of whatever's
+  // actually behind this component," not a fixed choice. Defaults to
+  // --surface, correct for any caller sitting on a flat --surface card.
   surfaceColor?: string;
+  // The hover arrows' own backgroundColor — separate from surfaceColor
+  // (which used to double as both) because the two can legitimately need
+  // to differ: ResultCard's tag area passes a *translucent* surfaceColor
+  // (a veil color meant to blend into a blurred cover reflection behind
+  // it — see that file's own comment) so the fade gradient reads as part
+  // of that backdrop rather than a mismatched opaque rectangle, but an
+  // arrow button rendered at that same translucent value became nearly
+  // invisible against the image behind it — confirmed live as a real
+  // regression, not a hypothetical. Defaults to surfaceColor, unchanged
+  // for every other caller (a flat, opaque surfaceColor works fine as
+  // both).
+  arrowBackgroundColor?: string;
   // Height (vertical) or width (horizontal) of the fade gradients, in px.
   // 0 renders no gradient at all (the results carousel: its peek is
   // already the "there's more" signal, and a gradient on top of arbitrary
@@ -193,6 +204,7 @@ export function ScrollFadeArea({
   scrollPaddingStart,
   scrollResetKey,
   surfaceColor = "var(--surface)",
+  arrowBackgroundColor = surfaceColor,
   fadeSize = DEFAULT_FADE_SIZE,
   continuousScrollSpeed = DEFAULT_CONTINUOUS_SCROLL_SPEED,
   arrowWidth = DEFAULT_ARROW_WIDTH,
@@ -533,7 +545,7 @@ export function ScrollFadeArea({
           shape="circle"
           border="hair"
           shadow={arrowShadow}
-          backgroundColor={surfaceColor}
+          backgroundColor={arrowBackgroundColor}
           revealOnHover={groupName}
           aria-label={horizontal ? "Scroll left" : "Scroll up"}
           onMouseDown={(e) => {
@@ -571,7 +583,7 @@ export function ScrollFadeArea({
           shape="circle"
           border="hair"
           shadow={arrowShadow}
-          backgroundColor={surfaceColor}
+          backgroundColor={arrowBackgroundColor}
           revealOnHover={groupName}
           aria-label={horizontal ? "Scroll right" : "Scroll down"}
           onMouseDown={(e) => {

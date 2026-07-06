@@ -5,6 +5,32 @@ interface TagScrollAreaProps {
   tags: string[];
   selectedTags: string[];
   onChipToggle: (tag: string) => void;
+  // Forwarded straight to ScrollFadeArea's own surfaceColor (the fade
+  // gradient) — defaults to that component's own default (--surface),
+  // which is what every caller except ResultCard wants. ResultCard
+  // overrides this to match its own tag-area background (a translucent
+  // veil over a blurred cover reflection, see that file's own comment) so
+  // the fade blends into it instead of showing as a mismatched opaque
+  // rectangle at the scroll edges.
+  surfaceColor?: string;
+  // Forwarded straight to ScrollFadeArea's own arrowBackgroundColor —
+  // separate from surfaceColor above because ResultCard's translucent
+  // surfaceColor made the arrow buttons themselves hard to see against the
+  // image behind them (confirmed live as a real regression); ResultCard
+  // passes an opaque color here specifically so the arrows stay legible
+  // while the fade still blends into the veil.
+  arrowBackgroundColor?: string;
+  // Forwarded straight to ScrollFadeArea's own fadeSize — defaults to 4
+  // (this component's original value, correct for the flat-color
+  // fallback). ResultCard passes 0 when its translucent veil is active:
+  // a translucent surfaceColor fading *on top of* the same translucent
+  // veil already covering the whole area compounds into a visibly
+  // stronger tint right at the scroll edges than the rest of the area —
+  // confirmed live as a real, distracting seam, not a hypothetical. The
+  // peek (a partially-visible next row) already carries the "there's more
+  // to scroll" signal on its own here, so losing this 4px depth cue only
+  // in the veiled case isn't a regression.
+  fadeSize?: number;
 }
 
 // Row geometry: 33px step (27px chip + 6px gap), 3 rows fully visible by
@@ -42,7 +68,7 @@ const TOP_RESERVE_PX = 14;
 // the full 27px row, confirmed live.
 const TAG_AREA_HEIGHT = "h-[121px]";
 
-export function TagScrollArea({ tags, selectedTags, onChipToggle }: TagScrollAreaProps) {
+export function TagScrollArea({ tags, selectedTags, onChipToggle, surfaceColor, arrowBackgroundColor, fadeSize = 4 }: TagScrollAreaProps) {
   return (
     // scrollStep = exactly VISIBLE_ROWS worth of rows (99px), not the
     // viewport's own pixel height. Those aren't the same number — the
@@ -97,8 +123,10 @@ export function TagScrollArea({ tags, selectedTags, onChipToggle }: TagScrollAre
       scrollStep={VISIBLE_ROWS * ROW_STEP_PX}
       snap
       scrollPaddingStart={TOP_RESERVE_PX}
-      fadeSize={4}
+      fadeSize={fadeSize}
       continuousScrollSpeed={1.5}
+      surfaceColor={surfaceColor}
+      arrowBackgroundColor={arrowBackgroundColor}
     >
       {/* [&_button]:snap-start (not scroll-snap-align added to TagChip
           itself): every chip in a row shares that row's vertical position,

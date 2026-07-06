@@ -893,6 +893,9 @@ export function MixerBar({
               alongside the real one. */}
           <div className="ml-auto flex items-center gap-[var(--space-lg)]">
             <div className="min-[993px]:hidden flex items-center gap-[var(--space-lg)]">
+              <IconButton size="md" border="base" shadow="elev-2" backgroundColor="transparent" title="Clear" aria-label="Clear" onClick={onClearSlots}>
+                <EraserIcon className="text-[var(--ink)]" />
+              </IconButton>
               <IconButton
                 size="md"
                 border="base"
@@ -904,21 +907,18 @@ export function MixerBar({
               >
                 <DiceIcon className="text-[var(--ink)]" />
               </IconButton>
-              <IconButton size="md" border="base" shadow="elev-2" backgroundColor="transparent" title="Clear" aria-label="Clear" onClick={onClearSlots}>
-                <EraserIcon className="text-[var(--ink)]" />
-              </IconButton>
             </div>
             <div className="hidden min-[993px]:flex items-center gap-[var(--space-lg)]">
-              <ActionButton variant="filled" onClick={onRandomTags}>
-                <span className="inline-flex items-center gap-[var(--space-sm)]">
-                  Random
-                  <DiceIcon className="text-[var(--ink)]" />
-                </span>
-              </ActionButton>
               <ActionButton variant="outline" onClick={onClearSlots}>
                 <span className="inline-flex items-center gap-[var(--space-sm)]">
                   Clear
                   <EraserIcon className="text-[var(--ink)]" />
+                </span>
+              </ActionButton>
+              <ActionButton variant="filled" onClick={onRandomTags}>
+                <span className="inline-flex items-center gap-[var(--space-sm)]">
+                  Random
+                  <DiceIcon className="text-[var(--ink)]" />
                 </span>
               </ActionButton>
             </div>

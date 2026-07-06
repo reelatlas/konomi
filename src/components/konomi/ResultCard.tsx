@@ -46,6 +46,13 @@ export function ResultCard({
   sort,
 }: ResultCardProps) {
   const [hoveredIcon, setHoveredIcon] = useState<"lock" | "swap" | null>(null);
+  // Separate from `hasImage` below — that only tells us a URL exists, not
+  // that it actually decoded. Scoped to just the reflection's own <Image>
+  // instance (not the sharp cover's), so a failure here can't affect
+  // whether the cover itself renders, and vice versa. Either failure mode
+  // (no URL, or a URL that 404s/fails to decode) falls back to the same
+  // flat --surface tint the tag area always had — see the JSX below.
+  const [reflectionBroken, setReflectionBroken] = useState(false);
   const { series } = entry;
   // Recomputed live against the current tag selection on every render — not
   // taken from entry.score, which is frozen at whatever moment this card was
@@ -325,8 +332,113 @@ export function ResultCard({
               </div>
             </div>
           </div>
-          <div className="px-[var(--space-lg)] pt-[var(--space-lg)] pb-[var(--space-lg)]">
-            <TagScrollArea tags={cardTags} selectedTags={selectedTags} onChipToggle={onChipToggle} />
+          {/* relative + overflow-hidden: the reflection/veil below are
+              absolutely positioned against THIS box, and the reflection's
+              own overscan (see its own comment) needs to be clipped
+              exactly at this box's edges, not bleed into the cover image
+              above or past the card's own border.
+
+              flex-1: this box's own auto (content-driven) height doesn't
+              quite reach the bottom of FRONT's fixed --result-card-height —
+              FRONT is flex-col with the 295px cover fixed above this, and
+              this wrapper's natural height (padding + TagScrollArea's own
+              121px) leaves a few px of FRONT's own flex-col unclaimed at
+              the very bottom. That gap always existed but was invisible
+              before this change, since it just showed more of the same
+              flat --surface FRONT itself is filled with — confirmed live
+              as a real (if previously harmless) layout quirk the moment
+              this box's background became visually distinct from FRONT's:
+              a thin mismatched --surface line right above the card's own
+              border. flex-1 makes this box stretch to claim exactly
+              FRONT's true remaining space instead of just its own
+              content's height, so the reflection/veil below cover all of
+              it, regardless of the precise px math between the cover's
+              fixed height and TagScrollArea's own. */}
+          <div className="relative overflow-hidden flex-1 px-[var(--space-lg)] pt-[var(--space-lg)] pb-[var(--space-lg)]">
+            {hasImage && !reflectionBroken && (
+              <>
+                {/* Reflection: the same cover, flipped and heavily blurred —
+                    "pure color/mood, no recognizable detail," not a literal
+                    mirror continuation of the sharp cover's exact pixels
+                    (the two crops are independent regions of very
+                    different heights, so pixel-for-pixel continuity at the
+                    seam was never achievable here, and the blur makes it a
+                    non-issue anyway). aria-hidden: purely decorative, the
+                    real alt text lives on the sharp cover above.
+                    sizes="48px" (vs. the sharp cover's own "208px") is
+                    deliberate — this only needs to read as a soft color
+                    wash after ~18px of blur, so a much smaller optimized
+                    variant keeps the download/decode cost low without any
+                    visible quality loss once blurred; see this file's own
+                    top-level notes on why this stayed a plain CSS blur
+                    rather than a separate pre-blurred asset. */}
+                <div className="absolute inset-0 overflow-hidden">
+                  {/* -inset-[24px]: overscans this box by more than the
+                      18px blur radius on every side, so the blur always has
+                      real image pixels to draw from right up to the
+                      visible edge — confirmed live as a real bug otherwise:
+                      without this, `filter: blur` has nothing to sample
+                      beyond the element's own rendered content, so the
+                      edges nearest the box boundary come out visibly
+                      lighter/faded (less "energy" in the Gaussian kernel),
+                      an unwanted vignette rather than a uniform wash. The
+                      outer div's own overflow-hidden clips this back down
+                      to the true visible box. */}
+                  <div className="absolute -inset-[24px]">
+                    <Image
+                      src={series.coverImageUrl as string}
+                      alt=""
+                      aria-hidden="true"
+                      fill
+                      sizes="48px"
+                      className="object-cover object-top [transform:scaleY(-1)] [filter:blur(18px)]"
+                      onError={() => setReflectionBroken(true)}
+                    />
+                  </div>
+                </div>
+                {/* Veil: --cover-reflection-veil (globals.css) — a
+                    translucent wash of this theme's --slot-empty over the
+                    reflection, so the tag area reads as this app's own
+                    muted surface with a hint of the cover's mood, on any
+                    cover, dark or bright — not the photo itself bleeding
+                    through. Bump that token's opacity (not this file) if a
+                    future cover is ever found to need more. */}
+                <div className="absolute inset-0 bg-[var(--cover-reflection-veil)]" />
+              </>
+            )}
+            {/* relative: keeps this in front of the two absolutely
+                positioned decorative layers above regardless of paint-order
+                edge cases — normal-flow content after positioned siblings
+                already paints on top in every browser, but this is cheap
+                insurance and matches how the rest of this file treats
+                local front/back stacking explicitly rather than relying on
+                implicit DOM-order behavior. surfaceColor matches the same
+                veil token, but fadeSize is 0 whenever the veil is active —
+                tried keeping the 4px fade (matching surfaceColor) first,
+                and it read as a visible seam, not a blend: the fade adds
+                more of the *same* translucent veil color on top of the
+                veil that's already covering the whole area, so the strip
+                right at the scroll edge came out visibly more washed-out
+                than the rest of the tag area — confirmed live as a real,
+                distracting artifact, not a hypothetical. The peek (a
+                partially-visible next row) already signals "there's more
+                to scroll" on its own, so dropping this depth cue only in
+                the veiled case isn't a regression. arrowBackgroundColor
+                stays plain --surface (opaque) regardless of fadeSize:
+                passing the translucent veil there too made the hover
+                arrows nearly invisible against the image behind them
+                (confirmed live as a separate real regression), so the
+                arrows need their own solid backing either way. */}
+            <div className="relative">
+              <TagScrollArea
+                tags={cardTags}
+                selectedTags={selectedTags}
+                onChipToggle={onChipToggle}
+                surfaceColor={hasImage && !reflectionBroken ? "var(--cover-reflection-veil)" : "var(--surface)"}
+                arrowBackgroundColor="var(--surface)"
+                fadeSize={hasImage && !reflectionBroken ? 0 : 4}
+              />
+            </div>
           </div>
         </div>
 
