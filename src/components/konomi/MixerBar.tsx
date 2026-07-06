@@ -562,20 +562,36 @@ export function MixerBar({
               onMouseDown={(e) => e.stopPropagation()}
               onTouchStart={(e) => e.stopPropagation()}
             >
-              <IconButton size="sm" title="Resize to 50%" aria-label="Resize to 50%" onClick={() => handleSnapPoolHeight(0.5)}>
-                <ArrowUpHalfIcon className="text-[var(--ink)]" />
+              <IconButton
+                size="sm"
+                border="none"
+                backgroundColor="transparent"
+                title="Resize to 50%"
+                aria-label="Resize to 50%"
+                onClick={() => handleSnapPoolHeight(0.5)}
+              >
+                <ArrowUpHalfIcon className="text-[var(--muted)]" />
               </IconButton>
-              <IconButton size="sm" title="Resize to 100%" aria-label="Resize to 100%" onClick={() => handleSnapPoolHeight(1)}>
-                <ArrowUpIcon className="text-[var(--ink)]" />
+              <IconButton
+                size="sm"
+                border="none"
+                backgroundColor="transparent"
+                title="Resize to 100%"
+                aria-label="Resize to 100%"
+                onClick={() => handleSnapPoolHeight(1)}
+              >
+                <ArrowUpIcon className="text-[var(--muted)]" />
               </IconButton>
               {!isAtDefaultHeight && (
                 <IconButton
                   size="sm"
+                  border="none"
+                  backgroundColor="transparent"
                   title="Reset pool panel to default height"
                   aria-label="Reset pool panel to default height"
                   onClick={handleResetPoolHeight}
                 >
-                  <ResetIcon className="text-[var(--ink)]" />
+                  <ResetIcon className="text-[var(--muted)]" />
                 </IconButton>
               )}
             </div>
@@ -609,7 +625,7 @@ export function MixerBar({
             ScrollFadeArea's overflow detection never trigger (confirmed
             live: an earlier version without it left the scroll area
             stretching the whole row wider instead of scrolling). */}
-        <div className="flex items-end justify-between flex-wrap gap-x-[var(--space-lg)] gap-y-[var(--space-sm)] mb-[var(--space-lg)]">
+        <div className="flex items-end justify-between flex-wrap gap-x-[var(--space-lg)] gap-y-[var(--space-lg)] mb-[var(--space-lg)]">
           <div className="flex items-center gap-[var(--space-md)]">
             <TitleWithSubtitle title={editMode ? "Super Mixer" : "Mixer"} subtitle={editMode ? "ショウリュウケン" : "フレーバー"} />
             <span

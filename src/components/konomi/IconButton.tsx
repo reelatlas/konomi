@@ -53,8 +53,11 @@ type IconButtonBaseProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "classN
   // so a size="md" icon button sitting next to Random ×3/Clear ✕ (both
   // border-base) reads as the same visual weight, not just the same
   // height. size="sm" (ResultCard) keeps the pre-existing "thin" default,
-  // unchanged.
-  border?: "hair" | "thin" | "base";
+  // unchanged. "none" (border-0) is for callers that want just the bare
+  // glyph — no border, and paired with backgroundColor="transparent" and
+  // the default shadow={false}, no shadow or fill either (MixerBar's
+  // resize-handle 50%/100%/reset buttons).
+  border?: "hair" | "thin" | "base" | "none";
   // boolean keeps every existing caller (ResultCard's `shadow`,
   // ScrollFadeArea's `shadow={arrowShadow}`) working unchanged — `true`
   // still means exactly what it always did (elev-1). "elev-2" is the one
@@ -110,10 +113,11 @@ type IconButtonProps = IconButtonBaseProps & IconButtonSizeProps;
 // version is invisible to it and would silently never make it into the
 // compiled CSS. Same constraint `revealOnHover`'s doc comment above
 // describes for group names.
-const BORDER_CLASSES: Record<"hair" | "thin" | "base", string> = {
+const BORDER_CLASSES: Record<"hair" | "thin" | "base" | "none", string> = {
   hair: "border-[length:var(--border-hair)]",
   thin: "border-[length:var(--border-thin)]",
   base: "border-[length:var(--border-base)]",
+  none: "border-0",
 };
 
 export function IconButton({
