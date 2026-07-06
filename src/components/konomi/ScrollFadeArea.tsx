@@ -371,10 +371,40 @@ export function ScrollFadeArea({
     let accumX = 0;
     let accumY = 0;
     let lastEventTime = 0;
+    let restoreSnapTimer: number | null = null;
 
     const GESTURE_GAP_MS = 200;
     const AXIS_LOCK_NOISE_PX = 4;
     const HORIZONTAL_BIAS = 0.85;
+    // Scale alone didn't explain "jumps multiple cards" — confirmed live:
+    // the carousel's own scroll-snap-mandatory was still active while this
+    // forwarded, so even a single small scrollBy landed on an invalid
+    // (non-snap) resting position and got immediately corrected to the
+    // *next full snap point* regardless of how small the forwarded amount
+    // was — exactly the same failure mode this file's own
+    // startContinuousScroll already had to work around for the arrow-hold
+    // case (see its own comment), just not yet applied here. Disabling
+    // scroll-snap-type for the duration of the forward, restoring it once
+    // the gesture goes quiet for GESTURE_GAP_MS (a debounced timer, reset
+    // on every forwarded event — wheel has no native "gesture end" event
+    // the way touch has touchend), fixes this the same way.
+    function disableSnap(ancestor: Element) {
+      if (restoreSnapTimer !== null) window.clearTimeout(restoreSnapTimer);
+      (ancestor as HTMLElement).style.scrollSnapType = "none";
+      restoreSnapTimer = window.setTimeout(() => {
+        (ancestor as HTMLElement).style.scrollSnapType = "";
+        restoreSnapTimer = null;
+      }, GESTURE_GAP_MS);
+    }
+    // Forwarded deltaX was applied 1:1 at first — confirmed live as a real
+    // regression on a real trackpad: a raw per-event deltaX here jumped
+    // multiple cards per gesture, well past what the identical gesture
+    // does scrolling the carousel directly (e.g. hovering the cover, which
+    // needs no forwarding at all). 0.5 is a starting guess, not a measured
+    // value — tune live against how it actually feels, the same way this
+    // file's other empirically-tuned constants were (see
+    // continuousScrollSpeed's own history in TagScrollArea.tsx).
+    const WHEEL_FORWARD_SCALE = 0.5;
 
     function handleWheel(e: WheelEvent) {
       const now = performance.now();
@@ -404,10 +434,26 @@ export function ScrollFadeArea({
       const horizontalAncestor = el!.closest("[data-scroll-fade-area-horizontal]");
       if (!horizontalAncestor) return;
       e.preventDefault();
-      horizontalAncestor.scrollBy({ left: e.deltaX, behavior: "auto" });
+      disableSnap(horizontalAncestor);
+      // behavior: "instant", not "auto" — the carousel this forwards to is
+      // itself a snap instance, so it carries scroll-smooth (scroll-
+      // behavior: smooth) from the snap-release easing fix. "auto" means
+      // "defer to this element's own CSS scroll-behavior," not "instant" —
+      // the exact same lesson the continuous arrow-hold scroll already hit
+      // (see ScrollFadeArea's startContinuousScroll comment): a rapid
+      // stream of per-event forwards each deferring to "smooth" would kick
+      // off its own animation that the next event's call interrupts,
+      // netting almost no movement across a real multi-event gesture even
+      // though a single isolated call looks fine. "instant" forces every
+      // forwarded call to actually move by that amount immediately,
+      // regardless of the carousel's own CSS.
+      horizontalAncestor.scrollBy({ left: e.deltaX * WHEEL_FORWARD_SCALE, behavior: "instant" });
     }
     el.addEventListener("wheel", handleWheel, { passive: false });
-    return () => el.removeEventListener("wheel", handleWheel);
+    return () => {
+      el.removeEventListener("wheel", handleWheel);
+      if (restoreSnapTimer !== null) window.clearTimeout(restoreSnapTimer);
+    };
   }, [forwardHorizontalWheel]);
 
   const scrollBy = (direction: 1 | -1) => {

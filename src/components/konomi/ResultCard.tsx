@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { scoreSeries, streamsFor } from "@/lib/konomi/scoring";
 import { isTagVisibleAtLevel, sortTags } from "@/lib/konomi/tagPool";
 import type { LevelKey, ResultEntry, SortKey, TagInfo } from "@/lib/konomi/types";
@@ -84,6 +84,8 @@ export function ResultCard({
   // (no URL, or a URL that 404s/fails to decode) falls back to the same
   // flat --surface tint the tag area always had — see the JSX below.
   const [reflectionBroken, setReflectionBroken] = useState(false);
+  // Cover-area touch forwarder's own element ref — see the effect below.
+  const coverRef = useRef<HTMLDivElement>(null);
   const { series } = entry;
   // Recomputed live against the current tag selection on every render — not
   // taken from entry.score, which is frozen at whatever moment this card was
@@ -162,6 +164,117 @@ export function ResultCard({
   // year/eps come from AniList and can genuinely be null (e.g. unreleased
   // media) — omit whichever part is missing instead of rendering "null".
   const meta = [series.year ?? "TBA", series.eps != null ? `${series.eps} EP` : null].filter(Boolean).join(" · ");
+
+  // Cover-area touch forwarder: manually drives the results carousel from a
+  // horizontal swipe that starts over the cover, instead of relying on the
+  // browser's own native touch-scroll chaining reaching it. The cover box
+  // isn't a scroll container itself, so in principle a swipe over it should
+  // already fall through to the carousel with no help — and that's exactly
+  // what a synthetic touch test here showed. But on a real device it
+  // doesn't: confirmed live, swiping the cover still doesn't move the
+  // carousel, even with touch-action explicitly restated "auto" at every
+  // level of the 3D transform stack the cover sits inside (perspective on
+  // this article → preserve-3d/rotateY on the flip container → backface-
+  // visibility:hidden on this face) — a real-device-only compositor/hit-
+  // testing quirk our tooling can't reproduce to debug further. Doing the
+  // scroll ourselves, by hand, from raw touch coordinates sidesteps the
+  // question entirely: it doesn't depend on native chaining reaching the
+  // carousel at all.
+  //
+  // Same axis-lock shape as MixerBar's own touch handling
+  // (handleTouchStart/blockScrollThrough there): accumulate displacement
+  // from the gesture's start, decide the axis once a small noise threshold
+  // is cleared, hold that decision for the rest of the gesture. Below the
+  // threshold, this does nothing at all — no preventDefault, no
+  // scrollBy — so a plain tap never gets touched by this and tap-to-flip
+  // (the article's own onClick) keeps working exactly as before; a genuine
+  // vertical gesture (page scroll) that happens to start on the cover is
+  // left alone the same way, once locked "vertical".
+  //
+  // Once locked "horizontal", forwarding uses the *frame-to-frame* delta
+  // (current touch position vs. the previous move's position), not the
+  // gesture's cumulative total from start — a drag-to-scroll needs "how far
+  // did the finger move since the last frame," the same quantity a native
+  // touch-scroll would apply each frame; using the cumulative total instead
+  // would try to re-apply the whole gesture's distance on every single
+  // move event. Sign is negated (scrollBy({left: -frameDeltaX})): the
+  // finger moving left (frameDeltaX negative) should reveal content to the
+  // right, i.e. increase scrollLeft — content follows the finger, same
+  // direction native touch-scrolling already uses.
+  useEffect(() => {
+    const el = coverRef.current;
+    if (!el) return;
+
+    let axis: "horizontal" | "vertical" | null = null;
+    let startX = 0;
+    let startY = 0;
+    let lastX = 0;
+    let snapDisabledOn: HTMLElement | null = null;
+    const AXIS_LOCK_NOISE_PX = 3;
+
+    function handleTouchStart(e: TouchEvent) {
+      const t = e.touches[0];
+      axis = null;
+      startX = t.clientX;
+      startY = t.clientY;
+      lastX = t.clientX;
+    }
+
+    function handleTouchMove(e: TouchEvent) {
+      const t = e.touches[0];
+      const dx = t.clientX - startX;
+      const dy = t.clientY - startY;
+
+      if (axis === null && (Math.abs(dx) > AXIS_LOCK_NOISE_PX || Math.abs(dy) > AXIS_LOCK_NOISE_PX)) {
+        axis = Math.abs(dx) > Math.abs(dy) ? "horizontal" : "vertical";
+      }
+      if (axis !== "horizontal") return;
+
+      const horizontalAncestor = el!.closest("[data-scroll-fade-area-horizontal]") as HTMLElement | null;
+      const frameDeltaX = t.clientX - lastX;
+      lastX = t.clientX;
+      if (!horizontalAncestor) return;
+      e.preventDefault();
+      // Disable scroll-snap-type for the duration of this drag, same
+      // reason and same mechanism as the wheel forwarder's identical fix in
+      // ScrollFadeArea.tsx (see its own comment) — without it, every
+      // forwarded scrollBy lands on a non-snap resting position and gets
+      // immediately corrected to the *next full snap point*, regardless of
+      // how small the per-frame amount was, which is what actually caused
+      // "jumps multiple cards" (not the forwarded amount itself). Touch has
+      // a real gesture-end event (touchend/touchcancel below), so this can
+      // restore it precisely there instead of needing a debounced timer
+      // the way wheel does.
+      horizontalAncestor.style.scrollSnapType = "none";
+      snapDisabledOn = horizontalAncestor;
+      // behavior: "instant", not "auto" — same reason as the wheel
+      // forwarder's identical fix in ScrollFadeArea.tsx (see its own
+      // comment): the carousel carries scroll-smooth from the snap-release
+      // easing fix, so "auto" would defer to that CSS and animate each
+      // tiny per-frame forward instead of applying it immediately, which a
+      // rapid touchmove stream would turn into stutter/near-no-movement.
+      horizontalAncestor.scrollBy({ left: -frameDeltaX, behavior: "instant" });
+    }
+
+    function handleTouchEnd() {
+      axis = null;
+      if (snapDisabledOn) {
+        snapDisabledOn.style.scrollSnapType = "";
+        snapDisabledOn = null;
+      }
+    }
+
+    el.addEventListener("touchstart", handleTouchStart, { passive: true });
+    el.addEventListener("touchmove", handleTouchMove, { passive: false });
+    el.addEventListener("touchend", handleTouchEnd, { passive: true });
+    el.addEventListener("touchcancel", handleTouchEnd, { passive: true });
+    return () => {
+      el.removeEventListener("touchstart", handleTouchStart);
+      el.removeEventListener("touchmove", handleTouchMove);
+      el.removeEventListener("touchend", handleTouchEnd);
+      el.removeEventListener("touchcancel", handleTouchEnd);
+    };
+  }, []);
 
   return (
     <article
@@ -253,7 +366,7 @@ export function ResultCard({
             flipped ? "opacity-0 pointer-events-none z-[var(--z-base)]" : "opacity-100 pointer-events-auto z-[var(--z-raised)]",
           ].join(" ")}
         >
-          <div className="relative h-[295px] border-b-[length:var(--border-base)] border-b-[var(--ink)] bg-[var(--fill)] overflow-hidden">
+          <div ref={coverRef} className="relative h-[295px] border-b-[length:var(--border-base)] border-b-[var(--ink)] bg-[var(--fill)] overflow-hidden">
             {hasImage ? (
               <Image
                 src={series.coverImageUrl as string}
