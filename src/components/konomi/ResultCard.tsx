@@ -938,12 +938,28 @@ export function ResultCard({
             reverted from touch-pan-y (see the flip-container's own
             comment) — pan-y here didn't fix this face's native scroll
             chaining either; the manual touch-forward handler is the real
-            fix now. */}
+            fix now.
+            pointer-events-auto unconditionally (not toggled with
+            opacity/z-index like FRONT's own pair) — TRIAL FIX for the
+            back-face-never-scrolls bug: unlike FRONT (interactive from the
+            very first render), BACK started non-hit-testable
+            (pointer-events-none) and only became a valid touch target
+            later, dynamically, via this same class toggle — a known
+            category of mobile WebKit touch-dispatch bugs where an element
+            that starts outside the hit-test tree doesn't correctly "wake
+            up" for touch when it becomes interactive later, even though
+            computed styles read correctly at that point. Made permanently
+            interactive here instead, relying only on opacity/z-index
+            (unchanged) to keep it invisible AND non-overlapping while
+            FRONT is showing — FRONT sits above it in z-index whenever not
+            flipped, so this shouldn't change anything about FRONT's own
+            interactivity; confirm that live after this change, not just
+            assume it from the stacking order. */}
         <div
           ref={backRef}
           className={[
-            "touch-auto absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] border-[length:var(--border-base)] border-[var(--ink)] overflow-hidden flex flex-col transition-opacity duration-200 bg-[var(--fill)] shadow-[var(--elev-4)]",
-            flipped ? "opacity-100 pointer-events-auto z-[var(--z-raised)]" : "opacity-0 pointer-events-none z-[var(--z-base)]",
+            "touch-auto absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] border-[length:var(--border-base)] border-[var(--ink)] overflow-hidden flex flex-col transition-opacity duration-200 bg-[var(--fill)] shadow-[var(--elev-4)] pointer-events-auto",
+            flipped ? "opacity-100 z-[var(--z-raised)]" : "opacity-0 z-[var(--z-base)]",
           ].join(" ")}
         >
           {/* Full-bleed cover fill — own BACK_FILL_* constants (see their
