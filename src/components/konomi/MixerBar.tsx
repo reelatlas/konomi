@@ -3,11 +3,36 @@
 import { useEffect, useRef, useState } from "react";
 import type { LevelKey, MatchKey, MixerError, Slot, TagInfo } from "@/lib/konomi/types";
 import { ActionButton } from "./ActionButton";
-import { ArrowDownIcon, ArrowUpHalfIcon, ArrowUpIcon, CheckIcon, DiceIcon, EraserIcon, GreaterEqualIcon, TagIcon, TagPoolIcon } from "./icons";
+import {
+  ArrowDownIcon,
+  ArrowUpHalfIcon,
+  ArrowUpIcon,
+  CheckIcon,
+  DiceIcon,
+  EraserIcon,
+  GreaterEqualIcon,
+  GripHorizontalIcon,
+  SortIcon,
+  TagIcon,
+  TagPoolIcon,
+} from "./icons";
 import { IconButton } from "./IconButton";
+import { LevelSelector } from "./LevelSelector";
 import { MatchSelector } from "./MatchSelector";
 import { RecommendButton } from "./RecommendButton";
-import { clampPoolPanelHeight, EDIT_MODE_FIXED_ROWS_HEIGHT, POOL_HEIGHT_MIN, setPoolPanelHeightPref, usePoolPanelHeight, usePoolPanelMaxHeight } from "./tagPoolPrefs";
+import { ScrollFadeArea } from "./ScrollFadeArea";
+import { SortSelect } from "./SortSelect";
+import {
+  clampPoolPanelHeight,
+  EDIT_MODE_FIXED_ROWS_HEIGHT,
+  POOL_HEIGHT_MIN,
+  setPoolPanelHeightPref,
+  setSortPref,
+  useLevel,
+  usePoolPanelHeight,
+  usePoolPanelMaxHeight,
+  useSort,
+} from "./tagPoolPrefs";
 import { TagPoolBody } from "./TagPoolBody";
 import { TagSlot } from "./TagSlot";
 
@@ -127,6 +152,16 @@ export function MixerBar({
     }
   }
 
+  // Read directly (not threaded through TagPoolBody), same split as
+  // onLevelChange below: LevelSelector/SortSelect now render here, in the
+  // resize-handle row, not inside TagPoolBody — but TagPoolBody still reads
+  // its own useLevel()/useSort() independently, to filter/sort the chips
+  // that respond to these same values. Two independent reads of the same
+  // preference store, not one passed down as a prop — the same pattern
+  // TagPoolBody's own top comment already documents for level/sort.
+  const level = useLevel();
+  const sort = useSort();
+
   const barRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
@@ -171,29 +206,37 @@ export function MixerBar({
     };
   }, [editMode]);
 
+  // The Tag Density/Sort filters' own ScrollFadeArea, in the resize-handle
+  // row below — outside dialogRef (a sibling, not a descendant), so it
+  // needs its own exclusion from blockScrollThrough below; see that
+  // effect's own comment.
+  const filtersScrollRef = useRef<HTMLDivElement>(null);
+
   // Wheel/touch scroll anywhere over this bar — collapsed or expanded,
   // desktop or mobile — must never fall through to scroll the page behind
   // it: this bar reads as its own fixed surface sitting on top of the
   // page, not a transparent window onto it scrolling underneath. The one
-  // exception is the pool panel's own scrollable areas (TagPoolBody's
-  // chip area, section tabs, and Level/Sort filters, all inside dialogRef),
-  // which must keep scrolling internally exactly as before —
-  // dialogRef.contains(target) is that exclusion, checked once here rather
-  // than duplicated per gesture type or per scrollable area within it. A
-  // narrower, direction-aware exclusion (only letting a genuinely
-  // horizontal gesture through, so a vertical one still fell through to
-  // preventDefault below) used to be needed specifically for the filters'
-  // own ScrollFadeArea, back when it lived in this bar's own now-removed
-  // header row — outside dialogRef, and so not covered by this blanket
-  // exemption. Now that Level/Sort live inside TagPoolBody (see that
-  // file), they're inside dialogRef's subtree like every other scrollable
-  // area here, and the same blanket exemption already correctly covers
-  // them — confirmed live, matching how SectionTabStrip's own horizontal
-  // scroll already worked here without any direction-aware JS: each
-  // ScrollFadeArea's own overscroll-contain (see that component) stops a
-  // gesture from chaining past its own scroll bounds once native scroll
-  // handles it, so there's nothing left for this handler to get wrong by
-  // just exempting the whole dialog.
+  // exception is the pool panel's own scrollable areas (TagPoolBody's chip
+  // area and section tabs, inside dialogRef), which must keep scrolling
+  // internally exactly as before — dialogRef.contains(target) is that
+  // exclusion, checked once here rather than duplicated per gesture type
+  // or per scrollable area within it.
+  //
+  // The resize-handle row's own filters ScrollFadeArea (filtersScrollRef,
+  // Tag Density/Sort) needs a second, narrower exclusion — narrower
+  // because unlike dialogRef, it isn't a modal surface with nothing of its
+  // own below it; it's a thin strip sitting directly above the pool panel,
+  // so only a genuinely horizontal gesture should be let through. A
+  // vertical gesture over it must still fall through to preventDefault
+  // below, exactly like anywhere else on the bar — otherwise it'd
+  // scroll-chain to the page, the same leak this whole handler exists to
+  // plug. Direction is derived, not assumed: WheelEvent carries deltaX/
+  // deltaY directly, but TouchEvent's touchmove doesn't, so the touch case
+  // tracks the gesture's start point (touchstart, below) and locks an axis
+  // off the first touchmove that clears a small noise threshold, holding
+  // that lock for the rest of the gesture rather than re-deciding every
+  // event (a gesture that starts diagonal would otherwise flip between
+  // "let through" and "block" as it settles).
   //
   // Both wheel and touchmove are native, non-passive addEventListener
   // calls, not JSX onWheel/onTouchMove props — confirmed live this is
@@ -214,15 +257,50 @@ export function MixerBar({
   useEffect(() => {
     const bar = barRef.current;
     if (!bar) return;
+
+    let touchStart: { x: number; y: number } | null = null;
+    let touchAxis: "horizontal" | "vertical" | null = null;
+
+    function handleTouchStart(e: TouchEvent) {
+      const target = e.target as Node;
+      if (filtersScrollRef.current?.contains(target)) {
+        const t = e.touches[0];
+        touchStart = { x: t.clientX, y: t.clientY };
+        touchAxis = null;
+      } else {
+        touchStart = null;
+        touchAxis = null;
+      }
+    }
+
     function blockScrollThrough(e: WheelEvent | TouchEvent) {
       const target = e.target as Node;
       if (dialogRef.current?.contains(target)) return;
+
+      if (filtersScrollRef.current?.contains(target)) {
+        if (e instanceof WheelEvent) {
+          if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+        } else {
+          const t = e.touches[0];
+          if (touchAxis === null && touchStart) {
+            const dx = t.clientX - touchStart.x;
+            const dy = t.clientY - touchStart.y;
+            if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+              touchAxis = Math.abs(dx) > Math.abs(dy) ? "horizontal" : "vertical";
+            }
+          }
+          if (touchAxis === "horizontal") return;
+        }
+      }
+
       e.preventDefault();
     }
     bar.addEventListener("wheel", blockScrollThrough, { passive: false });
+    bar.addEventListener("touchstart", handleTouchStart, { passive: true });
     bar.addEventListener("touchmove", blockScrollThrough, { passive: false });
     return () => {
       bar.removeEventListener("wheel", blockScrollThrough);
+      bar.removeEventListener("touchstart", handleTouchStart);
       bar.removeEventListener("touchmove", blockScrollThrough);
     };
   }, []);
@@ -293,48 +371,25 @@ export function MixerBar({
   // same hydration-safety reason described in usePoolPanelMaxHeight's own
   // comment in tagPoolPrefs.ts.
   const poolPanelMaxHeight = usePoolPanelMaxHeight(fixedOverheadPx ?? EDIT_MODE_FIXED_ROWS_HEIGHT);
-  // Fixed, not measured — h-[30px] + mb-[var(--space-sm)] (6px), the whole
-  // resize-handle row's own height. Unlike EDIT_MODE_FIXED_ROWS_HEIGHT this
-  // never varies by breakpoint/content, so it's safe to hardcode rather
-  // than measure.
-  const RESIZE_HANDLE_ROW_HEIGHT = 36;
-  // Whether the resize-handle row (drag target + 50%/100%/reset shortcuts)
-  // is worth showing at all — hidden once poolPanelMaxHeight itself can't
-  // clear POOL_HEIGHT_MIN, since at that point nothing the row offers
-  // (dragging, snapping to a fraction) can move the panel anywhere
-  // clampPoolPanelHeight wouldn't already force it to on its own; see that
-  // function. Deliberately NOT `poolPanelMaxHeight > POOL_HEIGHT_MIN`
-  // evaluated directly and used to gate the row's own mounting — that was
-  // tried first and is a real, confirmed-live bug: fixedOverheadPx is
-  // measured from bar/dialog's own rendered rects, which *include* this
-  // row's height only while it's mounted, so unmounting it shrinks the
-  // measured overhead by exactly RESIZE_HANDLE_ROW_HEIGHT, which raises
-  // poolPanelMaxHeight back up, which can push the direct comparison back
-  // over the threshold and remount the row — which re-measures the larger
-  // overhead, drops the ceiling again, and unmounts it again, forever.
-  // Settled during render (React's documented "you can call the setter
-  // while rendering" escape hatch — see "Storing information from previous
-  // renders" in the useState docs) rather than a useEffect: setState from
-  // inside an effect body here would fire synchronously on every
-  // poolPanelMaxHeight change, which is exactly the cascading-render shape
-  // that pattern warns against, and this repo's lint config flags it. No
-  // ref needed to detect "did poolPanelMaxHeight change" first, either —
-  // the recomputation below is cheap enough to just run every render, and
-  // the `next !== canShowResizeHandleRow` guard already prevents this from
-  // looping: once the derived value agrees with the committed state,
-  // setState is never called, so no further render is triggered. Each
-  // candidate decision is judged against "what the ceiling would be if the
-  // row were shown" — reconstructed by adding RESIZE_HANDLE_ROW_HEIGHT back
-  // on top of poolPanelMaxHeight whenever the row is currently hidden
-  // (since that measurement already excludes it) — rather than whatever
-  // poolPanelMaxHeight happens to measure right after the row's last
-  // mount-state flip, which is what was oscillating.
-  const [canShowResizeHandleRow, setCanShowResizeHandleRow] = useState(true);
-  const ceilingIfRowWereShown = canShowResizeHandleRow ? poolPanelMaxHeight : poolPanelMaxHeight - RESIZE_HANDLE_ROW_HEIGHT;
-  const nextCanShowResizeHandleRow = ceilingIfRowWereShown > POOL_HEIGHT_MIN;
-  if (nextCanShowResizeHandleRow !== canShowResizeHandleRow) {
-    setCanShowResizeHandleRow(nextCanShowResizeHandleRow);
-  }
+  // Whether the resize-specific controls (drag grip + 50%/100%/reset
+  // shortcuts) within the resize-handle row are worth showing at all —
+  // hidden once poolPanelMaxHeight itself can't clear POOL_HEIGHT_MIN,
+  // since at that point nothing they offer (dragging, snapping to a
+  // fraction) can move the panel anywhere clampPoolPanelHeight wouldn't
+  // already force it to on its own; see that function.
+  //
+  // A direct comparison, not the settled-during-render reconstruction this
+  // used to need: that machinery existed because hiding these controls
+  // used to unmount the *entire* resize-handle row, which shrank
+  // fixedOverheadPx (measured from bar/dialog's own rendered rects) by the
+  // row's full height, raising poolPanelMaxHeight back up and re-showing
+  // the row — an oscillation. Now that the row also carries the Tag
+  // Density/Sort filters and stays mounted in edit mode regardless (only
+  // these specific controls toggle within it), and the filters are taller
+  // than the grip+arrows they sit beside, hiding them doesn't change the
+  // row's rendered height at all — fixedOverheadPx never moves as a side
+  // effect of this decision, so there's nothing left to oscillate against.
+  const canShowResizeHandleRow = poolPanelMaxHeight > POOL_HEIGHT_MIN;
   // clampPoolPanelHeight applies uniformly to every source (default,
   // persisted, or actively dragging) — one clamp, not "clamp the persisted
   // value on read, then separately clamp drags" — so the guarantee (fixed
@@ -505,107 +560,163 @@ export function MixerBar({
           "@container max-w-[1280px] mx-auto px-[var(--space-2xl)] py-[var(--space-xl)] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-4)]",
         ].join(" ")}
       >
-        {/* Resize handle — above the title row, at the very top of the
-            edit surface, not between the slots and the pool panel. Usable
-            at every breakpoint (mouse *and* touch, see handleResizeStart) —
-            an earlier version hid this below 993px, leaving mobile with no
-            way to resize at all; that gate is gone. No keyboard equivalent
-            yet (an accepted gap, same spirit as the no-focus-trap one —
-            not solved in this pass). Dragging it only ever visibly resizes
-            the pool panel below (title/slots/controls are fixed), but it's
+        {/* Resize handle + Tag Density/Sort filters, one row — above the
+            pool panel, at the very top of the edit surface. Grip + quick-
+            resize shortcuts group on the left, filters on the right; both
+            now share this one row instead of filters living inline with
+            the section tabs below (see TagPoolBody.tsx's own top comment
+            for why that combined row was retired — this is where those
+            controls moved). Usable at every breakpoint (mouse *and*
+            touch, see handleResizeStart) — an earlier version hid the
+            resize handle below 993px, leaving mobile with no way to
+            resize at all; that gate is gone. No keyboard equivalent yet
+            (an accepted gap, same spirit as the no-focus-trap one — not
+            solved in this pass). Dragging only ever visibly resizes the
+            pool panel below (slots/controls are fixed), but this row is
             positioned as if it controls the whole sheet's height, since
             that's the more natural mental model for the user — "pull this
             to make the panel bigger."
 
-            The whole row is the drag target (onMouseDown/onTouchStart live
-            here, on the outer div, not just around the centered indicator
-            bar) — the quick-resize buttons on the right sit inside a
-            sub-container that stops mousedown/touchstart from bubbling up
-            to this row's own handlers, so clicking a button never also
-            starts a resize-drag. size="sm" (30px, ResultCard's own icon
-            size) deliberately smaller than this bar's standard size="md"
-            icon buttons below — these are quick secondary shortcuts, not
+            Row itself gated on editMode alone, not canShowResizeHandleRow
+            too — the filters need to stay reachable even once resizing
+            itself stops being useful (a short viewport where
+            poolPanelMaxHeight has dropped to/below POOL_HEIGHT_MIN); only
+            the grip + 50%/100%/reset sub-elements are conditional on that,
+            inside the row. onMouseDown/onTouchStart (the drag-start
+            handlers) are attached to the row only when
+            canShowResizeHandleRow is true, for the same reason — dragging
+            a row that can't actually resize anything shouldn't start a
+            drag at all.
+
+            The left group is its own sub-container that stops
+            mousedown/touchstart from bubbling up to the row's own drag
+            handlers, so clicking a quick-resize button never also starts
+            a resize-drag. size="sm" (30px, ResultCard's own icon size)
+            deliberately smaller than this bar's standard size="md" icon
+            buttons below — these are quick secondary shortcuts, not
             primary actions. Reset is conditionally rendered (only once the
             panel has actually left its default height — see
             isAtDefaultHeight above) since 50%/100% cover the "I want it
             bigger" cases on their own; Reset exists for "put it back,"
-            which only means something once it's already been moved.
-
-            Whole row gated on canShowResizeHandleRow too, not just editMode
-            — once poolPanelMaxHeight drops to/below POOL_HEIGHT_MIN, the
-            panel is pinned to that shrunken ceiling regardless of where
-            this handle gets dragged to (clampPoolPanelHeight's floor can't
-            win once it's Math.min'd against a lower ceiling — see that
-            function), so the whole row — drag target and 50%/100%/reset
-            shortcuts alike — stops doing anything. Hiding it back reclaims
-            its own h-[30px] + mb-[var(--space-sm)] as a few extra px of
-            headroom right when the sheet is most squeezed for it, rather
-            than leaving a dead control sitting there taking up space.
-            canShowResizeHandleRow, not poolPanelMaxHeight > POOL_HEIGHT_MIN
-            evaluated directly — see that state's own comment above for why
-            (a real, confirmed-live oscillation otherwise: hiding the row
-            shrinks the very measurement its own visibility depends on). */}
-        {editMode && canShowResizeHandleRow && (
+            which only means something once it's already been moved. */}
+        {editMode && (
           <div
-            role="separator"
-            aria-orientation="horizontal"
-            aria-label="Drag to resize edit panel"
-            onMouseDown={handleResizeStart}
-            onTouchStart={handleResizeStart}
-            className="relative flex items-center justify-center h-[30px] mb-[var(--space-sm)] cursor-ns-resize select-none touch-none"
+            role={canShowResizeHandleRow ? "separator" : undefined}
+            aria-orientation={canShowResizeHandleRow ? "horizontal" : undefined}
+            aria-label={canShowResizeHandleRow ? "Drag to resize edit panel" : undefined}
+            onMouseDown={canShowResizeHandleRow ? handleResizeStart : undefined}
+            onTouchStart={canShowResizeHandleRow ? handleResizeStart : undefined}
+            className={[
+              "flex items-center justify-between gap-x-[var(--space-lg)] mb-[var(--space-sm)] select-none",
+              canShowResizeHandleRow ? "cursor-ns-resize touch-none" : "",
+            ].join(" ")}
           >
-            <div className="w-[48px] h-[length:var(--border-thin)] bg-[var(--muted)]" />
-            <div
-              className="absolute right-0 flex items-center gap-[var(--space-xs)] cursor-auto"
-              onMouseDown={(e) => e.stopPropagation()}
-              onTouchStart={(e) => e.stopPropagation()}
-            >
-              {canReachHalfHeight && !isAtHalfHeight && (
-                <IconButton
-                  size="sm"
-                  border="none"
-                  backgroundColor="transparent"
-                  title="Resize to 50%"
-                  aria-label="Resize to 50%"
-                  onClick={() => handleSnapPoolHeight(0.5)}
-                >
-                  <ArrowUpHalfIcon className="text-[var(--muted)]" />
-                </IconButton>
-              )}
-              {canReachFullHeight && !isAtFullHeight && (
-                <IconButton
-                  size="sm"
-                  border="none"
-                  backgroundColor="transparent"
-                  title="Resize to 100%"
-                  aria-label="Resize to 100%"
-                  onClick={() => handleSnapPoolHeight(1)}
-                >
-                  <ArrowUpIcon className="text-[var(--muted)]" />
-                </IconButton>
-              )}
-              {/* canReachFullHeight, not just !isAtDefaultHeight: once
-                  poolPanelMaxHeight itself drops below POOL_HEIGHT_MIN,
-                  clampPoolPanelHeight pins effectiveHeightPx to that
-                  shrunken ceiling regardless of what's stored (see
-                  clampPoolPanelHeight — Math.max(px, MIN) can't win once
-                  MIN exceeds the ceiling it's then Math.min'd against), so
-                  "not at default" stays true but Reset would write
-                  POOL_HEIGHT_MIN and visibly change nothing — a dead
-                  button in the exact same squeeze the 50%/100% buttons
-                  above already hide themselves for. */}
-              {!isAtDefaultHeight && canReachFullHeight && (
-                <IconButton
-                  size="sm"
-                  border="none"
-                  backgroundColor="transparent"
-                  title="Reset pool panel to default height"
-                  aria-label="Reset pool panel to default height"
-                  onClick={handleResetPoolHeight}
-                >
-                  <ArrowDownIcon className="text-[var(--muted)]" />
-                </IconButton>
-              )}
+            {/* Grip icon is a direct child of the row, NOT inside the
+                stopPropagation sub-container below — it's part of the drag
+                surface (the visual "this is draggable" affordance), not a
+                clickable control, so a mousedown/touchstart on it must
+                still bubble up to the row's own handleResizeStart.
+                Confirmed live as a real bug when this was tried the other
+                way (grip nested inside the stopPropagation div alongside
+                the snap/reset buttons): dragging from the grip icon itself
+                stopped working, since its own mousedown never reached the
+                row. Only the snap/reset buttons need stopPropagation —
+                clicking one of those must never also start a resize-drag. */}
+            {canShowResizeHandleRow && (
+              <div className="flex items-center gap-0 shrink-0">
+                <GripHorizontalIcon className="text-[var(--muted)]" />
+                <div className="flex items-center gap-0 cursor-auto" onMouseDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()}>
+                  {canReachHalfHeight && !isAtHalfHeight && (
+                    <IconButton
+                      size="sm"
+                      border="none"
+                      backgroundColor="transparent"
+                      title="Resize to 50%"
+                      aria-label="Resize to 50%"
+                      onClick={() => handleSnapPoolHeight(0.5)}
+                    >
+                      <ArrowUpHalfIcon className="text-[var(--muted)]" />
+                    </IconButton>
+                  )}
+                  {canReachFullHeight && !isAtFullHeight && (
+                    <IconButton
+                      size="sm"
+                      border="none"
+                      backgroundColor="transparent"
+                      title="Resize to 100%"
+                      aria-label="Resize to 100%"
+                      onClick={() => handleSnapPoolHeight(1)}
+                    >
+                      <ArrowUpIcon className="text-[var(--muted)]" />
+                    </IconButton>
+                  )}
+                  {/* canReachFullHeight, not just !isAtDefaultHeight: once
+                      poolPanelMaxHeight itself drops below POOL_HEIGHT_MIN,
+                      clampPoolPanelHeight pins effectiveHeightPx to that
+                      shrunken ceiling regardless of what's stored (see
+                      clampPoolPanelHeight — Math.max(px, MIN) can't win
+                      once MIN exceeds the ceiling it's then Math.min'd
+                      against), so "not at default" stays true but Reset
+                      would write POOL_HEIGHT_MIN and visibly change
+                      nothing — a dead button in the exact same squeeze the
+                      50%/100% buttons above already hide themselves for. */}
+                  {!isAtDefaultHeight && canReachFullHeight && (
+                    <IconButton
+                      size="sm"
+                      border="none"
+                      backgroundColor="transparent"
+                      title="Reset pool panel to default height"
+                      aria-label="Reset pool panel to default height"
+                      onClick={handleResetPoolHeight}
+                    >
+                      <ArrowDownIcon className="text-[var(--muted)]" />
+                    </IconButton>
+                  )}
+                </div>
+              </div>
+            )}
+            {/* -mt-[20px]/-mb-[4px]/-mr-[4px] cancel the pt-[20px]/pb-[4px]/
+                pr-[4px] on the scrollable content below — pad-then-cancel,
+                not pad-and-let-grow, so ScrollFadeArea's own overflow-y-
+                hidden viewport doesn't clip LevelSelector/SortSelect's
+                shadow bleed or LevelSelector's hover-subtext (which renders
+                *above* the control — see LevelSelector's own comment —
+                and there's nothing above this row except the card's own
+                border/padding, so pt- reserves room for it here the same
+                way TagPoolBody's now-removed combined row used to).
+                Canceling it out on this wrapper (not the padded element
+                itself) keeps the clipping fix intact without inflating
+                this row's own box. fitContent: this group's children
+                (label/icon/selector pairs) are naturally sized — see
+                ScrollFadeArea's own comment on that prop. */}
+            <div ref={filtersScrollRef} className="min-w-0 w-fit -mt-[20px] -mb-[4px] -mr-[4px]">
+              <ScrollFadeArea orientation="horizontal" scrollStep={140} fadeSize={12} fitContent>
+                <div className="flex items-center gap-[var(--space-lg)] flex-nowrap pt-[20px] pb-[4px] pr-[4px]">
+                  <div className="flex items-center gap-[var(--space-sm)] shrink-0">
+                    {/* hidden @min-[480px]:inline — same breakpoint Row 3's
+                        own "Min Tag Match" label already uses in this same
+                        bar, not a new one bisected for this row. No JS
+                        measurement needed: these filters no longer compete
+                        with anything else for this row's width (the grip/
+                        arrows group is fixed-size and small; filters have
+                        their own horizontal scroll, above, as the fallback
+                        once even icon-only stops fitting) — a plain
+                        container query is enough. */}
+                    <span className="hidden @min-[480px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
+                      Tag Density
+                    </span>
+                    <TagIcon className="text-[var(--ink)]" />
+                    <LevelSelector value={level} onChange={onLevelChange} />
+                  </div>
+                  <div className="flex items-center gap-[var(--space-sm)] shrink-0">
+                    <span className="hidden @min-[480px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
+                      Sort
+                    </span>
+                    <SortIcon className="text-[var(--ink)]" />
+                    <SortSelect value={sort} onChange={setSortPref} />
+                  </div>
+                </div>
+              </ScrollFadeArea>
             </div>
           </div>
         )}
@@ -647,7 +758,6 @@ export function MixerBar({
             allTags={allTags}
             selectedTags={selectedTags}
             totalSeriesCount={totalSeriesCount}
-            onLevelChange={onLevelChange}
             onChipToggle={onChipToggle}
             poolPanelHeightPx={effectiveHeightPx}
           />

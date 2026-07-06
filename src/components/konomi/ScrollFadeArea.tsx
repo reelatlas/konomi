@@ -126,24 +126,15 @@ interface ScrollFadeAreaProps {
   // (the chip area, section tabs, per-card tag rows) has no equivalent
   // padding trick and no reason to pay this cost.
   disableWrapperPointerEvents?: boolean;
-  // Fires the content's own intrinsic scroll size (scrollWidth for
-  // horizontal, scrollHeight for vertical) every time updateScrollState
-  // runs — the exact same computation pass that sets this component's own
-  // internal hasOverflow, not a second measurement. Exists so a caller that
-  // needs to react to *how much room this content needs*, not just whether
-  // it currently overflows, can — e.g. TagPoolBody's combined tabs+filters
-  // row, which reconstructs "would this overflow under a different filters
-  // width" from the tabs' and filters' own scrollWidth rather than
-  // duplicating a second ResizeObserver. Optional: every other caller has
-  // no reason to read this.
-  onMeasure?: (scrollSize: number) => void;
   // Horizontal-only. Makes the content wrapper's own width track its
   // child's true intrinsic (max-content) width instead of the default —
   // filling the viewport's own width regardless of what the child needs —
-  // needed for hasOverflow/onMeasure to correctly reflect a *naturally-
-  // sized* flex-nowrap child (SectionTabStrip's tablist, TagPoolBody's
-  // filters row) whose own width should drive the measurement.
-  // Deliberately opt-in, not the default for every horizontal caller: a
+  // needed for hasOverflow to correctly reflect a *naturally-sized*
+  // flex-nowrap child (SectionTabStrip's tablist, MixerBar's filters row)
+  // whose own width should drive the measurement, so the hover arrows
+  // recompute correctly when that child's content changes (e.g. a Level
+  // switch changing which tabs render). Deliberately opt-in, not the
+  // default for every horizontal caller: a
   // child that itself needs the *available* width to size against — the
   // results carousel's CSS grid (`grid-template-columns:
   // repeat(auto-fill, minmax(208px, 1fr))`, sizing its own `1fr` tracks
@@ -209,7 +200,6 @@ export function ScrollFadeArea({
   arrowShadow = false,
   arrowInset = 0,
   disableWrapperPointerEvents = false,
-  onMeasure,
   fitContent = false,
   children,
 }: ScrollFadeAreaProps) {
@@ -219,16 +209,6 @@ export function ScrollFadeArea({
   const [hasOverflow, setHasOverflow] = useState(false);
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(true);
-  // Read through a ref, not called directly as the closed-over prop — the
-  // ResizeObserver below is set up once (its effect deps are just
-  // [horizontal]) and calls whichever updateScrollState closure existed at
-  // that time, which would otherwise mean a stale onMeasure if the caller
-  // ever passes a new one across renders. onCloseEditModeRef in MixerBar
-  // solves the identical problem the identical way.
-  const onMeasureRef = useRef(onMeasure);
-  useEffect(() => {
-    onMeasureRef.current = onMeasure;
-  });
   // Tracks an in-progress press so a single mouseup/touchend/mouseleave
   // handler can tell "was this a quick click" from "was this a hold that's
   // already been continuously scrolling" — see handlePressEnd below.
@@ -253,33 +233,15 @@ export function ScrollFadeArea({
 
   const updateScrollState = () => {
     const el = scrollRef.current;
-    const content = contentRef.current;
     if (!el) return;
     if (horizontal) {
       setHasOverflow(el.scrollWidth > el.clientWidth + 1);
       setAtStart(el.scrollLeft <= 0);
       setAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 1);
-      // content.scrollWidth, not el.scrollWidth: el's own scrollWidth is
-      // floored at its clientWidth (a scrollable element's scrollWidth is
-      // never smaller than its own viewport), so once el is stretched
-      // wider than what content actually needs (e.g. already stacked to
-      // w-full), el.scrollWidth just reports el's own width back —
-      // confirmed live as a real bug: both the tab strip's and the
-      // filters' onMeasure calls reported the full row width (1180px)
-      // instead of their own true, much smaller content width the moment
-      // either got stretched to fill the row, corrupting the
-      // icon-collapse/stack reconstruction built on top of them. content
-      // itself only has a real width to report at all because of
-      // fitContent/w-max (see that prop) — without it this would be
-      // reading a plain block div's width:auto, which has the identical
-      // "matches its container, not its children" problem this whole fix
-      // exists to solve.
-      onMeasureRef.current?.(content?.scrollWidth ?? el.scrollWidth);
     } else {
       setHasOverflow(el.scrollHeight > el.clientHeight + 1);
       setAtStart(el.scrollTop <= 0);
       setAtEnd(el.scrollTop + el.clientHeight >= el.scrollHeight - 1);
-      onMeasureRef.current?.(content?.scrollHeight ?? el.scrollHeight);
     }
   };
 

@@ -13,12 +13,6 @@ interface SectionTabStripProps {
   sections: SectionTabItem[];
   activeKey: string;
   onChange: (key: string) => void;
-  // Forwarded straight to the internal ScrollFadeArea's own onMeasure — see
-  // that prop's own comment. TagPoolBody uses this to read the tab row's
-  // true intrinsic width (fires on the same measurement pass that drives
-  // this strip's own hover arrows, not a second one) for its combined
-  // tabs+filters row's icon-collapse/stack decisions.
-  onScrollWidthChange?: (scrollWidth: number) => void;
 }
 
 // Tuned against the strip's own rendered width — not a card, so no
@@ -31,7 +25,7 @@ const SCROLL_STEP = 140;
 // Real tablist: role=tab/tablist, aria-selected, roving tabindex (only the
 // active tab is in the natural tab order; arrow keys move — and, per the
 // "automatic activation" model below, also activate — the others).
-export function SectionTabStrip({ sections, activeKey, onChange, onScrollWidthChange }: SectionTabStripProps) {
+export function SectionTabStrip({ sections, activeKey, onChange }: SectionTabStripProps) {
   const tabRefs = useRef(new Map<string, HTMLButtonElement>());
 
   // Brings the active tab into view whenever it changes — a click already
@@ -87,14 +81,7 @@ export function SectionTabStrip({ sections, activeKey, onChange, onScrollWidthCh
     // own comment on that prop for why it isn't the default for every
     // horizontal caller (the results carousel's CSS grid needs the
     // opposite: a real available width to size its own columns against).
-    <ScrollFadeArea
-      orientation="horizontal"
-      scrollStep={SCROLL_STEP}
-      fadeSize={12}
-      surfaceColor="var(--surface)"
-      fitContent
-      onMeasure={onScrollWidthChange}
-    >
+    <ScrollFadeArea orientation="horizontal" scrollStep={SCROLL_STEP} fadeSize={12} surfaceColor="var(--surface)" fitContent>
       <div role="tablist" aria-label="Tag pool sections" onKeyDown={handleKeyDown} className="flex flex-nowrap items-center gap-[var(--space-xl)]">
         {sections.map((section) => {
           const active = section.key === activeKey;

@@ -170,6 +170,26 @@ export function ArrowUpHalfIcon({ className }: IconProps) {
   );
 }
 
+// Two rows of three dots — the standard "grip" drag affordance, oriented
+// for a row that drags vertically (the dots themselves read as a horizontal
+// bar, hence "Horizontal"; c.f. Lucide's grip-horizontal). Replaces a plain
+// 1px line in MixerBar's resize-handle row — a more legible "this is
+// draggable" signal now that the row also carries the Tag Density/Sort
+// filters, so the drag target itself needed to read as its own affordance
+// rather than blend in.
+export function GripHorizontalIcon({ className }: IconProps) {
+  return (
+    <svg className={className} width="20" height="8" viewBox="0 0 20 8" fill="currentColor">
+      <circle cx="3" cy="2" r="1.4" />
+      <circle cx="10" cy="2" r="1.4" />
+      <circle cx="17" cy="2" r="1.4" />
+      <circle cx="3" cy="6" r="1.4" />
+      <circle cx="10" cy="6" r="1.4" />
+      <circle cx="17" cy="6" r="1.4" />
+    </svg>
+  );
+}
+
 // A full down arrow — the exact vertical mirror of ArrowUpIcon (same tail-
 // to-tip line, chevron reflected to point down instead of up). MixerBar's
 // "reset pool panel to default height" button, replacing an earlier
