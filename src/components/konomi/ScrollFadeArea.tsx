@@ -147,11 +147,17 @@ const DEFAULT_CONTINUOUS_SCROLL_SPEED = 6;
 // Shared scroll/fade/hover-arrow mechanic. Vertical callers: TagScrollArea
 // (per-card tags) and the Tag Pool's chip area. Horizontal callers: the
 // results carousel (RecommendationsBody) and the Tag Pool's section tab
-// strip (SectionTabStrip). Watches an inner, intrinsically-sized content
-// div (not the fixed/full-size scroll viewport itself, whose own box never
-// changes size on its own) via ResizeObserver, so it correctly detects
-// content growing/shrinking for reasons the viewport can't see itself —
-// e.g. a level change hiding/showing tags.
+// strip (SectionTabStrip). Watches both the scroll viewport itself and an
+// inner, intrinsically-sized content div via ResizeObserver, so it
+// recomputes hasOverflow/atStart/atEnd whenever *either* side of the
+// overflow comparison changes size — content growing/shrinking for reasons
+// the viewport can't see itself (e.g. a level change hiding/showing tags),
+// or the viewport itself resizing for reasons content can't see (MixerBar's
+// pool panel chip area, whose height is a runtime heightPx the resize
+// handle changes — most other callers' viewports are fixed/full-size boxes
+// that never resize on their own, but that assumption doesn't hold here;
+// watching only the content div left hasOverflow stuck stale after a
+// resize until something unrelated remounted this component).
 export function ScrollFadeArea({
   height,
   heightPx,
@@ -216,9 +222,25 @@ export function ScrollFadeArea({
 
   useEffect(() => {
     updateScrollState();
+    const el = scrollRef.current;
     const content = contentRef.current;
-    if (!content) return;
+    if (!el || !content) return;
     const observer = new ResizeObserver(updateScrollState);
+    // Observes both the content div (its usual job — content growing/
+    // shrinking for reasons the viewport can't see itself, e.g. a level
+    // change hiding/showing tags) AND the viewport (`el`) itself now too —
+    // most callers' viewport is a fixed/full-size box that never resizes on
+    // its own, but that assumption breaks for MixerBar's pool panel chip
+    // area, whose viewport height is `heightPx`, changed at runtime by the
+    // resize handle. Confirmed live as a real bug without this: dragging
+    // the panel taller (enough that the chip area no longer overflows)
+    // left `hasOverflow` stuck at its pre-resize `true` — nothing here fired
+    // to recompute it, since the content itself hadn't changed size, only
+    // the viewport had — so the hover fade/arrows kept showing over
+    // content that no longer scrolled, until something unrelated (a
+    // remount, e.g. switching tabs and back) forced a fresh
+    // `updateScrollState()` call via this same effect's mount-time one.
+    observer.observe(el);
     observer.observe(content);
     return () => observer.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
