@@ -675,6 +675,36 @@ export function MixerBar({
                 edge. fitContent: this group's children (label/icon/
                 selector pairs) are naturally sized — see ScrollFadeArea's
                 own comment on that prop. */}
+            {/* This row's own responsive ladder, widest to narrowest — same
+                flat-CSS, dual-render, no-ResizeObserver pattern as Row 3's
+                ladder above, just container- rather than viewport-scoped
+                (this whole filters group lives inside the bar's own
+                @container, and there's nothing external — like the divider's
+                993px — worth syncing against here):
+                  - @min-[480px] — Tag Density/Sort labels: shown above,
+                                    hidden below (shared breakpoint, one
+                                    number for both labels, not independently
+                                    bisected per label)
+                  - @max-[352px] — Level: full 3-segment row → collapsed
+                                    tap-to-cycle button; Sort: native <select>
+                                    → collapsed tap-to-cycle button. Both
+                                    controls share this one breakpoint
+                                    deliberately, not because either's own
+                                    content demands exactly this number (Sort's
+                                    collapse only reclaims ~13-26px on its
+                                    own — measured, not assumed) but for
+                                    design consistency: this row's two filter
+                                    controls transform together as one "final
+                                    compact mode" step rather than staggering
+                                    at two barely-different thresholds. This
+                                    row already scrolls horizontally below
+                                    ~580px regardless (ScrollFadeArea's own
+                                    overflow-x-auto fallback), so neither
+                                    collapse is about eliminating scroll, only
+                                    reducing how far it goes.
+                Adding a new rung: give it its own breakpoint unless it's
+                deliberately joining the @max-[352px] "final step" tier for
+                the same consistency reason above. */}
             <div ref={filtersScrollRef} className="min-w-0 w-fit -mb-[26px] -mr-[4px]">
               <ScrollFadeArea orientation="horizontal" scrollStep={140} fadeSize={12} fitContent>
                 <div className="flex items-center gap-[var(--space-lg)] flex-nowrap pb-[26px] pr-[4px]">
@@ -711,12 +741,23 @@ export function MixerBar({
                     <TagIcon className="text-[var(--ink)]" />
                     <LevelSelector value={level} onChange={onLevelChange} collapsed />
                   </div>
-                  <div className="flex items-center gap-[var(--space-sm)] shrink-0">
+                  <div className="@max-[352px]:hidden flex items-center gap-[var(--space-sm)] shrink-0">
                     <span className="hidden @min-[480px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
                       Sort
                     </span>
                     <SortIcon className="text-[var(--ink)]" />
                     <SortSelect value={sort} onChange={setSortPref} />
+                  </div>
+                  {/* Collapsed final step — same @max-[352px] tier as Level
+                      above, shared deliberately (see this row's own top
+                      comment). No hint span here, unlike Level/Min Tag
+                      Match's collapsed forms — SORT_OPTIONS has no hint
+                      field, and Popular/Unpopular/A-Z/Z-A are already
+                      self-explanatory; inventing hint copy just to fill that
+                      slot would be backwards. */}
+                  <div className="hidden @max-[352px]:flex items-center gap-[var(--space-sm)] shrink-0">
+                    <SortIcon className="text-[var(--ink)]" />
+                    <SortSelect value={sort} onChange={setSortPref} collapsed />
                   </div>
                 </div>
               </ScrollFadeArea>
