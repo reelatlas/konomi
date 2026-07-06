@@ -166,6 +166,12 @@ export function ResultCard({
   return (
     <article
       data-title={series.title}
+      // data-result-card: lets MixerBar's click-outside-closes-edit-mode
+      // listener allowlist this whole card (body, the lock/dice icon
+      // buttons, the tag chips — everything rendered inside it) as one
+      // zone via a single closest() check, rather than special-casing each
+      // control inside it. See MixerBar.tsx's own comment on the allowlist.
+      data-result-card
       onClick={() => onFlip(series.title)}
       // h-[var(--result-card-height)], not a literal h-[421px]: shared with
       // RecommendationsSection's empty-state placeholder so the two can

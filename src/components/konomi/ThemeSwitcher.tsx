@@ -20,7 +20,10 @@ export function ThemeSwitcher({ value, onChange }: ThemeSwitcherProps) {
   const [hovered, setHovered] = useState<ThemeKey | null>(null);
 
   return (
-    <div className="relative flex gap-[var(--space-sm)]">
+    // data-theme-switcher: lets MixerBar's click-outside-closes-edit-mode
+    // listener allowlist the swatch buttons via a single closest() check —
+    // see MixerBar.tsx's own comment on the allowlist.
+    <div data-theme-switcher className="relative flex gap-[var(--space-sm)]">
       {THEME_KEYS.map((key) => {
         const t = THEMES[key];
         const active = value === key;

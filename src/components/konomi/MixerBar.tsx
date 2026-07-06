@@ -163,6 +163,19 @@ export function MixerBar({
   const sort = useSort();
 
   const barRef = useRef<HTMLDivElement>(null);
+  // The visible floating card itself (border/bg/shadow, capped max-w) —
+  // distinct from barRef, which is a `fixed inset-x-0 bottom-0` wrapper
+  // spanning the *entire* viewport width/bottom edge, with its own
+  // px/pb-[space-2xl] padding around this card so page background shows
+  // through on the sides and below. That padding is real space inside
+  // barRef's own box, so barRef.current.contains(target) treats a click
+  // landing in it as "inside the bar" even though it visually reads as
+  // outside-the-panel page background — confirmed live as a real bug: the
+  // click-outside listener couldn't be dismissed by clicking that gap on
+  // either side or underneath. visibleCardRef targets just the actual
+  // rendered card for that check instead; barRef stays as-is for its other
+  // uses (scroll-block detection, resize measurements).
+  const visibleCardRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
 
@@ -187,15 +200,24 @@ export function MixerBar({
     }
     function handlePointerDown(e: MouseEvent) {
       const target = e.target as Node;
-      if (barRef.current?.contains(target)) return;
-      // Any click inside the main page content column (theme switcher,
-      // results header/Clear, every result card — tags, swap/lock, flip)
-      // has its own meaningful action and shouldn't also close edit mode
-      // as a side effect — only a click truly outside both this bar and
-      // that whole column (the page's own background/gutters) counts as
-      // "outside" here. See KonomiApp.tsx's data-konomi-content comment.
-      const mainContent = document.querySelector("[data-konomi-content]");
-      if (mainContent?.contains(target)) return;
+      if (visibleCardRef.current?.contains(target)) return;
+      // Explicit allowlist, not "anywhere in the main content column" (an
+      // earlier version excluded that whole column via a single
+      // data-konomi-content ancestor check) — everything else in that
+      // column (the results header text, empty space around the grid,
+      // etc.) should close edit mode like any other outside click now;
+      // only these specific controls, each with its own real action that
+      // shouldn't also dismiss edit mode as a side effect, are exempt:
+      // result cards (data-result-card on ResultCard.tsx's own <article> —
+      // covers the card body, its lock/dice icon buttons, and its tag
+      // chips in one shot, since all three are descendants of that same
+      // element), the theme swatches (data-theme-switcher, ThemeSwitcher.tsx),
+      // and the results Clear ✕ button (data-clear-results, ResultsHeader.tsx).
+      // target is typed as Node (a mousedown's target can in principle be a
+      // text node), but .closest() is Element-only — falls back to the
+      // nearest element via parentElement for that case.
+      const el = target instanceof Element ? target : (target as Node).parentElement;
+      if (el?.closest("[data-result-card], [data-theme-switcher], [data-clear-results]")) return;
       onCloseEditModeRef.current();
     }
     document.addEventListener("keydown", handleKeyDown);
@@ -520,6 +542,7 @@ export function MixerBar({
       ].join(" ")}
     >
       <div
+        ref={visibleCardRef}
         className={[
           // The visible floating card — capped width, centered, matching
           // the app's other card chrome (square corners, standard border,

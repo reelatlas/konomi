@@ -48,9 +48,20 @@ export function ResultsHeader({ resultsHint, hasResults, onClearRecs }: ResultsH
       <div className="flex items-center gap-[var(--space-lg)] flex-wrap">
         <span className="font-mono text-[length:var(--text-xs)] text-[var(--subtext)]">{resultsHint}</span>
         {hasResults && (
-          <ActionButton variant="inverted" size="sm" onClick={onClearRecs}>
-            Clear ✕
-          </ActionButton>
+          // data-clear-results + contents: lets MixerBar's click-outside-
+          // closes-edit-mode listener allowlist this button via a single
+          // closest() check (see that file's own comment) without this
+          // wrapper affecting layout — display:contents removes the span
+          // itself from the flex layout, so ActionButton's own rendered
+          // button participates in the row exactly as if this wrapper
+          // weren't there. ActionButton itself has no prop for arbitrary
+          // data-* passthrough (a narrow, intentional interface — see its
+          // own comment), so this wraps it instead of extending it.
+          <span data-clear-results className="contents">
+            <ActionButton variant="inverted" size="sm" onClick={onClearRecs}>
+              Clear ✕
+            </ActionButton>
+          </span>
         )}
       </div>
     </div>
