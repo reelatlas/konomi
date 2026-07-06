@@ -123,9 +123,27 @@ function getPoolPanelMaxHeightSnapshot(fixedOverheadPx: number): number {
 // because the only value ever clamped against it before hydration
 // completes is POOL_HEIGHT_MIN itself, a plain constant already identical
 // on server and client, which trivially satisfies "no ceiling" either way.
+//
+// subscribe listens for `resize`, not a no-op — confirmed live as a real
+// bug without it: MixerBar's own effectiveHeightPx is `clampPoolPanelHeight
+// (..., poolPanelMaxHeight)`, recomputed fresh on every render, so the fix
+// only needed this hook to actually *trigger* a re-render when the ceiling
+// changes. A no-op subscribe meant React only ever re-ran getSnapshot when
+// some unrelated state change happened to re-render MixerBar anyway — a
+// pure vertical-only window resize (bar/dialog's own ResizeObserver, in
+// MixerBar, has nothing to fire on, since their DOM content didn't change)
+// left the panel's rendered height frozen at whatever it last measured,
+// pushing its top edge above the viewport once the window got short enough.
+// Note this only ever changes the *effective*, re-derived height — nothing
+// here writes to localStorage, so the user's actual stored preference
+// (getPoolHeightSnapshot) is untouched and the panel springs back to its
+// full stored height as soon as the window grows again.
 export function usePoolPanelMaxHeight(fixedOverheadPx: number): number {
   return useSyncExternalStore(
-    () => () => {},
+    (callback) => {
+      window.addEventListener("resize", callback);
+      return () => window.removeEventListener("resize", callback);
+    },
     () => getPoolPanelMaxHeightSnapshot(fixedOverheadPx),
     () => Number.POSITIVE_INFINITY,
   );

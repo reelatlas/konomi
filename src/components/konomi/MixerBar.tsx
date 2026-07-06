@@ -370,6 +370,48 @@ export function MixerBar({
   // same hydration-safety reason described in usePoolPanelMaxHeight's own
   // comment in tagPoolPrefs.ts.
   const poolPanelMaxHeight = usePoolPanelMaxHeight(fixedOverheadPx ?? EDIT_MODE_FIXED_ROWS_HEIGHT);
+  // Fixed, not measured — h-[30px] + mb-[var(--space-sm)] (6px), the whole
+  // resize-handle row's own height. Unlike EDIT_MODE_FIXED_ROWS_HEIGHT this
+  // never varies by breakpoint/content, so it's safe to hardcode rather
+  // than measure.
+  const RESIZE_HANDLE_ROW_HEIGHT = 36;
+  // Whether the resize-handle row (drag target + 50%/100%/reset shortcuts)
+  // is worth showing at all — hidden once poolPanelMaxHeight itself can't
+  // clear POOL_HEIGHT_MIN, since at that point nothing the row offers
+  // (dragging, snapping to a fraction) can move the panel anywhere
+  // clampPoolPanelHeight wouldn't already force it to on its own; see that
+  // function. Deliberately NOT `poolPanelMaxHeight > POOL_HEIGHT_MIN`
+  // evaluated directly and used to gate the row's own mounting — that was
+  // tried first and is a real, confirmed-live bug: fixedOverheadPx is
+  // measured from bar/dialog's own rendered rects, which *include* this
+  // row's height only while it's mounted, so unmounting it shrinks the
+  // measured overhead by exactly RESIZE_HANDLE_ROW_HEIGHT, which raises
+  // poolPanelMaxHeight back up, which can push the direct comparison back
+  // over the threshold and remount the row — which re-measures the larger
+  // overhead, drops the ceiling again, and unmounts it again, forever.
+  // Settled during render (React's documented "you can call the setter
+  // while rendering" escape hatch — see "Storing information from previous
+  // renders" in the useState docs) rather than a useEffect: setState from
+  // inside an effect body here would fire synchronously on every
+  // poolPanelMaxHeight change, which is exactly the cascading-render shape
+  // that pattern warns against, and this repo's lint config flags it. No
+  // ref needed to detect "did poolPanelMaxHeight change" first, either —
+  // the recomputation below is cheap enough to just run every render, and
+  // the `next !== canShowResizeHandleRow` guard already prevents this from
+  // looping: once the derived value agrees with the committed state,
+  // setState is never called, so no further render is triggered. Each
+  // candidate decision is judged against "what the ceiling would be if the
+  // row were shown" — reconstructed by adding RESIZE_HANDLE_ROW_HEIGHT back
+  // on top of poolPanelMaxHeight whenever the row is currently hidden
+  // (since that measurement already excludes it) — rather than whatever
+  // poolPanelMaxHeight happens to measure right after the row's last
+  // mount-state flip, which is what was oscillating.
+  const [canShowResizeHandleRow, setCanShowResizeHandleRow] = useState(true);
+  const ceilingIfRowWereShown = canShowResizeHandleRow ? poolPanelMaxHeight : poolPanelMaxHeight - RESIZE_HANDLE_ROW_HEIGHT;
+  const nextCanShowResizeHandleRow = ceilingIfRowWereShown > POOL_HEIGHT_MIN;
+  if (nextCanShowResizeHandleRow !== canShowResizeHandleRow) {
+    setCanShowResizeHandleRow(nextCanShowResizeHandleRow);
+  }
   // clampPoolPanelHeight applies uniformly to every source (default,
   // persisted, or actively dragging) — one clamp, not "clamp the persisted
   // value on read, then separately clamp drags" — so the guarantee (fixed
@@ -403,6 +445,21 @@ export function MixerBar({
   // not only after the 50%/100% buttons or a drag-release. 1px tolerance
   // for float rounding, not an exact equality check.
   const isAtDefaultHeight = Math.abs(effectiveHeightPx - POOL_HEIGHT_MIN) <= 1;
+  // 50%/100% only show when their own target is actually reachable — on a
+  // short enough viewport, poolPanelMaxHeight itself shrinks small enough
+  // that a fraction of it (half, for 50%; the whole ceiling, for 100%)
+  // lands at or below POOL_HEIGHT_MIN, the floor clampPoolPanelHeight
+  // already enforces on every source (default/persisted/dragged). Without
+  // this check, the button would still be tappable but silently do the
+  // same thing the floor already guarantees on its own — clamped straight
+  // back up to POOL_HEIGHT_MIN, never actually landing at a visibly
+  // distinct "half" or "full" — reading as broken rather than just
+  // unreachable at this size. Both live (poolPanelMaxHeight is the
+  // resize-reactive hook, not a one-time read), so they hide/reappear in
+  // step with the same window resizes that make effectiveHeightPx itself
+  // re-clamp.
+  const canReachHalfHeight = poolPanelMaxHeight * 0.5 > POOL_HEIGHT_MIN;
+  const canReachFullHeight = poolPanelMaxHeight > POOL_HEIGHT_MIN;
 
   // Mouse AND touch — this has to work at every breakpoint, not just
   // desktop/pointer. Mirrors the same dual mouse+touch handling
@@ -546,8 +603,23 @@ export function MixerBar({
             panel has actually left its default height — see
             isAtDefaultHeight above) since 50%/100% cover the "I want it
             bigger" cases on their own; Reset exists for "put it back,"
-            which only means something once it's already been moved. */}
-        {editMode && (
+            which only means something once it's already been moved.
+
+            Whole row gated on canShowResizeHandleRow too, not just editMode
+            — once poolPanelMaxHeight drops to/below POOL_HEIGHT_MIN, the
+            panel is pinned to that shrunken ceiling regardless of where
+            this handle gets dragged to (clampPoolPanelHeight's floor can't
+            win once it's Math.min'd against a lower ceiling — see that
+            function), so the whole row — drag target and 50%/100%/reset
+            shortcuts alike — stops doing anything. Hiding it back reclaims
+            its own h-[30px] + mb-[var(--space-sm)] as a few extra px of
+            headroom right when the sheet is most squeezed for it, rather
+            than leaving a dead control sitting there taking up space.
+            canShowResizeHandleRow, not poolPanelMaxHeight > POOL_HEIGHT_MIN
+            evaluated directly — see that state's own comment above for why
+            (a real, confirmed-live oscillation otherwise: hiding the row
+            shrinks the very measurement its own visibility depends on). */}
+        {editMode && canShowResizeHandleRow && (
           <div
             role="separator"
             aria-orientation="horizontal"
@@ -562,27 +634,41 @@ export function MixerBar({
               onMouseDown={(e) => e.stopPropagation()}
               onTouchStart={(e) => e.stopPropagation()}
             >
-              <IconButton
-                size="sm"
-                border="none"
-                backgroundColor="transparent"
-                title="Resize to 50%"
-                aria-label="Resize to 50%"
-                onClick={() => handleSnapPoolHeight(0.5)}
-              >
-                <ArrowUpHalfIcon className="text-[var(--muted)]" />
-              </IconButton>
-              <IconButton
-                size="sm"
-                border="none"
-                backgroundColor="transparent"
-                title="Resize to 100%"
-                aria-label="Resize to 100%"
-                onClick={() => handleSnapPoolHeight(1)}
-              >
-                <ArrowUpIcon className="text-[var(--muted)]" />
-              </IconButton>
-              {!isAtDefaultHeight && (
+              {canReachHalfHeight && (
+                <IconButton
+                  size="sm"
+                  border="none"
+                  backgroundColor="transparent"
+                  title="Resize to 50%"
+                  aria-label="Resize to 50%"
+                  onClick={() => handleSnapPoolHeight(0.5)}
+                >
+                  <ArrowUpHalfIcon className="text-[var(--muted)]" />
+                </IconButton>
+              )}
+              {canReachFullHeight && (
+                <IconButton
+                  size="sm"
+                  border="none"
+                  backgroundColor="transparent"
+                  title="Resize to 100%"
+                  aria-label="Resize to 100%"
+                  onClick={() => handleSnapPoolHeight(1)}
+                >
+                  <ArrowUpIcon className="text-[var(--muted)]" />
+                </IconButton>
+              )}
+              {/* canReachFullHeight, not just !isAtDefaultHeight: once
+                  poolPanelMaxHeight itself drops below POOL_HEIGHT_MIN,
+                  clampPoolPanelHeight pins effectiveHeightPx to that
+                  shrunken ceiling regardless of what's stored (see
+                  clampPoolPanelHeight — Math.max(px, MIN) can't win once
+                  MIN exceeds the ceiling it's then Math.min'd against), so
+                  "not at default" stays true but Reset would write
+                  POOL_HEIGHT_MIN and visibly change nothing — a dead
+                  button in the exact same squeeze the 50%/100% buttons
+                  above already hide themselves for. */}
+              {!isAtDefaultHeight && canReachFullHeight && (
                 <IconButton
                   size="sm"
                   border="none"
