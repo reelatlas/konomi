@@ -41,6 +41,14 @@ const BACK_FILL_BLUR_PX = 10;
 const BACK_FILL_OPACITY = 0.9;
 const BACK_FILL_SCALE_DOWN = 4;
 
+// TEMPORARILY DISABLED — testing whether touch-pan-y on the article alone
+// (see its own comment) is enough for native touch-scroll chaining to reach
+// the carousel from the cover, without this manual forwarder at all. If a
+// real device confirms native chaining now works: delete this constant and
+// the whole effect it gates below. If not: flip this back to true and keep
+// the manual forwarder.
+const COVER_TOUCH_FORWARD_ENABLED = false;
+
 interface ResultCardProps {
   entry: ResultEntry;
   selectedTags: string[];
@@ -202,6 +210,7 @@ export function ResultCard({
   // right, i.e. increase scrollLeft — content follows the finger, same
   // direction native touch-scrolling already uses.
   useEffect(() => {
+    if (!COVER_TOUCH_FORWARD_ENABLED) return;
     const el = coverRef.current;
     if (!el) return;
 
@@ -336,7 +345,23 @@ export function ResultCard({
       // meant for whatever's actually above/below the row — see that
       // grid's own comment. Every card opts back in explicitly here, or
       // none of them would be clickable at all.
-      className="h-[var(--result-card-height)] [perspective:1100px] cursor-pointer pointer-events-auto max-[1152px]:flex-none max-[1152px]:snap-start min-[993px]:max-[1152px]:w-[22%] min-[741px]:max-[993px]:w-[30%] min-[501px]:max-[741px]:w-[46%] max-[501px]:w-[85%]"
+      //
+      // touch-pan-y (touch-action: pan-y) — TRIAL, unverified: this article
+      // is the actual carousel-scroll-participating element (snap-start,
+      // a direct child of the horizontal carousel) and is NOT itself
+      // 3D-transformed — only its child (the flip-container) is. The
+      // earlier touch-action trial restated "auto" on elements *inside*
+      // that 3D-transformed subtree (flip-container/FRONT/BACK) but never
+      // declared anything here, at the actual boundary between the
+      // carousel and the card, which on reflection is the more standard
+      // place to say it: pan-y is the textbook token for "this element
+      // only handles vertical panning itself; a horizontal gesture isn't
+      // mine, defer to my ancestor" — the normal fix for a nested-vertical-
+      // scroll-inside-horizontal-carousel, which this structurally is,
+      // 3D flip aside. Confirm on a real device whether this (rather than
+      // the manual touch-forward handler, gated off below while testing)
+      // is enough on its own.
+      className="touch-pan-y h-[var(--result-card-height)] [perspective:1100px] cursor-pointer pointer-events-auto max-[1152px]:flex-none max-[1152px]:snap-start min-[993px]:max-[1152px]:w-[22%] min-[741px]:max-[993px]:w-[30%] min-[501px]:max-[741px]:w-[46%] max-[501px]:w-[85%]"
     >
       {/* touch-auto (touch-action: auto) on this flip-container and both
           faces below: TRIAL FIX, unverified — restates the already-default
