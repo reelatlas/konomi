@@ -333,27 +333,74 @@ export function ScrollFadeArea({
   // dispatched to whichever scrollable element the cursor is hit-testing
   // over, and that element's own delta is consumed by it — browsers don't
   // reroute an orthogonal, unusable axis of a wheel event to a different-
-  // axis ancestor on their own. Confirmed live: with this vertical
-  // viewport's overscroll-behavior set fully to "auto" on both axes (not
-  // just -x), a horizontal-dominant wheel gesture over it still didn't
-  // reach the horizontal carousel behind it — the cover area (not a scroll
-  // container itself) already let wheel events fall through to the
-  // carousel untouched, which is why only genuinely nested scrollers
-  // (this one) needed an explicit forward. data-scroll-fade-area-horizontal
-  // (below, on every horizontal instance's own viewport) is the marker
-  // this looks for via closest() — an ancestor search from this element,
-  // not a page-wide query, so this stays correct even if more than one
-  // horizontal ScrollFadeArea instance ever exists on the same page.
-  // Non-passive, raw addEventListener (not a JSX onWheel prop) for the
-  // same reason MixerBar's own blockScrollThrough uses one — React's
-  // delegated wheel listener is passive by default, so a JSX prop's
-  // preventDefault() would silently no-op.
+  // axis ancestor on their own. data-scroll-fade-area-horizontal (below, on
+  // every horizontal instance's own viewport) is the marker this looks for
+  // via closest() — an ancestor search from this element, not a page-wide
+  // query, so this stays correct even if more than one horizontal
+  // ScrollFadeArea instance ever exists on the same page. Non-passive, raw
+  // addEventListener (not a JSX onWheel prop) for the same reason
+  // MixerBar's own blockScrollThrough uses one — React's delegated wheel
+  // listener is passive by default, so a JSX prop's preventDefault() would
+  // silently no-op.
+  //
+  // Axis is decided ONCE per physical gesture and held until it ends (a gap
+  // with no wheel event longer than GESTURE_GAP_MS), not re-evaluated every
+  // single event — a per-event |deltaX| > |deltaY| check (this handler's
+  // first version) passed clean synthetic testing but failed on a real
+  // trackpad: real horizontal gestures carry enough deltaY jitter that the
+  // first event or two of an intentional horizontal swipe often reads as
+  // vertical-dominant on their own. Letting even one such event fall
+  // through to native vertical scrolling matters more than it sounds like
+  // it should — Chromium's own internal scroll-gesture handling then
+  // commits that whole physical gesture to scrolling THIS element
+  // vertically, regardless of what later events' individual deltas look
+  // like, so a per-event re-check never gets a chance to correct course
+  // mid-gesture. Accumulating from the gesture's start and deciding once
+  // (same shape as MixerBar's own touch axis-lock in
+  // handleTouchStart/blockScrollThrough) resists that jitter instead.
+  // HORIZONTAL_BIAS gives horizontal a deliberate edge rather than a strict
+  // 1:1 ratio: the reported failure mode was real horizontal intent being
+  // misread as vertical, never the reverse, so ties (and near-ties) should
+  // resolve toward forwarding.
   useEffect(() => {
     if (!forwardHorizontalWheel) return;
     const el = scrollRef.current;
     if (!el) return;
+
+    let axis: "horizontal" | "vertical" | null = null;
+    let accumX = 0;
+    let accumY = 0;
+    let lastEventTime = 0;
+
+    const GESTURE_GAP_MS = 200;
+    const AXIS_LOCK_NOISE_PX = 4;
+    const HORIZONTAL_BIAS = 0.85;
+
     function handleWheel(e: WheelEvent) {
-      if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+      const now = performance.now();
+      if (now - lastEventTime > GESTURE_GAP_MS) {
+        axis = null;
+        accumX = 0;
+        accumY = 0;
+      }
+      lastEventTime = now;
+      accumX += e.deltaX;
+      accumY += e.deltaY;
+
+      if (axis === null && (Math.abs(accumX) > AXIS_LOCK_NOISE_PX || Math.abs(accumY) > AXIS_LOCK_NOISE_PX)) {
+        axis = Math.abs(accumX) > Math.abs(accumY) * HORIZONTAL_BIAS ? "horizontal" : "vertical";
+        // TEMPORARY — real-device tuning aid for AXIS_LOCK_NOISE_PX/
+        // HORIZONTAL_BIAS above; remove once the values are confirmed
+        // against real trackpad gestures.
+        console.log("[forwardHorizontalWheel] axis locked:", axis, {
+          deltaX: e.deltaX,
+          deltaY: e.deltaY,
+          accumX,
+          accumY,
+        });
+      }
+
+      if (axis !== "horizontal") return;
       const horizontalAncestor = el!.closest("[data-scroll-fade-area-horizontal]");
       if (!horizontalAncestor) return;
       e.preventDefault();
