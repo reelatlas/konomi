@@ -232,7 +232,7 @@
    * about the *mood* reading as intentional rather than a photo bleeding
    * through gaps between chips.
    */
-  --cover-reflection-veil: color-mix(in srgb, var(--slot-empty) 10%, transparent);
+  --cover-reflection-veil: color-mix(in srgb, var(--slot-empty) 20%, transparent);
 }
 
 @layer base {

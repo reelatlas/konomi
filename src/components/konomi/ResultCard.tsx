@@ -28,7 +28,7 @@ const COVER_HEIGHT_PX = 295;
 // actually doing the work — confirmed by re-adding it and re-running the
 // same pixel-sample check, which is also how -3 specifically was chosen
 // over the original -1.
-const REFLECTION_BLUR_CONTINUATION_PX = 1;
+const REFLECTION_BLUR_CONTINUATION_PX = 0;
 const REFLECTION_BLUR_REFLECTED_PX = 1;
 
 interface ResultCardProps {
