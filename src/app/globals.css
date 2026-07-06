@@ -1,5 +1,32 @@
 @import "tailwindcss";
 
+/* Tailwind v4 ships a built-in `--font-mono` theme key (backing its own
+ * `font-mono` utility) that defaults to the system UI-monospace stack. This
+ * app's `font-mono` class is meant to mean "the app's real mono font" — but
+ * a plain `@layer base { .font-mono { font-family: ... } } ` rule can never
+ * win here: Tailwind's own generated `font-mono` utility (in its
+ * `utilities` layer) always beats anything in `base`, regardless of source
+ * order, since layer order beats source order. A same-named `@layer base`
+ * override silently lost that fight once already this project (with Space
+ * Mono, confirmed live via `document.fonts` staying "unloaded" while
+ * Anton/Zen Kaku Gothic New — under unrelated class names with no built-in
+ * Tailwind utility to collide with — loaded normally). Overriding the
+ * theme key directly is the fix that actually works: it makes Tailwind's
+ * *own* `font-mono` utility generate the correct family in the first
+ * place, so there's no competing `@layer base` rule needed at all.
+ *
+ * `--font-ibm-plex-mono` is the CSS variable `next/font/google` injects
+ * (see `layout.tsx`'s `IBM_Plex_Mono(...)` call, applied via
+ * `ibmPlexMono.variable` on `<html>`) — referencing that variable here,
+ * not a bare `"IBM Plex Mono"` family-name string, is what makes this
+ * resolve to the actual self-hosted, next/font-fetched font file rather
+ * than a same-named font the browser has no reason to ever load (the
+ * exact trap the Space Mono bug fell into via the Google Fonts `<link>`
+ * approach still used for Anton/Zen Kaku Gothic New below). */
+@theme {
+  --font-mono: var(--font-ibm-plex-mono), monospace;
+}
+
 /* ─────────────────────────── DESIGN TOKENS ───────────────────────────────
  * Single source of truth for the app's CSS, mirroring
  * src/lib/konomi/tokens.ts and src/lib/konomi/themes.ts. Every component
@@ -204,9 +231,12 @@
     font-family: "Zen Kaku Gothic New", sans-serif;
   }
 
-  .font-mono {
-    font-family: "Space Mono", monospace;
-  }
+  /* No .font-mono rule here — Tailwind's built-in font-mono utility now
+     resolves correctly via the --font-mono @theme override above. Do not
+     re-add one: it would sit in this same losing layer again. Also, for
+     the same reason, never name a custom font class font-sans/font-serif/
+     font-mono — those three collide with Tailwind's built-in family keys;
+     font-display/font-body above are safe precisely because they don't. */
 }
 
 @keyframes kono-spin {

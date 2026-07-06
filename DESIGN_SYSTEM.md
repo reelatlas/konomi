@@ -43,7 +43,7 @@ Every color is a **role**, not a hue, so the same class (`bg-[var(--surface)]`, 
 
 ## Typography
 
-**Fonts:** Anton (display/headlines), Zen Kaku Gothic New (body/Japanese), Space Mono (mono/UI labels) — loaded via `<link>` in `layout.tsx`, applied via `.font-display` / `.font-body` / `.font-mono` utility classes in `globals.css`.
+**Fonts:** Anton (display/headlines) and Zen Kaku Gothic New (body/Japanese) load via a Google Fonts `<link>` in `layout.tsx`, applied via `.font-display` / `.font-body` in `globals.css`. IBM Plex Mono (mono/UI labels) loads differently — via `next/font/google` in `layout.tsx`, exposed as the `--font-ibm-plex-mono` CSS variable and fed into Tailwind's own `--font-mono` theme key in `globals.css`'s `@theme` block, not a `.font-mono` class of its own. See that file's top comment for why: `font-mono` collides with a Tailwind built-in utility name, and a same-named `@layer base` override loses that fight regardless of source order — Space Mono hit this exact bug (silently never loaded) before IBM Plex Mono replaced it.
 
 **Weights:** `bold` (700), `black` (900) — via Tailwind's own `font-bold` / `font-black` utilities, which happen to match these exactly.
 
@@ -120,6 +120,10 @@ Introduced once the Tag Pool/Recommendations tab panel started keeping both bodi
 ## Runtime-computed dimensions: inline styles, never interpolated Tailwind classes
 
 Tailwind's class scanner needs the *complete* arbitrary-value class to appear as static source text to generate CSS for it — a class built by interpolating a runtime value into a template literal (`` `max-h-[${n}px]` ``) is invisible to that scanner and silently produces no rule at all, not a build error, not a runtime warning. This has been hit three separate times now: `--result-card-height` (a shared CSS custom property was the fix, not a computed class — see "Recommendations layout" below), `TagPoolBody`'s `CHIP_AREA_HEIGHT` (a literal string constant, not a template literal), and `ScrollFadeArea`'s `heightPx` prop (an inline `style={{ maxHeight }}` override, not a computed class — see "MixerBar" below). **The rule: any dimension only known at runtime — measured, dragged, or otherwise computed from live state — gets an inline style, a CSS custom property, or, if it must be a Tailwind class, a value baked in as a literal string at build time. Never a class string built by interpolating a variable.** Reaching for a template-literal arbitrary-value class is the signal to stop and use one of the other three instead, before it becomes a fourth instance of this same bug.
+
+## A custom class named `font-sans`/`font-serif`/`font-mono` loses to Tailwind's own utility of the same name
+
+Tailwind v4 generates its three built-in font-family utilities (`font-sans`, `font-serif`, `font-mono`) into its `utilities` layer, and utility layer always wins over `@layer base` regardless of source order — a hand-written `@layer base { .font-mono { font-family: ... } }` override of one of these three specific names can never actually apply. **The fix: override the underlying `--font-mono`/`--font-sans`/`--font-serif` token in an `@theme` block instead, so Tailwind's own utility generates the right rule in the first place — never a same-named class in `base`.** Hit exactly this trap once already: `.font-mono`'s override silently lost the fight, and Space Mono never actually loaded (confirmed via `document.fonts` staying `"unloaded"` while `font-display`/`font-body` — unrelated names, no built-in Tailwind utility to collide with — loaded fine). Fixed by moving the override into `@theme { --font-mono: ...; }` in `globals.css`. Any future custom font-family class is safe as long as its name isn't one of those three reserved words.
 
 ## `line-clamp` clips descenders — it gives zero allowance for them
 

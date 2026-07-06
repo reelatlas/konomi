@@ -5,7 +5,7 @@
 export const FONTS = {
   display: "'Anton', sans-serif",
   body: "'Zen Kaku Gothic New', sans-serif",
-  mono: "'Space Mono', monospace",
+  mono: "'IBM Plex Mono', monospace",
 } as const;
 
 export const FONT_WEIGHTS = {
