@@ -577,18 +577,22 @@ export function ResultCard({
             flipped ? "opacity-0 pointer-events-none z-[var(--z-base)]" : "opacity-100 pointer-events-auto z-[var(--z-raised)]",
           ].join(" ")}
         >
-          {/* Reverted back to plain overflow-hidden — the overflow-y-auto
-              trial (making this a genuine, if empty, scroll container to
-              get onto the tag area's own native touch-chaining fast path)
-              turned out not to be the fix: confirmed on a real device that
-              the real conflict was whole-card tap-to-flip competing with
-              the touch-scroll gesture on the same element, not this box's
-              overflow value. With tap-to-flip moved to the dedicated
-              mobile button below (see useCoarsePointer's own comment) and
-              the cover no longer a tap target on coarse pointers, plain
-              overflow-hidden is no longer suspected of blocking anything,
-              so there's no reason to keep the scroll-container trial. */}
-          <div ref={coverRef} className="relative h-[295px] border-b-[length:var(--border-base)] border-b-[var(--ink)] bg-[var(--fill)] overflow-hidden">
+          {/* overflow-y-auto overflow-x-hidden (was overflow-hidden) — RE-
+              APPLIED: confirmed live that removing the tap-to-flip conflict
+              (the button above) did NOT fix native touch scroll on its
+              own — cover/back still don't chain to the carousel while the
+              tag area still does, ruling out the tap conflict as the cause
+              after all. The one remaining structural difference between
+              the tag area (works) and this box (doesn't) is that the tag
+              area is a genuine scroll container (overflow:auto) and this
+              is a plain overflow:hidden non-scroller — re-applying that
+              difference now that it's no longer confounded with the tap
+              issue, to test in isolation whether it's actually the fix.
+              This box has no content that overflows either axis, so
+              behaviorally/visually this should be a no-op at rest (auto
+              only shows a scrollbar / enables scrolling when there's real
+              overflow — there isn't). */}
+          <div ref={coverRef} className="relative h-[295px] border-b-[length:var(--border-base)] border-b-[var(--ink)] bg-[var(--fill)] overflow-y-auto overflow-x-hidden">
             {hasImage ? (
               <Image
                 src={series.coverImageUrl as string}
@@ -1060,15 +1064,19 @@ export function ResultCard({
             flipped, so this shouldn't change anything about FRONT's own
             interactivity; confirm that live after this change, not just
             assume it from the stacking order.
-            Reverted back to plain overflow-hidden — same reasoning as the
-            cover's own revert (see its comment): the scroll-container
-            trial wasn't the actual fix, whole-card tap-to-flip competing
-            with the touch gesture was, and that's now solved by moving the
-            flip trigger to the dedicated mobile button below instead. */}
+            overflow-y-auto overflow-x-hidden (was overflow-hidden) —
+            RE-APPLIED, same reasoning as the cover's own (see its comment):
+            confirmed live that removing the tap-to-flip conflict alone did
+            NOT fix native touch scroll here either — ruling out the tap as
+            the actual cause. Re-testing the scroll-container difference
+            now that it's no longer confounded with tap-to-flip. This
+            face's total content (WATCH ON header + streams list, which
+            already clips its own overflow internally) never exceeds this
+            box's fixed height, so this should be a no-op at rest. */}
         <div
           ref={backRef}
           className={[
-            "touch-auto absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] border-[length:var(--border-base)] border-[var(--ink)] overflow-hidden flex flex-col transition-opacity duration-200 bg-[var(--fill)] shadow-[var(--elev-4)] pointer-events-auto",
+            "touch-auto absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] border-[length:var(--border-base)] border-[var(--ink)] overflow-y-auto overflow-x-hidden flex flex-col transition-opacity duration-200 bg-[var(--fill)] shadow-[var(--elev-4)] pointer-events-auto",
             flipped ? "opacity-100 z-[var(--z-raised)]" : "opacity-0 z-[var(--z-base)]",
           ].join(" ")}
         >
