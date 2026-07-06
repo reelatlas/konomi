@@ -363,25 +363,26 @@ export function ResultCard({
       // is enough on its own.
       className="touch-pan-y h-[var(--result-card-height)] [perspective:1100px] cursor-pointer pointer-events-auto max-[1152px]:flex-none max-[1152px]:snap-start min-[993px]:max-[1152px]:w-[22%] min-[741px]:max-[993px]:w-[30%] min-[501px]:max-[741px]:w-[46%] max-[501px]:w-[85%]"
     >
-      {/* touch-auto (touch-action: auto) on this flip-container and both
-          faces below: TRIAL FIX, unverified — restates the already-default
-          computed value explicitly, on the theory that a real mobile
-          browser's touch-scroll hit-testing can fail to chain a horizontal
-          swipe from inside a composited 3D-transform subtree (perspective
-          on the article above + this preserve-3d/rotateY + backface-
-          visibility:hidden below) to the horizontal carousel ancestor, even
-          though every computed CSS value already reads "auto" — a
-          documented class of mobile Chrome/Safari compositor quirks. This
-          codebase's own synthetic touch testing (CDP dispatchTouchEvent)
-          could NOT reproduce the reported bug (swipes over the cover
-          already reached the carousel in that harness) and a parallel wheel
-          test in the same harness gave a false negative for a
-          confirmed-working case — so neither confirms nor rules this out.
-          Needs a real device to verify; revert this comment+classes if it
-          doesn't help. */}
+      {/* touch-pan-y here (was touch-auto): confirmed on a real device that
+          touch-action: pan-y on the <article> alone fixed native touch-scroll
+          chaining for the FRONT face (cover swipes now reach the carousel),
+          but the BACK face stayed broken — plausibly because BACK carries
+          its OWN [transform:rotateY(180deg)] (see below), nesting a second
+          3D transform inside the flip-container's already-3D
+          preserve-3d/rotateY, doubly-transformed in a way FRONT (no
+          transform of its own, just backface-visibility:hidden) isn't.
+          article's own pan-y should already constrain this via touch-action's
+          ancestor intersection regardless of what's declared here (auto ∩
+          pan-y = pan-y already) — so if intersection alone isn't reaching
+          the doubly-transformed BACK correctly, restating pan-y explicitly
+          at this level, closer to the actual 3D-transformed elements, is the
+          next thing to try. FRONT's own declaration is left alone (still
+          "touch-auto" below) since it's already confirmed working and
+          doesn't need touching — this only changes the flip-container and
+          BACK. Revert to touch-auto here if this doesn't help either. */}
       <div
         className={[
-          "touch-auto relative w-full h-full [transform-style:preserve-3d] transition-transform duration-500 [transition-timing-function:cubic-bezier(.4,.2,.2,1)]",
+          "touch-pan-y relative w-full h-full [transform-style:preserve-3d] transition-transform duration-500 [transition-timing-function:cubic-bezier(.4,.2,.2,1)]",
           flipped ? "[transform:rotateY(180deg)]" : "[transform:rotateY(0deg)]",
         ].join(" ")}
       >
@@ -817,10 +818,16 @@ export function ResultCard({
         {/* BACK — the old dot-pattern bg is replaced by the full-bleed
             blurred cover fill below. bg-[var(--fill)] stays as the base
             color — the fallback for hasImage-false/broken cards, and
-            whatever shows through before the fill image loads. */}
+            whatever shows through before the fill image loads.
+            touch-pan-y (was touch-auto) — see the flip-container's own
+            comment: this face carries its own rotateY(180deg) on top of the
+            flip-container's, a doubly-3D-transformed subtree FRONT isn't,
+            and is the specific thing that stayed broken on a real device
+            after touch-pan-y on the article alone fixed FRONT. Restating it
+            here too is the targeted fix being tried. */}
         <div
           className={[
-            "touch-auto absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] border-[length:var(--border-base)] border-[var(--ink)] overflow-hidden flex flex-col transition-opacity duration-200 bg-[var(--fill)] shadow-[var(--elev-4)]",
+            "touch-pan-y absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] border-[length:var(--border-base)] border-[var(--ink)] overflow-hidden flex flex-col transition-opacity duration-200 bg-[var(--fill)] shadow-[var(--elev-4)]",
             flipped ? "opacity-100 pointer-events-auto z-[var(--z-raised)]" : "opacity-0 pointer-events-none z-[var(--z-base)]",
           ].join(" ")}
         >
