@@ -127,6 +127,15 @@ export function TagScrollArea({ tags, selectedTags, onChipToggle, surfaceColor, 
       continuousScrollSpeed={1.5}
       surfaceColor={surfaceColor}
       arrowBackgroundColor={arrowBackgroundColor}
+      // Fixed at 2px, not threaded up as a prop like fadeSize/surfaceColor
+      // above — this is a plain visual soft-edge on the chips themselves
+      // (see ScrollFadeArea's own comment on edgeMaskSize), and every
+      // caller of this component wants the same small dissolve regardless
+      // of whatever background happens to be behind it, unlike
+      // fadeSize/surfaceColor which genuinely differ per background
+      // (ResultCard's reflection vs. this component's other, unstyled
+      // callers, if any are ever added).
+      edgeMaskSize={2}
     >
       {/* [&_button]:snap-start (not scroll-snap-align added to TagChip
           itself): every chip in a row shares that row's vertical position,

@@ -161,6 +161,20 @@ interface ScrollFadeAreaProps {
   // exactly what should be measured, never where the child needs a real
   // available width to lay itself out against.
   fitContent?: boolean;
+  // Opt-in, opacity-only edge fade on the scroll VIEWPORT itself (a
+  // mask-image, not another gradient overlay div) — the content dissolves
+  // to transparent over this many px at the start/end of the main axis,
+  // always, regardless of scroll position or hasOverflow. Deliberately
+  // separate from fadeSize/surfaceColor above: those render a colored
+  // overlay meant to blend into whatever's behind this component, and
+  // exist only where there's more content to reveal (gated on
+  // hasOverflow/atStart/atEnd); this is a plain visual soft-edge on the
+  // content itself, with no color of its own to pick or mismatch, and no
+  // gating — it's a constant texture, not a scroll affordance (the
+  // existing fade/arrows already cover that signal). Every caller besides
+  // TagScrollArea leaves this unset (no mask-image at all, not even a
+  // trivial no-op one, so there's zero behavior change for them).
+  edgeMaskSize?: number;
   children: React.ReactNode;
 }
 
@@ -213,6 +227,7 @@ export function ScrollFadeArea({
   arrowInset = 0,
   disableWrapperPointerEvents = false,
   fitContent = false,
+  edgeMaskSize,
   children,
 }: ScrollFadeAreaProps) {
   const horizontal = orientation === "horizontal";
@@ -435,6 +450,25 @@ export function ScrollFadeArea({
               : { scrollPaddingTop: scrollPaddingStart }
             : undefined),
           ...(!horizontal && heightPx !== undefined ? { height: heightPx } : undefined),
+          // edgeMaskSize: a plain opacity fade on this viewport's own
+          // content, via mask-image, not another colored overlay — see
+          // that prop's own comment for why it's kept separate from
+          // fadeSize/surfaceColor above. Applied directly on the scroll
+          // viewport (not the content div inside it) so it fades the
+          // actual, currently-visible slice of content at this element's
+          // own edges, the same box hasOverflow/scroll math already
+          // operates on — not the content's own (often much taller/wider)
+          // full extent.
+          ...(edgeMaskSize
+            ? {
+                maskImage: horizontal
+                  ? `linear-gradient(to right, transparent 0, black ${edgeMaskSize}px, black calc(100% - ${edgeMaskSize}px), transparent 100%)`
+                  : `linear-gradient(to bottom, transparent 0, black ${edgeMaskSize}px, black calc(100% - ${edgeMaskSize}px), transparent 100%)`,
+                WebkitMaskImage: horizontal
+                  ? `linear-gradient(to right, transparent 0, black ${edgeMaskSize}px, black calc(100% - ${edgeMaskSize}px), transparent 100%)`
+                  : `linear-gradient(to bottom, transparent 0, black ${edgeMaskSize}px, black calc(100% - ${edgeMaskSize}px), transparent 100%)`,
+              }
+            : undefined),
         }}
         className={[
           horizontal ? "w-full overflow-x-auto overflow-y-hidden" : `${heightPx !== undefined ? "" : height} overflow-y-auto overflow-x-hidden`,

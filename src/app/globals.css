@@ -217,18 +217,22 @@
   --elev-3-accent: 4px 4px 0 var(--secondary);
 
   /* ResultCard's tag-area background: a translucent wash of --slot-empty
-   * over the blurred cover reflection (see ResultCard.tsx's own comment) —
-   * derived here, once, rather than hand-picked hex+alpha per theme, so it
-   * automatically re-tints whenever --slot-empty does. 35% keeps the
-   * reflection's color/mood visible while still reading as "this app's own
-   * muted surface," not the cover itself — bump this (not the blur radius)
-   * if a future cover is ever found to make the tag area read as too busy;
-   * legibility of the tags themselves isn't actually at risk either way —
-   * TagChip's small variant already paints its own opaque fill/primary
-   * background — this veil is purely about the *mood* reading as
-   * intentional rather than a photo bleeding through gaps between chips.
+   * over the reflection (see ResultCard.tsx's own comment) — derived here,
+   * once, rather than hand-picked hex+alpha per theme, so it automatically
+   * re-tints whenever --slot-empty does. 10% (down from an earlier 35%,
+   * dropped once the reflection itself moved to the physically-continuous
+   * upright+mirror version with its own 1px blurs and seam scrim — that
+   * version reads as intentional on its own with much less veil than the
+   * old flat-blur wash needed) is just enough to unify the reflection with
+   * this app's own muted surface without flattening its color/mood the way
+   * 35% did; bump this (not the blur radius) if a future cover is ever
+   * found to make the tag area read as too busy. Legibility of the tags
+   * themselves isn't at risk either way — TagChip's small variant already
+   * paints its own opaque fill/primary background — this veil is purely
+   * about the *mood* reading as intentional rather than a photo bleeding
+   * through gaps between chips.
    */
-  --cover-reflection-veil: color-mix(in srgb, var(--slot-empty) 35%, transparent);
+  --cover-reflection-veil: color-mix(in srgb, var(--slot-empty) 10%, transparent);
 }
 
 @layer base {

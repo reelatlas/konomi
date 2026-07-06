@@ -477,9 +477,37 @@ export function ResultCard({
                         full height (the image's own) minus COVER_HEIGHT_PX"
                         automatically, which is exactly the continuation's
                         own visible span, whatever it happens to be for this
-                        cover's aspect ratio, without needing to measure it. */}
+                        cover's aspect ratio, without needing to measure it.
+
+                        z-[var(--z-raised)]: this needs to paint ABOVE the
+                        veil (a sibling below, outside this wrapper, at
+                        z-[var(--z-base)]) so the dark seam stays at full
+                        strength instead of being washed out by the veil's
+                        own tint — confirmed live as a real regression when
+                        the veil was re-added: as the last sibling in DOM
+                        order it painted on top of everything, including
+                        this scrim, diluting the seam's darkness down to the
+                        veil's own faint level. Z-index, not a DOM move: this
+                        scrim has to stay nested in the wrapper above (whose
+                        auto-height is what scopes it to exactly the
+                        continuation's own span, whatever that is for this
+                        cover) — physically relocating it after the veil in
+                        the DOM would lose that automatic sizing and need
+                        its own separate boundary computation instead.
+                        Neither this element's own ancestors (this wrapper,
+                        the filmstrip above) set a z-index/transform/opacity
+                        of their own, so none of them isolate a stacking
+                        context in between — this z-index compares directly
+                        against the veil's, wherever in the DOM each one
+                        actually sits. --z-base/--z-raised (not arbitrary
+                        numbers): the same "local front/back pair" token
+                        vocabulary this file's own FRONT/BACK card faces
+                        already use, for a relationship exactly like this
+                        one — two layers with a real order requirement
+                        *within* this one card's own reflection, not
+                        competing with anything else in the app. */}
                     <div
-                      className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-b from-[var(--on-secondary)] to-transparent"
+                      className="pointer-events-none absolute inset-x-0 bottom-0 z-[var(--z-raised)] bg-gradient-to-b from-[var(--on-secondary)] to-transparent"
                       style={{ top: COVER_HEIGHT_PX }}
                     />
                   </div>
@@ -534,15 +562,58 @@ export function ResultCard({
                     style={{ filter: `blur(${REFLECTION_BLUR_REFLECTED_PX}px)`, marginTop: -3 }}
                   />
                 </div>
+                {/* Veil: --cover-reflection-veil (globals.css) — a
+                    translucent wash of this theme's --slot-empty over the
+                    whole reflection (both the continuation and the mirror
+                    below it), so the tag area reads as this app's own
+                    muted surface with a hint of the cover's mood, on any
+                    cover, dark or bright — not the photo itself bleeding
+                    through. Re-added at 10% (down from an earlier 35%) now
+                    that the reflection itself is the physically-continuous
+                    upright+mirror version with its own 1px blurs and seam
+                    scrim, which already reads as intentional with a much
+                    lighter touch than the old flat-blur version needed.
+                    Bump that token's opacity (not this file) if a future
+                    cover is ever found to need more. TagScrollArea's own
+                    surfaceColor stays "transparent" below (unchanged from
+                    before this veil came back) — that fade has no color of
+                    its own to mismatch against whatever's behind it, veil
+                    or no veil, by design; see that prop's own comment.
+
+                    z-[var(--z-base)]: the "back" half of a local pair with
+                    the seam scrim's own z-[var(--z-raised)] above (see that
+                    element's own comment) — without this, this veil is the
+                    last sibling in DOM order and paints on top of
+                    everything by default, including the scrim, which
+                    confirmed live as a real regression: the seam's dark
+                    edge got washed down to this veil's own faint 10% level
+                    instead of staying continuous with the cover's bottom.
+                    This still covers the WHOLE reflection (both zones) at
+                    its own layer — the scrim only wins the small overlap
+                    region where both are present (the continuation zone),
+                    since it's the only place a z-[var(--z-raised)] sibling
+                    exists to out-rank it; everywhere else (the mirror zone,
+                    and the continuation zone once the scrim itself has
+                    faded to transparent) this veil is the only tint
+                    showing, same as before this reordering. */}
+                <div className="absolute inset-0 z-[var(--z-base)] bg-[var(--cover-reflection-veil)]" />
               </>
             )}
-            {/* relative: keeps this in front of the two absolutely
-                positioned reflection images above regardless of paint-order
-                edge cases — normal-flow content after positioned siblings
-                already paints on top in every browser, but this is cheap
-                insurance and matches how the rest of this file treats
-                local front/back stacking explicitly rather than relying on
-                implicit DOM-order behavior. surfaceColor="transparent":
+            {/* z-[2], not just `relative`: this needs to paint above the
+                seam scrim's own z-[var(--z-raised)] (1) — plain DOM order
+                ("later siblings paint on top") isn't enough here, since the
+                scrim's explicit positive z-index already outranks every
+                z-index:auto/0 element in this shared stacking context
+                regardless of where it sits in the DOM (confirmed live as a
+                real regression: with just `relative` here, the tags came
+                out dimmed, sitting under the scrim). z-[2] is a literal
+                number, not a token — this codebase's --z-base/--z-raised
+                pair (globals.css) is explicitly documented as a two-tier
+                *local* vocabulary ("just with each other, locally"), and
+                this is a third local tier above both, so there's no
+                existing named token for it yet; --z-sticky/--z-overlay are
+                reserved for unrelated, app-wide stacking concerns and
+                would be misleading to borrow here. surfaceColor="transparent":
                 ScrollFadeArea's scroll-edge fade is `linear-gradient(...,
                 surfaceColor, transparent)` — TagScrollArea's own default
                 (--surface, opaque) was tried first here and confirmed live
@@ -562,7 +633,7 @@ export function ResultCard({
                 arrow legibility fix was needed for; overriding it
                 separately keeps the arrows visible regardless of what
                 surfaceColor is doing. */}
-            <div className="relative">
+            <div className="relative z-[2]">
               <TagScrollArea
                 tags={cardTags}
                 selectedTags={selectedTags}
