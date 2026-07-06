@@ -46,12 +46,18 @@ const BACK_FILL_BLUR_PX = 10;
 const BACK_FILL_OPACITY = 0.9;
 const BACK_FILL_SCALE_DOWN = 4;
 
-// Confirmed on a real device: native touch-scroll chaining from the cover to
-// the carousel is a dead end for this 3D flip structure — touch-action:
-// pan-y (tried on the article, then also on the flip-container/BACK) broke
-// more than it fixed rather than completing the job. This manual forwarder
-// (below) is the real, permanent fix, not a fallback — always on.
-const COVER_TOUCH_FORWARD_ENABLED = true;
+// TEMPORARILY DISABLED — testing the perspective-relocation restructure
+// (see the article's own comment on the new wrapper div) as one more shot
+// at native scroll-gesture chaining before accepting the manual forwarder
+// as permanent. Every earlier attempt at native chaining (touch-action:
+// auto, then pan-y at various levels) failed with perspective sitting
+// directly on the article/snap-item itself; this is a genuinely different
+// structural change, not a repeat of those. If a real device confirms
+// native chaining now works with perspective moved off the snap item: this
+// whole flag, the effect it gates, and useHorizontalTouchForward can be
+// deleted outright. If not: flip this back to true and keep the manual
+// forwarder as the permanent fix, same as before.
+const COVER_TOUCH_FORWARD_ENABLED = false;
 
 // Cancels a fling/settle in progress on the shared carousel from a
 // DIFFERENT card's touch-forwarder — module-level (not per-card, not per-
@@ -479,29 +485,44 @@ export function ResultCard({
       // grid's own comment. Every card opts back in explicitly here, or
       // none of them would be clickable at all.
       //
-      // touch-action: no longer set here — pan-y was tried (see git
-      // history) and confirmed on a real device to break BOTH faces'
-      // native scroll chaining (front cover scroll stopped working, back
-      // never worked either), on top of already being confirmed
-      // insufficient on its own even where it partially helped. Native
-      // touch-scroll chaining to the carousel from either face is
-      // exhausted as an approach — the manual touch-forward handler below
-      // (COVER_TOUCH_FORWARD_ENABLED) is the real fix now, working
-      // independently of whatever touch-action/native-chaining behavior
-      // this element has, so there's nothing left for a touch-action
-      // override to usefully constrain here.
-      className="h-[var(--result-card-height)] [perspective:1100px] cursor-pointer pointer-events-auto max-[1152px]:flex-none max-[1152px]:snap-start min-[993px]:max-[1152px]:w-[22%] min-[741px]:max-[993px]:w-[30%] min-[501px]:max-[741px]:w-[46%] max-[501px]:w-[85%]"
+      // [perspective:1100px] moved OFF this element — see the new wrapper
+      // div just inside, below. TRIAL restructure: every earlier attempt
+      // to get native scroll-gesture chaining working assumed the 3D flip
+      // stack itself (preserve-3d/rotateY/backface-visibility) was the
+      // obstruction, and tried to work around it (touch-action variants,
+      // then a fully manual JS forwarder). This tries a different theory:
+      // that having THIS element — the actual carousel snap-item/gesture-
+      // participating box — ALSO be the one establishing the 3D
+      // perspective (perspective alone, with no transform of its own,
+      // still makes an element establish its own stacking context per
+      // spec) is what confuses native gesture routing, since the
+      // carousel's own scroll-snap math operates directly on this same
+      // box. Moving perspective one level down means this element is now
+      // a completely ordinary, non-3D, non-composited flow box as far as
+      // the carousel's own snap/gesture handling is concerned — all the
+      // 3D complexity is confined to a descendant instead of coinciding
+      // with the snap item itself. Same box size/position (w-full h-full
+      // on the new wrapper, matching this element exactly), so the
+      // perspective's own depth/vanishing-point should render identically.
+      className="h-[var(--result-card-height)] cursor-pointer pointer-events-auto max-[1152px]:flex-none max-[1152px]:snap-start min-[993px]:max-[1152px]:w-[22%] min-[741px]:max-[993px]:w-[30%] min-[501px]:max-[741px]:w-[46%] max-[501px]:w-[85%]"
     >
+      {/* New wrapper: carries perspective now (see the article's own
+          comment above for why). relative w-full h-full so the flip-
+          container below it (unchanged otherwise) still has the same
+          positioning root/size it always did — this wrapper is purely an
+          extra layer, not a replacement for anything the flip-container
+          itself was doing. */}
+      <div className="relative w-full h-full [perspective:1100px]">
       {/* touch-auto (touch-action: auto) here and on both faces below:
           reverted from touch-pan-y — confirmed on a real device that
           pan-y broke native touch-scroll chaining on BOTH faces (front
           cover scroll stopped working, back never worked) rather than
           completing the fix pan-y on the article alone had partially
-          started. Native touch-scroll chaining to the carousel from
-          either face is a dead end for this 3D flip structure; the manual
-          touch-forward handler below (COVER_TOUCH_FORWARD_ENABLED) is the
-          real fix. touch-auto is left here mostly as a harmless restatement
-          of the default, not load-bearing. */}
+          started. Kept as a harmless restatement of the default (not
+          load-bearing) through the manual-forwarder era; now genuinely
+          part of the trial again now that COVER_TOUCH_FORWARD_ENABLED is
+          off (below) and native chaining gets an actual chance to work
+          with perspective moved off the snap-item itself. */}
       <div
         className={[
           "touch-auto relative w-full h-full [transform-style:preserve-3d] transition-transform duration-500 [transition-timing-function:cubic-bezier(.4,.2,.2,1)]",
@@ -1012,6 +1033,7 @@ export function ResultCard({
             ))}
           </div>
         </div>
+      </div>
       </div>
     </article>
   );

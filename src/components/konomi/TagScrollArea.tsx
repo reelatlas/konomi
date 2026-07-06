@@ -136,11 +136,16 @@ export function TagScrollArea({ tags, selectedTags, onChipToggle, surfaceColor, 
       // (ResultCard's reflection vs. this component's other, unstyled
       // callers, if any are ever added).
       edgeMaskSize={2}
-      // Forwards a horizontal-dominant wheel gesture (trackpad two-finger
-      // horizontal scroll) to the results carousel this card sits inside —
-      // see ScrollFadeArea's own comment on forwardHorizontalWheel for why
-      // this needs a real handler rather than being fixable via CSS alone.
-      forwardHorizontalWheel
+      // TEMPORARILY false — gated off alongside COVER_TOUCH_FORWARD_ENABLED
+      // in ResultCard.tsx (see its own comment) while testing whether the
+      // perspective-relocation restructure gets native wheel/touch chaining
+      // working on its own. Forwards a horizontal-dominant wheel gesture
+      // (trackpad two-finger horizontal scroll) to the results carousel
+      // this card sits inside when true — see ScrollFadeArea's own comment
+      // on forwardHorizontalWheel for why this needed a real handler
+      // rather than being fixable via CSS alone, back when native chaining
+      // didn't work.
+      forwardHorizontalWheel={false}
     >
       {/* [&_button]:snap-start (not scroll-snap-align added to TagChip
           itself): every chip in a row shares that row's vertical position,
