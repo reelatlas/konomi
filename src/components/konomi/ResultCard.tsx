@@ -1,14 +1,9 @@
 import Image from "next/image";
-import { type RefObject, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { scoreSeries, streamsFor } from "@/lib/konomi/scoring";
-import { EASING_CURVES, easeToSnap, getNearestSnapLeft } from "@/lib/konomi/scrollSnapEase";
-// TEMPORARY — see scrollTuning.ts's own comment; delete this import (and
-// switch FLING_FRICTION/MIN_FLING_VELOCITY/the settle duration back to
-// plain local constants) once tuning is done.
-import { scrollTuning } from "@/lib/konomi/scrollTuning";
 import { isTagVisibleAtLevel, sortTags } from "@/lib/konomi/tagPool";
 import type { LevelKey, ResultEntry, SortKey, TagInfo } from "@/lib/konomi/types";
-import { DiceIcon, FlipIcon, LockClosedIcon, LockOpenIcon } from "./icons";
+import { DiceIcon, LockClosedIcon, LockOpenIcon } from "./icons";
 import { IconButton } from "./IconButton";
 import { ERROR_MESSAGE } from "./RecommendButton";
 import { TagScrollArea } from "./TagScrollArea";
@@ -45,278 +40,6 @@ const REFLECTION_BLUR_REFLECTED_PX = 1;
 const BACK_FILL_BLUR_PX = 10;
 const BACK_FILL_OPACITY = 0.9;
 const BACK_FILL_SCALE_DOWN = 4;
-
-// TEMPORARILY DISABLED — testing the perspective-relocation restructure
-// (see the article's own comment on the new wrapper div) as one more shot
-// at native scroll-gesture chaining before accepting the manual forwarder
-// as permanent. Every earlier attempt at native chaining (touch-action:
-// auto, then pan-y at various levels) failed with perspective sitting
-// directly on the article/snap-item itself; this is a genuinely different
-// structural change, not a repeat of those. If a real device confirms
-// native chaining now works with perspective moved off the snap item: this
-// whole flag, the effect it gates, and useHorizontalTouchForward can be
-// deleted outright. If not: flip this back to true and keep the manual
-// forwarder as the permanent fix, same as before.
-const COVER_TOUCH_FORWARD_ENABLED = false;
-
-// Cancels a fling/settle in progress on the shared carousel from a
-// DIFFERENT card's touch-forwarder — module-level (not per-card, not per-
-// hook-call) since the carousel itself is one shared ancestor across every
-// card, and a new gesture starting on card B while card A's release-fling
-// is still animating would otherwise fight it over the same scrollLeft.
-let activeCoverFlingCancel: (() => void) | null = null;
-
-// Manually drives the results carousel from a horizontal swipe that starts
-// on `elRef`'s own element, instead of relying on the browser's own native
-// touch-scroll chaining reaching it. Native chaining was tried thoroughly
-// and confirmed, on a real device, to be a dead end for this 3D flip
-// structure: touch-action explicitly restated at every level of the
-// transform stack (auto, then pan-y on the article, then pan-y on the
-// flip-container/BACK too) never got both faces scrolling reliably — pan-y
-// fixed FRONT alone, then broke FRONT again once applied more broadly, and
-// never fixed BACK at all. This hook doesn't depend on any of that: it
-// drives the scroll itself, by hand, from raw touch coordinates. Called
-// once per face (FRONT's cover, the whole BACK face) — each call is its own
-// independent listener/closure, since they're genuinely different elements
-// a gesture can start on.
-//
-// Same axis-lock shape as MixerBar's own touch handling
-// (handleTouchStart/blockScrollThrough there): accumulate displacement from
-// the gesture's start, decide the axis once a small noise threshold is
-// cleared, hold that decision for the rest of the gesture. Below the
-// threshold, this does nothing at all — no preventDefault, no scrollBy —
-// so a plain tap never gets touched by this and tap-to-flip (the article's
-// own onClick) keeps working exactly as before; a genuine vertical gesture
-// (page scroll) that happens to start here is left alone the same way,
-// once locked "vertical".
-//
-// While dragging, forwarding uses the *frame-to-frame* delta (current touch
-// position vs. the previous move's position), not the gesture's cumulative
-// total from start — a drag-to-scroll needs "how far did the finger move
-// since the last frame," the same quantity a native touch-scroll would
-// apply each frame. Sign is negated (scrollBy({left: -frameDeltaX})): the
-// finger moving left (frameDeltaX negative) should reveal content to the
-// right, i.e. increase scrollLeft — content follows the finger, same
-// direction native touch-scrolling already uses.
-//
-// On release, a rolling window of recent {time, x} samples (not just the
-// single last frame's delta, which is noisy and often smaller than the
-// gesture's real speed since natural deceleration already started right at
-// release) estimates a velocity; if it clears a small threshold, a
-// decelerating fling continues the scroll on its own via rAF before handing
-// off to the shared scrollSnapEase settle (the same one the wheel forwarder
-// uses) for the final glide into the exact snap point. This is what makes
-// the forwarder feel like native momentum instead of stopping dead the
-// instant the finger lifts.
-function useHorizontalTouchForward(elRef: RefObject<HTMLDivElement | null>) {
-  useEffect(() => {
-    if (!COVER_TOUCH_FORWARD_ENABLED) return;
-    const el = elRef.current;
-    if (!el) return;
-
-    let axis: "horizontal" | "vertical" | null = null;
-    let startX = 0;
-    let startY = 0;
-    let lastX = 0;
-    let snapDisabledOn: HTMLElement | null = null;
-    let flingRafId: number | null = null;
-    // Rolling buffer of recent {time, x} samples, trimmed to the last
-    // VELOCITY_WINDOW_MS — the window a release velocity is estimated from.
-    let samples: { time: number; x: number }[] = [];
-
-    const AXIS_LOCK_NOISE_PX = 3;
-    const VELOCITY_WINDOW_MS = 100;
-    const FLING_STOP_VELOCITY = 0.02;
-    // MIN_FLING_VELOCITY/FLING_FRICTION/the settle duration below read live
-    // from scrollTuning (TEMPORARY — see that file's own comment) instead
-    // of being frozen local constants, so ScrollTuningPanel's sliders take
-    // effect on the very next gesture with no remount needed.
-
-    function cancelFling() {
-      if (flingRafId !== null) {
-        cancelAnimationFrame(flingRafId);
-        flingRafId = null;
-      }
-    }
-
-    function settleTo(ancestor: HTMLElement) {
-      const target = getNearestSnapLeft(ancestor);
-      activeCoverFlingCancel = easeToSnap(
-        ancestor,
-        target,
-        scrollTuning.snapEaseDurationMs,
-        () => {
-          ancestor.style.scrollSnapType = "";
-          activeCoverFlingCancel = null;
-        },
-        EASING_CURVES[scrollTuning.easingCurve]
-      );
-    }
-
-    function handleTouchStart(e: TouchEvent) {
-      // Cancel any in-flight fling/settle — from THIS element or another
-      // one sharing the same carousel (e.g. this card's cover mid-fling
-      // when a swipe starts on a different card) — before starting a new
-      // gesture; two of these driving the same scrollLeft at once would
-      // fight each other, the same reason MixerBar's own
-      // startContinuousScroll cancels any prior loop first.
-      if (activeCoverFlingCancel) {
-        activeCoverFlingCancel();
-        activeCoverFlingCancel = null;
-      }
-      cancelFling();
-      const t = e.touches[0];
-      axis = null;
-      startX = t.clientX;
-      startY = t.clientY;
-      lastX = t.clientX;
-      samples = [{ time: performance.now(), x: t.clientX }];
-    }
-
-    function handleTouchMove(e: TouchEvent) {
-      const t = e.touches[0];
-      const dx = t.clientX - startX;
-      const dy = t.clientY - startY;
-
-      if (axis === null && (Math.abs(dx) > AXIS_LOCK_NOISE_PX || Math.abs(dy) > AXIS_LOCK_NOISE_PX)) {
-        axis = Math.abs(dx) > Math.abs(dy) ? "horizontal" : "vertical";
-      }
-      if (axis !== "horizontal") return;
-
-      const horizontalAncestor = el!.closest("[data-scroll-fade-area-horizontal]") as HTMLElement | null;
-      const frameDeltaX = t.clientX - lastX;
-      lastX = t.clientX;
-      if (!horizontalAncestor) return;
-      e.preventDefault();
-      // Disable scroll-snap-type for the duration of this drag, same
-      // reason and same mechanism as the wheel forwarder's identical fix in
-      // ScrollFadeArea.tsx (see its own comment) — without it, every
-      // forwarded scrollBy lands on a non-snap resting position and gets
-      // immediately corrected to the *next full snap point*, regardless of
-      // how small the per-frame amount was, which is what actually caused
-      // "jumps multiple cards" (not the forwarded amount itself). Cleared
-      // once the fling+settle sequence below finishes, not immediately on
-      // touchend, so nothing re-engages snap mid-fling.
-      horizontalAncestor.style.scrollSnapType = "none";
-      snapDisabledOn = horizontalAncestor;
-      // behavior: "instant", not "auto" — same reason as the wheel
-      // forwarder's identical fix in ScrollFadeArea.tsx (see its own
-      // comment): the carousel carries scroll-smooth from the snap-release
-      // easing fix, so "auto" would defer to that CSS and animate each
-      // tiny per-frame forward instead of applying it immediately, which a
-      // rapid touchmove stream would turn into stutter/near-no-movement.
-      horizontalAncestor.scrollBy({ left: -frameDeltaX, behavior: "instant" });
-
-      const now = performance.now();
-      samples.push({ time: now, x: t.clientX });
-      while (samples.length > 1 && now - samples[0].time > VELOCITY_WINDOW_MS) samples.shift();
-    }
-
-    function handleTouchEnd() {
-      const wasHorizontal = axis === "horizontal";
-      axis = null;
-      const ancestorOrNull = snapDisabledOn;
-      snapDisabledOn = null;
-      if (!wasHorizontal || !ancestorOrNull) return;
-      // Reassigned to a variable TS can prove non-null inside the nested
-      // flingStep closure below (control-flow narrowing on ancestorOrNull
-      // itself doesn't reach into a function expression declared later in
-      // this scope).
-      const ancestor: HTMLElement = ancestorOrNull;
-
-      // Velocity estimate (px of finger movement per ms) from the rolling
-      // window — same sign convention as frameDeltaX during the drag
-      // (positive = finger moving right), negated the same way when
-      // applied in the fling loop below.
-      let velocity = 0;
-      if (samples.length >= 2) {
-        const oldest = samples[0];
-        const newest = samples[samples.length - 1];
-        const dt = newest.time - oldest.time;
-        if (dt > 0) velocity = (newest.x - oldest.x) / dt;
-      }
-
-      if (Math.abs(velocity) < scrollTuning.minFlingVelocity) {
-        settleTo(ancestor);
-        return;
-      }
-
-      let v = velocity;
-      let lastFrameTime = performance.now();
-      function flingStep(now: number) {
-        const dt = now - lastFrameTime;
-        lastFrameTime = now;
-        v *= Math.pow(scrollTuning.flingFriction, dt / 16);
-        ancestor.scrollBy({ left: -v * dt, behavior: "instant" });
-        if (Math.abs(v) > FLING_STOP_VELOCITY) {
-          flingRafId = requestAnimationFrame(flingStep);
-        } else {
-          flingRafId = null;
-          settleTo(ancestor);
-        }
-      }
-      flingRafId = requestAnimationFrame(flingStep);
-      activeCoverFlingCancel = () => {
-        cancelFling();
-        ancestor.style.scrollSnapType = "";
-      };
-    }
-
-    function handleTouchCancel() {
-      axis = null;
-      cancelFling();
-      if (snapDisabledOn) {
-        snapDisabledOn.style.scrollSnapType = "";
-        snapDisabledOn = null;
-      }
-    }
-
-    el.addEventListener("touchstart", handleTouchStart, { passive: true });
-    el.addEventListener("touchmove", handleTouchMove, { passive: false });
-    el.addEventListener("touchend", handleTouchEnd, { passive: true });
-    el.addEventListener("touchcancel", handleTouchCancel, { passive: true });
-    return () => {
-      el.removeEventListener("touchstart", handleTouchStart);
-      el.removeEventListener("touchmove", handleTouchMove);
-      el.removeEventListener("touchend", handleTouchEnd);
-      el.removeEventListener("touchcancel", handleTouchCancel);
-      cancelFling();
-    };
-  }, [elRef]);
-}
-
-// Whole-card tap-to-flip conflicted with native touch-scroll gestures
-// starting on the same element (cover/back) on a real device — confirmed
-// live, this is what actually blocked native scroll there, not the
-// overflow/scroll-container question explored earlier. Detects input type
-// via (pointer: coarse) — genuinely about the input device (a touchscreen),
-// not screen width/viewport size, which is what this needs: a touch laptop
-// at desktop width is still coarse; a resized desktop browser window is
-// still fine. Mobile (coarse) gets a dedicated flip button instead (see its
-// own JSX below) and loses whole-card tap; desktop (fine) is completely
-// unchanged — same onClick on the article as always.
-//
-// Starts false (matching what SSR renders, avoiding a hydration mismatch)
-// and corrects after mount — the brief window before that first effect run
-// where a touch device would still have the article's own tap-to-flip
-// wired is sub-frame and not something a user can actually act on in time,
-// same reasoning ScrollTuningPanel.tsx's own window-dependent check
-// already relies on. Also subscribes to the media query's own change
-// event, not just a one-time check on mount — a 2-in-1 device switching
-// between touch and mouse mid-session should be reflected without a full
-// reload.
-function useCoarsePointer(): boolean {
-  const [isCoarse, setIsCoarse] = useState(false);
-  useEffect(() => {
-    const mql = window.matchMedia("(pointer: coarse)");
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsCoarse(mql.matches);
-    const handleChange = (e: MediaQueryListEvent) => setIsCoarse(e.matches);
-    mql.addEventListener("change", handleChange);
-    return () => mql.removeEventListener("change", handleChange);
-  }, []);
-  return isCoarse;
-}
 
 interface ResultCardProps {
   entry: ResultEntry;
@@ -361,18 +84,6 @@ export function ResultCard({
   // (no URL, or a URL that 404s/fails to decode) falls back to the same
   // flat --surface tint the tag area always had — see the JSX below.
   const [reflectionBroken, setReflectionBroken] = useState(false);
-  // Touch-forwarder element refs — see useHorizontalTouchForward below.
-  // Two separate refs/hook calls, not one shared ref: the cover (FRONT) and
-  // the whole BACK face are two different DOM elements, and a swipe
-  // starting on either one needs to reach the carousel. An earlier version
-  // only wired this up on coverRef — confirmed live as a real bug: BACK
-  // never scrolled horizontally at all, since it never had a listener.
-  const coverRef = useRef<HTMLDivElement>(null);
-  const backRef = useRef<HTMLDivElement>(null);
-  // See useCoarsePointer's own comment (module scope, above) for why this
-  // exists at all: mobile loses whole-card tap-to-flip in favor of a
-  // dedicated button (below), desktop keeps it unchanged.
-  const isCoarsePointer = useCoarsePointer();
   const { series } = entry;
   // Recomputed live against the current tag selection on every render — not
   // taken from entry.score, which is frozen at whatever moment this card was
@@ -452,15 +163,6 @@ export function ResultCard({
   // media) — omit whichever part is missing instead of rendering "null".
   const meta = [series.year ?? "TBA", series.eps != null ? `${series.eps} EP` : null].filter(Boolean).join(" · ");
 
-  // Touch forwarder for both faces — see useHorizontalTouchForward's own
-  // top comment (below, module scope) for the full mechanism/rationale.
-  // Two calls, not one: the cover (FRONT) and the whole BACK face are two
-  // different DOM elements, and a swipe starting on either needs to reach
-  // the carousel — confirmed live as a real bug when this was only wired
-  // up on coverRef: BACK never scrolled horizontally at all.
-  useHorizontalTouchForward(coverRef);
-  useHorizontalTouchForward(backRef);
-
   return (
     <article
       data-title={series.title}
@@ -470,12 +172,7 @@ export function ResultCard({
       // zone via a single closest() check, rather than special-casing each
       // control inside it. See MixerBar.tsx's own comment on the allowlist.
       data-result-card
-      // undefined (not a no-op arrow function) on coarse pointers — the
-      // whole point is removing this as a tap target there at all, not
-      // just making it inert, so it doesn't shadow/compete with the
-      // dedicated flip button's own click for event-handling purposes.
-      // Desktop (fine pointer) is completely unchanged from before.
-      onClick={isCoarsePointer ? undefined : () => onFlip(series.title)}
+      onClick={() => onFlip(series.title)}
       // h-[var(--result-card-height)], not a literal h-[421px]: shared with
       // RecommendationsSection's empty-state placeholder so the two can
       // never drift out of sync (see the token's own comment in
@@ -528,24 +225,35 @@ export function ResultCard({
       // none of them would be clickable at all.
       //
       // [perspective:1100px] moved OFF this element — see the new wrapper
-      // div just inside, below. TRIAL restructure: every earlier attempt
-      // to get native scroll-gesture chaining working assumed the 3D flip
-      // stack itself (preserve-3d/rotateY/backface-visibility) was the
-      // obstruction, and tried to work around it (touch-action variants,
-      // then a fully manual JS forwarder). This tries a different theory:
-      // that having THIS element — the actual carousel snap-item/gesture-
-      // participating box — ALSO be the one establishing the 3D
-      // perspective (perspective alone, with no transform of its own,
-      // still makes an element establish its own stacking context per
-      // spec) is what confuses native gesture routing, since the
-      // carousel's own scroll-snap math operates directly on this same
-      // box. Moving perspective one level down means this element is now
-      // a completely ordinary, non-3D, non-composited flow box as far as
-      // the carousel's own snap/gesture handling is concerned — all the
-      // 3D complexity is confined to a descendant instead of coinciding
-      // with the snap item itself. Same box size/position (w-full h-full
-      // on the new wrapper, matching this element exactly), so the
-      // perspective's own depth/vanishing-point should render identically.
+      // div just inside, below. Every earlier attempt to get native
+      // scroll-gesture chaining working assumed the 3D flip stack itself
+      // (preserve-3d/rotateY/backface-visibility) was the obstruction —
+      // this was the one that actually worked, confirmed live: having THIS
+      // element — the actual carousel snap-item/gesture-participating box
+      // — ALSO be the one establishing the 3D perspective (perspective
+      // alone, with no transform of its own, still makes an element
+      // establish its own stacking context per spec) is what was confusing
+      // native gesture routing, since the carousel's own scroll-snap math
+      // operates directly on this same box. Moving perspective one level
+      // down makes this element a completely ordinary, non-3D, non-
+      // composited flow box as far as the carousel's own snap/gesture
+      // handling is concerned — all the 3D complexity is confined to a
+      // descendant instead of coinciding with the snap item itself. Same
+      // box size/position (w-full h-full on the new wrapper, matching this
+      // element exactly), so the perspective's own depth/vanishing-point
+      // renders identically to before.
+      //
+      // This alone got desktop (mouse/trackpad) fully native everywhere —
+      // cover, back, tag area, touch and wheel — and got the tag area
+      // native on mobile too, but mobile touch scroll starting on the
+      // cover or back specifically never worked natively even with this
+      // fix (tried: touch-action variants, a full manual JS forwarder with
+      // fling, moving tap-to-flip to a dedicated button, making the cover/
+      // back genuine scroll containers, and combinations of those — none
+      // of it closed the gap). That's an accepted, current limitation, not
+      // something still being actively chased — whole-card tap-to-flip
+      // works everywhere (all devices), and native scroll works desktop-
+      // everywhere + mobile-via-the-tag-area.
       className="h-[var(--result-card-height)] cursor-pointer pointer-events-auto max-[1152px]:flex-none max-[1152px]:snap-start min-[993px]:max-[1152px]:w-[22%] min-[741px]:max-[993px]:w-[30%] min-[501px]:max-[741px]:w-[46%] max-[501px]:w-[85%]"
     >
       {/* New wrapper: carries perspective now (see the article's own
@@ -555,44 +263,19 @@ export function ResultCard({
           extra layer, not a replacement for anything the flip-container
           itself was doing. */}
       <div className="relative w-full h-full [perspective:1100px]">
-      {/* touch-auto (touch-action: auto) here and on both faces below:
-          reverted from touch-pan-y — confirmed on a real device that
-          pan-y broke native touch-scroll chaining on BOTH faces (front
-          cover scroll stopped working, back never worked) rather than
-          completing the fix pan-y on the article alone had partially
-          started. Kept as a harmless restatement of the default (not
-          load-bearing) through the manual-forwarder era; now genuinely
-          part of the trial again now that COVER_TOUCH_FORWARD_ENABLED is
-          off (below) and native chaining gets an actual chance to work
-          with perspective moved off the snap-item itself. */}
       <div
         className={[
-          "touch-auto relative w-full h-full [transform-style:preserve-3d] transition-transform duration-500 [transition-timing-function:cubic-bezier(.4,.2,.2,1)]",
+          "relative w-full h-full [transform-style:preserve-3d] transition-transform duration-500 [transition-timing-function:cubic-bezier(.4,.2,.2,1)]",
           flipped ? "[transform:rotateY(180deg)]" : "[transform:rotateY(0deg)]",
         ].join(" ")}
       >
         <div
           className={[
-            "touch-auto absolute inset-0 [backface-visibility:hidden] border-[length:var(--border-base)] border-[var(--ink)] overflow-hidden flex flex-col transition-opacity duration-200 bg-[var(--surface)] shadow-[var(--elev-4)]",
+            "absolute inset-0 [backface-visibility:hidden] border-[length:var(--border-base)] border-[var(--ink)] overflow-hidden flex flex-col transition-opacity duration-200 bg-[var(--surface)] shadow-[var(--elev-4)]",
             flipped ? "opacity-0 pointer-events-none z-[var(--z-base)]" : "opacity-100 pointer-events-auto z-[var(--z-raised)]",
           ].join(" ")}
         >
-          {/* overflow-y-auto overflow-x-hidden (was overflow-hidden) — RE-
-              APPLIED: confirmed live that removing the tap-to-flip conflict
-              (the button above) did NOT fix native touch scroll on its
-              own — cover/back still don't chain to the carousel while the
-              tag area still does, ruling out the tap conflict as the cause
-              after all. The one remaining structural difference between
-              the tag area (works) and this box (doesn't) is that the tag
-              area is a genuine scroll container (overflow:auto) and this
-              is a plain overflow:hidden non-scroller — re-applying that
-              difference now that it's no longer confounded with the tap
-              issue, to test in isolation whether it's actually the fix.
-              This box has no content that overflows either axis, so
-              behaviorally/visually this should be a no-op at rest (auto
-              only shows a scrollbar / enables scrolling when there's real
-              overflow — there isn't). */}
-          <div ref={coverRef} className="relative h-[295px] border-b-[length:var(--border-base)] border-b-[var(--ink)] bg-[var(--fill)] overflow-y-auto overflow-x-hidden">
+          <div className="relative h-[295px] border-b-[length:var(--border-base)] border-b-[var(--ink)] bg-[var(--fill)] overflow-hidden">
             {hasImage ? (
               <Image
                 src={series.coverImageUrl as string}
@@ -702,31 +385,6 @@ export function ResultCard({
                 </span>
               )}
             </div>
-            {/* Mobile-only flip trigger — see useCoarsePointer's own
-                comment for why this exists at all. A separate, absolutely
-                positioned element (not a third item in the lock/swap row
-                above) so it doesn't disturb that row's own flex layout —
-                top-right specifically, opposite the lock/swap row's
-                top-left, so neither crowds the other. stopPropagation
-                isn't strictly needed today (the article's own onClick is
-                already undefined on coarse pointers, per its own comment),
-                but kept anyway, matching the lock/swap buttons' own
-                defensive pattern, in case a hybrid device ever has both
-                this button and the article's tap active at once. */}
-            {isCoarsePointer && (
-              <IconButton
-                size="sm"
-                aria-label="Flip card"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onFlip(series.title);
-                }}
-                shadow
-                className="absolute top-[var(--space-md)] right-[var(--space-md)]"
-              >
-                <FlipIcon />
-              </IconButton>
-            )}
             {/* Score badge + title/meta stack together, bottom-anchored, so
                 the badge naturally sits above the title with no manual
                 offset math. Both on-primary — guaranteed light in every
@@ -1043,70 +701,27 @@ export function ResultCard({
         {/* BACK — the old dot-pattern bg is replaced by the full-bleed
             blurred cover fill below. bg-[var(--fill)] stays as the base
             color — the fallback for hasImage-false/broken cards, and
-            whatever shows through before the fill image loads. touch-auto
-            reverted from touch-pan-y (see the flip-container's own
-            comment) — pan-y here didn't fix this face's native scroll
-            chaining either; the manual touch-forward handler is the real
-            fix now.
+            whatever shows through before the fill image loads.
             pointer-events-auto unconditionally (not toggled with
-            opacity/z-index like FRONT's own pair) — TRIAL FIX for the
-            back-face-never-scrolls bug: unlike FRONT (interactive from the
-            very first render), BACK started non-hit-testable
-            (pointer-events-none) and only became a valid touch target
-            later, dynamically, via this same class toggle — a known
-            category of mobile WebKit touch-dispatch bugs where an element
-            that starts outside the hit-test tree doesn't correctly "wake
-            up" for touch when it becomes interactive later, even though
-            computed styles read correctly at that point. Made permanently
-            interactive here instead, relying only on opacity/z-index
-            (unchanged) to keep it invisible AND non-overlapping while
-            FRONT is showing — FRONT sits above it in z-index whenever not
-            flipped, so this shouldn't change anything about FRONT's own
-            interactivity; confirm that live after this change, not just
-            assume it from the stacking order.
-            overflow-y-auto overflow-x-hidden (was overflow-hidden) —
-            RE-APPLIED, same reasoning as the cover's own (see its comment):
-            confirmed live that removing the tap-to-flip conflict alone did
-            NOT fix native touch scroll here either — ruling out the tap as
-            the actual cause. Re-testing the scroll-container difference
-            now that it's no longer confounded with tap-to-flip. This
-            face's total content (WATCH ON header + streams list, which
-            already clips its own overflow internally) never exceeds this
-            box's fixed height, so this should be a no-op at rest. */}
+            opacity/z-index like FRONT's own pair) — fix for a real bug
+            found earlier: unlike FRONT (interactive from the very first
+            render), BACK started non-hit-testable (pointer-events-none)
+            and only became a valid touch target later, dynamically, via
+            this same class toggle — a known category of mobile WebKit
+            touch-dispatch bugs where an element that starts outside the
+            hit-test tree doesn't correctly "wake up" for touch when it
+            becomes interactive later, even though computed styles read
+            correctly at that point. Kept even though the manual touch-
+            forward handler that originally motivated it is now gone (see
+            git history) — this is a separate, still-real fix, and FRONT
+            sitting above it in z-index whenever not flipped means it's
+            harmless to leave permanently interactive either way. */}
         <div
-          ref={backRef}
           className={[
-            "touch-auto absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] border-[length:var(--border-base)] border-[var(--ink)] overflow-y-auto overflow-x-hidden flex flex-col transition-opacity duration-200 bg-[var(--fill)] shadow-[var(--elev-4)] pointer-events-auto",
+            "absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] border-[length:var(--border-base)] border-[var(--ink)] overflow-hidden flex flex-col transition-opacity duration-200 bg-[var(--fill)] shadow-[var(--elev-4)] pointer-events-auto",
             flipped ? "opacity-100 z-[var(--z-raised)]" : "opacity-0 z-[var(--z-base)]",
           ].join(" ")}
         >
-          {/* Mobile-only flip trigger, mirroring FRONT's own (see its
-              comment) — same top-right position on this face too, so it
-              reads as the same control regardless of which face is
-              showing. z-[var(--z-overlay)] (not relying on DOM order, the
-              way FRONT's own placement after its Image/scrim gets away
-              with) — this sits earlier in the DOM than the back-fill layer
-              below, which is also absolutely positioned and would
-              otherwise paint on top of it (later same-stacking-level DOM
-              order wins ties); an explicit z-index here beats that
-              regardless of DOM position. Watch on device: the WATCH ON
-              header directly below spans the full width right up to this
-              same top edge — confirm the button doesn't visually crowd its
-              "配信" text on narrower cards. */}
-          {isCoarsePointer && (
-            <IconButton
-              size="sm"
-              aria-label="Flip card"
-              onClick={(e) => {
-                e.stopPropagation();
-                onFlip(series.title);
-              }}
-              shadow
-              className="absolute top-[var(--space-md)] right-[var(--space-md)] z-[var(--z-overlay)]"
-            >
-              <FlipIcon />
-            </IconButton>
-          )}
           {/* Full-bleed cover fill — own BACK_FILL_* constants (see their
               own comment). Plain inset-0, no offset/translate: fills the
               WHOLE face. */}

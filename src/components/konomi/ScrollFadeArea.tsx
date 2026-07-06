@@ -1,10 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { EASING_CURVES, easeToSnap, getNearestSnapLeft } from "@/lib/konomi/scrollSnapEase";
-// TEMPORARY — see scrollTuning.ts's own comment; delete this import (and
-// switch back to a plain local constant) once tuning is done.
-import { scrollTuning } from "@/lib/konomi/scrollTuning";
 import { IconButton, type RevealGroup } from "./IconButton";
 
 type Orientation = "vertical" | "horizontal";
@@ -179,17 +175,6 @@ interface ScrollFadeAreaProps {
   // TagScrollArea leaves this unset (no mask-image at all, not even a
   // trivial no-op one, so there's zero behavior change for them).
   edgeMaskSize?: number;
-  // Opt-in, vertical-only: forwards a horizontal-dominant wheel gesture
-  // (|deltaX| > |deltaY|) to the nearest ancestor horizontal ScrollFadeArea
-  // instance instead of leaving it stuck here — see the effect below for
-  // why this needs a real JS handler rather than a CSS-only fix.
-  // TagScrollArea passes this; every other vertical caller (Tag Pool chip
-  // area, MixerBar's filters) leaves it unset since none of them sit nested
-  // inside a horizontal scroller of their own — the marker attribute
-  // (data-scroll-fade-area-horizontal, below) simply won't be found as an
-  // ancestor for them, so the handler is a safe no-op even if it were
-  // turned on there too.
-  forwardHorizontalWheel?: boolean;
   children: React.ReactNode;
 }
 
@@ -243,7 +228,6 @@ export function ScrollFadeArea({
   disableWrapperPointerEvents = false,
   fitContent = false,
   edgeMaskSize,
-  forwardHorizontalWheel = false,
   children,
 }: ScrollFadeAreaProps) {
   const horizontal = orientation === "horizontal";
@@ -327,167 +311,6 @@ export function ScrollFadeArea({
     scrollRef.current?.scrollTo(horizontal ? { left: 0, behavior: "instant" } : { top: 0, behavior: "instant" });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scrollResetKey]);
-
-  // forwardHorizontalWheel: manually routes a horizontal-dominant wheel
-  // gesture to the nearest ancestor horizontal ScrollFadeArea instance —
-  // confirmed live as genuinely necessary, not something CSS alone can fix.
-  // overscroll-behavior (the fix for the equivalent touch-swipe bug) only
-  // governs scroll *chaining*: what happens once a scroller hits its own
-  // boundary in a *matching* axis. A wheel event's deltaX/deltaY are
-  // dispatched to whichever scrollable element the cursor is hit-testing
-  // over, and that element's own delta is consumed by it — browsers don't
-  // reroute an orthogonal, unusable axis of a wheel event to a different-
-  // axis ancestor on their own. data-scroll-fade-area-horizontal (below, on
-  // every horizontal instance's own viewport) is the marker this looks for
-  // via closest() — an ancestor search from this element, not a page-wide
-  // query, so this stays correct even if more than one horizontal
-  // ScrollFadeArea instance ever exists on the same page. Non-passive, raw
-  // addEventListener (not a JSX onWheel prop) for the same reason
-  // MixerBar's own blockScrollThrough uses one — React's delegated wheel
-  // listener is passive by default, so a JSX prop's preventDefault() would
-  // silently no-op.
-  //
-  // Axis is decided ONCE per physical gesture and held until it ends (a gap
-  // with no wheel event longer than GESTURE_GAP_MS), not re-evaluated every
-  // single event — a per-event |deltaX| > |deltaY| check (this handler's
-  // first version) passed clean synthetic testing but failed on a real
-  // trackpad: real horizontal gestures carry enough deltaY jitter that the
-  // first event or two of an intentional horizontal swipe often reads as
-  // vertical-dominant on their own. Letting even one such event fall
-  // through to native vertical scrolling matters more than it sounds like
-  // it should — Chromium's own internal scroll-gesture handling then
-  // commits that whole physical gesture to scrolling THIS element
-  // vertically, regardless of what later events' individual deltas look
-  // like, so a per-event re-check never gets a chance to correct course
-  // mid-gesture. Accumulating from the gesture's start and deciding once
-  // (same shape as MixerBar's own touch axis-lock in
-  // handleTouchStart/blockScrollThrough) resists that jitter instead.
-  // HORIZONTAL_BIAS gives horizontal a deliberate edge rather than a strict
-  // 1:1 ratio: the reported failure mode was real horizontal intent being
-  // misread as vertical, never the reverse, so ties (and near-ties) should
-  // resolve toward forwarding.
-  useEffect(() => {
-    if (!forwardHorizontalWheel) return;
-    const el = scrollRef.current;
-    if (!el) return;
-
-    let axis: "horizontal" | "vertical" | null = null;
-    let accumX = 0;
-    let accumY = 0;
-    let lastEventTime = 0;
-    let restoreSnapTimer: number | null = null;
-    // Cancels an in-progress easeToSnap — a new gesture starting (possibly
-    // from a different card sharing this same carousel, e.g. the cover
-    // touch-forwarder in ResultCard.tsx) while a previous settle is still
-    // animating would otherwise fight it over the same scrollLeft.
-    let cancelEase: (() => void) | null = null;
-
-    const GESTURE_GAP_MS = 200;
-    const AXIS_LOCK_NOISE_PX = 4;
-    const HORIZONTAL_BIAS = 0.85;
-    // Separate from GESTURE_GAP_MS (which still governs axis-lock reset —
-    // "is this wheel event still the same physical gesture") — confirmed
-    // live as a real, separate complaint: 200ms felt like a long pause
-    // before the snap-settle even started once you stopped scrolling.
-    // Shorter, tunable independently of the axis-lock timing.
-    const SNAP_RESTORE_DEBOUNCE_MS = 80;
-
-    // Scale alone didn't explain "jumps multiple cards" — confirmed live:
-    // the carousel's own scroll-snap-mandatory was still active while this
-    // forwarded, so even a single small scrollBy landed on an invalid
-    // (non-snap) resting position and got immediately corrected to the
-    // *next full snap point* regardless of how small the forwarded amount
-    // was — exactly the same failure mode this file's own
-    // startContinuousScroll already had to work around for the arrow-hold
-    // case (see its own comment), just not yet applied here. Disabling
-    // scroll-snap-type for the duration of the forward, restoring it once
-    // the gesture goes quiet for SNAP_RESTORE_DEBOUNCE_MS (reset on every
-    // forwarded event — wheel has no native "gesture end" event the way
-    // touch has touchend) — via our own eased settle, not an immediate
-    // clear — fixes this the same way.
-    function disableSnap(ancestor: Element) {
-      if (restoreSnapTimer !== null) window.clearTimeout(restoreSnapTimer);
-      if (cancelEase) {
-        cancelEase();
-        cancelEase = null;
-      }
-      (ancestor as HTMLElement).style.scrollSnapType = "none";
-      restoreSnapTimer = window.setTimeout(() => {
-        const el = ancestor as HTMLElement;
-        const target = getNearestSnapLeft(el);
-        cancelEase = easeToSnap(
-          el,
-          target,
-          scrollTuning.snapEaseDurationMs,
-          () => {
-            el.style.scrollSnapType = "";
-            cancelEase = null;
-          },
-          EASING_CURVES[scrollTuning.easingCurve]
-        );
-        restoreSnapTimer = null;
-      }, SNAP_RESTORE_DEBOUNCE_MS);
-    }
-    // Forwarded deltaX was applied 1:1 at first — confirmed live as a real
-    // regression on a real trackpad: a raw per-event deltaX here jumped
-    // multiple cards per gesture, well past what the identical gesture
-    // does scrolling the carousel directly (e.g. hovering the cover, which
-    // needs no forwarding at all). 0.5 is a starting guess, not a measured
-    // value — tune live against how it actually feels, the same way this
-    // file's other empirically-tuned constants were (see
-    // continuousScrollSpeed's own history in TagScrollArea.tsx).
-    const WHEEL_FORWARD_SCALE = 0.5;
-
-    function handleWheel(e: WheelEvent) {
-      const now = performance.now();
-      if (now - lastEventTime > GESTURE_GAP_MS) {
-        axis = null;
-        accumX = 0;
-        accumY = 0;
-      }
-      lastEventTime = now;
-      accumX += e.deltaX;
-      accumY += e.deltaY;
-
-      if (axis === null && (Math.abs(accumX) > AXIS_LOCK_NOISE_PX || Math.abs(accumY) > AXIS_LOCK_NOISE_PX)) {
-        axis = Math.abs(accumX) > Math.abs(accumY) * HORIZONTAL_BIAS ? "horizontal" : "vertical";
-        // TEMPORARY — real-device tuning aid for AXIS_LOCK_NOISE_PX/
-        // HORIZONTAL_BIAS above; remove once the values are confirmed
-        // against real trackpad gestures.
-        console.log("[forwardHorizontalWheel] axis locked:", axis, {
-          deltaX: e.deltaX,
-          deltaY: e.deltaY,
-          accumX,
-          accumY,
-        });
-      }
-
-      if (axis !== "horizontal") return;
-      const horizontalAncestor = el!.closest("[data-scroll-fade-area-horizontal]");
-      if (!horizontalAncestor) return;
-      e.preventDefault();
-      disableSnap(horizontalAncestor);
-      // behavior: "instant", not "auto" — the carousel this forwards to is
-      // itself a snap instance, so it carries scroll-smooth (scroll-
-      // behavior: smooth) from the snap-release easing fix. "auto" means
-      // "defer to this element's own CSS scroll-behavior," not "instant" —
-      // the exact same lesson the continuous arrow-hold scroll already hit
-      // (see ScrollFadeArea's startContinuousScroll comment): a rapid
-      // stream of per-event forwards each deferring to "smooth" would kick
-      // off its own animation that the next event's call interrupts,
-      // netting almost no movement across a real multi-event gesture even
-      // though a single isolated call looks fine. "instant" forces every
-      // forwarded call to actually move by that amount immediately,
-      // regardless of the carousel's own CSS.
-      horizontalAncestor.scrollBy({ left: e.deltaX * WHEEL_FORWARD_SCALE, behavior: "instant" });
-    }
-    el.addEventListener("wheel", handleWheel, { passive: false });
-    return () => {
-      el.removeEventListener("wheel", handleWheel);
-      if (restoreSnapTimer !== null) window.clearTimeout(restoreSnapTimer);
-      if (cancelEase) cancelEase();
-    };
-  }, [forwardHorizontalWheel]);
 
   const scrollBy = (direction: 1 | -1) => {
     const step = getScrollStep ? getScrollStep() : scrollStep;
@@ -634,11 +457,6 @@ export function ScrollFadeArea({
           reinterpreting vertical scroll as horizontal. */}
       <div
         ref={scrollRef}
-        // data-scroll-fade-area-horizontal: the forwardHorizontalWheel
-        // effect's own ancestor marker (see that effect's comment) — every
-        // horizontal instance carries it, unconditionally; harmless for
-        // instances nothing ever searches for it.
-        data-scroll-fade-area-horizontal={horizontal ? true : undefined}
         onScroll={updateScrollState}
         style={{
           ...(scrollPaddingStart

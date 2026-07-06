@@ -9,8 +9,6 @@ import { Masthead } from "./Masthead";
 import { MixerBar } from "./MixerBar";
 import { RecommendationsBody } from "./RecommendationsBody";
 import { ResultsHeader } from "./ResultsHeader";
-// TEMPORARY — see ScrollTuningPanel.tsx's own comment.
-import { ScrollTuningPanel } from "./ScrollTuningPanel";
 import { setLevelPref, useLevel } from "./tagPoolPrefs";
 
 interface KonomiAppProps {
@@ -95,7 +93,6 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
       {SHOW_HALFTONE && (
         <div className="absolute inset-0 pointer-events-none opacity-45 bg-[radial-gradient(var(--muted)_1.3px,transparent_1.4px)] [background-size:9px_9px] z-[var(--z-base)]" />
       )}
-      <ScrollTuningPanel />
 
       <div className="relative z-[var(--z-raised)] max-w-[1280px] mx-auto">
         <Masthead theme={k.theme} onThemeChange={k.setTheme} />
