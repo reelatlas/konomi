@@ -106,7 +106,25 @@ export function ResultsHeader({ hasResults, onClearRecs }: ResultsHeaderProps) {
           // carousel's own pointer-events can go back to the default auto
           // (see RecommendationsBody.tsx) and still receive the gesture.
           <span data-clear-results className="contents">
-            <ActionButton variant="inverted" size="sm" onClick={onClearRecs} className="relative z-[var(--z-raised)]">
+            {/* shrink-0 grow-0: reported live as an intermittent, mobile-
+                only bug — this button occasionally stretched horizontally
+                toward the results card's own width instead of staying a
+                tight fit around "Clear ✕". Not reproducible in this
+                project's own headless-Chromium testing (fresh mount,
+                repeated RECOMMEND clicks, several widths, all stable at a
+                fixed content width) — consistent with a real-device-only
+                WebKit quirk, the same class of issue as this app's own
+                documented iOS dashed-border clipping (see
+                DESIGN_SYSTEM.md). display:contents on the wrapping span
+                (above) promotes this button to be a direct flex item of
+                the row it sits in; Safari has known bugs where a
+                contents-promoted child doesn't reliably keep the spec's
+                default flex-grow:0/flex-shrink:1 sizing. Pinning both
+                explicitly is a defensive fix for that class of bug, not a
+                guess at a different root cause — confirm on-device that
+                this actually resolves it, since it couldn't be verified
+                by direct reproduction here. */}
+            <ActionButton variant="inverted" size="sm" onClick={onClearRecs} className="relative z-[var(--z-raised)] shrink-0 grow-0">
               Clear ✕
             </ActionButton>
           </span>

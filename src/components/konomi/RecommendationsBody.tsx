@@ -1,8 +1,49 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ResultEntry, TagInfo } from "@/lib/konomi/types";
 import { ResultCard } from "./ResultCard";
 import { ScrollFadeArea } from "./ScrollFadeArea";
 import { useLevel, useSort } from "./tagPoolPrefs";
+
+// Empty-state ("zero state") headline/payoff pairs — one is picked at
+// random per genuine entry into the empty state (see hasResults' own
+// effect below, in the component), never the same one twice in a row.
+// Named, exported-shape array specifically so this is easy to edit/extend
+// later — add or remove an entry here, nothing else needs to change.
+interface EmptyStateCopy {
+  headline: string;
+  payoff: string;
+}
+const EMPTY_STATE_COPY: EmptyStateCopy[] = [
+  { headline: "GET COOKING", payoff: "a recipe for your taste" },
+  { headline: "NEEDLE TO THE WAX", payoff: "tuned to your wavelength" },
+  { headline: "ASPIRATE THE SUPERNATANT", payoff: "your essence distilled" },
+  { headline: "LAW OF EQUIVALENT EXCHANGE", payoff: "conjured from your soul" },
+  { headline: "SKIM THE CREAM", payoff: "crème de la crème" },
+  { headline: "ENTROPY", payoff: "gems in the chaos" },
+  { headline: "CRANK THE CRANKSHAFT", payoff: "instant ignition" },
+  { headline: "WATER THE SAPLINGS", payoff: "grown from your roots" },
+  { headline: "PRIME THE CANVAS", payoff: "a symphony in color" },
+  { headline: "DECRYPT THE MATRIX", payoff: "there is no spoon" },
+  { headline: "THREAD THE NEEDLE", payoff: "precision perfected" },
+];
+// Fixed across every set, unlike headline/payoff above — the one line that
+// always tells the user what to actually do, regardless of which flavor
+// text is currently showing. Reuses the same "→" arrow Masthead.tsx's own
+// (now-removed) tagline used, for visual continuity with that phrasing.
+const EMPTY_STATE_INSTRUCTION = "add tags → recommend → remix";
+
+// Rejection-samples until it differs from excludeIndex (null on first call,
+// which no real index ever equals, so the very first pick is unconstrained)
+// — with 11 entries this is ~1.1 draws on average, not worth a more
+// elaborate shuffle for a list this size.
+function pickEmptyStateIndex(excludeIndex: number | null): number {
+  if (EMPTY_STATE_COPY.length <= 1) return 0;
+  let index = Math.floor(Math.random() * EMPTY_STATE_COPY.length);
+  while (index === excludeIndex) {
+    index = Math.floor(Math.random() * EMPTY_STATE_COPY.length);
+  }
+  return index;
+}
 
 interface RecommendationsBodyProps {
   results: ResultEntry[];
@@ -53,6 +94,28 @@ export function RecommendationsBody({
 }: RecommendationsBodyProps) {
   const level = useLevel();
   const sort = useSort();
+  // Picked once on mount (this component's own first render already IS the
+  // empty state on a fresh load, so no separate "initial" case is needed
+  // beyond this lazy initializer) and re-rolled only on a genuine
+  // hasResults true->false transition below — never on every render, and
+  // never while the user is just removing tags from slots one at a time
+  // (that never touches hasResults at all; confirmed against every
+  // reducer branch in useKonomi.ts — only clearRecs(), and only when no
+  // cards are locked, ever flips it back to false).
+  const [emptyStateIndex, setEmptyStateIndex] = useState(() => pickEmptyStateIndex(null));
+  // Holds hasResults' own value as of the *last time this effect ran*, not
+  // a plain every-render mirror (contrast MixerBar.tsx's own ref-mirror
+  // pattern, which does update every render via a separate, no-dependency
+  // effect) — updated at the end of the same effect below, right after
+  // being read, so by construction it only ever reflects the prior
+  // distinct value the one time hasResults actually changes again.
+  const prevHasResults = useRef(hasResults);
+  useEffect(() => {
+    if (prevHasResults.current && !hasResults) {
+      setEmptyStateIndex((current) => pickEmptyStateIndex(current));
+    }
+    prevHasResults.current = hasResults;
+  }, [hasResults]);
   // Which grid position just had its card swapped, so the brand-new
   // ResultCard instance that mounts there can seed its own hoveredIcon
   // state to "swap" (see ResultCard's own startWithSwapHint comment) —
@@ -136,9 +199,39 @@ export function RecommendationsBody({
         // so this also already matches RECOMMEND's own disabled-state
         // background for free.)
         <div className="border-[length:var(--border-base)] border-dashed border-[var(--muted)] bg-[var(--slot-empty)] min-h-[var(--result-card-height)] flex flex-col items-center justify-center gap-[var(--space-md)] px-[var(--space-2xl)] py-[var(--space-2xl)] text-center">
-          <div className="font-display text-[length:var(--text-2xl)] text-[var(--muted)] uppercase">mix tags</div>
-          <p className="font-mono text-[length:var(--text-base)] text-[var(--primary)] m-0">
-            load 1–3 tags into the mixer then RECOMMEND
+          <div className="font-display text-[length:var(--text-2xl)] text-[var(--muted)] uppercase">
+            {EMPTY_STATE_COPY[emptyStateIndex].headline}
+          </div>
+          {/* Deliberately NOT styled like the payoff below — the payoff is
+              flavor text (rotates, reads as voice/mood), this is the one
+              functional "what do I actually do" line, fixed across every
+              set. Adapted from TagPoolBody.tsx's own subsection-label
+              treatment (font-mono tracking-xl text-subtext) — muted,
+              categorical — rather than inventing a new visual tier, so it
+              reads as a caption between headline and payoff instead of a
+              second line of the same voice. text-base (that label
+              precedent's own text-2xs read too small once this became a
+              standalone line rather than a small in-flow label) and
+              lowercase, not uppercase like that precedent — lowercase
+              matches the arrow-phrase's own casing (the removed Masthead
+              tagline was lowercase too) rather than shouting a functional
+              instruction. */}
+          {/* -mt-[var(--space-xs)]: the container's own gap-md (below)
+              applies uniformly to every child, but headline->instruction
+              wanted to be tighter than instruction->payoff (left as
+              gap-md, unchanged) — pulling just this line up by space-xs
+              nets a smaller gap above it without touching the one below,
+              rather than restructuring the container into two separately-
+              gapped groups for a single-value tweak. */}
+          <p className="font-mono text-[length:var(--text-base)] tracking-[var(--tracking-xl)] text-[var(--subtext)] m-0 -mt-[var(--space-xs)]">
+            {EMPTY_STATE_INSTRUCTION}
+          </p>
+          {/* mt-[var(--space-xs)]: same technique as the instruction's own
+              -mt above, opposite direction — widens just this gap (on top
+              of the container's shared gap-md) without touching
+              headline->instruction. */}
+          <p className="font-mono text-[length:var(--text-base)] text-[var(--primary)] m-0 mt-[var(--space-xs)]">
+            {EMPTY_STATE_COPY[emptyStateIndex].payoff}
           </p>
         </div>
       )}
