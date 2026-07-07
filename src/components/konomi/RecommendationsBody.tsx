@@ -32,36 +32,86 @@ const EMPTY_STATE_COPY: EmptyStateCopy[] = [
 // (now-removed) tagline used, for visual continuity with that phrasing.
 const EMPTY_STATE_INSTRUCTION = "add tags → recommend → remix";
 
-// Rejection-samples until it differs from excludeIndex (null on first call,
-// which no real index ever equals, so the very first pick is unconstrained)
-// — with 11 entries this is ~1.1 draws on average, not worth a more
-// elaborate shuffle for a list this size.
-function pickEmptyStateIndex(excludeIndex: number | null): number {
-  if (EMPTY_STATE_COPY.length <= 1) return 0;
-  let index = Math.floor(Math.random() * EMPTY_STATE_COPY.length);
-  while (index === excludeIndex) {
-    index = Math.floor(Math.random() * EMPTY_STATE_COPY.length);
+// Shuffle-bag randomizer, not plain rejection-sampled random: every one of
+// EMPTY_STATE_COPY's entries is guaranteed to show exactly once before any
+// repeats, drawn in a freshly-shuffled order each cycle — plain "random,
+// but not the same as last time" has no memory beyond the immediately
+// prior pick, so a handful of entries could show far more often than
+// others over many draws even though no two consecutive picks ever match.
+// Fisher-Yates, standard and unbiased.
+function shuffled<T>(items: T[]): T[] {
+  const result = [...items];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
   }
-  return index;
+  return result;
 }
 
-// A plain useState(() => pickEmptyStateIndex(null)) lazy initializer looks
-// right but isn't hydration-safe: it runs Math.random() during BOTH the
-// server's render pass and the client's separate hydration render pass,
-// and since Math.random() isn't seeded, they disagree — confirmed live as
-// a real hydration-mismatch error (server picked one headline, client
-// picked a different one, forcing React to discard and re-render the
-// whole tree). Same root cause, and same fix, this codebase's own
-// tagPoolPrefs.ts already established for usePoolPanelHeight/
-// useDefaultPoolPanelHeight: a useSyncExternalStore-backed value, not
-// useState+useEffect (rejected by this project's own react-hooks/
-// set-state-in-effect lint rule for the extra cascading render it causes
-// on every mount — see DESIGN_SYSTEM.md's own writeup of that exact
-// tradeoff). getServerSnapshot returns a fixed 0 — identical on every SSR
-// pass and the client's own first (hydration) render, so there's nothing
-// left to mismatch — and React automatically re-renders once more
-// immediately after hydration once getSnapshot's real (random) value
-// differs from it, no subscription event needed to trigger that.
+// A fresh bag is every index [0..length), shuffled. lastShownIndex (null
+// for the very first bag ever, which has no "just shown" item to avoid)
+// guards the seam between bags: without this, the tail of one shuffle and
+// the head of the next are independent, so the same entry can land both
+// last-in-old-bag and first-in-new-bag — a real, visible back-to-back
+// repeat exactly at the reshuffle boundary. Swapping the new bag's first
+// slot with another one of its own (not the excluded value, and not
+// itself) fixes the one colliding case in O(1) — cheaper and just as
+// correct as reshuffling the whole bag again and hoping.
+function buildEmptyStateBag(lastShownIndex: number | null): number[] {
+  const bag = shuffled(EMPTY_STATE_COPY.map((_, i) => i));
+  if (bag.length > 1 && bag[0] === lastShownIndex) {
+    const swapWith = 1 + Math.floor(Math.random() * (bag.length - 1));
+    [bag[0], bag[swapWith]] = [bag[swapWith], bag[0]];
+  }
+  return bag;
+}
+
+// Module-level, in-memory only — see the extended note below on why this
+// (not a useState lazy initializer) is what makes the whole bag
+// hydration-safe. emptyStateBagQueue holds this cycle's remaining,
+// not-yet-shown indices; emptyStateCurrentIndex is whatever's on screen
+// right now. Both null/empty until the client's first real draw.
+let emptyStateBagQueue: number[] = [];
+let emptyStateCurrentIndex: number | null = null;
+const emptyStateIndexListeners = new Set<() => void>();
+
+// The one place either module variable above is ever written. Refills the
+// queue (with the seam guard) only once it's actually empty, then always
+// draws from the front — this single function is what both the very
+// first pick (called from getEmptyStateIndexSnapshot below, queue starts
+// empty) and every later re-roll (called from rerollEmptyStateIndex) go
+// through, so there's exactly one place the shuffle-bag/seam logic lives.
+function drawNextEmptyStateIndex(): number {
+  if (emptyStateBagQueue.length === 0) {
+    emptyStateBagQueue = buildEmptyStateBag(emptyStateCurrentIndex);
+  }
+  emptyStateCurrentIndex = emptyStateBagQueue.shift()!;
+  return emptyStateCurrentIndex;
+}
+
+// A plain useState(() => drawNextEmptyStateIndex()) lazy initializer looks
+// right but isn't hydration-safe: it would run Math.random() (inside the
+// shuffle) during BOTH the server's render pass and the client's separate
+// hydration render pass, and since Math.random() isn't seeded, they'd
+// disagree — confirmed live as a real hydration-mismatch error before
+// this was fixed (server picked one headline, client picked a different
+// one, forcing React to discard and re-render the whole tree). Same root
+// cause, and same fix, this codebase's own tagPoolPrefs.ts already
+// established for usePoolPanelHeight/useDefaultPoolPanelHeight: a
+// useSyncExternalStore-backed value, not useState+useEffect (rejected by
+// this project's own react-hooks/set-state-in-effect lint rule for the
+// extra cascading render it causes on every mount — see DESIGN_SYSTEM.md's
+// own writeup of that exact tradeoff). getServerSnapshot below returns a
+// fixed 0 — identical on every SSR pass and the client's own first
+// (hydration) render, so there's nothing left to mismatch, and no bag
+// shuffle/draw happens server-side at all — and React automatically
+// re-renders once more immediately after hydration once getSnapshot's
+// real (bag-drawn) value differs from it, no subscription event needed to
+// trigger that. The bag itself is a pure extension of this same mechanism,
+// not a parallel one: still exactly one hydration-sensitive read (the
+// first draw, guarded below by the emptyStateCurrentIndex === null check),
+// and every subsequent draw (reroll included) happens well after mount,
+// with no hydration concern of its own.
 //
 // Plain in-memory module state, not localStorage/tagPoolPrefs.ts — this
 // value is deliberately NOT persisted across page loads (component state
@@ -71,14 +121,11 @@ function pickEmptyStateIndex(excludeIndex: number | null): number {
 // callback set has exactly one real subscriber in practice
 // (RecommendationsBody itself, always mounted), but is written generally
 // in case that ever changes.
-let emptyStateIndexValue: number | null = null;
-const emptyStateIndexListeners = new Set<() => void>();
-
 function getEmptyStateIndexSnapshot(): number {
-  if (emptyStateIndexValue === null) {
-    emptyStateIndexValue = pickEmptyStateIndex(null);
+  if (emptyStateCurrentIndex === null) {
+    return drawNextEmptyStateIndex();
   }
-  return emptyStateIndexValue;
+  return emptyStateCurrentIndex;
 }
 
 function getEmptyStateIndexServerSnapshot(): number {
@@ -90,10 +137,11 @@ function subscribeEmptyStateIndex(callback: () => void): () => void {
   return () => emptyStateIndexListeners.delete(callback);
 }
 
-// The only mutator — re-rolls to a new index (excluding whatever's
-// currently showing) and notifies the one subscriber to re-render.
-function rerollEmptyStateIndex(currentIndex: number): void {
-  emptyStateIndexValue = pickEmptyStateIndex(currentIndex);
+// The only mutator — draws the next bag item (reshuffling first, with the
+// seam guard, if the current bag just ran out) and notifies the one
+// subscriber to re-render.
+function rerollEmptyStateIndex(): void {
+  drawNextEmptyStateIndex();
   emptyStateIndexListeners.forEach((listener) => listener());
 }
 
@@ -172,10 +220,10 @@ export function RecommendationsBody({
     // against every reducer branch in useKonomi.ts — only clearRecs(), and
     // only when no cards are locked, ever flips it back to false).
     if (prevHasResults.current && !hasResults) {
-      rerollEmptyStateIndex(emptyStateIndex);
+      rerollEmptyStateIndex();
     }
     prevHasResults.current = hasResults;
-  }, [hasResults, emptyStateIndex]);
+  }, [hasResults]);
   // Which grid position just had its card swapped, so the brand-new
   // ResultCard instance that mounts there can seed its own hoveredIcon
   // state to "swap" (see ResultCard's own startWithSwapHint comment) —
