@@ -1083,6 +1083,7 @@ export function MixerBar({
           totalSeriesCount={totalSeriesCount}
           onChipToggle={onChipToggle}
           poolPanelHeightPx={effectiveHeightPx}
+          editMode={editMode}
         />
       </div>
       </div>

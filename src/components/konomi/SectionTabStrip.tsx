@@ -13,6 +13,18 @@ interface SectionTabStripProps {
   sections: SectionTabItem[];
   activeKey: string;
   onChange: (key: string) => void;
+  // False whenever this strip's own container is currently clipped to zero
+  // height (MixerBar's collapsed, browse-mode `max-h-0 overflow-hidden` —
+  // TagPoolBody, and this strip inside it, stay mounted the whole time, not
+  // just while edit mode is open; see TagPoolBody's own top comment on why).
+  // Guards the scrollIntoView effect below: confirmed live as a real bug
+  // without this — a button clipped inside a zero-height ancestor still
+  // reports its own natural (non-zero) offsetHeight, so there's no local,
+  // DOM-only signal this component could check on its own to notice it's
+  // currently invisible; the caller has to say so explicitly. Defaults to
+  // true so no other caller (there are none yet, but none should have to
+  // opt in for normal behavior) needs to pass this.
+  visible?: boolean;
 }
 
 // Tuned against the strip's own rendered width — not a card, so no
@@ -25,7 +37,7 @@ const SCROLL_STEP = 140;
 // Real tablist: role=tab/tablist, aria-selected, roving tabindex (only the
 // active tab is in the natural tab order; arrow keys move — and, per the
 // "automatic activation" model below, also activate — the others).
-export function SectionTabStrip({ sections, activeKey, onChange }: SectionTabStripProps) {
+export function SectionTabStrip({ sections, activeKey, onChange, visible = true }: SectionTabStripProps) {
   const tabRefs = useRef(new Map<string, HTMLButtonElement>());
 
   // Brings the active tab into view whenever it changes — a click already
@@ -34,10 +46,20 @@ export function SectionTabStrip({ sections, activeKey, onChange }: SectionTabStr
   // button itself finds its nearest scrollable ancestor (ScrollFadeArea's
   // own viewport) automatically, so this doesn't need a handle to that
   // internal element — ScrollFadeArea deliberately doesn't expose one.
-  // block: "nearest" keeps this from also scrolling the page vertically.
+  // block: "nearest" keeps this from also scrolling the page vertically —
+  // true whenever this strip is actually visible, but confirmed live as a
+  // real bug while it isn't: with no non-clipped block-axis scrollable
+  // ancestor nearby (this strip's own ScrollFadeArea viewport is
+  // horizontal-only, overflow-y hidden), "nearest" walks all the way up to
+  // the document itself and scrolls the *page* to bring this clipped,
+  // invisible button into view — reproduced on every fresh load, since
+  // this component mounts (and this effect fires) even while collapsed.
+  // Guarding on `visible` is required, not optional, once a caller can be
+  // mounted-but-clipped at all.
   useEffect(() => {
+    if (!visible) return;
     tabRefs.current.get(activeKey)?.scrollIntoView({ behavior: "smooth", inline: "nearest", block: "nearest" });
-  }, [activeKey]);
+  }, [activeKey, visible]);
 
   const activeIndex = sections.findIndex((s) => s.key === activeKey);
 

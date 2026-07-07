@@ -122,19 +122,37 @@
          edge cases) — at baseline itself the calc() below already lands
          at ~382px, well above this floor.
        - preferred: 100svh minus everything else already on the page at
-         this size — header row height and the mixer bar's own height
-         (both below, as their own tokens, each already varying at the
-         breakpoints those elements' *own* markup already uses — no new
-         breakpoint ladder for either), minus two gaps of space-2xl/24px
-         each (header→card and card→mixer, kept equal on purpose for
-         visual consistency — see ResultsHeader.tsx's own
-         mb-[var(--space-2xl)] for the first one, and MixerBar's own
+         this size. This used to omit the masthead entirely — a real bug,
+         not a simplification: without --masthead-height/its own gap/the
+         page's own top+bottom padding in this budget, the formula was
+         solving for "card fits below the header, ignoring everything
+         above it," so the *card* always looked correctly sized in
+         isolation while the *page* silently ran ~247px too tall at every
+         width — confirmed live (DESIGN_SYSTEM.md has the full breakpoint
+         audit). Now subtracts, in page order: --masthead-height (below),
+         the masthead's own bottom margin (--space-3xl, Masthead.tsx's own
+         mb-[var(--space-3xl)]), this root's own
+         pt/pb-[var(--space-2xl)] (KonomiApp.tsx), header row height and
+         the mixer bar's own height (both their own tokens, each already
+         varying at the breakpoints those elements' *own* markup uses — no
+         new breakpoint ladder for either), and two more gaps of
+         space-2xl/24px each (header→card and card→mixer, kept equal on
+         purpose for visual consistency — see ResultsHeader.tsx's own
+         mb-[var(--space-2xl)] for the first one, and MixerBar.tsx's own
          matching top margin for the second, now that the mixer is a
-         normal-flow element too, not a fixed overlay — see
-         MixerBar.tsx's own comment on its un-pinning for why), expressed
-         as calc(var(--space-2xl) * 2) rather than the flat 48px this used
-         to be — same value, but tied to the actual token so it can't
-         silently drift out of sync with it.
+         normal-flow element too, not a fixed overlay — see MixerBar.tsx's
+         own comment on its un-pinning for why). Four total space-2xl
+         instances (page-top, page-bottom, header→card, card→mixer),
+         expressed as calc(var(--space-2xl) * 4) rather than a flat 96px —
+         same value, but tied to the actual token so it can't silently
+         drift out of sync with it.
+       - Even corrected, this floor still engages at real phone heights
+         (confirmed live: 375×667 pins to the 322px floor and the page
+         still overflows by ~135px past the viewport) — one-viewport-fit
+         was never actually achievable at phone-scale heights once the
+         masthead is honestly counted; see DESIGN_SYSTEM.md for the
+         accepted degradation threshold below which this stops trying and
+         the group scrolls normally instead.
        - ceiling 445px = today's original, unchanged card height — the
          card never grows past its current, already-designed size on
          taller phones/tablets; extra room beyond what 445px needs just
@@ -157,7 +175,31 @@
      known, explicitly out-of-scope edge case (see DESIGN_SYSTEM.md if a
      fuller writeup exists, or this file's own git history for the
      bisection). */
-  --result-card-height: clamp(322px, calc(100svh - var(--header-row-height) - calc(var(--space-2xl) * 2) - var(--mixer-bar-height)), 445px);
+  --result-card-height: clamp(
+    322px,
+    calc(
+      100svh - var(--masthead-height) - var(--space-3xl) - calc(var(--space-2xl) * 4) - var(--header-row-height) - var(--mixer-bar-height)
+    ),
+    445px
+  );
+  /* Masthead.tsx's own rendered height — live-measured, not guessed, and
+     genuinely NOT flat across widths: it holds a plateau around 167-169px
+     across most in-scope widths (≥375px), but actually gets *shorter*
+     (down to ~128px) in the 460-1024px range once the wordmark/JP-
+     subtitle/ThemeSwitcher row has enough room to sit fully on one line
+     without the extra wrapping that pads it out at narrower widths, then
+     grows again past ~1024px as the wordmark's own clamp(44px, 8vw, 78px)
+     keeps scaling with viewport width. 170px is the measured max across
+     the whole ≥375px range (169.66px at ≥1200px), used as a single flat
+     conservative constant rather than a per-width ladder — this errs
+     toward slightly under-sizing the card in the 460-1024px range (where
+     the real masthead is shorter than this budget assumes) in exchange
+     for never re-introducing the overflow this token exists to close.
+     Retune by hand if Masthead.tsx's own content changes. Below 375px
+     (out of this feature's stated scope — see this token's own comment
+     above) the top row can wrap further and this undercounts badly (up to
+     ~265px measured at 280px width) — an accepted gap, not a hidden one. */
+  --masthead-height: 170px;
   /* ResultsHeader's own header row — a single flat value now, not a
      per-breakpoint ladder: that row no longer wraps at any width (see
      ResultsHeader.tsx's own top comment — the old min-[417px]:flex-row
@@ -169,63 +211,34 @@
      ResultsHeader.tsx's own comment on why that's pinned via min-h rather
      than left to whichever child is tallest at a given moment). */
   --header-row-height: 36.5px;
-  /* MixerBar's own collapsed (browse-mode) height — genuinely varies
-     across its own width ladder (live-measured, real breakpoints, not
-     guessed): <351px 203.5px, 351–639px 148.5px, 640–992px 168.5px,
-     993–1023px 169px, ≥1024px 185px. MixerBar's own tiers are the fixed
-     reference throughout (this token exists so the card-height clamp
-     above can react to the mixer, never the other way around); this is
-     just that reference exposed accurately at every width, not a single
-     flat number. Default here is the narrowest tier (<351px); the other
-     four are media-query overrides below. 640px and 993px match
-     already-documented MixerBar breakpoints (RECOMMEND's own text
-     threshold, and Row 3's Random/Clear/Tag-Pool text threshold,
-     respectively) — real, existing tiers, not new ones invented for this
-     token. 351px and 1024px are new findings, specific to this token's
-     own live re-measurement; MixerBar.tsx's own breakpoints are
-     untouched — this file only reads and records the resulting heights,
-     it doesn't move anything that produces them. See the media-query
-     overrides below for why every number here is 24px shorter than it
-     used to be. */
-  --mixer-bar-height: 203.5px;
-}
-
-/* --mixer-bar-height's own tiers — see that token's own comment for what
-   each width range is and where the numbers came from (live-measured,
-   not guessed). Four separate overrides, not one: the mixer's real
-   height genuinely steps at each of these widths. --header-row-height has
-   no breakpoint of its own anymore (see its own comment) — it's a flat
-   value now, unrelated to this ladder.
-
-   Every tier here is 24px shorter than it measured before MixerBar's own
-   un-pinning (Step 2): this token used to equal barRef's *full* fixed-
-   position footprint, which included its own now-removed pb-[space-2xl]
-   bottom gutter (24px, moved to KonomiApp's own root padding once the
-   mixer became normal flow — see MixerBar.tsx and KonomiApp.tsx's own
-   comments on that). This token means something narrower now — just
-   visibleCardRef's own rendered height, nothing else — so every tier was
-   re-measured live post-restructuring rather than hand-adjusted by -24;
-   confirmed the arithmetic difference is exactly uniform across all five,
-   as expected from removing one flat, breakpoint-independent gutter. */
-@media (min-width: 351px) {
-  :root {
-    --mixer-bar-height: 148.5px;
-  }
-}
-@media (min-width: 640px) {
-  :root {
-    --mixer-bar-height: 168.5px;
-  }
-}
-@media (min-width: 993px) {
-  :root {
-    --mixer-bar-height: 169px;
-  }
-}
-@media (min-width: 1024px) {
-  :root {
-    --mixer-bar-height: 185px;
-  }
+  /* MixerBar's own collapsed (browse-mode) height — used to be a 4-tier
+     width breakpoint ladder (<351px 203.5px, 351–639px 148.5px, 640–992px
+     168.5px, 993–1023px 169px, ≥1024px 185px), live-measured against
+     MixerBar's own real content breakpoints (640px/993px are RECOMMEND's
+     and Row 3's own text-collapse thresholds). Flattened to a single
+     conservative constant instead — this is only ever an *estimate* fed
+     into --result-card-height's own clamp above (nothing applies this
+     value as a real height/min-height on MixerBar itself anywhere;
+     MixerBar already just sizes to its own natural content), and a
+     classic scrollbar's ~15-17px width change could step across one of
+     those four breakpoints, flipping this value, which could flip
+     whether --result-card-height's own clamp caused the page to overflow
+     — a real, confirmed reflow loop (scrollbar toggles → width changes →
+     this steps a tier → total height changes → scrollbar toggles again).
+     185px is the true max across every *in-scope* tier (≥375px — the
+     <351px tier predates that scope and is already excluded, same as
+     --masthead-height's own note above), already confirmed flat/stable
+     for the entire open-ended ≥1024px range on its own. Same trade-off as
+     --masthead-height: at narrower in-scope widths the real mixer is
+     shorter than 185px, so the card computes a little smaller than the
+     theoretical optimum there (unclaimed blank space above the mixer, not
+     a functional bug) — acceptable now that one-viewport-fit is a
+     best-effort target, not an enforced guarantee (see
+     DESIGN_SYSTEM.md/this file's own git history), in exchange for
+     removing the width-dependency that caused the loop, entirely, with no
+     JS/ResizeObserver/hysteresis needed. Retune by hand if MixerBar's own
+     browse-mode content changes enough to raise this ceiling. */
+  --mixer-bar-height: 185px;
 }
 
 /* ── color roles, one palette per theme ──────────────────────────────────
@@ -363,9 +376,71 @@
        which is the actual goal here, without touching how any child
        scroller's own (already axis-scoped) overscroll-behavior resolves.
        y-only: this page never scrolls horizontally at the document level
-       (KonomiApp's own overflow-x-hidden already guarantees that), so
+       (KonomiApp's own overflow-x-clip already guarantees that), so
        there's nothing for an -x rule to contain. */
     overscroll-behavior-y: contain;
+  }
+
+  html {
+    /* data-theme="default" (layout.tsx) makes --bg/--muted/etc. — normally
+       only defined on KonomiApp's own root div — resolve directly on this
+       element too (inheritance is descendant-only; html can't pull them
+       from a child), which is what makes the three rules below possible.
+
+       background-color: this app's page background used to live on
+       KonomiApp's own root div (bg-[var(--bg)]) — confirmed live as a real
+       bug once that div stopped being the actual scroll root (see its own
+       "overflow-x-clip" comment): html/body is the one real scroll root,
+       but that div's own background is confined to its own box, which can
+       fall short of the *actual* scrollable extent, showing transparent
+       html/body — i.e. the browser's default white — as blank space past
+       wherever that div's box happened to end. The CSS root element's own
+       background is special-cased (paints the whole canvas/scrollable
+       area, not just its own box) specifically to guarantee this can't
+       happen — moving it here uses that guarantee instead of relying on a
+       regular element's box height happening to match the page's real
+       extent. KonomiApp's own div keeps text-[var(--ink)] and font-body,
+       unaffected — only the background moved.
+
+       No overflow-x/overflow-y overrides here (back to the browser
+       default) — a scrollbar-gutter attempt and then a forced
+       overflow-y: scroll were both tried here to stop a classic
+       scrollbar's ~15-17px width change from stepping --mixer-bar-height
+       across one of its own width breakpoints (a real reflow loop: width
+       change → tier steps → total height changes → scrollbar toggles →
+       width changes again). Both were reverted, not because either was
+       wrong in principle, but because the actual fix turned out to be at
+       the source instead: --mixer-bar-height is now a single flat
+       constant (see its own comment, above) with no width breakpoints
+       left to step across, so there's no width-driven loop left for
+       either of these to guard against. Default overflow behaves exactly
+       as it always did pre-investigation. */
+    background-color: var(--bg);
+  }
+
+  html[data-halftone] {
+    /* The dotted texture (SHOW_HALFTONE, config.ts) — was a separate
+       absolute inset-0 div inside KonomiApp's own root, sized to that
+       div's own box for the same reason its background was (see html's
+       own comment above): confirmed the identical gap risk applied to the
+       dots too, not just the flat color, once that div stopped being the
+       real scroll root. Folded into html's own background-image instead
+       of moving the overlay div itself — a background-image on the root
+       gets the same whole-canvas treatment as background-color, so it's
+       guaranteed to keep tiling correctly no matter how tall the page
+       grows, with no separate element, z-index, or pointer-events
+       exemption needed (a background never intercepts hit-testing, unlike
+       the div it replaces, which needed pointer-events-none explicitly).
+       color-mix(...45%, var(--bg)): the original was a flat opaque
+       --muted dot at 45% *element* opacity over --bg underneath; premixed
+       to a single solid color here since background-image has no opacity
+       of its own to give it — compositing a 45%-opaque color over an
+       opaque backdrop is mathematically identical to this flat mix, so
+       the dots read exactly the same. The gaps between dots stay a literal
+       transparent (not mixed) — background-color underneath (above) shows
+       through those unchanged, exactly as the old transparent stop did. */
+    background-image: radial-gradient(color-mix(in srgb, var(--muted) 45%, var(--bg)) 1.3px, transparent 1.4px);
+    background-size: 9px 9px;
   }
 
   .font-display {

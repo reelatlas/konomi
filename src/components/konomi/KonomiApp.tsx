@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { SHOW_HALFTONE } from "@/lib/konomi/config";
+import { useEffect, useState } from "react";
 import { visiblePoolTagNames } from "@/lib/konomi/tagPool";
 import type { LevelKey, Series, TagInfo } from "@/lib/konomi/types";
 import { useKonomi } from "@/lib/konomi/useKonomi";
@@ -26,6 +25,19 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
   // them. Same cross-component-reach reason the retired `activeTab` used
   // to live here.
   const [editMode, setEditMode] = useState(false);
+
+  // Mirrors k.theme onto <html> (layout.tsx's own data-theme="default" is
+  // just the matching initial value, not a live binding) — the page
+  // background now lives on html/body, not this component's own root div
+  // (see that div's own comment below), and --bg/--muted only resolve on
+  // an element that itself carries data-theme (inheritance is descendant-
+  // only, html can't pull them from a child). This div keeps data-theme
+  // too, unchanged — everything else in this subtree still reads theme
+  // tokens through it exactly as before; this effect only ever adds a
+  // second, synced copy on html, never removes the original.
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", k.theme);
+  }, [k.theme]);
 
   // The only place level-change needs to touch both the preference store
   // and the mixer: persist the new level, then prune any selected tag the
@@ -71,11 +83,30 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
     // underneath a normal-flow element the way a fixed one needed.
     <div
       data-theme={k.theme}
-      className="relative min-h-screen overflow-x-hidden px-[var(--space-2xl)] pt-[var(--space-2xl)] pb-[var(--space-2xl)] font-body bg-[var(--bg)] text-[var(--ink)]"
+      // overflow-x-clip, not overflow-x-hidden: hidden on one axis with no
+      // overflow-y set triggers a real, legacy CSS spec rule — the other
+      // axis's *used* value becomes auto instead of staying visible — which
+      // silently turned this div into its own accidental nested vertical
+      // scroll container (confirmed live: a real wheel scroll moved THIS
+      // div's own scrollTop, not window.scrollY), independent of and in
+      // addition to html/body's own document-level scrolling. clip doesn't
+      // pair with that legacy rule, so overflow-y correctly stays visible
+      // here and html/body go back to being the one real scroll root.
+      //
+      // No background, no scrollbar-gutter, no relative here anymore —
+      // all three moved to html (globals.css). This div's own
+      // scrollHeight briefly matched its content, but once overflow-y is
+      // visible (immediately above) it's not an actual scroll container at
+      // all, so a background confined to its own box could fall short of
+      // the *real* scroll root's full extent (confirmed live: a gap of
+      // page-background-colored nothing at the bottom once content grew
+      // past one viewport), and scrollbar-gutter here would be a silent
+      // no-op — that property only does anything on an element that's
+      // actually a scroll container, which this one no longer is. relative
+      // was only ever the containing block for the halftone overlay
+      // (removed below, folded into html's own background-image instead).
+      className="min-h-screen overflow-x-clip px-[var(--space-2xl)] pt-[var(--space-2xl)] pb-[var(--space-2xl)] font-body text-[var(--ink)]"
     >
-      {SHOW_HALFTONE && (
-        <div className="absolute inset-0 pointer-events-none opacity-45 bg-[radial-gradient(var(--muted)_1.3px,transparent_1.4px)] [background-size:9px_9px] z-[var(--z-base)]" />
-      )}
 
       <div className="relative z-[var(--z-raised)] max-w-[1280px] mx-auto">
         <Masthead theme={k.theme} onThemeChange={k.setTheme} />

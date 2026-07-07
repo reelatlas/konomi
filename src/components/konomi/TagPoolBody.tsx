@@ -21,6 +21,13 @@ interface TagPoolBodyProps {
   // where CHIP_AREA_HEIGHT below is the fallback. See ScrollFadeArea's
   // heightPx prop for why this can't just be a computed Tailwind class.
   poolPanelHeightPx?: number;
+  // Mirrors MixerBar's own editMode — this component stays mounted the
+  // whole time (see this file's own top comment), only visually clipped to
+  // zero height via MixerBar's max-h-0 when edit mode is closed. Threaded
+  // straight through to SectionTabStrip's own `visible` prop: see that
+  // component's comment for the real bug (a page-level scroll on every
+  // load) this exists to prevent.
+  editMode: boolean;
 }
 
 const STRIP_GAP = 12; // --space-lg
@@ -86,7 +93,7 @@ function ChipRow({
 // collapsible sections — see DESIGN_SYSTEM.md for why that replaced the
 // old sticky-header/mask machinery entirely rather than keeping it around
 // in reduced form.
-export function TagPoolBody({ allTags, selectedTags, totalSeriesCount, onChipToggle, poolPanelHeightPx }: TagPoolBodyProps) {
+export function TagPoolBody({ allTags, selectedTags, totalSeriesCount, onChipToggle, poolPanelHeightPx, editMode }: TagPoolBodyProps) {
   const level = useLevel();
   const sort = useSort();
   // Plain component state, not localStorage-backed — TagPoolBody itself
@@ -161,6 +168,7 @@ export function TagPoolBody({ allTags, selectedTags, totalSeriesCount, onChipTog
           }))}
           activeKey={active.section.key}
           onChange={setActiveSectionKey}
+          visible={editMode}
         />
       </div>
 

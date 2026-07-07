@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono } from "next/font/google";
+import { SHOW_HALFTONE } from "@/lib/konomi/config";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -32,7 +33,31 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`h-full ${ibmPlexMono.variable}`}>
+    <html
+      lang="en"
+      // data-theme="default": matches useKonomi's own initial reducer
+      // state exactly (useKonomi.ts, plain literal "default", no
+      // localStorage/async involved) — this is a real, correct default,
+      // not a placeholder, so there's no hydration-mismatch/flash risk the
+      // way an unknown or async-derived value would have. KonomiApp.tsx's
+      // own root div still carries data-theme too (unchanged, still the
+      // one place that actually reads/writes k.theme) and syncs this
+      // attribute here via its own effect on every subsequent change —
+      // this app's page background (below) needs to live on html/body
+      // (the real scroll root — see globals.css's own comment) rather
+      // than on that div, and html's --bg/--muted (theme-scoped custom
+      // properties, [data-theme="…"] rules) only resolve on an element
+      // that itself carries this attribute — inheritance only flows
+      // downward, so html can't just inherit them from a descendant.
+      data-theme="default"
+      // Spread, not a plain prop — omits the attribute entirely when
+      // false (SHOW_HALFTONE, config.ts) rather than rendering
+      // data-halftone="false", matching data-clear-results/
+      // data-theme-switcher's existing presence-only convention
+      // elsewhere in this app.
+      {...(SHOW_HALFTONE ? { "data-halftone": "" } : {})}
+      className={`h-full ${ibmPlexMono.variable}`}
+    >
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
