@@ -746,43 +746,51 @@ export function ResultCard({
                     style={{ filter: `blur(${REFLECTION_BLUR_REFLECTED_PX}px)`, marginTop: -3 }}
                   />
                 </div>
-                {/* Veil: --cover-reflection-veil (globals.css) — a
-                    translucent wash of this theme's --slot-empty over the
-                    whole reflection (both the continuation and the mirror
-                    below it), so the tag area reads as this app's own
-                    muted surface with a hint of the cover's mood, on any
-                    cover, dark or bright — not the photo itself bleeding
-                    through. Re-added at 10% (down from an earlier 35%) now
-                    that the reflection itself is the physically-continuous
-                    upright+mirror version with its own 1px blurs and seam
-                    scrim, which already reads as intentional with a much
-                    lighter touch than the old flat-blur version needed.
-                    Bump that token's opacity (not this file) if a future
-                    cover is ever found to need more. TagScrollArea's own
-                    surfaceColor stays "transparent" below (unchanged from
-                    before this veil came back) — that fade has no color of
-                    its own to mismatch against whatever's behind it, veil
-                    or no veil, by design; see that prop's own comment.
-
-                    z-[var(--z-base)]: the "back" half of a local pair with
-                    the seam scrim's own z-[var(--z-raised)] above (see that
-                    element's own comment) — without this, this veil is the
-                    last sibling in DOM order and paints on top of
-                    everything by default, including the scrim, which
-                    confirmed live as a real regression: the seam's dark
-                    edge got washed down to this veil's own faint 10% level
-                    instead of staying continuous with the cover's bottom.
-                    This still covers the WHOLE reflection (both zones) at
-                    its own layer — the scrim only wins the small overlap
-                    region where both are present (the continuation zone),
-                    since it's the only place a z-[var(--z-raised)] sibling
-                    exists to out-rank it; everywhere else (the mirror zone,
-                    and the continuation zone once the scrim itself has
-                    faded to transparent) this veil is the only tint
-                    showing, same as before this reordering. */}
-                <div className="absolute inset-0 z-[var(--z-base)] bg-[var(--cover-reflection-veil)]" />
               </div>
             )}
+            {/* Veil: --cover-reflection-veil (globals.css) — a translucent
+                wash of this theme's --slot-empty over the tag area, so it
+                reads as this app's own muted surface with a hint of the
+                cover's mood, on any cover, dark or bright — not the photo
+                itself bleeding through. Deliberately OUTSIDE the height
+                gate above (unlike the continuation/mirror images) — this
+                is a real, previously-shipped bug fix, not a stylistic
+                choice: the veil's own positioning (absolute inset-0,
+                sized against this tag-wrapper) has zero dependency on
+                COVER_HEIGHT_PX or the reflection's pixel alignment, unlike
+                the continuation images, so there was never a correctness
+                reason to hide it at small viewports too. Bundling it into
+                the same gate as the height-dependent images left the tag
+                area with no background at all below the threshold ("full
+                cover + reverse scrim at all sizes, only the mirrored
+                reflection tail is gated" was the actual spec — this veil
+                *is* that reverse scrim). Still gated on hasImage &&
+                !reflectionBroken (no image, no mood to tint from), just
+                not on viewport height. Re-added at 10% (down from an
+                earlier 35%) now that the reflection itself (where it
+                shows) is the physically-continuous upright+mirror version
+                with its own 1px blurs and seam scrim, which already reads
+                as intentional with a much lighter touch than the old
+                flat-blur version needed. Bump that token's opacity (not
+                this file) if a future cover is ever found to need more.
+                TagScrollArea's own surfaceColor stays "transparent" below
+                (unchanged from before this veil came back) — that fade
+                has no color of its own to mismatch against whatever's
+                behind it, veil or no veil, reflection or no reflection,
+                by design; see that prop's own comment.
+
+                z-[var(--z-base)]: the "back" half of a local pair with the
+                seam scrim's own z-[var(--z-raised)] (inside the gated
+                block above) — without this, this veil is the last sibling
+                in DOM order and paints on top of everything by default,
+                including the scrim, which confirmed live as a real
+                regression: the seam's dark edge got washed down to this
+                veil's own faint 10% level instead of staying continuous
+                with the cover's bottom. Where the reflection is gated off
+                (small viewports), there's no scrim to out-rank at all —
+                this veil is simply the only tint showing, alone, exactly
+                as intended for that size. */}
+            {hasImage && !reflectionBroken && <div className="absolute inset-0 z-[var(--z-base)] bg-[var(--cover-reflection-veil)]" />}
             {/* z-[2], not just `relative`: this needs to paint above the
                 seam scrim's own z-[var(--z-raised)] (1) — plain DOM order
                 ("later siblings paint on top") isn't enough here, since the

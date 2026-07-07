@@ -16,32 +16,35 @@ interface KonomiAppProps {
   initialTags: TagInfo[];
 }
 
-// Height of MixerBar's browse-mode (collapsed: floating card — slots +
-// controls, no header, no filters, no pool panel — plus the wrapper's own
-// bottom gutter) rendered form — measured live against the real component,
-// same "retune by hand if this changes" approach TagPoolBody's
-// CHIP_AREA_HEIGHT constant already uses. Reserves exactly enough space at
-// the bottom of the scrolling page so browse-mode content (results, the
-// footer tagline) never sits underneath the fixed card, *plus* an extra
-// space-2xl (24px) beyond that so the last piece of scrolled content gets
-// the same breathing room above the card that the page's own
-// pt-[var(--space-2xl)] gives the masthead below the viewport top — see
-// MixerBar.tsx's pb-[var(--space-2xl)] comment, same token, mirrored gap.
-// Edit mode's taller form is deliberately allowed to overlay content
-// instead of reserving space for it too — expected bottom-sheet behavior,
-// not a bug; see MixerBar.tsx's own top comment.
+// Reserves space at the bottom of the (browse-mode) scrolling page so the
+// last piece of content never sits underneath the fixed mixer bar, with a
+// clean space-2xl (24px) gap above it — deliberately the same token and
+// value as ResultsHeader's own header→card gap (mb-[var(--space-2xl)]),
+// so both gaps in the "header, card, mixer" stack are identical, not just
+// each independently reasonable. calc()-based on --mixer-bar-height
+// (globals.css), not a flat re-measured constant like the old version of
+// this token: a flat worst-case number (previously 280px, sized for the
+// mixer's narrowest-tier height) over-reserves space at every *other*
+// breakpoint, since the mixer's real height varies — confirmed live as
+// the actual cause of a reported bug ("the gap below the last card gets
+// very large"), not scroll or viewport-unit related at all. Reading the
+// mixer's own live height through the same token the card-height clamp
+// already uses means this stays exactly mixer-height + 24px at every
+// width, automatically, with no separate re-measurement to keep in sync.
 //
-// Retuned down from 385 once MixerBar's title/badge header row (and,
-// earlier still, the Tag Density/Sort filters that briefly lived
-// always-visible there too) was removed entirely rather than shrunk —
-// removing a whole row, not just shortening it. Worst case is now the
-// narrowest widths (300-320px, controls row at its most-wrapped), measured
-// live at 277.5px regardless of viewport width in that band or whether the
-// slots are filled or empty (TagSlot's own height doesn't vary with
-// content) — 280 leaves a small buffer. Wider viewports render a shorter
-// bar (172.5-229px measured across 340-1400px), so this remains the
-// mobile-first worst case, same tradeoff as before.
-const MIXER_BAR_SPACER = "pb-[280px]";
+// - var(--space-3xl): the results <section>'s own mb-[var(--space-3xl)]
+// (32px, below) sits between the last card and this padding — real,
+// pre-existing spacing this formula doesn't own and isn't touching (left
+// exactly as-is, out of scope for this fix), but its 32px still counts
+// toward the total visual gap before the mixer. Confirmed live: without
+// subtracting it, the scrolled-to-bottom gap measured 56px (32 + the
+// intended 24), not 24. Subtracting it here — rather than editing that
+// pre-existing margin — keeps this fix isolated to exactly the one
+// constant it was meant to change.
+// Edit mode's taller form is still deliberately allowed to overlay content
+// instead of reserving space for it too — expected bottom-sheet behavior,
+// not a bug, unchanged from before; see MixerBar.tsx's own top comment.
+const MIXER_BAR_SPACER = "pb-[calc(var(--mixer-bar-height)_+_var(--space-2xl)_-_var(--space-3xl))]";
 
 export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
   const k = useKonomi(initialSeries, initialTags);
