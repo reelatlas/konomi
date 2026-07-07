@@ -7,6 +7,10 @@ export interface Series {
   tags: string[];
   coverImageUrl: string | null;
   genres: string[];
+  // AniList's own weighted-average viewer score, 0-100. Null whenever
+  // AniList itself has too few scores to report one yet (e.g. very new/
+  // unreleased media) — genuinely absent, not a real 0.
+  averageScore: number | null;
 }
 
 export interface ResultEntry {

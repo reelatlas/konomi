@@ -46,6 +46,7 @@ const PAGE_QUERY = `
           large
         }
         genres
+        averageScore
         tags {
           id
           name
@@ -77,6 +78,9 @@ interface AniListMedia {
   startDate: { year: number | null } | null;
   coverImage: { large: string | null } | null;
   genres: string[] | null;
+  // 0-100, AniList's own weighted-average viewer score. Null for media with
+  // too few scores (e.g. very new/unreleased) — genuinely absent, not 0.
+  averageScore: number | null;
   tags: AniListTag[] | null;
 }
 
@@ -224,6 +228,7 @@ async function main() {
     episodes: media.episodes ?? null,
     cover_image_url: media.coverImage?.large ?? null,
     genres: media.genres ?? [],
+    average_score: media.averageScore ?? null,
   }));
 
   const seriesIdMap = new Map<number, string>(); // anilist media id -> uuid

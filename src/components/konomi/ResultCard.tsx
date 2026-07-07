@@ -5,6 +5,7 @@ import { isTagVisibleAtLevel, sortTags } from "@/lib/konomi/tagPool";
 import type { LevelKey, ResultEntry, SortKey, TagInfo } from "@/lib/konomi/types";
 import { DiceIcon, LockClosedIcon, LockOpenIcon } from "./icons";
 import { IconButton } from "./IconButton";
+import { RatingBadge } from "./RatingBadge";
 import { ERROR_MESSAGE } from "./RecommendButton";
 import { TagScrollArea } from "./TagScrollArea";
 
@@ -497,11 +498,43 @@ export function ResultCard({
                 {scoreLabel}
               </div>
               <div>
-                <h3 className="font-body font-black text-[length:var(--text-md)] leading-[var(--leading-tight)] text-[var(--on-primary)] m-0">
+                {/* pr-[85px]: reserves horizontal clearance for RatingBadge
+                    (bottom-right of the cover, below), so a long title's
+                    own wrapped last line can't run underneath/behind it —
+                    confirmed live as a real bug without this: a 2-line
+                    title's second line visually collided with the badge at
+                    375px width (this h3 has no width constraint of its own
+                    otherwise, so it wraps at the cover's full width,
+                    unaware the badge occupies part of that space in the
+                    corner). 85px is the badge's own worst-case width
+                    (~50px, a 2-ghost GOOD-tier "10.0" plate) plus its
+                    24px right-inset plus a small gap — reserved on every
+                    line, not just the last, since which line ends up
+                    nearest the badge depends on the title's own length. */}
+                <h3 className="font-body font-black text-[length:var(--text-md)] leading-[var(--leading-tight)] text-[var(--on-primary)] m-0 pr-[85px]">
                   {series.title}
                 </h3>
                 <div className="font-mono text-[length:var(--text-xs)] text-[var(--on-primary)] opacity-80 mt-[var(--space-xs)]">{meta}</div>
               </div>
+            </div>
+            {/* AniList rating badge — bottom-right of the cover, above the
+                tag section below it (a sibling, not part of this box).
+                right-[24px]/bottom-[22px]: NOT flush against the corner —
+                reserves clearance for RatingBadge's own ghost echoes, which
+                extend up to (16,14)px further toward the bottom-right of
+                the plate itself (GOOD tier, its own farthest ghost). Confirmed
+                live at every required breakpoint (375px, the 640-992px
+                carousel tier, and >=1024px) that the farthest ghost's own
+                clearance to this box's edge lands at a consistent, positive
+                8px (right) / 10px (bottom) at this inset — comfortably
+                inside the clip boundary at every width tested, not a
+                near-miss. Last child of this box (not the scrim/icon-row/
+                title's own DOM position) so it reliably paints on top of
+                all of them via plain DOM order — nothing here has an
+                explicit z-index, so order is what decides it (see
+                DESIGN_SYSTEM.md's Z-index scale section). */}
+            <div className="absolute right-[24px] bottom-[22px]">
+              <RatingBadge averageScore={series.averageScore} />
             </div>
           </div>
           {/* relative + overflow-hidden: the reflection/veil below are
