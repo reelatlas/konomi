@@ -14,10 +14,10 @@ interface EmptyStateCopy {
   payoff: string;
 }
 const EMPTY_STATE_COPY: EmptyStateCopy[] = [
-  { headline: "GET COOKING", payoff: "a recipe for your taste" },
+  { headline: "GET COOKING", payoff: "a recipe for your soul" },
   { headline: "NEEDLE TO THE WAX", payoff: "tuned to your wavelength" },
   { headline: "ASPIRATE THE SUPERNATANT", payoff: "your essence distilled" },
-  { headline: "LAW OF EQUIVALENT EXCHANGE", payoff: "conjured from your soul" },
+  { headline: "LAW OF EQUIVALENT EXCHANGE", payoff: "give to gain" },
   { headline: "SKIM THE CREAM", payoff: "crème de la crème" },
   { headline: "ENTROPY", payoff: "gems in the chaos" },
   { headline: "CRANK THE CRANKSHAFT", payoff: "instant ignition" },
