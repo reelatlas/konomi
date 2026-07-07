@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { ResultEntry, TagInfo } from "@/lib/konomi/types";
 import { ResultCard } from "./ResultCard";
 import { ScrollFadeArea } from "./ScrollFadeArea";
@@ -43,6 +43,58 @@ function pickEmptyStateIndex(excludeIndex: number | null): number {
     index = Math.floor(Math.random() * EMPTY_STATE_COPY.length);
   }
   return index;
+}
+
+// A plain useState(() => pickEmptyStateIndex(null)) lazy initializer looks
+// right but isn't hydration-safe: it runs Math.random() during BOTH the
+// server's render pass and the client's separate hydration render pass,
+// and since Math.random() isn't seeded, they disagree — confirmed live as
+// a real hydration-mismatch error (server picked one headline, client
+// picked a different one, forcing React to discard and re-render the
+// whole tree). Same root cause, and same fix, this codebase's own
+// tagPoolPrefs.ts already established for usePoolPanelHeight/
+// useDefaultPoolPanelHeight: a useSyncExternalStore-backed value, not
+// useState+useEffect (rejected by this project's own react-hooks/
+// set-state-in-effect lint rule for the extra cascading render it causes
+// on every mount — see DESIGN_SYSTEM.md's own writeup of that exact
+// tradeoff). getServerSnapshot returns a fixed 0 — identical on every SSR
+// pass and the client's own first (hydration) render, so there's nothing
+// left to mismatch — and React automatically re-renders once more
+// immediately after hydration once getSnapshot's real (random) value
+// differs from it, no subscription event needed to trigger that.
+//
+// Plain in-memory module state, not localStorage/tagPoolPrefs.ts — this
+// value is deliberately NOT persisted across page loads (component state
+// only, by design); the store shape (subscribe/getSnapshot/
+// getServerSnapshot) is reused here purely for its hydration-safety
+// guarantee, not for cross-session persistence. subscribeEmptyStateIndex's
+// callback set has exactly one real subscriber in practice
+// (RecommendationsBody itself, always mounted), but is written generally
+// in case that ever changes.
+let emptyStateIndexValue: number | null = null;
+const emptyStateIndexListeners = new Set<() => void>();
+
+function getEmptyStateIndexSnapshot(): number {
+  if (emptyStateIndexValue === null) {
+    emptyStateIndexValue = pickEmptyStateIndex(null);
+  }
+  return emptyStateIndexValue;
+}
+
+function getEmptyStateIndexServerSnapshot(): number {
+  return 0;
+}
+
+function subscribeEmptyStateIndex(callback: () => void): () => void {
+  emptyStateIndexListeners.add(callback);
+  return () => emptyStateIndexListeners.delete(callback);
+}
+
+// The only mutator — re-rolls to a new index (excluding whatever's
+// currently showing) and notifies the one subscriber to re-render.
+function rerollEmptyStateIndex(currentIndex: number): void {
+  emptyStateIndexValue = pickEmptyStateIndex(currentIndex);
+  emptyStateIndexListeners.forEach((listener) => listener());
 }
 
 interface RecommendationsBodyProps {
@@ -94,15 +146,18 @@ export function RecommendationsBody({
 }: RecommendationsBodyProps) {
   const level = useLevel();
   const sort = useSort();
-  // Picked once on mount (this component's own first render already IS the
-  // empty state on a fresh load, so no separate "initial" case is needed
-  // beyond this lazy initializer) and re-rolled only on a genuine
-  // hasResults true->false transition below — never on every render, and
-  // never while the user is just removing tags from slots one at a time
-  // (that never touches hasResults at all; confirmed against every
-  // reducer branch in useKonomi.ts — only clearRecs(), and only when no
-  // cards are locked, ever flips it back to false).
-  const [emptyStateIndex, setEmptyStateIndex] = useState(() => pickEmptyStateIndex(null));
+  // Hydration-safe: 0 on every server render and the client's own first
+  // (hydration) render, then automatically resolves to the real random
+  // pick right after — see getEmptyStateIndexServerSnapshot's own comment
+  // above for why this can't just be a useState lazy initializer. Only
+  // this one read is hydration-sensitive; re-rolling below (rerollEmptyStateIndex)
+  // runs well after mount, on a genuine hasResults transition, so it has
+  // no hydration concern of its own.
+  const emptyStateIndex = useSyncExternalStore(
+    subscribeEmptyStateIndex,
+    getEmptyStateIndexSnapshot,
+    getEmptyStateIndexServerSnapshot,
+  );
   // Holds hasResults' own value as of the *last time this effect ran*, not
   // a plain every-render mirror (contrast MixerBar.tsx's own ref-mirror
   // pattern, which does update every render via a separate, no-dependency
@@ -111,11 +166,16 @@ export function RecommendationsBody({
   // distinct value the one time hasResults actually changes again.
   const prevHasResults = useRef(hasResults);
   useEffect(() => {
+    // Re-rolled only on a genuine hasResults true->false transition — never
+    // on every render, and never while the user is just removing tags from
+    // slots one at a time (that never touches hasResults at all; confirmed
+    // against every reducer branch in useKonomi.ts — only clearRecs(), and
+    // only when no cards are locked, ever flips it back to false).
     if (prevHasResults.current && !hasResults) {
-      setEmptyStateIndex((current) => pickEmptyStateIndex(current));
+      rerollEmptyStateIndex(emptyStateIndex);
     }
     prevHasResults.current = hasResults;
-  }, [hasResults]);
+  }, [hasResults, emptyStateIndex]);
   // Which grid position just had its card swapped, so the brand-new
   // ResultCard instance that mounts there can seed its own hoveredIcon
   // state to "swap" (see ResultCard's own startWithSwapHint comment) —
