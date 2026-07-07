@@ -172,21 +172,22 @@ export function MixerBar({
 
   const barRef = useRef<HTMLDivElement>(null);
   // The visible floating card itself (border/bg/shadow, capped max-w) —
-  // kept distinct from barRef even though barRef is now just a bare,
-  // unstyled wrapper with an identical box (no fixed-position padding
-  // gutter left to differ by — see barRef's own JSX comment for why that
-  // gutter existed before and doesn't anymore). visibleCardRef remains the
-  // one this file's other logic (click-outside, resize measurement) reads
+  // kept distinct from barRef even though barRef has no padding of its own
+  // and its box is identical to visibleCardRef's (barRef holds nothing
+  // else — see barRef's own JSX comment for why the edit-mode overlay
+  // anchors against barRef specifically rather than this ref, despite the
+  // two being geometrically the same box). visibleCardRef remains the one
+  // this file's other logic (click-outside, resize measurement) reads
   // from, since it's the semantically real element (the card), not the
   // incidental wrapper around it.
   const visibleCardRef = useRef<HTMLDivElement>(null);
   // The edit-mode-only overlay (resize-handle row + pool panel) — absolutely
-  // positioned, bottom-full against visibleCardRef (see its own comment
-  // below), so it's a sibling of visibleCardRef's slots/controls content
-  // rather than a descendant sharing its flow height. Needed as its own ref
-  // (distinct from dialogRef, which is just the pool panel itself) for the
-  // click-outside/fixedOverheadPx measurement below, both of which need the
-  // overlay's *own* rendered box, not just the pool panel's.
+  // positioned, bottom-full against barRef (see its own comment below), so
+  // it's a sibling of visibleCardRef rather than a descendant sharing its
+  // flow height. Needed as its own ref (distinct from dialogRef, which is
+  // just the pool panel itself) for the click-outside/fixedOverheadPx
+  // measurement below, both of which need the overlay's *own* rendered
+  // box, not just the pool panel's.
   const overlayRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
@@ -571,20 +572,441 @@ export function MixerBar({
     // ancestor (left/right) and KonomiApp's own root pb-[space-2xl]
     // (bottom) — this wrapper adding its own would double-count both.
     //
-    // barRef still exists (not collapsed into visibleCardRef) purely for
-    // the wheel/touch scroll-block effect below, which predates this
-    // restructuring and still wants a stable outer element to attach to —
-    // its box is now identical to visibleCardRef's own (no padding of its
-    // own left to differ by), so which of the two that effect reads from
-    // no longer matters geometrically, only which ref already existed.
-    <div ref={barRef}>
+    // barRef is now the positioned ancestor (relative, below) both
+    // visibleCardRef and the edit-mode overlay anchor against — not
+    // visibleCardRef itself, even though visibleCardRef is the one that
+    // *looks* like the card. That distinction matters: visibleCardRef has
+    // its own px/border, so anchoring the overlay's inset-x-0/bottom-full
+    // against IT would resolve those offsets against visibleCardRef's
+    // *padding* box (the containing block for an absolutely positioned
+    // descendant is its nearest positioned ancestor's padding edge, not
+    // its border edge) — inset by visibleCardRef's own border-width on
+    // every side, confirmed live as a real bug: the overlay rendered
+    // narrower than visibleCardRef and its borders didn't line up.
+    // barRef has no padding/border of its own, so its padding box and
+    // border box are identical, and identical to visibleCardRef's own
+    // outer edges (barRef's only content) — anchoring here instead makes
+    // the overlay exactly as wide as visibleCardRef, edge to edge.
+    <div ref={barRef} className="relative">
+      {/* The edit-mode overlay: resize-handle row + pool panel, absolutely
+          positioned bottom-full against barRef (see its own comment
+          above) instead of stacking in normal flow above the slots/
+          controls rows below, in visibleCardRef. bottom:100% (Tailwind's
+          bottom-full) places this box's own bottom edge exactly at
+          barRef's top edge — which, since barRef's box is identical to
+          visibleCardRef's own, is exactly visibleCardRef's own top
+          border — the same "sits directly above the slots" spot this
+          content occupied before this restructuring, just reached via
+          absolute positioning (so it grows upward without pushing
+          visibleCardRef's own document position/height) rather than
+          flowing in-line above them. Unclipped by design: an absolutely
+          positioned box extending above its containing block's own top
+          edge simply paints over whatever is there (the results grid) —
+          no overflow:hidden anywhere in this chain would make sense,
+          since the whole point is for edit mode to visibly overlay
+          content above it, the same "expected bottom-sheet behavior"
+          this file's own top comment already documents.
+
+          @container + max-w-[1280px] mx-auto duplicate visibleCardRef's
+          own — this box needs its OWN container-query width basis for
+          LevelSelector/SortSelect's @min-/@max- queries inside the
+          resize-handle row below, since it's a sibling of visibleCardRef,
+          not a descendant of its @container. Same resolved width either
+          way (both are max-w-[1280px] mx-auto inside the same page
+          column, and now both anchor to the same barRef edges too), so
+          none of those breakpoints shift.
+
+          No border-bottom here, ever. visibleCardRef's own border-top is
+          UNCONDITIONAL now — always present, in both modes, never removed
+          (see its own comment: removing it once caused slots/controls to
+          visibly shift position when toggling edit mode, since that would
+          have changed visibleCardRef's own rendered height — an explicit
+          hard "never move" requirement that wins over a perfectly
+          border-free seam). Seamlessness is achieved differently instead:
+          bottom-[calc(100%-var(--border-base))], not bottom-full — this
+          box's own bottom edge sits `--border-base` (2px) *below* where
+          bottom-full would put it, i.e. 2px *into* visibleCardRef's own
+          top edge, exactly overlapping its border-top. This box's own
+          background then paints over that overlap, visually covering
+          visibleCardRef's border-top line entirely (this box's z-overlay
+          stacks above it) — the seam reads as seamless without either
+          box's own layout dimensions ever changing between modes.
+
+          pointer-events-none while !editMode: this box is otherwise
+          empty chrome (zero-height, see dialogRef's own max-h-0 below)
+          in browse mode, but an absolutely positioned box still
+          participates in hit-testing by default regardless of its
+          rendered size being zero in the *common* case — explicitly
+          disabling pointer events here removes any risk of this box
+          ever intercepting hover/click meant for whatever's beneath or
+          around it (the results cards, this bar's own buttons) when it
+          has no visible content to justify doing so.
+
+          px/pt/border/bg/shadow are all editMode-only: in browse mode
+          this box holds only the zero-height dialogRef (max-h-0
+          overflow-hidden, see its own comment below) and must contribute
+          no visible padding or chrome of its own, or it'd read as an
+          empty framed strip floating above the bar. pt-[space-xl] matches
+          visibleCardRef's own py-[space-xl] top half, so edit mode's
+          overlay reads as a seamless upward continuation of the same
+          card rather than a differently-padded panel bolted on above it.
+          No pb here at all (unlike an earlier pass, pb-[space-lg]) — the
+          2px overlap above already supplies the seam's visual "closing"
+          space, and visibleCardRef's own unconditional pt-xl (16px) is
+          the only remaining gap before the slots row; adding this box's
+          own pb on top would stack unnecessarily on top of that fixed
+          16px instead of keeping the join as tight as the invariant
+          upstream (visibleCardRef never changing) allows.
+
+          shadow-[var(--elev-4)] plus [clip-path:inset(0_-5px_0_0)], not a
+          plain shadow-[var(--elev-4)] alone: elev-4 (5px right, 5px down,
+          0 blur — the same hard offset shadow every other card in this app
+          uses, see visibleCardRef below and ResultCard.tsx) is kept as-is
+          so this box's OWN right-edge shadow matches that standard
+          pattern exactly (including its natural top notch — expected,
+          same everywhere else, not something to paper over here). What
+          has to change is the *bottom* — elev-4's own 5px down-offset
+          would otherwise paint a shadow band across the seam where this
+          box meets visibleCardRef below it, breaking the "one cohesive
+          rectangle" the border-overlap above already achieves. clip-path
+          doesn't change the shadow value at all, just where it's allowed
+          to paint: inset(0 -5px 0 0) sits flush with this box's own top/
+          left/bottom edges (0, and "bottom" here means this box's own
+          *new*, 2px-lower bottom edge post-overlap) while expanding 5px
+          past the right edge (-5px) — exactly enough room for the
+          right-edge shadow to still show, while anything the shadow
+          would otherwise paint *below* this box's own bottom edge gets
+          clipped away outright. */}
+      <div
+        ref={overlayRef}
+        className={[
+          "absolute inset-x-0 bottom-[calc(100%-var(--border-base))] @container max-w-[1280px] mx-auto z-[var(--z-overlay)]",
+          editMode
+            ? "px-[var(--space-2xl)] pt-[var(--space-xl)] border-x-[length:var(--border-base)] border-t-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-4)] [clip-path:inset(0_-5px_0_0)]"
+            : "pointer-events-none",
+        ].join(" ")}
+      >
+      {/* Resize handle + Tag Density/Sort filters, one row — above the
+          pool panel, at the very top of the edit surface. Grip + quick-
+          resize shortcuts group on the left, filters on the right; both
+          now share this one row instead of filters living inline with
+          the section tabs below (see TagPoolBody.tsx's own top comment
+          for why that combined row was retired — this is where those
+          controls moved). Usable at every breakpoint (mouse *and*
+          touch, see handleResizeStart) — an earlier version hid the
+          resize handle below 993px, leaving mobile with no way to
+          resize at all; that gate is gone. No keyboard equivalent yet
+          (an accepted gap, same spirit as the no-focus-trap one — not
+          solved in this pass). Dragging only ever visibly resizes the
+          pool panel below (slots/controls are fixed), but this row is
+          positioned as if it controls the whole sheet's height, since
+          that's the more natural mental model for the user — "pull this
+          to make the panel bigger."
+
+          Row itself gated on editMode alone, not canShowResizeHandleRow
+          too — the filters need to stay reachable even once resizing
+          itself stops being useful (a short viewport where
+          poolPanelMaxHeight has dropped to/below POOL_HEIGHT_MIN); only
+          the grip + 50%/100%/reset sub-elements are conditional on that,
+          inside the row. onMouseDown/onTouchStart (the drag-start
+          handlers) are attached to the row only when
+          canShowResizeHandleRow is true, for the same reason — dragging
+          a row that can't actually resize anything shouldn't start a
+          drag at all.
+
+          The left group is its own sub-container that stops
+          mousedown/touchstart from bubbling up to the row's own drag
+          handlers, so clicking a quick-resize button never also starts
+          a resize-drag. size="sm" (30px, ResultCard's own icon size)
+          deliberately smaller than this bar's standard size="md" icon
+          buttons below — these are quick secondary shortcuts, not
+          primary actions. Reset is conditionally rendered (only once the
+          panel has actually left its default height — see
+          isAtDefaultHeight above) since 50%/100% cover the "I want it
+          bigger" cases on their own; Reset exists for "put it back,"
+          which only means something once it's already been moved. */}
+      {editMode && (
+        <div
+          className={[
+            // justify-between — filters group (first in DOM) pins to the
+            // row's left edge, the resize cluster (last in DOM) pins to
+            // its right edge, with whatever width is left between them.
+            // Filters is still min-w-0 (below), so it's still the one
+            // that gives way as the row narrows — justify-content only
+            // decides how any *leftover* space is distributed when the
+            // row isn't squeezed; it doesn't change which side shrinks
+            // under pressure.
+            //
+            // mb-xl (16px) — one step more than the slots-row-to-controls
+            // rhythm elsewhere in this bar (space-lg/12px): confirmed
+            // live that this row's own content (grip+arrows plus filters,
+            // heavier than a plain fixed row) reads better with a bit
+            // more separation from the tabs row below it than that
+            // baseline rhythm gives.
+            //
+            // No role/cursor/drag-handlers on this outer row anymore —
+            // only the grip icon itself is the drag target now (see its
+            // own comment below), not the whole row. Confirmed live this
+            // was worth doing: with the whole row draggable, an
+            // accidental drag-start from anywhere between the filters
+            // and the grip (or from a hover meant for a filter control)
+            // was too easy to trigger by mistake.
+            "flex items-center justify-between gap-x-[var(--space-lg)] mb-[var(--space-xl)]",
+          ].join(" ")}
+        >
+          {/* Filters group comes FIRST in DOM now (resize cluster is
+              second/rightmost — see below), so it's the one that gives
+              way as the row narrows: min-w-0 lets this flex item shrink
+              below its own content's natural (w-fit/max-content) width
+              once the row runs out of room, which is what lets
+              ScrollFadeArea's overflow-x-auto viewport actually detect
+              real overflow and start scrolling — unaffected by the
+              reorder, since flex-shrink math doesn't care about a flex
+              item's position, only its own min-w-0/shrink-0 and the
+              row's total available width. The resize cluster below is
+              shrink-0 (fixed, never shrinks), so 100% of the squeeze
+              lands on this group, exactly as before the reorder.
+              -mb-[26px]/-mr-[4px] cancel the pb-[26px]/pr-[4px] on the
+              scrollable content below — pad-then-cancel, not
+              pad-and-let-grow, so ScrollFadeArea's own overflow-y-hidden
+              viewport doesn't clip LevelSelector/SortSelect's shadow
+              bleed or LevelSelector's hover-subtext (which renders
+              *below* the control — see LevelSelector's own comment).
+              26px covers the hover-subtext's worst case (control bottom +
+              mt-space-sm + its own text-xs line height); 4px covers the
+              controls' own shadow-[var(--elev-2)] bleed at the trailing
+              edge. fitContent: this group's children (label/icon/
+              selector pairs) are naturally sized — see ScrollFadeArea's
+              own comment on that prop. */}
+          {/* This row's own responsive ladder, widest to narrowest — same
+              flat-CSS, dual-render, no-ResizeObserver pattern as Row 3's
+              ladder above, just container- rather than viewport-scoped
+              (this whole filters group lives inside the bar's own
+              @container, and there's nothing external — like the divider's
+              993px — worth syncing against here):
+                - @min-[480px] — Tag Density/Sort labels: shown above,
+                                  hidden below (shared breakpoint, one
+                                  number for both labels, not independently
+                                  bisected per label)
+                - @max-[352px] — Level: full 3-segment row → collapsed
+                                  tap-to-cycle button; Sort: native <select>
+                                  → collapsed tap-to-cycle button. Both
+                                  controls share this one breakpoint
+                                  deliberately, not because either's own
+                                  content demands exactly this number (Sort's
+                                  collapse only reclaims ~13-26px on its
+                                  own — measured, not assumed) but for
+                                  design consistency: this row's two filter
+                                  controls transform together as one "final
+                                  compact mode" step rather than staggering
+                                  at two barely-different thresholds. This
+                                  row already scrolls horizontally below
+                                  ~580px regardless (ScrollFadeArea's own
+                                  overflow-x-auto fallback), so neither
+                                  collapse is about eliminating scroll, only
+                                  reducing how far it goes.
+              Adding a new rung: give it its own breakpoint unless it's
+              deliberately joining the @max-[352px] "final step" tier for
+              the same consistency reason above. */}
+          <div ref={filtersScrollRef} className="min-w-0 w-fit -mb-[26px] -mr-[4px]">
+            <ScrollFadeArea orientation="horizontal" scrollStep={140} fadeSize={12} fitContent>
+              <div className="flex items-center gap-[var(--space-lg)] flex-nowrap pb-[26px] pr-[4px]">
+                <div className="@max-[352px]:hidden flex items-center gap-[var(--space-sm)] shrink-0">
+                  {/* hidden @min-[480px]:inline — same breakpoint Row 3's
+                      own "Min Tag Match" label already uses in this same
+                      bar, not a new one bisected for this row. No JS
+                      measurement needed: these filters no longer compete
+                      with anything else for this row's width (the grip/
+                      arrows group is fixed-size and small; filters have
+                      their own horizontal scroll, above, as the fallback
+                      once even icon-only stops fitting) — a plain
+                      container query is enough. */}
+                  <span className="hidden @min-[480px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
+                    Tag Density
+                  </span>
+                  <TagIcon className="text-[var(--ink)]" />
+                  <LevelSelector value={level} onChange={onLevelChange} />
+                </div>
+                {/* Collapsed final step — two full sibling forms, same
+                    dual-render idiom as Row 3's Min Tag Match above, just
+                    container- rather than viewport-scoped (this row keys
+                    its own label-hide off @min-[480px] already, not a
+                    viewport query). @max-[352px] (not 351 — Tailwind's
+                    @max-[Npx] compiles to "not (min-width: Npx)", strictly
+                    narrower than N, so 352 is what actually fires at
+                    351px and below) is Row 3's own live-bisected 452/451px
+                    wrap threshold translated to this container's content-
+                    box (a fixed, confirmed 100px offset from viewport
+                    width at every width tested) — same step-down point,
+                    expressed as this row's own query type rather than a
+                    fresh guess. */}
+                <div className="hidden @max-[352px]:flex items-center gap-[var(--space-sm)] shrink-0">
+                  <TagIcon className="text-[var(--ink)]" />
+                  <LevelSelector value={level} onChange={onLevelChange} collapsed />
+                </div>
+                <div className="@max-[352px]:hidden flex items-center gap-[var(--space-sm)] shrink-0">
+                  <span className="hidden @min-[480px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
+                    Sort
+                  </span>
+                  <SortIcon className="text-[var(--ink)]" />
+                  <SortSelect value={sort} onChange={setSortPref} />
+                </div>
+                {/* Collapsed final step — same @max-[352px] tier as Level
+                    above, shared deliberately (see this row's own top
+                    comment). No hint span here, unlike Level/Min Tag
+                    Match's collapsed forms — SORT_OPTIONS has no hint
+                    field, and Popular/Unpopular/A-Z/Z-A are already
+                    self-explanatory; inventing hint copy just to fill that
+                    slot would be backwards. */}
+                <div className="hidden @max-[352px]:flex items-center gap-[var(--space-sm)] shrink-0">
+                  <SortIcon className="text-[var(--ink)]" />
+                  <SortSelect value={sort} onChange={setSortPref} collapsed />
+                </div>
+              </div>
+            </ScrollFadeArea>
+          </div>
+          {/* Resize cluster is second/rightmost now, and shrink-0 (fixed
+              width, never shrinks) — the stable right anchor the filters
+              group above gives way to. Grip is last within this group
+              (previously first), so it ends up the single rightmost
+              element of the entire row, per the requested order:
+              arrows, then grip at the far-right end.
+
+              Only the grip itself is the drag target — role/aria-label/
+              onMouseDown/onTouchStart/cursor-ns-resize all live on its
+              own box now, not the outer row. Confirmed live this reads
+              better: with the whole row draggable, hovering a filter
+              control or the empty space between groups showed the
+              resize cursor and could start a drag by accident. The
+              arrow buttons no longer need their own stopPropagation
+              either, now that dragging isn't wired to anything above
+              them — clicking one only ever fires its own onClick.
+
+              The grip sits in its own 30×30 box (matching IconButton's
+              own size="sm" box the arrow buttons use) instead of just
+              the bare 8px-tall SVG — confirmed live as a real bug
+              otherwise: IconButton centers its 16×16 glyph inside a
+              30×30 box, so two adjacent arrow buttons at gap-0 still
+              read ~14px apart glyph-to-glyph (7px of each button's own
+              inset on either side of the shared edge), while a bare
+              grip SVG butted directly against the last button's edge
+              read only ~7px from its own edge to that button's glyph —
+              visibly tighter than the arrow-to-arrow spacing despite the
+              same gap-0. Matching the box size (not just the gap) makes
+              every icon's own inset identical, so gap-0 reads as evenly
+              spaced across all four; it's also a larger, easier drag
+              target than the bare icon glyph would be on its own. */}
+          {canShowResizeHandleRow && (
+            <div className="flex items-center gap-0 shrink-0">
+              <div className="flex items-center gap-0">
+                {canReachHalfHeight && !isAtHalfHeight && (
+                  <IconButton
+                    size="sm"
+                    border="none"
+                    backgroundColor="transparent"
+                    title="Resize to 50%"
+                    aria-label="Resize to 50%"
+                    onClick={() => handleSnapPoolHeight(0.5)}
+                  >
+                    <ArrowUpHalfIcon className="text-[var(--muted)]" />
+                  </IconButton>
+                )}
+                {canReachFullHeight && !isAtFullHeight && (
+                  <IconButton
+                    size="sm"
+                    border="none"
+                    backgroundColor="transparent"
+                    title="Resize to 100%"
+                    aria-label="Resize to 100%"
+                    onClick={() => handleSnapPoolHeight(1)}
+                  >
+                    <ArrowUpIcon className="text-[var(--muted)]" />
+                  </IconButton>
+                )}
+                {/* canReachFullHeight, not just !isAtDefaultHeight: once
+                    poolPanelMaxHeight itself drops below POOL_HEIGHT_MIN,
+                    clampPoolPanelHeight pins effectiveHeightPx to that
+                    shrunken ceiling regardless of what's stored (see
+                    clampPoolPanelHeight — Math.max(px, MIN) can't win
+                    once MIN exceeds the ceiling it's then Math.min'd
+                    against), so "not at default" stays true but Reset
+                    would write POOL_HEIGHT_MIN and visibly change
+                    nothing — a dead button in the exact same squeeze the
+                    50%/100% buttons above already hide themselves for. */}
+                {!isAtDefaultHeight && canReachFullHeight && (
+                  <IconButton
+                    size="sm"
+                    border="none"
+                    backgroundColor="transparent"
+                    title="Reset pool panel to default height"
+                    aria-label="Reset pool panel to default height"
+                    onClick={handleResetPoolHeight}
+                  >
+                    <ArrowDownIcon className="text-[var(--muted)]" />
+                  </IconButton>
+                )}
+              </div>
+              <div
+                role="separator"
+                aria-orientation="horizontal"
+                aria-label="Drag to resize edit panel"
+                onMouseDown={handleResizeStart}
+                onTouchStart={handleResizeStart}
+                className="flex items-center justify-center w-[30px] h-[30px] cursor-ns-resize select-none touch-none"
+              >
+                <GripHorizontalIcon className="text-[var(--muted)]" />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Row 1 (formerly Row 2 — Row 1 was the title/badge/filters
+          header, now removed entirely; see this file's own top comment):
+          the pool panel — always mounted (see file-top comment). The
+          only part of this bar that resizes or scrolls. Deliberately no
+          explicit height + overflow-hidden on THIS wrapper — only the
+          chip area inside TagPoolBody gets a fixed height, computed
+          internally there now (poolPanelHeightPx in, chipAreaHeightPx
+          derived — see TagPoolBody's own top comment for why that
+          derivation moved out of this file). This wrapper's natural
+          height is just TagPoolBody's own rendered height, which sums to
+          ~effectiveHeightPx by construction. Explicit height +
+          overflow-hidden was tried here first and reverted: a flex-col
+          container whose explicit height is *smaller* than its natural
+          content height clips from the START (top) under overflow:hidden,
+          not the end — confirmed live via getBoundingClientRect (the tab
+          strip measured *above* its own parent's top edge once clipped),
+          which is exactly backwards from what's wanted here (tabs should
+          stay visible; chips are what should ever be the clipped/scrolled
+          part).
+
+          Sits directly above the slots — not between the slots and
+          controls, where an earlier version placed it. Placing it here
+          means opening/closing edit mode only ever inserts/removes this
+          one block in a single spot, rather than also shifting the
+          slots row itself down and back. */}
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Edit tags"
+        tabIndex={-1}
+        className={editMode ? "flex flex-col outline-none" : "max-h-0 overflow-hidden"}
+      >
+        <TagPoolBody
+          allTags={allTags}
+          selectedTags={selectedTags}
+          totalSeriesCount={totalSeriesCount}
+          onChipToggle={onChipToggle}
+          poolPanelHeightPx={effectiveHeightPx}
+        />
+      </div>
+      </div>
+
       <div
         ref={visibleCardRef}
         className={[
-          // relative: the positioned ancestor the edit-mode overlay below
-          // anchors bottom-full against. Its own box is otherwise unchanged
-          // from before this restructuring.
-          //
           // The visible floating card — capped width, centered, matching
           // the app's other card chrome (square corners, standard border,
           // hard offset shadow). elev-4 matches ResultCard's card-level
@@ -600,7 +1022,7 @@ export function MixerBar({
           // box already had as a page-level sibling, so none of this box's
           // own @container breakpoints needed re-bisecting for the move.
           //
-          // px/py here are this card's own content padding (unchanged from
+          // px/pb here are this card's own content padding (unchanged from
           // before) — space-2xl (24px), the standard card padding this app
           // already uses (Masthead's own px-[var(--space-2xl)]) — not a
           // smaller mobile-specific value: a couple of earlier passes tried
@@ -608,7 +1030,8 @@ export function MixerBar({
           // to avoid tipping the controls row's wrap at 390px from 2 lines
           // to 3, but real, standard card padding (in both browse and edit
           // mode alike, same box) matters more than preserving the exact
-          // old wrap count.
+          // old wrap count. pt is split out from this and made conditional
+          // below — see that comment.
           //
           // Deliberately flat at every breakpoint — no min-[993px] step to
           // a larger desktop value. This one stays constant from smallest
@@ -619,374 +1042,50 @@ export function MixerBar({
           // Random/Clear) at 390px is an accepted, minor consequence of
           // this — see EDIT_MODE_FIXED_ROWS_HEIGHT, re-measured live
           // against this.
-          "relative @container max-w-[1280px] mx-auto px-[var(--space-2xl)] py-[var(--space-xl)] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-4)]",
+          //
+          // No `relative` here — barRef (the actual parent, above) is the
+          // positioned ancestor the edit-mode overlay anchors against
+          // instead, specifically so the overlay's edges resolve against
+          // barRef's border-box-equivalent padding box rather than this
+          // element's own (see barRef's own comment for why that
+          // distinction matters).
+          //
+          // border-t and pt-xl are UNCONDITIONAL — always present, exactly
+          // the same in both modes. This box's own box (border, padding,
+          // everything) must never change shape based on editMode: slots/
+          // controls are fixed at a page position derived entirely from
+          // this box's own top edge (itself fixed, set by whatever's
+          // before it in the page — masthead, header, cards — none of
+          // which depend on editMode either), so the only way slots could
+          // ever visibly move between modes is if THIS box's own rendered
+          // height changed. It was made conditional once, to remove the
+          // border/gap at the seam — confirmed live as a real regression
+          // (slots visibly shifted position when toggling edit mode) and
+          // reverted. The seamless look below is achieved without this box
+          // changing at all — see the overlay's own comment for how.
+          "@container max-w-[1280px] mx-auto px-[var(--space-2xl)] py-[var(--space-xl)] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)]",
+          // Shadow is one value or the other, never both classes at once
+          // (two separate shadow-[...] utilities targeting the same
+          // box-shadow property would just have one silently overwrite the
+          // other, not merge) — paint-only, no layout box of its own, so
+          // it can safely vary by mode without risking the shift above.
+          // Plain shadow-[var(--elev-4)] (5px right, 5px down, 0 blur)
+          // naturally leaves a small 5×5 gap unshadowed at the very top of
+          // the right edge (its shifted copy only starts at y=5) — the
+          // standard pattern every other card in the app also has
+          // (ResultCard, etc.), fine on its own in browse mode. In edit
+          // mode, that notch sits right at the seam with the overlay's own
+          // right-edge shadow above it, breaking the otherwise-continuous
+          // edge. The second, comma-separated shadow (5px_0_0_var(--ink),
+          // no y-offset) fills exactly that notch — its own shifted copy
+          // has no y-offset, so it covers the full right edge top-to-bottom
+          // with no gap — added *alongside* elev-4, not replacing it, so
+          // the real bottom-right corner shadow (this card's own,
+          // unclipped, the true bottom of the whole combined shape) is
+          // untouched.
+          editMode ? "shadow-[var(--elev-4),5px_0_0_var(--ink)]" : "shadow-[var(--elev-4)]",
         ].join(" ")}
       >
-        {/* The edit-mode overlay: resize-handle row + pool panel, absolutely
-            positioned bottom-full against visibleCardRef (the `relative`
-            box above) instead of stacking in normal flow above the slots/
-            controls rows below. bottom:100% (Tailwind's bottom-full) places
-            this box's own bottom edge exactly at visibleCardRef's top
-            border — the same "sits directly above the slots" spot this
-            content occupied before this restructuring, just reached via
-            absolute positioning (so it grows upward without pushing
-            visibleCardRef's own document position/height) rather than
-            flowing in-line above them. Unclipped by design: an absolutely
-            positioned box extending above its containing block's own top
-            edge simply paints over whatever is there (the results grid) —
-            no overflow:hidden anywhere in this chain would make sense,
-            since the whole point is for edit mode to visibly overlay
-            content above it, the same "expected bottom-sheet behavior"
-            this file's own top comment already documents.
-
-            @container + max-w-[1280px] mx-auto duplicate visibleCardRef's
-            own — this box needs its OWN container-query width basis for
-            LevelSelector/SortSelect's @min-/@max- queries inside the
-            resize-handle row below, since it's no longer a descendant of
-            visibleCardRef's @container once pulled out into its own
-            sibling box. Same resolved width either way (both are
-            max-w-[1280px] mx-auto inside the same page column), so none of
-            those breakpoints shift.
-
-            px/pt/pb/border/bg/shadow are all editMode-only: in browse mode
-            this box holds only the zero-height dialogRef (max-h-0
-            overflow-hidden, see its own comment below) and must contribute
-            no visible padding or chrome of its own, or it'd read as an
-            empty framed strip floating above the bar. pb-[space-lg]
-            replaces the space dialogRef's own mb-[space-lg] used to
-            provide when it flowed directly above the slots row in the same
-            box as this content — now that dialogRef is the last real child
-            of THIS box instead, that breathing room before the box's own
-            bottom edge has to live here instead. pt-[space-xl] matches
-            visibleCardRef's own py-[space-xl] top half, so edit mode's
-            overlay reads as a seamless upward continuation of the same
-            card rather than a differently-padded panel bolted on above it. */}
-        <div
-          ref={overlayRef}
-          className={[
-            "absolute inset-x-0 bottom-full @container max-w-[1280px] mx-auto z-[var(--z-overlay)]",
-            editMode
-              ? "px-[var(--space-2xl)] pt-[var(--space-xl)] pb-[var(--space-lg)] border-x-[length:var(--border-base)] border-t-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-4)]"
-              : "",
-          ].join(" ")}
-        >
-        {/* Resize handle + Tag Density/Sort filters, one row — above the
-            pool panel, at the very top of the edit surface. Grip + quick-
-            resize shortcuts group on the left, filters on the right; both
-            now share this one row instead of filters living inline with
-            the section tabs below (see TagPoolBody.tsx's own top comment
-            for why that combined row was retired — this is where those
-            controls moved). Usable at every breakpoint (mouse *and*
-            touch, see handleResizeStart) — an earlier version hid the
-            resize handle below 993px, leaving mobile with no way to
-            resize at all; that gate is gone. No keyboard equivalent yet
-            (an accepted gap, same spirit as the no-focus-trap one — not
-            solved in this pass). Dragging only ever visibly resizes the
-            pool panel below (slots/controls are fixed), but this row is
-            positioned as if it controls the whole sheet's height, since
-            that's the more natural mental model for the user — "pull this
-            to make the panel bigger."
-
-            Row itself gated on editMode alone, not canShowResizeHandleRow
-            too — the filters need to stay reachable even once resizing
-            itself stops being useful (a short viewport where
-            poolPanelMaxHeight has dropped to/below POOL_HEIGHT_MIN); only
-            the grip + 50%/100%/reset sub-elements are conditional on that,
-            inside the row. onMouseDown/onTouchStart (the drag-start
-            handlers) are attached to the row only when
-            canShowResizeHandleRow is true, for the same reason — dragging
-            a row that can't actually resize anything shouldn't start a
-            drag at all.
-
-            The left group is its own sub-container that stops
-            mousedown/touchstart from bubbling up to the row's own drag
-            handlers, so clicking a quick-resize button never also starts
-            a resize-drag. size="sm" (30px, ResultCard's own icon size)
-            deliberately smaller than this bar's standard size="md" icon
-            buttons below — these are quick secondary shortcuts, not
-            primary actions. Reset is conditionally rendered (only once the
-            panel has actually left its default height — see
-            isAtDefaultHeight above) since 50%/100% cover the "I want it
-            bigger" cases on their own; Reset exists for "put it back,"
-            which only means something once it's already been moved. */}
-        {editMode && (
-          <div
-            className={[
-              // justify-between — filters group (first in DOM) pins to the
-              // row's left edge, the resize cluster (last in DOM) pins to
-              // its right edge, with whatever width is left between them.
-              // Filters is still min-w-0 (below), so it's still the one
-              // that gives way as the row narrows — justify-content only
-              // decides how any *leftover* space is distributed when the
-              // row isn't squeezed; it doesn't change which side shrinks
-              // under pressure.
-              //
-              // mb-xl (16px) — one step more than the slots-row-to-controls
-              // rhythm elsewhere in this bar (space-lg/12px): confirmed
-              // live that this row's own content (grip+arrows plus filters,
-              // heavier than a plain fixed row) reads better with a bit
-              // more separation from the tabs row below it than that
-              // baseline rhythm gives.
-              //
-              // No role/cursor/drag-handlers on this outer row anymore —
-              // only the grip icon itself is the drag target now (see its
-              // own comment below), not the whole row. Confirmed live this
-              // was worth doing: with the whole row draggable, an
-              // accidental drag-start from anywhere between the filters
-              // and the grip (or from a hover meant for a filter control)
-              // was too easy to trigger by mistake.
-              "flex items-center justify-between gap-x-[var(--space-lg)] mb-[var(--space-xl)]",
-            ].join(" ")}
-          >
-            {/* Filters group comes FIRST in DOM now (resize cluster is
-                second/rightmost — see below), so it's the one that gives
-                way as the row narrows: min-w-0 lets this flex item shrink
-                below its own content's natural (w-fit/max-content) width
-                once the row runs out of room, which is what lets
-                ScrollFadeArea's overflow-x-auto viewport actually detect
-                real overflow and start scrolling — unaffected by the
-                reorder, since flex-shrink math doesn't care about a flex
-                item's position, only its own min-w-0/shrink-0 and the
-                row's total available width. The resize cluster below is
-                shrink-0 (fixed, never shrinks), so 100% of the squeeze
-                lands on this group, exactly as before the reorder.
-                -mb-[26px]/-mr-[4px] cancel the pb-[26px]/pr-[4px] on the
-                scrollable content below — pad-then-cancel, not
-                pad-and-let-grow, so ScrollFadeArea's own overflow-y-hidden
-                viewport doesn't clip LevelSelector/SortSelect's shadow
-                bleed or LevelSelector's hover-subtext (which renders
-                *below* the control — see LevelSelector's own comment).
-                26px covers the hover-subtext's worst case (control bottom +
-                mt-space-sm + its own text-xs line height); 4px covers the
-                controls' own shadow-[var(--elev-2)] bleed at the trailing
-                edge. fitContent: this group's children (label/icon/
-                selector pairs) are naturally sized — see ScrollFadeArea's
-                own comment on that prop. */}
-            {/* This row's own responsive ladder, widest to narrowest — same
-                flat-CSS, dual-render, no-ResizeObserver pattern as Row 3's
-                ladder above, just container- rather than viewport-scoped
-                (this whole filters group lives inside the bar's own
-                @container, and there's nothing external — like the divider's
-                993px — worth syncing against here):
-                  - @min-[480px] — Tag Density/Sort labels: shown above,
-                                    hidden below (shared breakpoint, one
-                                    number for both labels, not independently
-                                    bisected per label)
-                  - @max-[352px] — Level: full 3-segment row → collapsed
-                                    tap-to-cycle button; Sort: native <select>
-                                    → collapsed tap-to-cycle button. Both
-                                    controls share this one breakpoint
-                                    deliberately, not because either's own
-                                    content demands exactly this number (Sort's
-                                    collapse only reclaims ~13-26px on its
-                                    own — measured, not assumed) but for
-                                    design consistency: this row's two filter
-                                    controls transform together as one "final
-                                    compact mode" step rather than staggering
-                                    at two barely-different thresholds. This
-                                    row already scrolls horizontally below
-                                    ~580px regardless (ScrollFadeArea's own
-                                    overflow-x-auto fallback), so neither
-                                    collapse is about eliminating scroll, only
-                                    reducing how far it goes.
-                Adding a new rung: give it its own breakpoint unless it's
-                deliberately joining the @max-[352px] "final step" tier for
-                the same consistency reason above. */}
-            <div ref={filtersScrollRef} className="min-w-0 w-fit -mb-[26px] -mr-[4px]">
-              <ScrollFadeArea orientation="horizontal" scrollStep={140} fadeSize={12} fitContent>
-                <div className="flex items-center gap-[var(--space-lg)] flex-nowrap pb-[26px] pr-[4px]">
-                  <div className="@max-[352px]:hidden flex items-center gap-[var(--space-sm)] shrink-0">
-                    {/* hidden @min-[480px]:inline — same breakpoint Row 3's
-                        own "Min Tag Match" label already uses in this same
-                        bar, not a new one bisected for this row. No JS
-                        measurement needed: these filters no longer compete
-                        with anything else for this row's width (the grip/
-                        arrows group is fixed-size and small; filters have
-                        their own horizontal scroll, above, as the fallback
-                        once even icon-only stops fitting) — a plain
-                        container query is enough. */}
-                    <span className="hidden @min-[480px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
-                      Tag Density
-                    </span>
-                    <TagIcon className="text-[var(--ink)]" />
-                    <LevelSelector value={level} onChange={onLevelChange} />
-                  </div>
-                  {/* Collapsed final step — two full sibling forms, same
-                      dual-render idiom as Row 3's Min Tag Match above, just
-                      container- rather than viewport-scoped (this row keys
-                      its own label-hide off @min-[480px] already, not a
-                      viewport query). @max-[352px] (not 351 — Tailwind's
-                      @max-[Npx] compiles to "not (min-width: Npx)", strictly
-                      narrower than N, so 352 is what actually fires at
-                      351px and below) is Row 3's own live-bisected 452/451px
-                      wrap threshold translated to this container's content-
-                      box (a fixed, confirmed 100px offset from viewport
-                      width at every width tested) — same step-down point,
-                      expressed as this row's own query type rather than a
-                      fresh guess. */}
-                  <div className="hidden @max-[352px]:flex items-center gap-[var(--space-sm)] shrink-0">
-                    <TagIcon className="text-[var(--ink)]" />
-                    <LevelSelector value={level} onChange={onLevelChange} collapsed />
-                  </div>
-                  <div className="@max-[352px]:hidden flex items-center gap-[var(--space-sm)] shrink-0">
-                    <span className="hidden @min-[480px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
-                      Sort
-                    </span>
-                    <SortIcon className="text-[var(--ink)]" />
-                    <SortSelect value={sort} onChange={setSortPref} />
-                  </div>
-                  {/* Collapsed final step — same @max-[352px] tier as Level
-                      above, shared deliberately (see this row's own top
-                      comment). No hint span here, unlike Level/Min Tag
-                      Match's collapsed forms — SORT_OPTIONS has no hint
-                      field, and Popular/Unpopular/A-Z/Z-A are already
-                      self-explanatory; inventing hint copy just to fill that
-                      slot would be backwards. */}
-                  <div className="hidden @max-[352px]:flex items-center gap-[var(--space-sm)] shrink-0">
-                    <SortIcon className="text-[var(--ink)]" />
-                    <SortSelect value={sort} onChange={setSortPref} collapsed />
-                  </div>
-                </div>
-              </ScrollFadeArea>
-            </div>
-            {/* Resize cluster is second/rightmost now, and shrink-0 (fixed
-                width, never shrinks) — the stable right anchor the filters
-                group above gives way to. Grip is last within this group
-                (previously first), so it ends up the single rightmost
-                element of the entire row, per the requested order:
-                arrows, then grip at the far-right end.
-
-                Only the grip itself is the drag target — role/aria-label/
-                onMouseDown/onTouchStart/cursor-ns-resize all live on its
-                own box now, not the outer row. Confirmed live this reads
-                better: with the whole row draggable, hovering a filter
-                control or the empty space between groups showed the
-                resize cursor and could start a drag by accident. The
-                arrow buttons no longer need their own stopPropagation
-                either, now that dragging isn't wired to anything above
-                them — clicking one only ever fires its own onClick.
-
-                The grip sits in its own 30×30 box (matching IconButton's
-                own size="sm" box the arrow buttons use) instead of just
-                the bare 8px-tall SVG — confirmed live as a real bug
-                otherwise: IconButton centers its 16×16 glyph inside a
-                30×30 box, so two adjacent arrow buttons at gap-0 still
-                read ~14px apart glyph-to-glyph (7px of each button's own
-                inset on either side of the shared edge), while a bare
-                grip SVG butted directly against the last button's edge
-                read only ~7px from its own edge to that button's glyph —
-                visibly tighter than the arrow-to-arrow spacing despite the
-                same gap-0. Matching the box size (not just the gap) makes
-                every icon's own inset identical, so gap-0 reads as evenly
-                spaced across all four; it's also a larger, easier drag
-                target than the bare icon glyph would be on its own. */}
-            {canShowResizeHandleRow && (
-              <div className="flex items-center gap-0 shrink-0">
-                <div className="flex items-center gap-0">
-                  {canReachHalfHeight && !isAtHalfHeight && (
-                    <IconButton
-                      size="sm"
-                      border="none"
-                      backgroundColor="transparent"
-                      title="Resize to 50%"
-                      aria-label="Resize to 50%"
-                      onClick={() => handleSnapPoolHeight(0.5)}
-                    >
-                      <ArrowUpHalfIcon className="text-[var(--muted)]" />
-                    </IconButton>
-                  )}
-                  {canReachFullHeight && !isAtFullHeight && (
-                    <IconButton
-                      size="sm"
-                      border="none"
-                      backgroundColor="transparent"
-                      title="Resize to 100%"
-                      aria-label="Resize to 100%"
-                      onClick={() => handleSnapPoolHeight(1)}
-                    >
-                      <ArrowUpIcon className="text-[var(--muted)]" />
-                    </IconButton>
-                  )}
-                  {/* canReachFullHeight, not just !isAtDefaultHeight: once
-                      poolPanelMaxHeight itself drops below POOL_HEIGHT_MIN,
-                      clampPoolPanelHeight pins effectiveHeightPx to that
-                      shrunken ceiling regardless of what's stored (see
-                      clampPoolPanelHeight — Math.max(px, MIN) can't win
-                      once MIN exceeds the ceiling it's then Math.min'd
-                      against), so "not at default" stays true but Reset
-                      would write POOL_HEIGHT_MIN and visibly change
-                      nothing — a dead button in the exact same squeeze the
-                      50%/100% buttons above already hide themselves for. */}
-                  {!isAtDefaultHeight && canReachFullHeight && (
-                    <IconButton
-                      size="sm"
-                      border="none"
-                      backgroundColor="transparent"
-                      title="Reset pool panel to default height"
-                      aria-label="Reset pool panel to default height"
-                      onClick={handleResetPoolHeight}
-                    >
-                      <ArrowDownIcon className="text-[var(--muted)]" />
-                    </IconButton>
-                  )}
-                </div>
-                <div
-                  role="separator"
-                  aria-orientation="horizontal"
-                  aria-label="Drag to resize edit panel"
-                  onMouseDown={handleResizeStart}
-                  onTouchStart={handleResizeStart}
-                  className="flex items-center justify-center w-[30px] h-[30px] cursor-ns-resize select-none touch-none"
-                >
-                  <GripHorizontalIcon className="text-[var(--muted)]" />
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Row 1 (formerly Row 2 — Row 1 was the title/badge/filters
-            header, now removed entirely; see this file's own top comment):
-            the pool panel — always mounted (see file-top comment). The
-            only part of this bar that resizes or scrolls. Deliberately no
-            explicit height + overflow-hidden on THIS wrapper — only the
-            chip area inside TagPoolBody gets a fixed height, computed
-            internally there now (poolPanelHeightPx in, chipAreaHeightPx
-            derived — see TagPoolBody's own top comment for why that
-            derivation moved out of this file). This wrapper's natural
-            height is just TagPoolBody's own rendered height, which sums to
-            ~effectiveHeightPx by construction. Explicit height +
-            overflow-hidden was tried here first and reverted: a flex-col
-            container whose explicit height is *smaller* than its natural
-            content height clips from the START (top) under overflow:hidden,
-            not the end — confirmed live via getBoundingClientRect (the tab
-            strip measured *above* its own parent's top edge once clipped),
-            which is exactly backwards from what's wanted here (tabs should
-            stay visible; chips are what should ever be the clipped/scrolled
-            part).
-
-            Sits directly above the slots — not between the slots and
-            controls, where an earlier version placed it. Placing it here
-            means opening/closing edit mode only ever inserts/removes this
-            one block in a single spot, rather than also shifting the
-            slots row itself down and back. */}
-        <div
-          ref={dialogRef}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Edit tags"
-          tabIndex={-1}
-          className={editMode ? "flex flex-col outline-none" : "max-h-0 overflow-hidden"}
-        >
-          <TagPoolBody
-            allTags={allTags}
-            selectedTags={selectedTags}
-            totalSeriesCount={totalSeriesCount}
-            onChipToggle={onChipToggle}
-            poolPanelHeightPx={effectiveHeightPx}
-          />
-        </div>
-        </div>
 
         {/* Row 2: the 3 tag slots. Fixed — never resizes, never scrolls,
             regardless of how tall the pool panel above gets dragged. */}
