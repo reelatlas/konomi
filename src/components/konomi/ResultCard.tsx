@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { scoreSeries, streamsFor } from "@/lib/konomi/scoring";
 import { isTagVisibleAtLevel, sortTags } from "@/lib/konomi/tagPool";
 import type { LevelKey, ResultEntry, SortKey, TagInfo } from "@/lib/konomi/types";
@@ -9,6 +9,24 @@ import { ERROR_MESSAGE } from "./RecommendButton";
 import { TagScrollArea } from "./TagScrollArea";
 
 const DOT_CLASSES = ["bg-[var(--secondary)]", "bg-[var(--primary)]", "bg-[var(--muted)]"];
+
+// True on mouse/trackpad devices, false on touch-only ones — defaults to
+// true (desktop's own existing behavior, unchanged) until the one-time
+// client-side matchMedia check resolves post-hydration, so SSR output
+// always matches the default and there's no hydration mismatch warning.
+// Not a persistent listener (no addEventListener for changes mid-session,
+// e.g. a 2-in-1 laptop's mouse getting connected/disconnected) — this app
+// has no other reactive capability-detection like that, and the lock hint
+// re-rendering out from under a held hover isn't worth the extra
+// machinery for a case nobody's asked for yet.
+function useSupportsHover(): boolean {
+  const [supportsHover, setSupportsHover] = useState(true);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSupportsHover(window.matchMedia("(hover: hover)").matches);
+  }, []);
+  return supportsHover;
+}
 
 // Cover box's own fixed height, matching h-[295px] on that div below — the
 // reflection's vertical offset has to equal this exactly (see its own
@@ -139,8 +157,24 @@ export function ResultCard({
   // available to swap in — without asserting anything about whether
   // what's currently on screen matches the current mix.
   const swapHint = locked ? null : filledCount < minNum ? ERROR_MESSAGE["impossible-min"] : !canSwap ? "no swaps available for this mix" : "swap";
+  // aria-label stays action-oriented always ("lock"/"unlock" — what
+  // activating the button does), regardless of hover support: a screen
+  // reader's accessible name should describe the action, not echo a visual
+  // state confirmation only sighted touch users see.
   const lockHint = locked ? "unlock" : "lock";
-  const activeHint = hoveredIcon === "lock" ? lockHint : hoveredIcon === "swap" ? swapHint : null;
+  const supportsHover = useSupportsHover();
+  // The *visual* subtext is a different story on touch: with no hover to
+  // preview "what tapping will do" before you do it, the hint only ever
+  // appears *after* the tap already changed the state (see hoveredIcon's
+  // own comment on the mobile tap-to-reveal pattern) — so showing the same
+  // action-oriented "unlock" right after the user just locked the card
+  // reads as confusing (reported live: "why does it say unlock, I just
+  // locked it"). Hover-capable devices keep the action framing (correct
+  // there, since it previews a decision not yet made); touch instead shows
+  // a state confirmation — "locked"/"unlocked" — matching what the tap
+  // that revealed it already did.
+  const lockDisplayHint = supportsHover ? lockHint : locked ? "locked" : "unlocked";
+  const activeHint = hoveredIcon === "lock" ? lockDisplayHint : hoveredIcon === "swap" ? swapHint : null;
   const hintRef = useRef<HTMLSpanElement>(null);
   const [hintWrapped, setHintWrapped] = useState(false);
   // CSS has no way to select on "did this text wrap to multiple lines," so
