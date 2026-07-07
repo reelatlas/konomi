@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import type { ResultEntry, TagInfo } from "@/lib/konomi/types";
 import { ResultCard } from "./ResultCard";
 import { ScrollFadeArea } from "./ScrollFadeArea";
@@ -79,34 +79,6 @@ export function RecommendationsBody({
     const cardWidth = card?.getBoundingClientRect().width ?? 208;
     return cardWidth + 16; // mirrors --space-xl, the row's own gap-xl
   };
-
-  // TEMP DIAGNOSTIC — REMOVE AFTER USE, do not ship. Logs-only, no behavior
-  // change: correlates window.visualViewport "resize" (fires on mobile
-  // browser-chrome show/hide) against touchstart/touchmove timing on the
-  // results carousel and its nested tag-scroll areas (both covered by one
-  // rowRef.contains check, since TagScrollArea is a descendant of this same
-  // row), to confirm or rule out that the mobile horizontal-scroll break
-  // coincides with a chrome-triggered viewport resize. Delete this whole
-  // effect once real-device repro data has been collected — see the
-  // decision this is gathering evidence for before any layout rework.
-  useEffect(() => {
-    const vv = window.visualViewport;
-    function logResize() {
-      console.log(`[DIAG] visualViewport resize @ ${Date.now()} — ${vv?.width}x${vv?.height}`);
-    }
-    function logTouch(e: TouchEvent) {
-      if (!rowRef.current?.contains(e.target as Node)) return;
-      console.log(`[DIAG] ${e.type} @ ${Date.now()}`);
-    }
-    vv?.addEventListener("resize", logResize);
-    document.addEventListener("touchstart", logTouch);
-    document.addEventListener("touchmove", logTouch);
-    return () => {
-      vv?.removeEventListener("resize", logResize);
-      document.removeEventListener("touchstart", logTouch);
-      document.removeEventListener("touchmove", logTouch);
-    };
-  }, []);
 
   return (
     // flow-root (a new block formatting context), not a plain fragment —
