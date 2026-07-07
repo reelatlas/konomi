@@ -8,7 +8,13 @@ interface MastheadProps {
 
 export function Masthead({ theme, onThemeChange }: MastheadProps) {
   return (
-    <header className="border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-5)] rotate-[-0.5deg] px-[var(--space-2xl)] pt-[var(--space-2xl)] pb-0 mb-[var(--space-3xl)]">
+    // mb-[var(--space-2xl)], not the space-3xl this used before: the
+    // uniform-frame principle for the header+card+mixer group below (see
+    // globals.css's --result-card-height comment) treats this gap the
+    // same as every other edge of that group — masthead→header, left/
+    // right margins, and mixer→screen-bottom are all the same X
+    // (space-2xl), not independently chosen values.
+    <header className="border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-5)] rotate-[-0.5deg] px-[var(--space-2xl)] pt-[var(--space-2xl)] pb-0 mb-[var(--space-2xl)]">
       <div className="flex justify-between items-start flex-wrap gap-[var(--space-xl)]">
         <div className="flex items-baseline gap-[var(--space-xl)]">
           <h1 className="font-display text-[length:var(--text-wordmark)] leading-[var(--leading-display)] m-0 tracking-[var(--tracking-xs)] uppercase">

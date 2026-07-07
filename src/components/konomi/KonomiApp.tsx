@@ -16,36 +16,6 @@ interface KonomiAppProps {
   initialTags: TagInfo[];
 }
 
-// Reserves space at the bottom of the (browse-mode) scrolling page so the
-// last piece of content never sits underneath the fixed mixer bar, with a
-// clean space-2xl (24px) gap above it — deliberately the same token and
-// value as ResultsHeader's own header→card gap (mb-[var(--space-2xl)]),
-// so both gaps in the "header, card, mixer" stack are identical, not just
-// each independently reasonable. calc()-based on --mixer-bar-height
-// (globals.css), not a flat re-measured constant like the old version of
-// this token: a flat worst-case number (previously 280px, sized for the
-// mixer's narrowest-tier height) over-reserves space at every *other*
-// breakpoint, since the mixer's real height varies — confirmed live as
-// the actual cause of a reported bug ("the gap below the last card gets
-// very large"), not scroll or viewport-unit related at all. Reading the
-// mixer's own live height through the same token the card-height clamp
-// already uses means this stays exactly mixer-height + 24px at every
-// width, automatically, with no separate re-measurement to keep in sync.
-//
-// - var(--space-3xl): the results <section>'s own mb-[var(--space-3xl)]
-// (32px, below) sits between the last card and this padding — real,
-// pre-existing spacing this formula doesn't own and isn't touching (left
-// exactly as-is, out of scope for this fix), but its 32px still counts
-// toward the total visual gap before the mixer. Confirmed live: without
-// subtracting it, the scrolled-to-bottom gap measured 56px (32 + the
-// intended 24), not 24. Subtracting it here — rather than editing that
-// pre-existing margin — keeps this fix isolated to exactly the one
-// constant it was meant to change.
-// Edit mode's taller form is still deliberately allowed to overlay content
-// instead of reserving space for it too — expected bottom-sheet behavior,
-// not a bug, unchanged from before; see MixerBar.tsx's own top comment.
-const MIXER_BAR_SPACER = "pb-[calc(var(--mixer-bar-height)_+_var(--space-2xl)_-_var(--space-3xl))]";
-
 export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
   const k = useKonomi(initialSeries, initialTags);
   const level = useLevel();
@@ -89,9 +59,19 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
   }
 
   return (
+    // pt-[space-2xl] above the masthead and pb-[space-2xl] below the mixer
+    // are the same token deliberately — the uniform outer-frame principle
+    // for the header+card+mixer group (see globals.css's
+    // --result-card-height comment): whatever gap the mixer used to keep
+    // from the viewport bottom on its own (back when it was position:fixed
+    // with its own px/pb-[space-2xl]) is now this root's job instead, once
+    // MixerBar moved into normal flow as the max-w-[1280px] column's own
+    // last child, below. A flat pb-2xl, not a calc tied to the mixer's own
+    // height (the old MIXER_BAR_SPACER, removed) — nothing to "clear"
+    // underneath a normal-flow element the way a fixed one needed.
     <div
       data-theme={k.theme}
-      className={`relative min-h-screen overflow-x-hidden px-[var(--space-2xl)] pt-[var(--space-2xl)] font-body bg-[var(--bg)] text-[var(--ink)] ${MIXER_BAR_SPACER}`}
+      className="relative min-h-screen overflow-x-hidden px-[var(--space-2xl)] pt-[var(--space-2xl)] pb-[var(--space-2xl)] font-body bg-[var(--bg)] text-[var(--ink)]"
     >
       {SHOW_HALFTONE && (
         <div className="absolute inset-0 pointer-events-none opacity-45 bg-[radial-gradient(var(--muted)_1.3px,transparent_1.4px)] [background-size:9px_9px] z-[var(--z-base)]" />
@@ -102,8 +82,22 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
 
         {/* Results is now the persistent main surface, not a tab — always
             rendered, no hidden-toggle wrapper needed since there's nothing
-            left to toggle against. */}
-        <section className="mb-[var(--space-3xl)]">
+            left to toggle against.
+
+            mb-[var(--space-2xl)], not the space-3xl this used before: this
+            margin is what actually produces the card→mixer gap now that
+            MixerBar is this section's very next normal-flow sibling (Step
+            1's version of this fix instead subtracted the old 32px value
+            out of a separate spacer calc, deliberately leaving this margin
+            itself untouched — out of scope for that narrower change, but
+            Step 2's uniform-frame principle makes the gaps themselves the
+            point: header→cards and cards→mixer read as the same 24px, not
+            independently sized). Adjacent block margins between this
+            section and MixerBar's own root div would otherwise collapse to
+            whichever is larger, not add — so leaving this at space-3xl
+            while relying on some margin on MixerBar's side to shrink the
+            gap wouldn't have worked; this is the one that has to change. */}
+        <section className="mb-[var(--space-2xl)]">
           <ResultsHeader hasResults={k.hasResults} onClearRecs={k.clearRecs} />
 
           <RecommendationsBody
@@ -124,36 +118,41 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
             totalSeriesCount={k.totalSeriesCount}
           />
         </section>
-      </div>
 
-      {/* Sibling of the max-w-[1280px] z-raised wrapper above, not nested
-          inside it — MixerBar is a genuine page-level fixed overlay
-          (z-overlay), and rendering it outside that wrapper's own stacking
-          context keeps its z-index meaning what it says rather than only
-          being compared against that wrapper's other children. */}
-      <MixerBar
-        slots={k.slots}
-        dragOverIndex={k.dragOverIndex}
-        minMatch={k.minMatch}
-        filledCount={k.filledCount}
-        onSlotDragOver={k.setDragOver}
-        onSlotDragLeave={k.clearDragOver}
-        onSlotDrop={k.placeInSlot}
-        onSlotClick={k.clearSlot}
-        onSetMatch={k.setMinMatch}
-        onRandomTags={handleRandomTags}
-        onClearSlots={k.clearSlots}
-        onRecommend={handleRecommend}
-        error={k.mixerError}
-        editMode={editMode}
-        onOpenEditMode={() => setEditMode(true)}
-        onCloseEditMode={() => setEditMode(false)}
-        allTags={k.allTags}
-        selectedTags={k.selectedTags}
-        totalSeriesCount={k.totalSeriesCount}
-        onLevelChange={handleLevelChange}
-        onChipToggle={k.toggleTag}
-      />
+        {/* Nested inside the same max-w-[1280px] z-raised column as
+            Masthead/the results section above, not a page-level sibling —
+            now that MixerBar is normal flow, not position:fixed, it needs
+            the same shared content column (left/right framing) the header
+            and cards already use, or its edges would drift from theirs the
+            moment the page's own centered max-w box stops filling the
+            viewport (see MixerBar.tsx's own top comment for how this was
+            confirmed not to shift any of its internal @container
+            breakpoints). Last child — bottom of the group, in document
+            order matching its visual position. */}
+        <MixerBar
+          slots={k.slots}
+          dragOverIndex={k.dragOverIndex}
+          minMatch={k.minMatch}
+          filledCount={k.filledCount}
+          onSlotDragOver={k.setDragOver}
+          onSlotDragLeave={k.clearDragOver}
+          onSlotDrop={k.placeInSlot}
+          onSlotClick={k.clearSlot}
+          onSetMatch={k.setMinMatch}
+          onRandomTags={handleRandomTags}
+          onClearSlots={k.clearSlots}
+          onRecommend={handleRecommend}
+          error={k.mixerError}
+          editMode={editMode}
+          onOpenEditMode={() => setEditMode(true)}
+          onCloseEditMode={() => setEditMode(false)}
+          allTags={k.allTags}
+          selectedTags={k.selectedTags}
+          totalSeriesCount={k.totalSeriesCount}
+          onLevelChange={handleLevelChange}
+          onChipToggle={k.toggleTag}
+        />
+      </div>
     </div>
   );
 }

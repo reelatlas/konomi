@@ -125,13 +125,16 @@
          this size — header row height and the mixer bar's own height
          (both below, as their own tokens, each already varying at the
          breakpoints those elements' *own* markup already uses — no new
-         breakpoint ladder for either), minus 48px (two gaps of
-         space-2xl/24px each: header→card and card→mixer, kept equal on
-         purpose for visual consistency — see ResultsHeader.tsx's own
+         breakpoint ladder for either), minus two gaps of space-2xl/24px
+         each (header→card and card→mixer, kept equal on purpose for
+         visual consistency — see ResultsHeader.tsx's own
          mb-[var(--space-2xl)] for the first one, and MixerBar's own
          matching top margin for the second, now that the mixer is a
          normal-flow element too, not a fixed overlay — see
-         MixerBar.tsx's own comment on its un-pinning for why).
+         MixerBar.tsx's own comment on its un-pinning for why), expressed
+         as calc(var(--space-2xl) * 2) rather than the flat 48px this used
+         to be — same value, but tied to the actual token so it can't
+         silently drift out of sync with it.
        - ceiling 445px = today's original, unchanged card height — the
          card never grows past its current, already-designed size on
          taller phones/tablets; extra room beyond what 445px needs just
@@ -154,70 +157,74 @@
      known, explicitly out-of-scope edge case (see DESIGN_SYSTEM.md if a
      fuller writeup exists, or this file's own git history for the
      bisection). */
-  --result-card-height: clamp(322px, calc(100svh - var(--header-row-height) - 48px - var(--mixer-bar-height)), 445px);
-  /* ResultsHeader's own header row — col mode (title stacked above
-     Clear ✕) below 417px width, row mode (side by side, shorter) at and
-     above it. 64.86px/36.5px are both live-measured, non-wrapped
-     heights at that exact component's own existing min-[417px]:flex-row
-     breakpoint (see ResultsHeader.tsx) — not new numbers, just that
-     component's already-established tiers, exposed here so the card
-     height above can read them without duplicating the breakpoint. */
-  --header-row-height: 64.86px;
+  --result-card-height: clamp(322px, calc(100svh - var(--header-row-height) - calc(var(--space-2xl) * 2) - var(--mixer-bar-height)), 445px);
+  /* ResultsHeader's own header row — a single flat value now, not a
+     per-breakpoint ladder: that row no longer wraps at any width (see
+     ResultsHeader.tsx's own top comment — the old min-[417px]:flex-row
+     col/row switch is gone entirely, replaced by always-flex-row with the
+     JP companion span dropping out at narrow widths instead of the row
+     wrapping), so its rendered height is now constant everywhere.
+     36.5px is that row's own live-measured min-h (Clear ✕'s rendered
+     height, taller than the title's own line-height — see
+     ResultsHeader.tsx's own comment on why that's pinned via min-h rather
+     than left to whichever child is tallest at a given moment). */
+  --header-row-height: 36.5px;
   /* MixerBar's own collapsed (browse-mode) height — genuinely varies
      across its own width ladder (live-measured, real breakpoints, not
-     guessed): <351px 227.5px, 351–639px 172.5px, 640–992px 192.5px,
-     993–1023px 193px, ≥1024px 209px. MixerBar's own tiers are the fixed
-     reference throughout (this token exists so other things — the
-     card-height clamp above, KonomiApp's own bottom-spacer calc — can
-     react to the mixer, never the other way around); this is just that
-     reference exposed accurately at every width, not a single flat
-     number. Default here is the narrowest tier (<351px); the other four
-     are media-query overrides below, same pattern as
-     --header-row-height's own row-mode override. 640px and 993px match
+     guessed): <351px 203.5px, 351–639px 148.5px, 640–992px 168.5px,
+     993–1023px 169px, ≥1024px 185px. MixerBar's own tiers are the fixed
+     reference throughout (this token exists so the card-height clamp
+     above can react to the mixer, never the other way around); this is
+     just that reference exposed accurately at every width, not a single
+     flat number. Default here is the narrowest tier (<351px); the other
+     four are media-query overrides below. 640px and 993px match
      already-documented MixerBar breakpoints (RECOMMEND's own text
      threshold, and Row 3's Random/Clear/Tag-Pool text threshold,
      respectively) — real, existing tiers, not new ones invented for this
      token. 351px and 1024px are new findings, specific to this token's
      own live re-measurement; MixerBar.tsx's own breakpoints are
      untouched — this file only reads and records the resulting heights,
-     it doesn't move anything that produces them. */
-  --mixer-bar-height: 227.5px;
-}
-
-/* --header-row-height's row-mode override — mirrors ResultsHeader.tsx's
-   own min-[417px]:flex-row breakpoint exactly (that component's own
-   comment has the full live-bisection story). Kept as a plain top-level
-   media query, not nested inside :root above, purely for this file's own
-   existing style (see the rest of this file for precedent). */
-@media (min-width: 417px) {
-  :root {
-    --header-row-height: 36.5px;
-  }
+     it doesn't move anything that produces them. See the media-query
+     overrides below for why every number here is 24px shorter than it
+     used to be. */
+  --mixer-bar-height: 203.5px;
 }
 
 /* --mixer-bar-height's own tiers — see that token's own comment for what
    each width range is and where the numbers came from (live-measured,
    not guessed). Four separate overrides, not one: the mixer's real
-   height genuinely steps at each of these widths, independently of
-   --header-row-height's own single 417px breakpoint. */
+   height genuinely steps at each of these widths. --header-row-height has
+   no breakpoint of its own anymore (see its own comment) — it's a flat
+   value now, unrelated to this ladder.
+
+   Every tier here is 24px shorter than it measured before MixerBar's own
+   un-pinning (Step 2): this token used to equal barRef's *full* fixed-
+   position footprint, which included its own now-removed pb-[space-2xl]
+   bottom gutter (24px, moved to KonomiApp's own root padding once the
+   mixer became normal flow — see MixerBar.tsx and KonomiApp.tsx's own
+   comments on that). This token means something narrower now — just
+   visibleCardRef's own rendered height, nothing else — so every tier was
+   re-measured live post-restructuring rather than hand-adjusted by -24;
+   confirmed the arithmetic difference is exactly uniform across all five,
+   as expected from removing one flat, breakpoint-independent gutter. */
 @media (min-width: 351px) {
   :root {
-    --mixer-bar-height: 172.5px;
+    --mixer-bar-height: 148.5px;
   }
 }
 @media (min-width: 640px) {
   :root {
-    --mixer-bar-height: 192.5px;
+    --mixer-bar-height: 168.5px;
   }
 }
 @media (min-width: 993px) {
   :root {
-    --mixer-bar-height: 193px;
+    --mixer-bar-height: 169px;
   }
 }
 @media (min-width: 1024px) {
   :root {
-    --mixer-bar-height: 209px;
+    --mixer-bar-height: 185px;
   }
 }
 
