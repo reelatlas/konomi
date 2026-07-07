@@ -57,8 +57,25 @@ export function ResultsHeader({ resultsHint, hasResults, onClearRecs }: ResultsH
           // weren't there. ActionButton itself has no prop for arbitrary
           // data-* passthrough (a narrow, intentional interface — see its
           // own comment), so this wraps it instead of extending it.
+          //
+          // relative z-[var(--z-raised)] on the button itself: the results
+          // carousel's own ScrollFadeArea wrappers (RecommendationsBody.tsx)
+          // carry real, invisible pt/pb-40px flip-bulge padding that makes
+          // them geometrically overlap this button's own bottom ~24px
+          // (confirmed live via getBoundingClientRect on both) — previously
+          // papered over by making those wrappers pointer-events-none, which
+          // also — an unrelated side effect nobody had reason to check at
+          // the time — disqualified the carousel's real overflow-x-auto
+          // viewport from native touch-scroll-gesture-chaining, breaking
+          // mobile carousel swipe whenever a card's tag area wasn't itself
+          // an active (overflowing) scroll container. Fixed at the source
+          // instead: this button now explicitly wins the hit-test at that
+          // overlap by paint order (z-index) rather than by disqualifying
+          // the carousel's wrappers from hit-testing altogether — so the
+          // carousel's own pointer-events can go back to the default auto
+          // (see RecommendationsBody.tsx) and still receive the gesture.
           <span data-clear-results className="contents">
-            <ActionButton variant="inverted" size="sm" onClick={onClearRecs}>
+            <ActionButton variant="inverted" size="sm" onClick={onClearRecs} className="relative z-[var(--z-raised)]">
               Clear ✕
             </ActionButton>
           </span>

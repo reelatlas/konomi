@@ -298,35 +298,41 @@ export function RecommendationsBody({
             arrowHeight={36}
             arrowShadow
             arrowInset="var(--space-md)"
-            disableWrapperPointerEvents
           >
-            {/* pointer-events-none here, on this file's ScrollFadeArea
-                (disableWrapperPointerEvents), and on ScrollFadeArea's own
-                three structural wrappers (root/scrollRef/contentRef — see
-                that component's own comment) — every layer between this
-                grid and the page needed it, not just this one. The
-                pt/pb-[40px] pair below is real, empty layout space, not
-                just a visual illusion — canceling it back out via the
-                wrapper's -mt/-mb makes the *cards* look right, but every
-                ancestor that just sizes itself to fit its content (this
-                grid, and then ScrollFadeArea's contentRef/scrollRef/root
-                on top of it) still geometrically occupies that 40px
-                above/below the cards, and being later in paint order than
-                whatever's above it (ResultsHeader's Clear ✕, specifically),
-                each one independently intercepts clicks there even though
-                nothing is visibly present. Confirmed live via
-                elementFromPoint swept across Clear ✕'s own box: the top
-                portion hit the button, but partway down, hits landed on
-                this grid — then, once this grid alone was fixed, on
-                ScrollFadeArea's contentRef instead, one level up — a real
-                reported bug ("the lower half won't even let me click") that
-                took two passes to fully close. pointer-events-none at every
-                level makes the whole stack transparent to pointer events,
-                falling through to whatever's actually there; each card's
-                own pointer-events-auto (ResultCard.tsx) and every
+            {/* This grid keeps its own pointer-events-none (still real,
+                still needed — the pt/pb-[40px] pair below is genuine, empty
+                layout space, not just a visual illusion, and this grid still
+                geometrically occupies that 40px above/below the cards).
+                ScrollFadeArea's own three structural wrappers
+                (root/scrollRef/contentRef) do NOT get pointer-events-none
+                here anymore, though — disableWrapperPointerEvents was
+                removed from the prop above. It fixed a real bug (Clear ✕
+                getting its lower ~24px silently swallowed by this same
+                invisible padding, confirmed live via elementFromPoint) but
+                did so by making scrollRef itself pointer-events-none — and
+                scrollRef is this carousel's actual overflow-x-auto viewport,
+                the one native touch-scroll-gesture-chaining needs to find.
+                Confirmed live (mobile, real device): with that in place, a
+                horizontal swipe starting anywhere on a card's tag area
+                failed to reach the carousel whenever the tag area itself
+                wasn't an active/overflowing scroll container — pointer-
+                events-none disqualified scrollRef from gesture-chaining
+                candidacy entirely, not just from click hit-testing.
+                Re-scoped instead of reverted outright: Clear ✕ now wins its
+                own hit-test via paint order (relative z-[var(--z-raised)],
+                see ResultsHeader.tsx) rather than via scrollRef being
+                excluded from hit-testing altogether — so scrollRef (and
+                root/contentRef) are back to the default pointer-events:auto,
+                and the carousel can receive the gesture regardless of
+                whether a card's tag area happens to be active. This grid's
+                own pointer-events-none is untouched by that change (it's a
+                separate, still-valid concern — its own invisible padding
+                could still swallow clicks meant for content behind/below
+                the carousel elsewhere, e.g. below the last row); each
+                card's own pointer-events-auto (ResultCard.tsx) and every
                 IconButton's own unconditional pointer-events-auto
-                (IconButton.tsx, covers the arrow buttons here) opt the real
-                interactive content back in. */}
+                (IconButton.tsx, covers the arrow buttons here) still opt the
+                real interactive content back in regardless. */}
             <div
               ref={rowRef}
               className="grid grid-cols-[repeat(auto-fill,minmax(208px,1fr))] gap-[var(--space-xl)] pt-[40px] pr-[5px] pb-[40px] max-[1152px]:flex max-[1152px]:flex-nowrap pointer-events-none"
