@@ -55,3 +55,13 @@ export const THEMES: Record<ThemeKey, ThemeColors> = {
 };
 
 export const THEME_KEYS = Object.keys(THEMES) as ThemeKey[];
+
+// Shared by the pre-hydration inline script (layout.tsx, interpolates this
+// plus THEME_KEYS into a literal string) and KonomiApp.tsx's own
+// restore/persist effect — one key, kept in sync by import rather than by
+// hand-matching a string in two places.
+export const THEME_STORAGE_KEY = "konomi-theme";
+
+export function isThemeKey(value: string | null): value is ThemeKey {
+  return THEME_KEYS.includes(value as ThemeKey);
+}

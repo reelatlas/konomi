@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { visiblePoolTagNames } from "@/lib/konomi/tagPool";
+import { isThemeKey, THEME_STORAGE_KEY } from "@/lib/konomi/themes";
 import type { LevelKey, Series, TagInfo } from "@/lib/konomi/types";
 import { useKonomi } from "@/lib/konomi/useKonomi";
 import { Masthead } from "./Masthead";
@@ -26,18 +27,41 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
   // to live here.
   const [editMode, setEditMode] = useState(false);
 
-  // Mirrors k.theme onto <html> (layout.tsx's own data-theme="default" is
-  // just the matching initial value, not a live binding) — the page
-  // background now lives on html/body, not this component's own root div
-  // (see that div's own comment below), and --bg/--muted only resolve on
-  // an element that itself carries data-theme (inheritance is descendant-
-  // only, html can't pull them from a child). This div keeps data-theme
-  // too, unchanged — everything else in this subtree still reads theme
-  // tokens through it exactly as before; this effect only ever adds a
-  // second, synced copy on html, never removes the original.
+  // Restores the persisted theme into React state on mount, then keeps
+  // <html> and localStorage in sync with k.theme on every subsequent
+  // change (user picks a new theme via ThemeSwitcher). The mount-only
+  // restore has to happen *before* this effect's own "mirror k.theme onto
+  // html" write, not after: layout.tsx's THEME_INIT_SCRIPT already set
+  // <html>'s data-theme correctly before paint (a persisted "dark", say),
+  // but k.theme's own React state still starts at the reducer's fixed
+  // "default" (required to match SSR — see layout.tsx's own comment). If
+  // the mirror write ran unconditionally first, it would clobber that
+  // already-correct "dark" back to "default" for one visible frame before
+  // the restore's corrective re-render put it back — the exact flash this
+  // feature exists to prevent. Guarding with a ref and returning early on
+  // the one tick a restore actually happens avoids that: this effect only
+  // ever mirrors/persists a k.theme value it knows is either already
+  // correct or has nothing to restore over.
+  const didRestoreTheme = useRef(false);
+  const { theme, setTheme } = k;
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", k.theme);
-  }, [k.theme]);
+    if (!didRestoreTheme.current) {
+      didRestoreTheme.current = true;
+      const stored = localStorage.getItem(THEME_STORAGE_KEY);
+      if (isThemeKey(stored) && stored !== theme) {
+        setTheme(stored);
+        return;
+      }
+    }
+    document.documentElement.setAttribute("data-theme", theme);
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, theme);
+    } catch {
+      // Storage unavailable (private-browsing quota, disabled storage) —
+      // <html>'s data-theme is still set above, theme switching still
+      // works for the session, it just won't survive a refresh.
+    }
+  }, [theme, setTheme]);
 
   // The only place level-change needs to touch both the preference store
   // and the mixer: persist the new level, then prune any selected tag the
@@ -82,7 +106,21 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
     // height (the old MIXER_BAR_SPACER, removed) — nothing to "clear"
     // underneath a normal-flow element the way a fixed one needed.
     <div
-      data-theme={k.theme}
+      // No data-theme here (removed) — this div used to carry its own
+      // synced copy, but it's React-rendered and re-renders in lockstep
+      // with k.theme, including on the one extra render the theme-persist
+      // effect above triggers right after mount to restore a saved theme.
+      // That correction happens in a useEffect, which by design runs
+      // *after* the browser's first paint — so for one real, visible
+      // frame, this div (and everything under it, since [data-theme="X"]
+      // rules are just custom-property declarations descendants inherit
+      // through) would have painted the reducer's fixed initial "default"
+      // theme, then flashed to the restored one. <html>'s own data-theme
+      // doesn't have this problem (layout.tsx's THEME_INIT_SCRIPT sets it
+      // synchronously before paint, outside React entirely) — so this div
+      // now just inherits --bg/--ink/etc. from html like every other
+      // descendant, rather than redeclaring a value that can't help but
+      // lag behind on first load.
       // overflow-x-clip, not overflow-x-hidden: hidden on one axis with no
       // overflow-y set triggers a real, legacy CSS spec rule — the other
       // axis's *used* value becomes auto instead of staying visible — which
