@@ -28,11 +28,23 @@ function useSupportsHover(): boolean {
   return supportsHover;
 }
 
-// Cover box's own fixed height, matching h-[295px] on that div below — the
-// reflection's vertical offset has to equal this exactly (see its own
-// comment), so it's one shared constant rather than two numbers that could
-// silently drift apart.
-const COVER_HEIGHT_PX = 295;
+// The cover's rendered height whenever the reflection below it is actually
+// visible — NOT the cover's own height in general anymore. Since the
+// one-viewport-fit feature (see globals.css's --result-card-height), the
+// cover is flex-1 (grows/shrinks with the card's own clamped height), so
+// it no longer has one fixed height at all — except inside the reflection
+// block itself, which only renders above a height-gated breakpoint
+// (`hidden [@media(min-height:731px)]:contents`, below) chosen
+// specifically so it's ONLY reachable once the card is pinned at its
+// clamp ceiling (445px). At that ceiling, cover's height is exactly
+// 445 − 138 (tag-wrapper's own fixed cost: 8+8px padding + 121px tags) −
+// 4 (front face's own 2px top + 2px bottom border) = 303 — a real,
+// derived value, not the old 295 (a stale leftover from when cover had a
+// single fixed height everywhere). This constant is only ever correct
+// where the reflection renders, by construction of that gate — it isn't
+// meant to describe the cover at smaller sizes, where the reflection
+// doesn't render at all.
+const COVER_HEIGHT_PX = 303;
 // Both 1px — matching, not stepped (an earlier version stepped this to 3px
 // for the reflection). Tested live whether the hairline seam at the
 // boundary (masked below with a 1px marginTop overlap on the mirror
@@ -321,7 +333,14 @@ export function ResultCard({
             flipped ? "opacity-0 pointer-events-none z-[var(--z-base)]" : "opacity-100 pointer-events-auto z-[var(--z-raised)]",
           ].join(" ")}
         >
-          <div className="relative h-[295px] border-b-[length:var(--border-base)] border-b-[var(--ink)] bg-[var(--fill)] overflow-hidden">
+          {/* flex-1, not a fixed h-[295px] anymore — this box now grows/
+              shrinks with the card's own clamped height (see globals.css's
+              --result-card-height), so it can shrink at small viewports
+              without clipping the tag area below it. The tag-wrapper
+              sibling below is shrink-0 (its own fixed content size,
+              protected) specifically so *this* box is the one that
+              absorbs the card's total height changing, never the tags. */}
+          <div className="relative flex-1 border-b-[length:var(--border-base)] border-b-[var(--ink)] bg-[var(--fill)] overflow-hidden">
             {hasImage ? (
               <Image
                 src={series.coverImageUrl as string}
@@ -491,25 +510,58 @@ export function ResultCard({
               exactly at this box's edges, not bleed into the cover image
               above or past the card's own border.
 
-              flex-1: this box's own auto (content-driven) height doesn't
-              quite reach the bottom of FRONT's fixed --result-card-height —
-              FRONT is flex-col with the 295px cover fixed above this, and
-              this wrapper's natural height (padding + TagScrollArea's own
-              121px) leaves a few px of FRONT's own flex-col unclaimed at
-              the very bottom. That gap always existed but was invisible
-              before this change, since it just showed more of the same
-              flat --surface FRONT itself is filled with — confirmed live
-              as a real (if previously harmless) layout quirk the moment
-              this box's background became visually distinct from FRONT's:
-              a thin mismatched --surface line right above the card's own
-              border. flex-1 makes this box stretch to claim exactly
-              FRONT's true remaining space instead of just its own
-              content's height, so the reflection/veil below cover all of
-              it, regardless of the precise px math between the cover's
-              fixed height and TagScrollArea's own. */}
-          <div className="relative overflow-hidden flex-1 px-[var(--space-lg)] pt-[var(--space-lg)] pb-[var(--space-lg)]">
+              shrink-0, not flex-1 — inverted from the original version of
+              this box (see git history): back then, cover had a fixed
+              height and THIS box absorbed whatever of FRONT's own fixed
+              --result-card-height was left over. Now that
+              --result-card-height is itself a clamp() that shrinks at
+              small viewports (one-viewport-fit feature, globals.css), the
+              box that stretches/shrinks with the card's total height must
+              be the one that's safe to compress — the cover (now flex-1,
+              above) — not this one, which holds the actual tags and must
+              never be crushed below its own real content. shrink-0 locks
+              this box at exactly its natural size (padding + TagScrollArea's
+              121px) regardless of how much or little room FRONT's own
+              flex-col has left after the cover claims its share.
+
+              pt/pb space-md (8px), not space-lg (12px) — px stays lg,
+              unchanged, since only the *vertical* budget matters for the
+              clamp; trimmed 4px off each of pt/pb specifically to help
+              reclaim height at the small end (see globals.css's own
+              comment on the breakdown); applied at every size, not
+              conditionally, to
+              avoid a second breakpoint ladder just for padding. */}
+          <div className="relative overflow-hidden shrink-0 px-[var(--space-lg)] pt-[var(--space-md)] pb-[var(--space-md)]">
             {hasImage && !reflectionBroken && (
-              <>
+              // hidden [@media(min-height:731px)]:contents — the
+              // reflection now only renders above a real viewport-height
+              // threshold, not at every size: one-viewport-fit (see
+              // globals.css) shrinks the card at small viewports, and
+              // splitting that already-tight space between cover and
+              // reflection would cramp both, so below this gate the tag
+              // area just shows the full cover crop + its own scrim with
+              // no reflection at all — cleaner than a squeezed one.
+              // 731px is derived, not guessed: the card's own clamp()
+              // reaches its 445px ceiling (cover locked at exactly 303px,
+              // the value COVER_HEIGHT_PX now uses — see that constant's
+              // own comment) once 100dvh ≥ 445 + header-row + 48 (both
+              // gaps) + mixer-bar; at this row's own baseline tier
+              // (64.86px header, 172.5px mixer) that's 730.36px, rounded
+              // up to 731 so the gate never fires a single pixel before
+              // cover is genuinely at 303 — no partial/misaligned band.
+              // Scoped to width ≥375px (this feature's own stated
+              // baseline): at the row-mode header tier (≥417px width)
+              // the true crossover is lower (~702px), so this single
+              // gate is conservative there (a short window where cover
+              // is already at 303 but the reflection hasn't revealed
+              // yet) rather than unsafe — deliberately one simple gate
+              // instead of a second one keyed to card-width tiers.
+              // display:contents (not e.g. flex/block) once shown: keeps
+              // every child a direct participant in the tag-wrapper's
+              // own layout/stacking, exactly as if this wrapper weren't
+              // here at all — same technique ResultsHeader.tsx's own
+              // data-clear-results span already uses.
+              <div className="hidden [@media(min-height:731px)]:contents">
                 {/* Reflection: physically continuous, not a flat blur wash —
                     the tag area shows the cover's OWN art continuing
                     downward, upright, from exactly where the sharp crop
@@ -729,7 +781,7 @@ export function ResultCard({
                     faded to transparent) this veil is the only tint
                     showing, same as before this reordering. */}
                 <div className="absolute inset-0 z-[var(--z-base)] bg-[var(--cover-reflection-veil)]" />
-              </>
+              </div>
             )}
             {/* z-[2], not just `relative`: this needs to paint above the
                 seam scrim's own z-[var(--z-raised)] (1) — plain DOM order

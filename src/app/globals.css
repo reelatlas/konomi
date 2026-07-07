@@ -108,14 +108,71 @@
      Tailwind arbitrary-value classes (h-[…] / min-h-[…]) can share one
      real value with zero duplication — Tailwind's class scanner needs the
      complete class as static text, so this is what var(--…) is for. */
-  /* 445px = original 421px + 24px, the total amount TagScrollArea's own
-     TAG_AREA_HEIGHT grew by across three changes (97px → 112px → 126px →
-     121px, settling on a deliberate compromise height rather than a value
-     that eliminates the peek-size mismatch outright) — see that
-     constant's own comment. The two must move together any time either
-     changes, for the same "must never drift" reason this token exists at
-     all. */
-  --result-card-height: 445px;
+  /* One-viewport-fit (mobile/small screens): card height is now this
+     clamp, not a flat constant — the variable being solved for so
+     header row + one card row + the collapsed mixer bar fit 100dvh with
+     no vertical scroll, baseline-bisected live at 375×667 (iPhone SE).
+     clamp(floor, preferred, ceiling):
+       - floor 322px = 180 (minimum legible cover — still reads as a real
+         cover crop, not a sliver; a design judgment, not a hard
+         constraint) + 138 (tag-wrapper's own fixed cost: 8px+8px padding,
+         space-md, plus its 121px of tags — always protected, never
+         crushed) + 4 (front face's own 2px top + 2px bottom border).
+         Only engages below the 375×667 baseline (very short/landscape
+         edge cases) — at baseline itself the calc() below already lands
+         at ~382px, well above this floor.
+       - preferred: 100dvh minus everything else already on the page at
+         this size — header row height and the collapsed mixer bar's own
+         height (both below, as their own tokens, each already varying at
+         the breakpoints those elements' *own* markup already uses — no
+         new breakpoint ladder for either), minus 48px (two gaps of
+         space-2xl/24px each: header→card and card→mixer, kept equal on
+         purpose for visual consistency — see ResultsHeader.tsx's own
+         mb-[var(--space-2xl)] for the first one; the second is achieved
+         by the card simply being 24px shorter than it would need to be
+         to touch the mixer, not a separate margin element).
+       - ceiling 445px = today's original, unchanged card height — the
+         card never grows past its current, already-designed size on
+         taller phones/tablets; extra room beyond what 445px needs just
+         becomes breathing space above the mixer bar.
+     Scope: this guarantee (fits one viewport, no scroll) is bisected
+     against and only claimed for width ≥375px — narrower devices are a
+     known, explicitly out-of-scope edge case (see DESIGN_SYSTEM.md if a
+     fuller writeup exists, or this file's own git history for the
+     bisection). */
+  --result-card-height: clamp(322px, calc(100dvh - var(--header-row-height) - 48px - var(--mixer-bar-height)), 445px);
+  /* ResultsHeader's own header row — col mode (title stacked above
+     Clear ✕) below 417px width, row mode (side by side, shorter) at and
+     above it. 64.86px/36.5px are both live-measured, non-wrapped
+     heights at that exact component's own existing min-[417px]:flex-row
+     breakpoint (see ResultsHeader.tsx) — not new numbers, just that
+     component's already-established tiers, exposed here so the card
+     height above can read them without duplicating the breakpoint. */
+  --header-row-height: 64.86px;
+  /* MixerBar's own collapsed (browse-mode) height — live-measured at
+     172.5px, confirmed flat across the entire realistic width range this
+     feature targets (375–414px+, i.e. every width ≥375px checked). Not
+     breakpoint-varying here on purpose: MixerBar's own tiers are the
+     fixed reference for this whole feature (this token exists so the
+     *card* can react to the mixer, never the other way around), and no
+     shift in the mixer's own tiers was needed to hit the 375×667
+     baseline — see the bisection report this token's formula was signed
+     off against before implementing. If the mixer's own responsive
+     ladder ever changes such that this height varies within the ≥375px
+     range, override this same token at that breakpoint rather than
+     touching --result-card-height's own formula above. */
+  --mixer-bar-height: 172.5px;
+}
+
+/* --header-row-height's row-mode override — mirrors ResultsHeader.tsx's
+   own min-[417px]:flex-row breakpoint exactly (that component's own
+   comment has the full live-bisection story). Kept as a plain top-level
+   media query, not nested inside :root above, purely for this file's own
+   existing style (see the rest of this file for precedent). */
+@media (min-width: 417px) {
+  :root {
+    --header-row-height: 36.5px;
+  }
 }
 
 /* ── color roles, one palette per theme ──────────────────────────────────

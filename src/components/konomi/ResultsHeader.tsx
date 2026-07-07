@@ -44,7 +44,22 @@ export function ResultsHeader({ hasResults, onClearRecs }: ResultsHeaderProps) {
     // between zero state and results state. 36.5px is Clear ✕'s own
     // measured rendered height (ActionButton size="sm") — retune by hand
     // if that ever changes.
-    <div className="flex flex-col min-[417px]:flex-row min-[417px]:items-center min-[417px]:justify-between min-[417px]:min-h-[36.5px] gap-x-[var(--space-lg)] gap-y-[var(--space-sm)] mb-[var(--space-xl)]">
+    //
+    // mb-[var(--space-2xl)], not the smaller space-xl this row used
+    // before: bumped 16px→24px specifically to match the results
+    // carousel's own card→mixer-bar gap (see globals.css's
+    // --result-card-height comment) — the one-viewport-fit feature
+    // requires the header→card and card→mixer gaps to be visually equal,
+    // and 24px (space-2xl) is this app's own existing "breathing room
+    // from a fixed edge" convention (the page's own pt-2xl at the top,
+    // MIXER_BAR_SPACER's matching bottom-edge reasoning) — not a number
+    // picked just for this row in isolation. --header-row-height in
+    // globals.css (36.5px/64.86px, read by the card-height clamp) is
+    // this row's own *content* height only, measured independently of
+    // this margin — the clamp's formula adds its own 48px (both gaps)
+    // separately, so this margin and that constant must never both
+    // change without checking the other.
+    <div className="flex flex-col min-[417px]:flex-row min-[417px]:items-center min-[417px]:justify-between min-[417px]:min-h-[36.5px] gap-x-[var(--space-lg)] gap-y-[var(--space-sm)] mb-[var(--space-2xl)]">
       <div className="flex items-center gap-[var(--space-md)]">
         <TitleWithSubtitle title="Recommendations" subtitle="おすすめ" />
       </div>
