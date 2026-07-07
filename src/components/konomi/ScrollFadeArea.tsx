@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { IconButton, type RevealGroup } from "./IconButton";
 
 type Orientation = "vertical" | "horizontal";
@@ -272,7 +272,17 @@ export function ScrollFadeArea({
     }
   };
 
-  useEffect(() => {
+  // useLayoutEffect, not useEffect — hasOverflow now does more than drive
+  // the fade/arrow decorations (see the overflow-y/x-auto class below,
+  // gated on it): it decides whether this element is a scroll container at
+  // all. useEffect runs after the browser's first paint, which would leave
+  // a genuinely-overflowing area rendered as *not* a scroll container
+  // (hasOverflow's useState(false) default) for one real frame before this
+  // corrects it — harmless when hasOverflow only affected decorations, but
+  // a real dropped-first-gesture risk now that it gates the scroll axis
+  // itself. useLayoutEffect runs synchronously before paint, so the
+  // conditional class is already correct on the very first frame.
+  useLayoutEffect(() => {
     updateScrollState();
     const el = scrollRef.current;
     const content = contentRef.current;
@@ -486,7 +496,26 @@ export function ScrollFadeArea({
             : undefined),
         }}
         className={[
-          horizontal ? "w-full overflow-x-auto overflow-y-hidden" : `${heightPx !== undefined ? "" : height} overflow-y-auto overflow-x-hidden`,
+          // The scroll axis's own overflow (x-auto/y-auto) is gated on
+          // hasOverflow now, not unconditional — confirmed live as the
+          // actual cause of a real mobile bug: overflow:auto marks an
+          // element as a scroll-gesture *candidate* regardless of whether
+          // it currently has anything to scroll, so an under-filled
+          // TagScrollArea (few tags, no vertical overflow) was still
+          // capturing a horizontal swipe and stranding it there instead of
+          // letting the gesture fall through to the results carousel
+          // underneath — native chaining only worked once the tag area
+          // actually overflowed and became a real scroller. Falling back to
+          // -hidden (not the default `visible`) when there's nothing to
+          // scroll keeps this element out of scroll-gesture candidacy
+          // (hidden is not user-scrollable, so browsers don't treat it as a
+          // chaining boundary the way auto/scroll are) while still clipping
+          // defensively, same as the cross-axis's own -hidden below. The
+          // cross-axis (y-hidden/x-hidden) stays unconditional — it only
+          // clips, never scrolls, so it was never a candidate for this bug.
+          horizontal
+            ? `w-full ${hasOverflow ? "overflow-x-auto" : "overflow-x-hidden"} overflow-y-hidden`
+            : `${heightPx !== undefined ? "" : height} ${hasOverflow ? "overflow-y-auto" : "overflow-y-hidden"} overflow-x-hidden`,
           "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
           snap ? (horizontal ? "snap-x snap-mandatory" : "snap-y snap-mandatory") : "",
           // scroll-smooth (scroll-behavior: smooth), snap-only: with no
