@@ -332,11 +332,6 @@ export function useKonomi(initialSeries: Series[], initialTags: TagInfo[]) {
     return state.series.some((s) => !shownTitles.has(s.title) && scoreSeries(s, sel) >= minNum);
   }, [filledCount, shownTitles, sel, minNum, state.series]);
 
-  const lockedCount = useMemo(
-    () => state.results.filter((r) => state.locked[r.series.title]).length,
-    [state.results, state.locked],
-  );
-
   // name -> TagInfo lookup so result cards can merge a series' tags and
   // genres into one list, then level-filter and sort it exactly like the
   // pool does (needs isGenre/seriesCount, not just avgRank — see ResultCard).
@@ -345,14 +340,6 @@ export function useKonomi(initialSeries: Series[], initialTags: TagInfo[]) {
     state.tags.forEach((t) => m.set(t.name, t));
     return m;
   }, [state.tags]);
-
-  const resultsHint = useMemo(() => {
-    if (!state.generated) return "metadata appears here";
-    if (state.results.length) {
-      return `${state.results.length} recs · ${filledCount} tag${filledCount !== 1 ? "s" : ""} · ${minNum} tag${minNum !== 1 ? "s" : ""} min · ${lockedCount} locked · drag a tag down to remix`;
-    }
-    return "no matches — loosen the filter";
-  }, [state.generated, state.results.length, filledCount, minNum, lockedCount]);
 
   const actions = useMemo(
     () => ({
@@ -417,7 +404,6 @@ export function useKonomi(initialSeries: Series[], initialTags: TagInfo[]) {
     filledCount,
     minNum,
     canSwap,
-    resultsHint,
     hasResults: state.generated && state.results.length > 0,
     mixerError: state.error,
     recommendGen: state.recommendGen,

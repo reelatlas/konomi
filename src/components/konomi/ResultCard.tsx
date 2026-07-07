@@ -330,6 +330,23 @@ export function ResultCard({
                 data-title={series.title}
                 onClick={(e) => {
                   e.stopPropagation();
+                  // e.currentTarget.focus(): mobile Safari/Chrome don't
+                  // reliably focus a plain, already-mounted <button> from a
+                  // tap the way a mouse click does natively — confirmed live
+                  // as a real bug, not a hypothetical: tapping swap (which
+                  // gets real focus via autoFocus on its post-swap remount,
+                  // see that prop's own comment below) then tapping lock
+                  // right after correctly blurred swap but never actually
+                  // focused lock, so hoveredIcon landed on null instead of
+                  // "lock" — the swap hint vanished but lock's never took
+                  // its place. Forcing focus explicitly here, the same way
+                  // autoFocus forces it for swap's remount case, makes tap
+                  // always establish genuine DOM focus regardless of
+                  // whether the browser's own default tap behavior would
+                  // have bothered — which is what makes onBlur below fire
+                  // correctly for the *next* tap, on whichever icon it
+                  // lands on, every time.
+                  e.currentTarget.focus();
                   onToggleLock(series.title);
                 }}
                 onMouseEnter={() => setHoveredIcon("lock")}
@@ -348,16 +365,22 @@ export function ResultCard({
                 aria-disabled={swapDisabled}
                 // autoFocus, tied to startWithSwapHint (only ever true on
                 // this exact instance's first render — see hoveredIcon's
-                // own comment): setting the STATE to "swap" alone isn't
-                // enough to make "tap elsewhere dismisses it" work, since
-                // this is a brand-new DOM node that was never actually
-                // focused — the existing onBlur below only fires for an
-                // element that HAD focus and lost it. Actually focusing it
-                // natively here is what makes that same onBlur correctly
-                // dismiss the hint later, exactly like lock's already does.
+                // own comment): a swap replaces this whole card (new key,
+                // new mount), so there's no click event on *this* instance
+                // to hook a focus() call into — the tap that triggered the
+                // swap happened on the old, now-destroyed instance. autoFocus
+                // is what gives this brand-new node real focus on mount, so
+                // the onBlur below can later fire for it like any other
+                // focused element.
                 autoFocus={startWithSwapHint}
                 onClick={(e) => {
                   e.stopPropagation();
+                  // e.currentTarget.focus() — same reasoning as lock's own
+                  // onClick above: an ordinary tap on this already-mounted
+                  // button (not the post-swap remount autoFocus covers)
+                  // can't be trusted to focus it natively on mobile, so
+                  // force it explicitly every time, disabled or not.
+                  e.currentTarget.focus();
                   // aria-disabled, not the native disabled attribute — a
                   // real disabled button can silently fail to fire hover
                   // events in some browsers, which would break exactly the

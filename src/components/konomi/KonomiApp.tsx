@@ -101,7 +101,7 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
             rendered, no hidden-toggle wrapper needed since there's nothing
             left to toggle against. */}
         <section className="mb-[var(--space-3xl)]">
-          <ResultsHeader resultsHint={k.resultsHint} hasResults={k.hasResults} onClearRecs={k.clearRecs} />
+          <ResultsHeader hasResults={k.hasResults} onClearRecs={k.clearRecs} />
 
           <RecommendationsBody
             results={k.results}

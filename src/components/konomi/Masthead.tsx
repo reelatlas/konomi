@@ -15,7 +15,7 @@ export function Masthead({ theme, onThemeChange }: MastheadProps) {
             KONOMI
           </h1>
           <span className="font-body font-black text-[length:var(--text-wordmark-jp)] text-[var(--primary)]">
-            ブレンド
+            ミックス
           </span>
         </div>
         <div className="flex gap-[var(--space-md)] items-center self-center">
