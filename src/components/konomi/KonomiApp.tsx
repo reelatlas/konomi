@@ -105,7 +105,20 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
       // actually a scroll container, which this one no longer is. relative
       // was only ever the containing block for the halftone overlay
       // (removed below, folded into html's own background-image instead).
-      className="min-h-screen overflow-x-clip px-[var(--space-2xl)] pt-[var(--space-2xl)] pb-[var(--space-2xl)] font-body text-[var(--ink)]"
+      //
+      // No min-h-screen either, not anymore — confirmed live as a real
+      // bug: whenever natural content (masthead+gaps+card+mixer) was
+      // shorter than one viewport, forcing this div to at least 100vh
+      // left the leftover space stranded *after* the mixer (block flow
+      // puts unused min-height at the end, not distributed), stacking
+      // with pb-2xl to make the bottom gap read as much bigger than the
+      // top's plain pt-2xl — measured 42.6px vs 24px at one test size,
+      // dropping to exactly 24px (matching pt-2xl) with min-height
+      // removed. Safe to drop now for the same reason removing it doesn't
+      // risk a short-looking page: the background/halftone moved to html
+      // (see above) specifically so full-viewport coverage no longer
+      // depends on this div's own height at all.
+      className="overflow-x-clip px-[var(--space-2xl)] pt-[var(--space-2xl)] pb-[var(--space-2xl)] font-body text-[var(--ink)]"
     >
 
       <div className="relative z-[var(--z-raised)] max-w-[1280px] mx-auto">
