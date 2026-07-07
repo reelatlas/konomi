@@ -239,6 +239,23 @@
   html,
   body {
     height: 100%;
+    /* contain, not none — this app's own ScrollFadeArea.tsx already
+       documents why the unsuffixed/more-aggressive form of
+       overscroll-behavior is the wrong default here: an earlier, unscoped
+       overscroll-contain on a nested scroller broke real touch-gesture
+       routing to its ancestor (see that file's "Axis-scoped, not the
+       unsuffixed overscroll-contain" comment) — none goes further than
+       contain and has its own known WebKit history of misbehaving around
+       nested overflow:auto descendants, which this page has several of
+       (the results carousel, its nested tag-scroll area). contain still
+       stops the page's own rubber-band from chaining into the browser's
+       native pull-to-refresh/back-swipe gesture at the document boundary,
+       which is the actual goal here, without touching how any child
+       scroller's own (already axis-scoped) overscroll-behavior resolves.
+       y-only: this page never scrolls horizontally at the document level
+       (KonomiApp's own overflow-x-hidden already guarantees that), so
+       there's nothing for an -x rule to contain. */
+    overscroll-behavior-y: contain;
   }
 
   .font-display {
