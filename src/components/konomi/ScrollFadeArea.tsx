@@ -113,6 +113,20 @@ interface ScrollFadeAreaProps {
   // (e.g. "var(--space-md)", which the results carousel uses to stay
   // token-linked rather than hardcoding the current --space-md value).
   arrowInset?: number | string;
+  // Horizontal-only. Nudges the arrows' cross-axis centering (normally a
+  // plain 50%, via top-1/2/-translate-y-1/2) by this many px. Exists for
+  // callers whose scrollable content carries real-but-asymmetric padding
+  // on one side only — e.g. MixerBar's filters row cancels a bottom-only
+  // pb-[26px] (room for LevelSelector's hover-subtext + shadow bleed) via
+  // a negative margin on an *ancestor*, not on this component's own root,
+  // so this component's own height still includes that 26px and the
+  // default 50% centers on the padded box, not the visibly obvious button
+  // row inside it — confirmed live as a real bug: the arrow read as
+  // bottom-aligned instead of centered. Half the asymmetric padding
+  // (negative, to shift up) re-centers on the content alone. Defaults to
+  // 0 — every other horizontal caller has no such asymmetry and sees no
+  // behavior change.
+  arrowVerticalOffsetPx?: number;
   // Opt-in only: sets pointer-events-none on every structural wrapper div
   // this component owns (its own root, the scroll viewport, and the
   // content wrapper around `children`) — none of which have any visible
@@ -225,6 +239,7 @@ export function ScrollFadeArea({
   arrowHeight = DEFAULT_ARROW_HEIGHT,
   arrowShadow = false,
   arrowInset = 0,
+  arrowVerticalOffsetPx = 0,
   disableWrapperPointerEvents = false,
   fitContent = false,
   edgeMaskSize,
@@ -653,10 +668,14 @@ export function ScrollFadeArea({
           onClick={(e) => e.stopPropagation()}
           className={
             horizontal
-              ? "absolute top-1/2 -translate-y-1/2 text-[8px] leading-none z-[var(--z-overlay)]"
+              ? "absolute -translate-y-1/2 text-[8px] leading-none z-[var(--z-overlay)]"
               : "absolute left-1/2 -translate-x-1/2 text-[8px] leading-none z-[var(--z-overlay)]"
           }
-          style={horizontal ? { left: arrowInset } : { top: arrowInset }}
+          style={
+            horizontal
+              ? { left: arrowInset, top: `calc(50% + ${arrowVerticalOffsetPx}px)` }
+              : { top: arrowInset }
+          }
         >
           {horizontal ? "◀" : "▲"}
         </IconButton>
@@ -691,10 +710,14 @@ export function ScrollFadeArea({
           onClick={(e) => e.stopPropagation()}
           className={
             horizontal
-              ? "absolute top-1/2 -translate-y-1/2 text-[8px] leading-none z-[var(--z-overlay)]"
+              ? "absolute -translate-y-1/2 text-[8px] leading-none z-[var(--z-overlay)]"
               : "absolute left-1/2 -translate-x-1/2 text-[8px] leading-none z-[var(--z-overlay)]"
           }
-          style={horizontal ? { right: arrowInset } : { bottom: arrowInset }}
+          style={
+            horizontal
+              ? { right: arrowInset, top: `calc(50% + ${arrowVerticalOffsetPx}px)` }
+              : { bottom: arrowInset }
+          }
         >
           {horizontal ? "▶" : "▼"}
         </IconButton>

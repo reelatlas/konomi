@@ -36,16 +36,36 @@ export function ResultsHeader({ hasResults, onClearRecs }: ResultsHeaderProps) {
     // rendered height (ActionButton size="sm") — retune by hand if that
     // ever changes.
     //
-    // mb-[var(--space-2xl)]: this row's own gap to the card row below —
-    // the same token as every other gap in the header+card+mixer group
-    // (card→mixer, and the outer frame around the whole group) — see
-    // globals.css's --result-card-height comment for the full "one X
-    // everywhere" reasoning. --header-row-height in globals.css (36.5px,
-    // now a single flat value since this row can't wrap anymore) is this
-    // row's own *content* height only, read independently by the
-    // card-height clamp — this margin and that constant must never both
-    // change without checking the other.
-    <div className="flex flex-row items-center justify-between min-h-[36.5px] gap-x-[var(--space-lg)] mb-[var(--space-2xl)]">
+    // mb-[calc(var(--space-2xl)_-_7.08px)]: the *visual* gap from the
+    // title's own text to the card row below, which is the one that has
+    // to match card→mixer's 24px, not the raw margin value alone. Because
+    // this row is items-center (required — see below) and min-h pins it to
+    // Clear ✕'s 36.5px while the title's own text is only ~22.36px tall,
+    // centering leaves ~7.08px of invisible slack *below* the text before
+    // this margin even starts (the same slack sits above it too, harmless —
+    // it's just breathing room under the masthead gap). Left as a flat
+    // space-2xl, the text-to-card gap would visually read as ~31px
+    // (7.08 + 24), noticeably bigger than the mixer's tight 24px — confirmed
+    // live. Subtracting the slack here means margin + slack = 24 again,
+    // matching visually rather than just matching the token. Not swapping
+    // to items-end instead (which would remove the slack at its source):
+    // that would also un-center Clear ✕ from the title text (Clear already
+    // spans the row's full 36.5px either way, so its own alignment never
+    // moves it — only the title's alignment is actually in play here, and
+    // center is what keeps Clear vertically centered on the title, a
+    // separate, confirmed-correct requirement this fix must not undo).
+    // 7.08 = half of (36.5 − 22.36), both already-documented measured
+    // constants above — not a fresh guess, but also not expressible purely
+    // in existing tokens (the title's exact rendered line-height isn't one),
+    // so it's recorded here the same way this file already records 36.5
+    // and 417.
+    //
+    // --header-row-height in globals.css (36.5px, a single flat value
+    // since this row can't wrap anymore) is this row's own *content*
+    // height only, read independently by the card-height clamp — that
+    // constant and this margin must never both change without checking
+    // the other.
+    <div className="flex flex-row items-center justify-between min-h-[36.5px] gap-x-[var(--space-lg)] mb-[calc(var(--space-2xl)_-_7.08px)]">
       <div className="flex items-center gap-[var(--space-md)] min-w-0">
         {/* max-[417px]:hidden on the JP span — bisected live against this
             row's own worst-case content (title + Clear ✕ both mounted):

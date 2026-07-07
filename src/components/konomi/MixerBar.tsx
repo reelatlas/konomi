@@ -62,19 +62,36 @@ interface MixerBarProps {
 
 // Formerly MixerSection — now the app's one mixer bar, always present in a
 // compact "browse" form (slots, controls) that expands into a taller "edit"
-// form via an absolutely positioned overlay growing upward, instead of a
-// second overlay replacing it. See DESIGN_SYSTEM.md's "MixerBar" section
-// for the full rationale — this comment covers only the mechanics.
+// form that grows upward in place, instead of a second overlay replacing
+// it. See DESIGN_SYSTEM.md's "MixerBar" section for the full rationale —
+// this comment covers only the mechanics.
 //
 // Normal document flow, not position:fixed — the last section inside the
 // page's own max-w-[1280px] mx-auto column (see KonomiApp.tsx), sized and
 // framed as part of the header+card+mixer "fits one viewport" group rather
 // than a floating dock pinned to the viewport bottom. This was un-pinned
 // once already, reverted on explicit instruction, then re-approved with the
-// edit-mode-overlay design below specifically addressing what pinning used
+// edit-mode-growth design below specifically addressing what pinning used
 // to guarantee for free: edit mode growing upward without ever pushing
-// browse mode's own slots/controls out of place. See visibleCardRef's own
-// comment for how that overlay is anchored.
+// browse mode's own slots/controls out of place.
+//
+// One box, always — resize row, pool panel, slots, and controls are all
+// ordinary children of the SAME bordered/shadowed element (cardRef, below),
+// stacked in normal top-to-bottom flow, the same shape this bar had
+// originally under position:fixed. Two other structures were tried and
+// reverted before this one: `position:absolute` for the edit-mode content
+// (border-color matching, shadow clip-path, and an explicit overlap each
+// tried to hide the seam where it met the always-visible card, and each
+// left a different artifact there — a hairline, a clipped-background band,
+// a border notch — since two independently positioned/composited boxes
+// meeting at a boundary is inherently seam-prone); then a flex-col-reverse
+// + fixed-height + overflow-visible split (both boxes position:static, no
+// compositing-layer risk, but still two separately decorated perimeters
+// meeting at one edge — confirmed live to still show a border/shadow
+// mismatch there). One box removes the boundary itself: nothing is drawn
+// twice, so there's nothing to reconcile. See cardRef's own comment (in
+// the component body below) for the marginTop mechanism that still lets
+// it grow upward without moving slots/controls.
 //
 // No header row in either mode — no title, no JP subtitle, no filled-
 // count badge. Both used to occupy their own Row 1 above the pool panel;
@@ -103,12 +120,10 @@ interface MixerBarProps {
 // down twice-removed). One block appearing/disappearing in one place
 // reads as calmer than that.
 //
-// `@container` lives on visibleCardRef (the actual card, not barRef, its
-// transparent outer wrapper) and is duplicated onto the edit-mode overlay
-// (a sibling of visibleCardRef's content, not a descendant, once pulled
-// out into its own absolutely positioned box — see that element's own
-// comment) so LevelSelector/SortSelect's `@min-[480px]`/`@max-[352px]`
-// queries inside it keep measuring the same resolved width either way.
+// `@container` lives on cardRef itself now, the one box everything is a
+// child of — LevelSelector/SortSelect's `@min-[480px]`/`@max-[352px]`
+// queries inside the resize-handle row read this same context slots/
+// controls would too, if they needed it.
 //
 // The pool panel (TagPoolBody, which now owns its own combined
 // SectionTabStrip + Level/Sort row, plus the chip area) is always
@@ -170,27 +185,75 @@ export function MixerBar({
   const level = useLevel();
   const sort = useSort();
 
-  const barRef = useRef<HTMLDivElement>(null);
-  // The visible floating card itself (border/bg/shadow, capped max-w) —
-  // kept distinct from barRef even though barRef has no padding of its own
-  // and its box is identical to visibleCardRef's (barRef holds nothing
-  // else — see barRef's own JSX comment for why the edit-mode overlay
-  // anchors against barRef specifically rather than this ref, despite the
-  // two being geometrically the same box). visibleCardRef remains the one
-  // this file's other logic (click-outside, resize measurement) reads
-  // from, since it's the semantically real element (the card), not the
-  // incidental wrapper around it.
-  const visibleCardRef = useRef<HTMLDivElement>(null);
-  // The edit-mode-only overlay (resize-handle row + pool panel) — absolutely
-  // positioned, bottom-full against barRef (see its own comment below), so
-  // it's a sibling of visibleCardRef rather than a descendant sharing its
-  // flow height. Needed as its own ref (distinct from dialogRef, which is
-  // just the pool panel itself) for the click-outside/fixedOverheadPx
-  // measurement below, both of which need the overlay's *own* rendered
-  // box, not just the pool panel's.
-  const overlayRef = useRef<HTMLDivElement>(null);
+  // cardRef is the one bordered/shadowed box — everything (resize row,
+  // pool panel, slots, controls) is a normal child of it now. No more
+  // separate boxes for "always visible" vs "edit-mode" content: every
+  // earlier attempt to make two independently decorated boxes read as one
+  // continuous shape at their shared edge (border-color matching, shadow
+  // clip-path, a flex-col-reverse split) left a different artifact right
+  // at that edge — a hairline seam, a clipped-background band, a border
+  // notch — because there were always two separately painted perimeters
+  // meeting at a boundary. One box has no boundary to meet at: its
+  // border/shadow are drawn once, around whatever its actual total
+  // content is, the same guarantee any other card in this app already
+  // gets. See the marginTop mechanism below for how this box still grows
+  // upward without pushing slots/controls out of place, now that its own
+  // height genuinely changes with content instead of being masked behind
+  // absolute positioning or a fixed-height overflow trick.
+  const cardRef = useRef<HTMLDivElement>(null);
+  // Wraps just the resize-handle row + pool panel — unstyled (no border/
+  // padding/background of its own), purely so its own rendered height can
+  // be measured in one place (see the effect below). Zero height in
+  // browse mode (resize row isn't rendered, dialogRef is max-h-0), so the
+  // marginTop it drives is correctly 0 there without any special-casing.
+  const growableRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
+
+  // The negative-margin technique that lets cardRef grow upward (edit
+  // mode's extra content pushes its own top edge up) without ever moving
+  // its own bottom edge (where slots/controls sit): cardRef's natural,
+  // unshifted position in the page never changes (nothing before it in
+  // the page depends on editMode), and its own height grows by exactly
+  // growableRef's own height when editMode adds real content there.
+  // Applying marginTop: -growableRef's-height shifts the *whole box* up
+  // by that same amount — algebraically, its rendered bottom edge
+  // (natural top + own height + marginTop) works out to natural top +
+  // (slots + controls + border/padding), a quantity with no dependency
+  // on growableRef's own height at all, so it's identical in both modes.
+  // This is the same "bottom stays put, top grows upward" guarantee
+  // position:fixed used to give this bar for free, reached through the
+  // ordinary box model plus one measured number instead of a second
+  // positioning scheme.
+  //
+  // That measured number is deliberately NOT "growableRef's current
+  // height, read fresh via ResizeObserver on every change" — that was
+  // tried first and confirmed live as a real bug: dragging the resize
+  // handle visibly glitched, because every mousemove synchronously
+  // updates dragHeightPx/effectiveHeightPx (React state, applied
+  // immediately) while a *separate* ResizeObserver watching growableRef
+  // only learns the resulting height back asynchronously, after the
+  // browser lays it out — two independent updates per drag tick that
+  // don't reliably land in the same commit, so the margin lagged one
+  // frame behind the height it's supposed to cancel, every single tick.
+  // Exactly the "JS measurement decides layout, which changes size,
+  // which re-triggers the measurement" pattern this app has hit before
+  // (see DESIGN_SYSTEM.md) — the fix here is the same one: stop letting
+  // a ResizeObserver sit in the fast-changing path.
+  //
+  // Instead, this splits growableRef's own height into two parts: the
+  // pool panel's own share, which is exactly effectiveHeightPx (already
+  // synchronous React state — the *same* value driving the drag, updated
+  // in the *same* render, no observer round-trip needed) — and
+  // everything else in growableRef (the resize-handle row, if shown, and
+  // dialogRef's own small margin), which is measured via ResizeObserver
+  // as growableFixedOverheadPx below. That second part only actually
+  // changes at real breakpoints (the resize row's own responsive wrap),
+  // never during a plain height drag, so it staying a render behind is
+  // never visibly wrong — the two terms below always add back up to
+  // growableRef's true current height, computed synchronously with
+  // effectiveHeightPx instead of waiting on it.
+  const [growableFixedOverheadPx, setGrowableFixedOverheadPx] = useState(0);
 
   // Esc and click-outside close edit mode on every device — mobile,
   // desktop, all of them, not gated to any one input type. No explicit
@@ -213,7 +276,7 @@ export function MixerBar({
     }
     function handlePointerDown(e: MouseEvent) {
       const target = e.target as Node;
-      if (visibleCardRef.current?.contains(target) || overlayRef.current?.contains(target)) return;
+      if (cardRef.current?.contains(target)) return;
       // Explicit allowlist, not "anywhere in the main content column" (an
       // earlier version excluded that whole column via a single
       // data-konomi-content ancestor check) — everything else in that
@@ -295,7 +358,7 @@ export function MixerBar({
   // there's just nothing inside dialogRef to exclude yet in that state
   // (it's max-h-0).
   useEffect(() => {
-    const bar = barRef.current;
+    const bar = cardRef.current;
     if (!bar) return;
 
     let touchStart: { x: number; y: number } | null = null;
@@ -349,12 +412,29 @@ export function MixerBar({
   // an accepted v1 gap, see DESIGN_SYSTEM.md. This still moves focus in on
   // open and back to whatever triggered it on close, which is the cheap,
   // uncontroversial half of dialog focus management.
+  //
+  // preventScroll: true on both calls — confirmed live as a real bug
+  // without it: cardRef's own negative marginTop (see
+  // growableFixedOverheadPx's comment) means dialogRef briefly renders
+  // partially above the
+  // viewport's own top edge the instant it mounts/becomes visible, before
+  // the browser has any reason to know that's intentional. A plain
+  // .focus() call's default behavior is to scroll whatever it focused
+  // into view — the browser doesn't know the margin is deliberately
+  // compensating for that box's own growth, only that the newly focused
+  // element isn't fully visible, so it scrolled the page by exactly the
+  // amount cardRef grew — which reads as this whole bar visibly jumping
+  // on open, the exact "never moves" guarantee this file works so hard
+  // to provide. slots/controls' own page position never actually
+  // changed (confirmed via getBoundingClientRect diffed against the
+  // page, not the viewport) — this was purely the browser's own focus-
+  // scroll, not a layout bug.
   useEffect(() => {
     if (editMode) {
       previouslyFocused.current = document.activeElement as HTMLElement | null;
-      dialogRef.current?.focus();
+      dialogRef.current?.focus({ preventScroll: true });
     } else {
-      previouslyFocused.current?.focus();
+      previouslyFocused.current?.focus({ preventScroll: true });
     }
   }, [editMode]);
 
@@ -391,45 +471,37 @@ export function MixerBar({
   // together sidesteps that ordering entirely — nothing here depends on
   // which render or effect ran last.
   const [fixedOverheadPx, setFixedOverheadPx] = useState<number | null>(null);
-  // overlay.height - dialog.height = the resize-handle row + the overlay's
-  // own padding/border (everything in the overlay that isn't the pool panel
-  // itself); + card.height = visibleCardRef's own always-fixed content
-  // (slots + controls + its border/padding), no longer measurable from
-  // barRef directly now that the overlay is position:absolute and doesn't
-  // contribute to barRef's flow height the way it did when this bar was
-  // fixed and the pool panel was an in-flow descendant. Together these two
-  // terms are exactly "everything in the edit sheet that isn't the pool
-  // panel," the same quantity this always measured, just read from the new
-  // split layout instead of one flow height minus another.
+  // card.height - dialog.height = everything in the edit sheet that ISN'T
+  // the pool panel (resize row, slots, controls, cardRef's own border +
+  // padding) — now a single subtraction since there's only one box, rather
+  // than summing an overlay-region term and a card term separately.
   //
   // + surplusBelow accounts for a case that couldn't happen when this bar
   // was fixed to the viewport bottom (card.bottom was always exactly
   // window.innerHeight): now that the bar sits in normal flow, a tall
   // desktop viewport can leave real dead space *below* the mixer (the
   // "surplus goes to margins, never internal gaps" rule elsewhere in this
-  // app's layout). That space isn't available for the overlay to grow into
-  // — it only grows upward from the mixer's own top edge — so folding it
-  // into the overhead here correctly lowers the ceiling by exactly that
-  // amount rather than overestimating how much room is actually above the
-  // bar. Zero whenever the mixer's bottom already sits at the viewport's
-  // own bottom edge (every case this measurement used to cover).
+  // app's layout). That space isn't available for the pool panel to grow
+  // into — it only grows upward from the mixer's own top edge — so
+  // folding it into the overhead here correctly lowers the ceiling by
+  // exactly that amount rather than overestimating how much room is
+  // actually above the bar. Zero whenever the mixer's bottom already sits
+  // at the viewport's own bottom edge (every case this measurement used
+  // to cover).
   useEffect(() => {
     if (!editMode) return;
-    const overlay = overlayRef.current;
+    const card = cardRef.current;
     const dialog = dialogRef.current;
-    const card = visibleCardRef.current;
-    if (!overlay || !dialog || !card) return;
+    if (!card || !dialog) return;
     function measure() {
-      const overlayHeight = overlay!.getBoundingClientRect().height;
-      const dialogHeight = dialog!.getBoundingClientRect().height;
       const cardHeight = card!.getBoundingClientRect().height;
+      const dialogHeight = dialog!.getBoundingClientRect().height;
       const surplusBelow = Math.max(0, window.innerHeight - card!.getBoundingClientRect().bottom);
-      setFixedOverheadPx(Math.max(0, overlayHeight - dialogHeight + cardHeight + surplusBelow));
+      setFixedOverheadPx(Math.max(0, cardHeight - dialogHeight + surplusBelow));
     }
     const observer = new ResizeObserver(measure);
-    observer.observe(overlay);
-    observer.observe(dialog);
     observer.observe(card);
+    observer.observe(dialog);
     measure();
     // Surplus-below depends on window.innerHeight directly, which can
     // change (mobile chrome show/hide, orientation) without any observed
@@ -470,6 +542,40 @@ export function MixerBar({
   // rows are never pushed below the fold) holds regardless of where this
   // number came from.
   const effectiveHeightPx = clampPoolPanelHeight(dragHeightPx ?? persistedHeightPx ?? defaultPoolHeightPx, poolPanelMaxHeight);
+
+  // effectiveHeightPxRef mirrors effectiveHeightPx every render without
+  // being a dependency of the effect below — same ref-mirroring pattern
+  // onCloseEditModeRef already uses further down, for the identical
+  // reason: the effect's own observer setup/teardown must stay stable
+  // (not tear down and re-subscribe on every drag tick), while the
+  // measure() callback it registers still needs to read the CURRENT
+  // effectiveHeightPx whenever it actually runs, not a value frozen from
+  // whenever the effect last (re-)ran.
+  const effectiveHeightPxRef = useRef(effectiveHeightPx);
+  useEffect(() => {
+    effectiveHeightPxRef.current = effectiveHeightPx;
+  });
+
+  // Measures growableFixedOverheadPx — see that state's own comment
+  // (near its declaration) for why this is deliberately NOT the fast-
+  // changing path: growableRef.height - effectiveHeightPx is the part of
+  // growableRef that ISN'T the pool panel (resize row, dialogRef's own
+  // margin), which only actually changes at real breakpoints, never
+  // during a plain resize-drag — effectiveHeightPx itself changes every
+  // drag tick, but it's subtracted out here specifically so this stored
+  // number doesn't have to.
+  useEffect(() => {
+    if (!editMode) return;
+    const growable = growableRef.current;
+    if (!growable) return;
+    function measure() {
+      setGrowableFixedOverheadPx(Math.max(0, growable!.getBoundingClientRect().height - effectiveHeightPxRef.current));
+    }
+    const observer = new ResizeObserver(measure);
+    observer.observe(growable);
+    measure();
+    return () => observer.disconnect();
+  }, [editMode]);
 
   // Quick-resize buttons in the resize-handle row — 50%/100% are both
   // fractions of the SAME reference, poolPanelMaxHeight (the live-measured
@@ -563,7 +669,7 @@ export function MixerBar({
     // Normal document flow now, the last section of the page's own
     // max-w-[1280px] mx-auto column (see KonomiApp.tsx) — no longer
     // position:fixed. Un-pinning this (STOP'd once, then re-approved with
-    // the edit-mode-overlay design below) is what lets the header+card+
+    // the edit-mode-growth design below) is what lets the header+card+
     // mixer group read as one uniformly-framed block that simply *is* the
     // bottom of the page, rather than a floating dock the page's own
     // content had to reserve clearance for (KonomiApp's old
@@ -572,120 +678,77 @@ export function MixerBar({
     // ancestor (left/right) and KonomiApp's own root pb-[space-2xl]
     // (bottom) — this wrapper adding its own would double-count both.
     //
-    // barRef is now the positioned ancestor (relative, below) both
-    // visibleCardRef and the edit-mode overlay anchor against — not
-    // visibleCardRef itself, even though visibleCardRef is the one that
-    // *looks* like the card. That distinction matters: visibleCardRef has
-    // its own px/border, so anchoring the overlay's inset-x-0/bottom-full
-    // against IT would resolve those offsets against visibleCardRef's
-    // *padding* box (the containing block for an absolutely positioned
-    // descendant is its nearest positioned ancestor's padding edge, not
-    // its border edge) — inset by visibleCardRef's own border-width on
-    // every side, confirmed live as a real bug: the overlay rendered
-    // narrower than visibleCardRef and its borders didn't line up.
-    // barRef has no padding/border of its own, so its padding box and
-    // border box are identical, and identical to visibleCardRef's own
-    // outer edges (barRef's only content) — anchoring here instead makes
-    // the overlay exactly as wide as visibleCardRef, edge to edge.
-    <div ref={barRef} className="relative">
-      {/* The edit-mode overlay: resize-handle row + pool panel, absolutely
-          positioned bottom-full against barRef (see its own comment
-          above) instead of stacking in normal flow above the slots/
-          controls rows below, in visibleCardRef. bottom:100% (Tailwind's
-          bottom-full) places this box's own bottom edge exactly at
-          barRef's top edge — which, since barRef's box is identical to
-          visibleCardRef's own, is exactly visibleCardRef's own top
-          border — the same "sits directly above the slots" spot this
-          content occupied before this restructuring, just reached via
-          absolute positioning (so it grows upward without pushing
-          visibleCardRef's own document position/height) rather than
-          flowing in-line above them. Unclipped by design: an absolutely
-          positioned box extending above its containing block's own top
-          edge simply paints over whatever is there (the results grid) —
-          no overflow:hidden anywhere in this chain would make sense,
-          since the whole point is for edit mode to visibly overlay
-          content above it, the same "expected bottom-sheet behavior"
-          this file's own top comment already documents.
+    // One box now, not two — resize row, pool panel, slots, and controls
+    // are all ordinary children of the SAME bordered/shadowed element,
+    // stacked in normal top-to-bottom flow (the same shape this bar had
+    // originally, before position:fixed was removed). Every earlier
+    // attempt to make two separately decorated boxes read as one
+    // continuous shape at their shared edge — border-color matching,
+    // shadow clip-path, a flex-col-reverse split with two independently
+    // styled halves — left a different artifact right at that boundary,
+    // because there were always two separate perimeters meeting there.
+    // One box has no boundary to meet at: its border and shadow are
+    // drawn once, around whatever its actual total content is, the same
+    // guarantee any other card in this app already gets.
+    //
+    // marginTop (inline style, below) is what still lets this box grow
+    // upward without ever moving slots/controls — see
+    // growableFixedOverheadPx's own comment above (near its declaration)
+    // for the exact mechanism.
+    // The ternary reads `editMode` directly (not just the measured state
+    // variable) so the margin snaps back to 0 the instant editMode goes
+    // false, rather than waiting on the measurement effect's own cleanup
+    // to catch up.
+    <div
+      ref={cardRef}
+      style={{ marginTop: editMode ? -(growableFixedOverheadPx + effectiveHeightPx) : 0 }}
+      // relative z-[var(--z-overlay)] — confirmed live as a real bug
+      // without it: this box is otherwise position:static with no
+      // z-index, but ResultCard's own front face (ResultCard.tsx) is
+      // `position:absolute` with an explicit z-[var(--z-raised)] — per
+      // the CSS painting order, any positioned element with an explicit
+      // z-index always paints above a plain static element, *regardless
+      // of DOM order*, so every result card was painting on top of this
+      // box whenever its own (upward-growing) content visually reached
+      // into that space, interleaving pool-panel chips with card art
+      // showing through. The earlier two-box design didn't have this
+      // problem because the old overlay div carried z-[var(--z-overlay)]
+      // itself; consolidating into one box dropped that along with the
+      // rest of its styling. z-overlay (not z-raised) — needs to
+      // outrank ResultCard's own z-raised front face, the same token
+      // this bar's own fixed-position era already used for the same
+      // "sits on top of everything" requirement.
+      className="relative z-[var(--z-overlay)] @container max-w-[1280px] mx-auto px-[var(--space-2xl)] py-[var(--space-xl)] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-4)]"
+    >
+      {/* growableRef wraps just the resize-handle row + pool panel — see
+          growableFixedOverheadPx's own comment above for why this exists
+          purely for measurement, with no border/background/padding of
+          its own.
+          Sits directly above the slots — not between the slots and
+          controls, where an earlier version placed it — so opening/
+          closing edit mode only ever inserts/removes this one block in a
+          single spot, rather than also shifting the slots row itself
+          down and back.
 
-          @container + max-w-[1280px] mx-auto duplicate visibleCardRef's
-          own — this box needs its OWN container-query width basis for
-          LevelSelector/SortSelect's @min-/@max- queries inside the
-          resize-handle row below, since it's a sibling of visibleCardRef,
-          not a descendant of its @container. Same resolved width either
-          way (both are max-w-[1280px] mx-auto inside the same page
-          column, and now both anchor to the same barRef edges too), so
-          none of those breakpoints shift.
-
-          No border-bottom here, ever. visibleCardRef's own border-top is
-          UNCONDITIONAL now — always present, in both modes, never removed
-          (see its own comment: removing it once caused slots/controls to
-          visibly shift position when toggling edit mode, since that would
-          have changed visibleCardRef's own rendered height — an explicit
-          hard "never move" requirement that wins over a perfectly
-          border-free seam). Seamlessness is achieved differently instead:
-          bottom-[calc(100%-var(--border-base))], not bottom-full — this
-          box's own bottom edge sits `--border-base` (2px) *below* where
-          bottom-full would put it, i.e. 2px *into* visibleCardRef's own
-          top edge, exactly overlapping its border-top. This box's own
-          background then paints over that overlap, visually covering
-          visibleCardRef's border-top line entirely (this box's z-overlay
-          stacks above it) — the seam reads as seamless without either
-          box's own layout dimensions ever changing between modes.
-
-          pointer-events-none while !editMode: this box is otherwise
-          empty chrome (zero-height, see dialogRef's own max-h-0 below)
-          in browse mode, but an absolutely positioned box still
-          participates in hit-testing by default regardless of its
-          rendered size being zero in the *common* case — explicitly
-          disabling pointer events here removes any risk of this box
-          ever intercepting hover/click meant for whatever's beneath or
-          around it (the results cards, this bar's own buttons) when it
-          has no visible content to justify doing so.
-
-          px/pt/border/bg/shadow are all editMode-only: in browse mode
-          this box holds only the zero-height dialogRef (max-h-0
-          overflow-hidden, see its own comment below) and must contribute
-          no visible padding or chrome of its own, or it'd read as an
-          empty framed strip floating above the bar. pt-[space-xl] matches
-          visibleCardRef's own py-[space-xl] top half, so edit mode's
-          overlay reads as a seamless upward continuation of the same
-          card rather than a differently-padded panel bolted on above it.
-          No pb here at all (unlike an earlier pass, pb-[space-lg]) — the
-          2px overlap above already supplies the seam's visual "closing"
-          space, and visibleCardRef's own unconditional pt-xl (16px) is
-          the only remaining gap before the slots row; adding this box's
-          own pb on top would stack unnecessarily on top of that fixed
-          16px instead of keeping the join as tight as the invariant
-          upstream (visibleCardRef never changing) allows.
-
-          shadow-[var(--elev-4)] plus [clip-path:inset(0_-5px_0_0)], not a
-          plain shadow-[var(--elev-4)] alone: elev-4 (5px right, 5px down,
-          0 blur — the same hard offset shadow every other card in this app
-          uses, see visibleCardRef below and ResultCard.tsx) is kept as-is
-          so this box's OWN right-edge shadow matches that standard
-          pattern exactly (including its natural top notch — expected,
-          same everywhere else, not something to paper over here). What
-          has to change is the *bottom* — elev-4's own 5px down-offset
-          would otherwise paint a shadow band across the seam where this
-          box meets visibleCardRef below it, breaking the "one cohesive
-          rectangle" the border-overlap above already achieves. clip-path
-          doesn't change the shadow value at all, just where it's allowed
-          to paint: inset(0 -5px 0 0) sits flush with this box's own top/
-          left/bottom edges (0, and "bottom" here means this box's own
-          *new*, 2px-lower bottom edge post-overlap) while expanding 5px
-          past the right edge (-5px) — exactly enough room for the
-          right-edge shadow to still show, while anything the shadow
-          would otherwise paint *below* this box's own bottom edge gets
-          clipped away outright. */}
-      <div
-        ref={overlayRef}
-        className={[
-          "absolute inset-x-0 bottom-[calc(100%-var(--border-base))] @container max-w-[1280px] mx-auto z-[var(--z-overlay)]",
-          editMode
-            ? "px-[var(--space-2xl)] pt-[var(--space-xl)] border-x-[length:var(--border-base)] border-t-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-4)] [clip-path:inset(0_-5px_0_0)]"
-            : "pointer-events-none",
-        ].join(" ")}
-      >
+          flow-root — confirmed live as a real bug without it: this div
+          has no border/padding of its own, and neither dialogRef's own
+          mb-[space-lg] nor the resize row's own mb-xl are contained by
+          it as a result — an unbroken parent/child edge lets a margin
+          collapse straight through, meaning it takes up real vertical
+          space in the page but isn't reflected in THIS element's own
+          getBoundingClientRect().height, which is exactly what feeds
+          growableFixedOverheadPx (and, added to effectiveHeightPx,
+          cardRef's own negative marginTop). Under-measuring by that
+          collapsed amount meant the
+          margin never fully canceled this box's own contribution —
+          slots/controls visibly shifted position by tens of px when
+          opening edit mode, the exact regression this whole mechanism
+          exists to prevent. flow-root establishes a new block formatting
+          context, the same fix RecommendationsBody.tsx already uses for
+          an identical collapse-through-the-parent case — margins stop
+          escaping this box's own boundary, so its measured height always
+          matches its true footprint. */}
+      <div ref={growableRef} className="flow-root">
       {/* Resize handle + Tag Density/Sort filters, one row — above the
           pool panel, at the very top of the edit surface. Grip + quick-
           resize shortcuts group on the left, filters on the right; both
@@ -777,7 +840,18 @@ export function MixerBar({
               controls' own shadow-[var(--elev-2)] bleed at the trailing
               edge. fitContent: this group's children (label/icon/
               selector pairs) are naturally sized — see ScrollFadeArea's
-              own comment on that prop. */}
+              own comment on that prop.
+
+              arrowVerticalOffsetPx={-13} (half of the 26px pb above,
+              negative to shift up): the pb-26 makes THIS row's own
+              ScrollFadeArea root 26px taller than the visible controls
+              alone, since that padding lives inside its measured content
+              — its arrows' default 50% centers on the full padded box,
+              landing visibly low relative to the controls themselves
+              (confirmed live as a real bug — the exact "aligned bottom
+              instead of center" report this prop exists to fix). Half
+              the extra padding re-centers the arrow on the controls, not
+              the hover-subtext clearance beneath them. */}
           {/* This row's own responsive ladder, widest to narrowest — same
               flat-CSS, dual-render, no-ResizeObserver pattern as Row 3's
               ladder above, just container- rather than viewport-scoped
@@ -809,7 +883,7 @@ export function MixerBar({
               deliberately joining the @max-[352px] "final step" tier for
               the same consistency reason above. */}
           <div ref={filtersScrollRef} className="min-w-0 w-fit -mb-[26px] -mr-[4px]">
-            <ScrollFadeArea orientation="horizontal" scrollStep={140} fadeSize={12} fitContent>
+            <ScrollFadeArea orientation="horizontal" scrollStep={140} fadeSize={12} fitContent arrowVerticalOffsetPx={-13}>
               <div className="flex items-center gap-[var(--space-lg)] flex-nowrap pb-[26px] pr-[4px]">
                 <div className="@max-[352px]:hidden flex items-center gap-[var(--space-sm)] shrink-0">
                   {/* hidden @min-[480px]:inline — same breakpoint Row 3's
@@ -992,7 +1066,16 @@ export function MixerBar({
         aria-modal="true"
         aria-label="Edit tags"
         tabIndex={-1}
-        className={editMode ? "flex flex-col outline-none" : "max-h-0 overflow-hidden"}
+        // mb-xl (16px), not mb-lg (12px) like this row's other internal
+        // gaps: this is specifically the gap the chip area's down arrow
+        // sits flush against (bottom:0, no inset of its own — see
+        // ScrollFadeArea). Widening the actual edge here, rather than
+        // offsetting the arrow away from it, keeps the arrow visually flush
+        // with its own boundary while still giving it more breathing room
+        // before the slots below — confirmed live that nudging the arrow's
+        // own inset instead left it floating oddly off the edge it's meant
+        // to sit against.
+        className={editMode ? "flex flex-col mb-[var(--space-xl)] outline-none" : "max-h-0 overflow-hidden"}
       >
         <TagPoolBody
           allTags={allTags}
@@ -1003,89 +1086,6 @@ export function MixerBar({
         />
       </div>
       </div>
-
-      <div
-        ref={visibleCardRef}
-        className={[
-          // The visible floating card — capped width, centered, matching
-          // the app's other card chrome (square corners, standard border,
-          // hard offset shadow). elev-4 matches ResultCard's card-level
-          // elevation, not Masthead's elev-5 — Masthead's heavier shadow is
-          // paired with its one-off rotate flourish, not the app's default
-          // "flat card" treatment this bar should match instead.
-          //
-          // @container stays on this box — see this file's top comment for
-          // why (measuring the raw viewport width instead of this capped
-          // width would silently shift the @min-[480px] breakpoint below).
-          // Confirmed live that nesting inside KonomiApp's own identical
-          // max-w-[1280px] mx-auto wrapper resolves to the same width this
-          // box already had as a page-level sibling, so none of this box's
-          // own @container breakpoints needed re-bisecting for the move.
-          //
-          // px/pb here are this card's own content padding (unchanged from
-          // before) — space-2xl (24px), the standard card padding this app
-          // already uses (Masthead's own px-[var(--space-2xl)]) — not a
-          // smaller mobile-specific value: a couple of earlier passes tried
-          // shrinking this (down to space-lg, even space-xs) specifically
-          // to avoid tipping the controls row's wrap at 390px from 2 lines
-          // to 3, but real, standard card padding (in both browse and edit
-          // mode alike, same box) matters more than preserving the exact
-          // old wrap count. pt is split out from this and made conditional
-          // below — see that comment.
-          //
-          // Deliberately flat at every breakpoint — no min-[993px] step to
-          // a larger desktop value. This one stays constant from smallest
-          // to largest viewport; revisit by hand later if it reads as too
-          // generous on narrow mobile once tested live.
-          //
-          // The controls row wrapping to a 3rd line (Recommend drops below
-          // Random/Clear) at 390px is an accepted, minor consequence of
-          // this — see EDIT_MODE_FIXED_ROWS_HEIGHT, re-measured live
-          // against this.
-          //
-          // No `relative` here — barRef (the actual parent, above) is the
-          // positioned ancestor the edit-mode overlay anchors against
-          // instead, specifically so the overlay's edges resolve against
-          // barRef's border-box-equivalent padding box rather than this
-          // element's own (see barRef's own comment for why that
-          // distinction matters).
-          //
-          // border-t and pt-xl are UNCONDITIONAL — always present, exactly
-          // the same in both modes. This box's own box (border, padding,
-          // everything) must never change shape based on editMode: slots/
-          // controls are fixed at a page position derived entirely from
-          // this box's own top edge (itself fixed, set by whatever's
-          // before it in the page — masthead, header, cards — none of
-          // which depend on editMode either), so the only way slots could
-          // ever visibly move between modes is if THIS box's own rendered
-          // height changed. It was made conditional once, to remove the
-          // border/gap at the seam — confirmed live as a real regression
-          // (slots visibly shifted position when toggling edit mode) and
-          // reverted. The seamless look below is achieved without this box
-          // changing at all — see the overlay's own comment for how.
-          "@container max-w-[1280px] mx-auto px-[var(--space-2xl)] py-[var(--space-xl)] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)]",
-          // Shadow is one value or the other, never both classes at once
-          // (two separate shadow-[...] utilities targeting the same
-          // box-shadow property would just have one silently overwrite the
-          // other, not merge) — paint-only, no layout box of its own, so
-          // it can safely vary by mode without risking the shift above.
-          // Plain shadow-[var(--elev-4)] (5px right, 5px down, 0 blur)
-          // naturally leaves a small 5×5 gap unshadowed at the very top of
-          // the right edge (its shifted copy only starts at y=5) — the
-          // standard pattern every other card in the app also has
-          // (ResultCard, etc.), fine on its own in browse mode. In edit
-          // mode, that notch sits right at the seam with the overlay's own
-          // right-edge shadow above it, breaking the otherwise-continuous
-          // edge. The second, comma-separated shadow (5px_0_0_var(--ink),
-          // no y-offset) fills exactly that notch — its own shifted copy
-          // has no y-offset, so it covers the full right edge top-to-bottom
-          // with no gap — added *alongside* elev-4, not replacing it, so
-          // the real bottom-right corner shadow (this card's own,
-          // unclipped, the true bottom of the whole combined shape) is
-          // untouched.
-          editMode ? "shadow-[var(--elev-4),5px_0_0_var(--ink)]" : "shadow-[var(--elev-4)]",
-        ].join(" ")}
-      >
 
         {/* Row 2: the 3 tag slots. Fixed — never resizes, never scrolls,
             regardless of how tall the pool panel above gets dragged. */}
@@ -1334,7 +1334,6 @@ export function MixerBar({
             <RecommendButton filledCount={filledCount} onRecommend={onRecommend} error={error} />
           </div>
         </div>
-      </div>
     </div>
   );
 }

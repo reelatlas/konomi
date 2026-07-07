@@ -748,6 +748,53 @@ export function ResultCard({
                 </div>
               </div>
             )}
+            {/* Small-card blurred-cover fill — below the 731px reflection
+                gate above, there's no physically-continuous reflection to
+                show through the veil, so without this the tag area's only
+                background was a flat --fill color under a 10% tint: just a
+                muted swatch, no actual cover mood coming through. Reuses
+                BACK's own full-bleed blurred-cover technique verbatim (same
+                BACK_FILL_* constants — this is that same treatment, not a
+                new one) so small cards read as "cover continuing through,
+                with the scrim on top" the same way large cards do via the
+                real reflection, just a blurred stand-in instead of the
+                genuine continuation. Complementary breakpoint to the
+                reflection block above (hidden ABOVE 731px instead of below
+                it) — once the real reflection is showing there's nothing
+                for this to add, and it's never wanted layered underneath
+                it either. No z-index of its own — paints behind the veil's
+                explicit z-[var(--z-base)] by the same static-vs-positioned
+                stacking rule documented in MixerBar.tsx, not by DOM order,
+                so it doesn't need to out-rank anything explicitly. */}
+            {hasImage && !reflectionBroken && (
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 pointer-events-none [@media(min-height:731px)]:hidden"
+                style={{ opacity: BACK_FILL_OPACITY }}
+              >
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    width: `${100 / BACK_FILL_SCALE_DOWN}%`,
+                    height: `${100 / BACK_FILL_SCALE_DOWN}%`,
+                    transformOrigin: "top left",
+                    transform: `scale(${BACK_FILL_SCALE_DOWN})`,
+                  }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element -- plain <img>, blurred well past next/image's own optimized sizes mattering, sharing the sharp cover's cached URL */}
+                  <img
+                    src={series.coverImageUrl as string}
+                    alt=""
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      filter: `blur(${BACK_FILL_BLUR_PX / BACK_FILL_SCALE_DOWN}px)`,
+                    }}
+                  />
+                </div>
+              </div>
+            )}
             {/* Veil: --cover-reflection-veil (globals.css) — a translucent
                 wash of this theme's --slot-empty over the tag area, so it
                 reads as this app's own muted surface with a hint of the
