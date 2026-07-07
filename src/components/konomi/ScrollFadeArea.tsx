@@ -525,9 +525,9 @@ export function ScrollFadeArea({
           // pool panel chip area scrolled all the way down), continuing
           // the same gesture must not chain into scrolling whatever's
           // behind/beneath this component on that SAME axis — the page
-          // itself for the pool panel, since MixerBar is a fixed overlay
-          // that visually reads as its own surface, not a transparent
-          // window onto the page scrolling underneath it. Native browser
+          // itself for the pool panel, which reads as its own surface (a
+          // bordered/shadowed card, not a transparent window), regardless
+          // of whether MixerBar itself sits in normal flow or not. Native browser
           // behavior (default overscroll-behavior: auto) chains to the
           // next scrollable ancestor once a nested scroll container
           // bottoms out — this opts every ScrollFadeArea instance out of
