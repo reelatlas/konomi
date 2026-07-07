@@ -11,6 +11,12 @@ interface RecommendationsBodyProps {
   filledCount: number;
   minNum: number;
   recommendGen: number;
+  // Index of the first genuinely new card in `results` after the last
+  // successful RECOMMEND — see useKonomi.ts's own comment on this field.
+  // 0 whenever nothing's locked (every card is new), so this is a strict
+  // generalization of "always scroll back to the first card," not a
+  // separate behavior.
+  firstNewIndex: number;
   locked: Record<string, boolean>;
   flipped: Record<string, boolean>;
   canSwap: boolean;
@@ -34,6 +40,7 @@ export function RecommendationsBody({
   filledCount,
   minNum,
   recommendGen,
+  firstNewIndex,
   locked,
   flipped,
   canSwap,
@@ -264,6 +271,7 @@ export function RecommendationsBody({
             snap
             scrollPaddingStart="6%"
             scrollResetKey={recommendGen}
+            scrollResetIndex={firstNewIndex}
             getScrollStep={getScrollStep}
             fadeSize={0}
             arrowWidth={36}

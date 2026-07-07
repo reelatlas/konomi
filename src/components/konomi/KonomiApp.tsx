@@ -151,6 +151,7 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
             filledCount={k.filledCount}
             minNum={k.minNum}
             recommendGen={k.recommendGen}
+            firstNewIndex={k.firstNewIndex}
             locked={k.locked}
             flipped={k.flipped}
             canSwap={k.canSwap}

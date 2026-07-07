@@ -73,6 +73,21 @@ interface ScrollFadeAreaProps {
   // "recommendGen bumped, scroll back to card 0" behavior into a prop
   // instead of a caller-owned ref + effect.
   scrollResetKey?: unknown;
+  // Which "unit" scrollResetKey resets to, in getScrollStep/scrollStep
+  // units from the start edge — 0 (default) is the original "back to the
+  // very first card/item" behavior, unchanged for every caller that
+  // doesn't pass this. Added for the results carousel: after a RECOMMEND
+  // with some cards locked, the first *new* card isn't always index 0
+  // (locked cards keep their own existing position rather than being
+  // compacted to the front — see useKonomi.ts's own comment), so landing
+  // on "the first card" would often mean landing on a locked card the
+  // user already has, not the new results the action was actually about.
+  // Multiplied by one getScrollStep()/scrollStep unit rather than
+  // measuring each item's real offset directly, matching the same
+  // "doesn't need to be pixel-exact" tolerance getScrollStep's own comment
+  // already documents for arrow-clicks — snap-mandatory corrects the
+  // landing to the nearest real snap point regardless.
+  scrollResetIndex?: number;
   // What the fade gradients fade *from* — i.e. "the color of whatever's
   // actually behind this component," not a fixed choice. Defaults to
   // --surface, correct for any caller sitting on a flat --surface card.
@@ -231,6 +246,7 @@ export function ScrollFadeArea({
   snap = false,
   scrollPaddingStart,
   scrollResetKey,
+  scrollResetIndex = 0,
   surfaceColor = "var(--surface)",
   arrowBackgroundColor = surfaceColor,
   fadeSize = DEFAULT_FADE_SIZE,
@@ -313,19 +329,22 @@ export function ScrollFadeArea({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [horizontal]);
 
-  // Scrolls back to the start edge whenever the caller's reset key changes
-  // (also fires harmlessly on mount, since scrollTop/scrollLeft is already
-  // 0 then). behavior: "instant" explicit now (not just omitted), matching
-  // the carousel's original recommendGen-triggered reset — an explicit
-  // per-call behavior always overrides the container's own CSS
-  // scroll-behavior, so this stays instant regardless of the snap-release
-  // easing added below (scroll-smooth), which would otherwise animate this
-  // reset too since scrollTo with no `behavior` option falls back to
-  // whatever scroll-behavior the CSS says.
+  // Scrolls to scrollResetIndex's own unit (0, the start edge, by default)
+  // whenever the caller's reset key changes (also fires harmlessly on
+  // mount, since scrollTop/scrollLeft is already 0 then). behavior:
+  // "instant" explicit now (not just omitted), matching the carousel's
+  // original recommendGen-triggered reset — an explicit per-call behavior
+  // always overrides the container's own CSS scroll-behavior, so this
+  // stays instant regardless of the snap-release easing added below
+  // (scroll-smooth), which would otherwise animate this reset too since
+  // scrollTo with no `behavior` option falls back to whatever
+  // scroll-behavior the CSS says.
   useEffect(() => {
-    scrollRef.current?.scrollTo(horizontal ? { left: 0, behavior: "instant" } : { top: 0, behavior: "instant" });
+    const step = getScrollStep ? getScrollStep() : scrollStep;
+    const target = step * scrollResetIndex;
+    scrollRef.current?.scrollTo(horizontal ? { left: target, behavior: "instant" } : { top: target, behavior: "instant" });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scrollResetKey]);
+  }, [scrollResetKey, scrollResetIndex]);
 
   const scrollBy = (direction: 1 | -1) => {
     const step = getScrollStep ? getScrollStep() : scrollStep;

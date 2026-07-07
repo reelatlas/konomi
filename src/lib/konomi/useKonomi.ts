@@ -23,6 +23,17 @@ interface KonomiState {
   // produce a new `results` array reference — this is the one field that
   // distinguishes "a whole new batch" from "one card changed."
   recommendGen: number;
+  // The index (within the just-produced `results`) of the first entry that
+  // ISN'T a locked card carried forward from before this RECOMMEND — i.e.
+  // the first genuinely new pick. Locked entries keep their own existing
+  // index rather than being compacted to the front (see recommend()'s own
+  // comment below), so this is not always 0: with any locks in place, the
+  // new results start wherever the first unlocked slot happens to sit.
+  // With no locks at all, every entry is fresh, so this is 0 — the same
+  // "scroll to the first card" reset as before locks existed. Bumped in
+  // lockstep with recommendGen (both set together, only on a successful
+  // RECOMMEND), so the carousel always reads them from the same state.
+  firstNewIndex: number;
 }
 
 // Lazy initializer for useReducer — the catalog is only known at the time
@@ -43,6 +54,7 @@ function createInitialState(catalog: { series: Series[]; tags: TagInfo[] }): Kon
     theme: "default",
     error: null,
     recommendGen: 0,
+    firstNewIndex: 0,
   };
 }
 
@@ -103,6 +115,12 @@ function recommend(state: KonomiState): KonomiState {
   // the pool runs short.
   let pi = 0;
   const out: ResultEntry[] = [];
+  // -1 (not "not found yet, default 0") specifically so an all-locked batch
+  // (every slot carried forward, no fresh pick landed anywhere — only
+  // reachable if the pool ran short) can fall back to 0 explicitly below,
+  // rather than accidentally reading as "the first slot is fresh" by an
+  // uninitialized default coinciding with a real index.
+  let firstNewIndex = -1;
   for (let i = 0; i < DEFAULT_RESULT_COUNT; i++) {
     const old = state.results[i];
     if (old && lockedTitles.has(old.series.title)) {
@@ -110,6 +128,7 @@ function recommend(state: KonomiState): KonomiState {
     } else if (pi < pool.length) {
       out.push(pool[pi]);
       pi++;
+      if (firstNewIndex === -1) firstNewIndex = out.length - 1;
     }
   }
   const outTitles = new Set(out.map((r) => r.series.title));
@@ -117,7 +136,15 @@ function recommend(state: KonomiState): KonomiState {
   Object.keys(state.flipped).forEach((t) => {
     if (outTitles.has(t) && state.flipped[t]) flipped[t] = true;
   });
-  return { ...state, results: out, generated: true, flipped, error: null, recommendGen: state.recommendGen + 1 };
+  return {
+    ...state,
+    results: out,
+    generated: true,
+    flipped,
+    error: null,
+    recommendGen: state.recommendGen + 1,
+    firstNewIndex: firstNewIndex === -1 ? 0 : firstNewIndex,
+  };
 }
 
 // Shared by every reducer branch that mutates `slots` — re-evaluates
@@ -407,6 +434,7 @@ export function useKonomi(initialSeries: Series[], initialTags: TagInfo[]) {
     hasResults: state.generated && state.results.length > 0,
     mixerError: state.error,
     recommendGen: state.recommendGen,
+    firstNewIndex: state.firstNewIndex,
     ...actions,
   };
 }
