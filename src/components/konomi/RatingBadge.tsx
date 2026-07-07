@@ -12,8 +12,8 @@ interface RatingBadgeProps {
 // This app's own bands over AniList's 0-100 averageScore — AniList itself
 // doesn't define "good/mid/bad" cutoffs, these are a product decision, so
 // they're named constants here rather than inline magic numbers.
-const GOOD_THRESHOLD = 80; // >= 8.0 / 10
-const MID_THRESHOLD = 60; // >= 6.0 / 10, below GOOD_THRESHOLD
+const GOOD_THRESHOLD = 83; // >= 8.3 / 10
+const MID_THRESHOLD = 70; // 7.0-8.2 / 10, below GOOD_THRESHOLD
 
 // Hollow echo-frame ghosts, trailing toward the bottom-right of the plate —
 // each one the plate's own size/shape, offset diagonally, unfilled (stroke
