@@ -434,19 +434,6 @@
        either of these to guard against. Default overflow behaves exactly
        as it always did pre-investigation. */
     background-color: var(--bg);
-    /* Reserves the scrollbar's own width permanently, whether or not a
-       scrollbar is actually currently painted — NOT the same attempt (or
-       reason) as the scrollbar-gutter tried and reverted above: that one
-       was chasing a --mixer-bar-height width-breakpoint reflow loop, fixed
-       at its actual source since (see that comment) and unrelated to this.
-       This one exists for JS toggling html.hide-scrollbar-while-blocked
-       (below) on and off, on the same bar's own blockScrollThrough logic —
-       without a permanently reserved gutter, removing the scrollbar's
-       reserved width mid-interaction would itself reflow the page's
-       content by that width, a real, self-inflicted layout shift each time
-       the class toggles. Reserving it unconditionally means toggling
-       overflow on/off never changes the available content width at all. */
-    scrollbar-gutter: stable;
   }
 
   /* Toggled by MixerBar's own blockScrollThrough (MixerBar.tsx) for as long
@@ -455,10 +442,25 @@
      can flash/engage its hover-affordance the instant it receives that
      input, even though preventDefault already stops it from actually
      moving anything (confirmed live: the block/no-scroll-through behavior
-     itself was unaffected either way). overflow: hidden here suppresses
-     that affordance for the duration; scrollbar-gutter: stable above (on
-     html itself) is what keeps this from also shifting the page's own
-     content width every time it toggles on/off. */
+     itself was unaffected either way).
+
+     A first version of this paired overflow: hidden here with
+     scrollbar-gutter: stable on html above, specifically to reserve the
+     scrollbar's own width permanently so toggling this class couldn't also
+     reflow the page's content width — reverted: confirmed live as a real,
+     separate regression, not a fix. iOS (Safari and Chrome, same
+     underlying engine) uses an *overlay* scrollbar by default — it never
+     reserves permanent layout space at all, appearing as a floating
+     indicator only during active scroll — so scrollbar-gutter: stable was
+     the thing that actually introduced a persistent, always-visible
+     track/gutter strip along the edge that hadn't been there before
+     (reported as the scrollbar's own color looking permanently
+     semi-translucent/dark, not just while blocked). The width-reflow this
+     was guarding against only applies to non-overlay scrollbar platforms
+     (classic Windows-style, or macOS with "always show scrollbars"
+     enabled) — a narrower, rarer case than "introduces an always-visible
+     artifact on the primary target platform," so it's not worth guarding
+     against here. */
   html.hide-scrollbar-while-blocked {
     overflow: hidden;
   }
