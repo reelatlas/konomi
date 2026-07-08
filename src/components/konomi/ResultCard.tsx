@@ -87,11 +87,13 @@ export function ResultCard({
   // leftover in the parent, see its own comment) can't re-trigger this.
   const [hoveredIcon, setHoveredIcon] = useState<"lock" | "swap" | null>(() => (startWithSwapHint ? "swap" : null));
   // Separate from `hasImage` below — that only tells us a URL exists, not
-  // that it actually decoded. Scoped to just the reflection's own <Image>
-  // instance (not the sharp cover's), so a failure here can't affect
-  // whether the cover itself renders, and vice versa. Either failure mode
-  // (no URL, or a URL that 404s/fails to decode) falls back to the same
-  // flat --surface tint the tag area always had — see the JSX below.
+  // that it actually decoded. Set by the shared cover filmstrip's own
+  // onError (see that block's own comment) — the one place the cover
+  // image loads from now, so a failure there correctly falls back
+  // everywhere at once: cover-box shows its title-letter fallback instead
+  // of an empty clipping window, and the tag area's continuation/mirror
+  // and veil all stay hidden, exactly as if hasImage had been false from
+  // the start.
   const [reflectionBroken, setReflectionBroken] = useState(false);
   const { series } = entry;
   // Recomputed live against the current tag selection on every render — not
