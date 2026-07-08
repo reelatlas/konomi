@@ -66,14 +66,25 @@ interface MixerBarProps {
 // it. See DESIGN_SYSTEM.md's "MixerBar" section for the full rationale —
 // this comment covers only the mechanics.
 //
-// Normal document flow, not position:fixed — the last section inside the
-// page's own max-w-[1280px] mx-auto column (see KonomiApp.tsx), sized and
-// framed as part of the header+card+mixer "fits one viewport" group rather
-// than a floating dock pinned to the viewport bottom. This was un-pinned
-// once already, reverted on explicit instruction, then re-approved with the
-// edit-mode-growth design below specifically addressing what pinning used
-// to guarantee for free: edit mode growing upward without ever pushing
-// browse mode's own slots/controls out of place.
+// position:sticky; bottom:0 now, not plain normal flow and not
+// position:fixed — the last section inside the page's own max-w-[1280px]
+// mx-auto column (see KonomiApp.tsx), still sized and framed as part of the
+// header+card+mixer "fits one viewport" group, but floats pinned to the
+// viewport bottom on pages tall enough to scroll and settles back into
+// ordinary in-flow position (respecting KonomiApp's own trailing
+// pb-[space-2xl]) once everything fits — native browser behavior, not
+// anything measured/computed here. This bar's position has now been each
+// of the three real options in turn: position:fixed (the original design),
+// plain normal flow (un-pinned once, reverted on explicit instruction, then
+// re-approved with the edit-mode-growth design below specifically to
+// recover what fixed positioning used to guarantee for free — edit mode
+// growing upward without ever pushing browse mode's own slots/controls out
+// of place), and now sticky, a middle ground investigated live before
+// adopting: confirmed compatible with the one-box design, the marginTop
+// growth mechanism, and the z-index stacking below (see each of their own
+// comments for specifics) — sticky is still a *positioned* value, so none
+// of the invariants those mechanisms depend on changed, only where the box
+// sits relative to the viewport when the page scrolls.
 //
 // One box, always — resize row, pool panel, slots, and controls are all
 // ordinary children of the SAME bordered/shadowed element (cardRef, below),
@@ -856,17 +867,31 @@ export function MixerBar({
   }
 
   return (
-    // Normal document flow now, the last section of the page's own
-    // max-w-[1280px] mx-auto column (see KonomiApp.tsx) — no longer
-    // position:fixed. Un-pinning this (STOP'd once, then re-approved with
-    // the edit-mode-growth design below) is what lets the header+card+
-    // mixer group read as one uniformly-framed block that simply *is* the
-    // bottom of the page, rather than a floating dock the page's own
-    // content had to reserve clearance for (KonomiApp's old
-    // MIXER_BAR_SPACER calc). No px/pb-[space-2xl] here either, for the
-    // same reason: that framing now comes from the shared max-w-[1280px]
-    // ancestor (left/right) and KonomiApp's own root pb-[space-2xl]
-    // (bottom) — this wrapper adding its own would double-count both.
+    // sticky bottom-0 — the last section of the page's own max-w-[1280px]
+    // mx-auto column (see KonomiApp.tsx), pinned to the viewport bottom
+    // once the page scrolls, settling back to its own ordinary in-flow
+    // position (respecting KonomiApp's own trailing pb-[space-2xl]) once
+    // everything already fits — see this file's own top comment for why
+    // this replaced plain normal flow and the history behind that choice.
+    // No px/pb-[space-2xl] here either, same reason as before: that framing
+    // comes from the shared max-w-[1280px] ancestor (left/right) and
+    // KonomiApp's own root pb-[space-2xl] (bottom) — this wrapper adding
+    // its own would double-count both, in either position mode.
+    //
+    // Confirmed live before adopting sticky: KonomiApp's own overflow-x-clip
+    // ancestor does NOT make it (instead of the true viewport) this bar's
+    // sticky containing block, despite overflow-x-clip technically making
+    // that div a "scroll container" per spec — tested with a genuinely tall
+    // page, the bar stuck to the real viewport bottom for the entire scroll
+    // range and returned to normal flow only once the page ran out. Also
+    // confirmed live: the marginTop mechanism below and native sticky don't
+    // fight each other — while genuinely stuck, marginTop's own contribution
+    // to the bar's *final* rendered position becomes a no-op (sticky's
+    // bottom:0 constraint wins regardless of what marginTop says), but it's
+    // still exactly as necessary as before for the not-stuck case (a short
+    // page, where this behaves like an ordinary in-flow box) — so it stays,
+    // unchanged, rather than branching this component's logic on which
+    // regime is currently active.
     //
     // One box now, not two — resize row, pool panel, slots, and controls
     // are all ordinary children of the SAME bordered/shadowed element,
@@ -892,23 +917,26 @@ export function MixerBar({
     <div
       ref={cardRef}
       style={{ marginTop: editMode ? -(growableFixedOverheadPx + effectiveHeightPx) : 0 }}
-      // relative z-[var(--z-overlay)] — confirmed live as a real bug
-      // without it: this box is otherwise position:static with no
-      // z-index, but ResultCard's own front face (ResultCard.tsx) is
+      // z-[var(--z-overlay)] — confirmed live as a real bug without a
+      // z-index here: ResultCard's own front face (ResultCard.tsx) is
       // `position:absolute` with an explicit z-[var(--z-raised)] — per
       // the CSS painting order, any positioned element with an explicit
-      // z-index always paints above a plain static element, *regardless
-      // of DOM order*, so every result card was painting on top of this
-      // box whenever its own (upward-growing) content visually reached
-      // into that space, interleaving pool-panel chips with card art
-      // showing through. The earlier two-box design didn't have this
-      // problem because the old overlay div carried z-[var(--z-overlay)]
-      // itself; consolidating into one box dropped that along with the
-      // rest of its styling. z-overlay (not z-raised) — needs to
-      // outrank ResultCard's own z-raised front face, the same token
-      // this bar's own fixed-position era already used for the same
-      // "sits on top of everything" requirement.
-      className="relative z-[var(--z-overlay)] @container max-w-[1280px] mx-auto px-[var(--space-2xl)] py-[var(--space-xl)] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-4)]"
+      // z-index always paints above a plain static (non-positioned)
+      // element, *regardless of DOM order*, so every result card was
+      // painting on top of this box whenever its own (upward-growing)
+      // content visually reached into that space, interleaving pool-panel
+      // chips with card art showing through. The earlier two-box design
+      // didn't have this problem because the old overlay div carried
+      // z-[var(--z-overlay)] itself; consolidating into one box dropped
+      // that along with the rest of its styling. z-overlay (not z-raised)
+      // — needs to outrank ResultCard's own z-raised front face, the same
+      // token this bar's own fixed-position era already used for the same
+      // "sits on top of everything" requirement. `sticky` (className,
+      // below) satisfies the same "must be positioned, not static"
+      // requirement `relative` used to — confirmed live this stacking
+      // still resolves correctly under sticky (a hit-test at the overlap
+      // point still landed on this box, not whatever's behind it).
+      className="sticky bottom-0 z-[var(--z-overlay)] @container max-w-[1280px] mx-auto px-[var(--space-2xl)] py-[var(--space-xl)] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-4)]"
     >
       {/* growableRef wraps just the resize-handle row + pool panel — see
           growableFixedOverheadPx's own comment above for why this exists
