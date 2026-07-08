@@ -606,7 +606,23 @@ export function ResultCard({
                   // does. Scoped to !supportsHover only — desktop's hint is
                   // hover-driven, not tap-driven, so this branch never
                   // applies there.
+                  //
+                  // setHoveredIcon(null) directly, not just e.currentTarget.
+                  // blur() (tried first) — confirmed on a real phone that
+                  // relying on blur() alone to drive this via onBlur below
+                  // isn't reliable: real mobile Safari/Chrome don't
+                  // consistently fire a blur event from a programmatic
+                  // .blur() call on the same tick as the tap that triggered
+                  // it, the same general category of mobile-focus
+                  // unreliability lock/swap's own onClick already works
+                  // around elsewhere in this file (forcing .focus()
+                  // explicitly, rather than trusting a tap to focus a
+                  // button natively). Setting the state directly is what
+                  // actually needs to happen; still calling .blur() too,
+                  // best-effort, purely so the native focus ring/state
+                  // doesn't linger on a button whose own hint just closed.
                   if (swapDisabled && !supportsHover && hoveredIcon === "swap") {
+                    setHoveredIcon(null);
                     e.currentTarget.blur();
                     return;
                   }
