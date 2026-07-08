@@ -6,6 +6,7 @@ import { DiceIcon, LockClosedIcon, LockOpenIcon } from "./icons";
 import { IconButton } from "./IconButton";
 import { RatingBadge } from "./RatingBadge";
 import { ERROR_MESSAGE } from "./RecommendButton";
+import { TagCountBadge } from "./TagCountBadge";
 import { TagScrollArea } from "./TagScrollArea";
 
 const DOT_CLASSES = ["bg-[var(--secondary)]", "bg-[var(--primary)]", "bg-[var(--muted)]"];
@@ -759,14 +760,7 @@ export function ResultCard({
                 offset math. Both on-primary — guaranteed light in every
                 theme, same reasoning as the scrim above. */}
             <div className="absolute inset-x-0 bottom-0 flex flex-col items-start gap-[var(--space-sm)] px-[var(--space-lg)] pb-[var(--space-md)]">
-              <div
-                className={[
-                  "font-display text-[length:var(--text-sm)] tracking-[var(--tracking-lg)] border-[length:var(--border-thin)] border-[var(--ink)] px-[var(--space-md)] py-[var(--space-xs)] -rotate-[4deg] shadow-[var(--elev-1)]",
-                  perfect ? "bg-[var(--secondary)] text-[var(--on-secondary)]" : "bg-[var(--surface)] text-[var(--ink)]",
-                ].join(" ")}
-              >
-                {scoreLabel}
-              </div>
+              <TagCountBadge label={scoreLabel} perfect={perfect} tiltDeg={-4} />
               <div>
                 {/* pr-[85px]: reserves horizontal clearance for RatingBadge
                     (bottom-right of the cover, below), so a long title's
