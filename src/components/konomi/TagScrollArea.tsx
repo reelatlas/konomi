@@ -121,7 +121,12 @@ export function TagScrollArea({ tags, selectedTags, onChipToggle, surfaceColor, 
       // See RevealGroup's comment in IconButton.tsx for the full mechanism.
       groupName="reveal-nested"
       scrollStep={VISIBLE_ROWS * ROW_STEP_PX}
-      snap
+      // TEMP diagnostic: snap disabled to test whether scroll-snap-mandatory
+      // is what makes iOS bind the carousel-swipe gesture to this container
+      // once it overflows. Revert to `snap` (no value) once confirmed either
+      // way — see DESIGN_SYSTEM.md / conversation for the real fix this
+      // feeds into.
+      snap={false}
       scrollPaddingStart={TOP_RESERVE_PX}
       fadeSize={fadeSize}
       continuousScrollSpeed={1.5}
