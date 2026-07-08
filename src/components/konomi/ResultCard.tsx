@@ -593,6 +593,23 @@ export function ResultCard({
                 autoFocus={startWithSwapHint}
                 onClick={(e) => {
                   e.stopPropagation();
+                  // Touch, disabled, hint already showing: a second tap on
+                  // this same button dismisses it, same as tapping the lock
+                  // icon or anywhere else on the card already does (each
+                  // blurs this button naturally, via focus moving
+                  // elsewhere). This button can't rely on that same natural
+                  // blur for a *repeat* tap on itself, though — re-focusing
+                  // an already-focused element is a no-op (no fresh
+                  // blur+focus pair fires), so without this, a second tap
+                  // here would just silently do nothing instead of
+                  // toggling the hint off like every other dismissal path
+                  // does. Scoped to !supportsHover only — desktop's hint is
+                  // hover-driven, not tap-driven, so this branch never
+                  // applies there.
+                  if (swapDisabled && !supportsHover && hoveredIcon === "swap") {
+                    e.currentTarget.blur();
+                    return;
+                  }
                   // e.currentTarget.focus() — same reasoning as lock's own
                   // onClick above: an ordinary tap on this already-mounted
                   // button (not the post-swap remount autoFocus covers)
