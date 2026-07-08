@@ -75,9 +75,9 @@ interface MixerBarProps {
 // trailing pb-[space-2xl]) once everything fits — the same minimum gap on
 // every side of this bar's frame either way, matching the page's own
 // left/right gutter (KonomiApp's px-[space-2xl]) — requested explicitly
-// once flush bottom-0 read as inconsistent with that gutter. This bar's
-// position has now been each
-// of the three real options in turn: position:fixed (the original design),
+// once flush bottom-0 read as inconsistent with that gutter. This bar has
+// now occupied each of the three real position options in turn:
+// position:fixed (the original design),
 // plain normal flow (un-pinned once, reverted on explicit instruction, then
 // re-approved with the edit-mode-growth design below specifically to
 // recover what fixed positioning used to guarantee for free — edit mode
