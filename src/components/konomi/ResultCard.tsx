@@ -375,52 +375,62 @@ export function ResultCard({
               continuation tier specifically, just extended to the mirror
               for internal consistency.
 
-              Placed first, before both cover-box and tag-wrapper — with
-              neither of those two (nor this) carrying an explicit z-index
-              of their own, plain z-index:auto + later-DOM-order-wins
-              stacking is what makes each of them correctly paint over this
-              layer within their own bounds. bg-[var(--fill)] on this
-              wrapper (not cover-box anymore — see that box's own comment)
-              is the loading-placeholder color shown before the image
-              paints, same role --fill always played here, just relocated
-              to where the image itself now lives. block (not the default
-              inline) on both images: an inline image carries a few px of
-              baseline/line-height gap below it, which would otherwise open
-              a hairline seam between the two stacked copies — confirmed
+              Placed first, before both cover-box and tag-wrapper, with an
+              explicit z-[var(--z-base)] (below) rather than relying on
+              plain z-index:auto + later-DOM-order-wins stacking to keep it
+              behind them — see this file's own history for why explicit
+              beats incidental here. bg-[var(--fill)] on this wrapper (not
+              cover-box anymore — see that box's own comment) is the
+              loading-placeholder color shown before the image paints, same
+              role --fill always played here, just relocated to where the
+              image itself now lives. block (not the default inline) on
+              both images: an inline image carries a few px of baseline/
+              line-height gap below it, which would otherwise open a
+              hairline seam between the two stacked copies — confirmed
               live as a real, if subtle, artifact.
 
-              touch-none, alongside pointer-events-none, not instead of it —
-              belt-and-suspenders, the same pairing this app's own touch
-              scroll-blocking already establishes elsewhere (see MixerBar's
-              own cardRef comment): pointer-events-none is a DOM-level hit-
-              testing guarantee (this layer can never be event.target), but
-              touch-action is resolved by the compositor, separately,
-              before any DOM-level dispatch even happens. This layer's own
-              mirrored image (below) carries transform:scaleY(-1) — a
-              transform that typically promotes an element onto its own
-              GPU compositing layer — and unlike the old, since-removed
-              reflection this replaced (only ever mounted above a 731px
-              viewport-height gate), this one is now mounted at every card
-              size, unconditionally. Reported live as a regression, real-
-              iOS-only (Safari and Chrome-iOS both — same underlying
-              WebKit, doesn't reproduce in headless/emulated Chromium
-              either way, the identical category of gap this session's own
-              touch-action work already closed once for MixerBar): the tag
-              area's own vertical scroll stopped responding to a real touch
-              drag on cards where this filmstrip is now always present,
-              even though this layer sits behind tag-wrapper in the DOM and
-              a plain elementFromPoint() check at the touch point already
-              resolves correctly to the scroll viewport. touch-action:none
-              here is the defensive fix for the leading hypothesis — a
-              GPU-composited sibling geometrically overlapping a scroll
-              container's own region is a known category of touch-routing
-              confusion on WebKit specifically, independent of what
-              pointer-events/DOM hit-testing say — closing it at the
-              compositor level, not just the DOM level, removes the gap
-              regardless of whether this exact mechanism turns out to be
-              the precise cause. */}
+              No pointer-events-none/touch-none here — a first version of
+              this fix added both, reported live as NOT fixing a real
+              regression (below) and reverted. This app already has a
+              directly on-point, previously-confirmed precedent for exactly
+              this situation (RecommendationsBody's own carousel viewport,
+              see that file's own comment): pointer-events-none on/near a
+              scroll container can disqualify it from native touch-scroll-
+              gesture-*chaining* entirely on real mobile WebKit, not just
+              from click hit-testing — confirmed there for the scroll
+              container's own wrapper directly; the fix was resolving the
+              overlap via explicit z-index (paint order) instead of via a
+              disqualifying property, so the scroll container's own
+              pointer-events stay at the default auto. This wrapper never
+              needed pointer-events-none for correctness in the first
+              place — cover-box's own opaque bg-[var(--fill)] and its own
+              later-DOM-order Image already hide it there regardless of its
+              own pointer-events, and tag-wrapper (below) hides it the same
+              way once given its own explicit z-index instead of relying on
+              DOM order alone (see that box's own comment) — so there's no
+              upside left to weigh against the downside risk pointer-
+              events-none/touch-action:none carry on real iOS.
+
+              This layer's own mirrored image (below) carries
+              transform:scaleY(-1) — a transform that typically promotes an
+              element onto its own GPU compositing layer — and unlike the
+              old, since-removed reflection this replaced (only ever
+              mounted above a 731px viewport-height gate), this one is now
+              mounted at every card size, unconditionally. Reported live as
+              a regression, real-iOS-only (Safari and Chrome-iOS both —
+              same underlying WebKit; doesn't reproduce in headless/
+              emulated Chromium, where a plain elementFromPoint() check at
+              the tag-scroll touch point already resolves correctly to the
+              scroll viewport regardless of any of this): the tag area's
+              own vertical scroll stopped responding to a real touch drag
+              on cards where this filmstrip — mirror included — is now
+              always present. Explicit z-index, not a disqualifying
+              property, is the fix this app already has direct, confirmed
+              precedent for; still can't be verified outside a real device,
+              so treat this as the leading hypothesis until confirmed
+              on-device, same as the touch-action attempt it replaces. */}
           {hasImage && !reflectionBroken && (
-            <div className="absolute left-0 top-0 w-full pointer-events-none touch-none bg-[var(--fill)]">
+            <div className="absolute left-0 top-0 w-full z-[var(--z-base)] bg-[var(--fill)]">
               {/* eslint-disable-next-line @next/next/no-img-element -- needs width:100%/height:auto (natural scale), which next/image's fill mode can't do — see this whole block's own comment above */}
               <img
                 src={series.coverImageUrl as string}
@@ -684,8 +694,22 @@ export function ResultCard({
               reclaim height at the small end (see globals.css's own
               comment on the breakdown); applied at every size, not
               conditionally, to
-              avoid a second breakpoint ladder just for padding. */}
-          <div className="relative overflow-hidden shrink-0 px-[var(--space-lg)] pt-[var(--space-md)] pb-[var(--space-md)]">
+              avoid a second breakpoint ladder just for padding.
+
+              z-[var(--z-raised)] (new): explicit now, not left to plain
+              z-index:auto + later-DOM-order-wins the way it was before —
+              this box already correctly won hit-testing that way (DOM
+              order alone was never the actual gap), but explicit z-index
+              also gives this box its own stacking context, isolating
+              TagScrollArea's own touch-scroll gesture handling from
+              whatever compositing the filmstrip's mirror image (a sibling,
+              above — transform:scaleY(-1)) needs, rather than leaving both
+              to share FRONT's own stacking context together. Same
+              "explicit beats incidental, especially on real iOS" fix this
+              app already has direct precedent for — see the filmstrip's
+              own comment above for the confirmed original case this
+              mirrors (RecommendationsBody's carousel viewport / Clear ✕). */}
+          <div className="relative z-[var(--z-raised)] overflow-hidden shrink-0 px-[var(--space-lg)] pt-[var(--space-md)] pb-[var(--space-md)]">
             {/* Continuation scrim — the shared filmstrip (a sibling of
                 cover-box, above/outside this whole tag-wrapper — see its
                 own comment) shows through here at every card size now;
