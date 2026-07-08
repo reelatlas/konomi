@@ -166,6 +166,27 @@ interface ScrollFadeAreaProps {
   // (the chip area, section tabs, per-card tag rows) has no equivalent
   // padding trick and no reason to pay this cost.
   disableWrapperPointerEvents?: boolean;
+  // Opt-in touch-action axis restriction (touch-pan-x/touch-pan-y on the
+  // scroll viewport itself) — added for, and only actually needed by,
+  // MixerBar's own three ScrollFadeArea instances (its filters row,
+  // SectionTabStrip's tab strip, TagPoolBody's chip area): all three sit
+  // inside MixerBar's own root-level touch-none (see that component's own
+  // comment), which blocks every native pan by default, and each needs to
+  // carve its own single axis back out to keep scrolling internally.
+  // Confirmed live as a real regression when this was briefly the
+  // unconditional default for every ScrollFadeArea caller instead: the
+  // results carousel and TagScrollArea (ResultCard's per-card tag area)
+  // have no touch-none ancestor to escape from, and restricting either of
+  // them to a single axis broke the OTHER axis's native hand-off between
+  // them — specifically, a horizontal carousel swipe starting over a
+  // card's tag area stopped reaching the carousel once that tag area had
+  // real vertical overflow (an active scroll candidate, not just a
+  // pass-through). Before this prop existed at all, both of those two
+  // viewports ran on plain, unrestricted touch-action: auto, and that
+  // exact scenario worked — bisected live, on a real device, back to the
+  // commit that first introduced the unconditional class. Default false:
+  // only MixerBar's three own callers pass this true.
+  restrictTouchAction?: boolean;
   // Horizontal-only. Makes the content wrapper's own width track its
   // child's true intrinsic (max-content) width instead of the default —
   // filling the viewport's own width regardless of what the child needs —
@@ -257,6 +278,7 @@ export function ScrollFadeArea({
   arrowInset = 0,
   arrowVerticalOffsetPx = 0,
   disableWrapperPointerEvents = false,
+  restrictTouchAction = false,
   fitContent = false,
   edgeMaskSize,
   children,
@@ -537,26 +559,30 @@ export function ScrollFadeArea({
         className={[
           horizontal ? "w-full overflow-x-auto overflow-y-hidden" : `${heightPx !== undefined ? "" : height} overflow-y-auto overflow-x-hidden`,
           "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
-          // touch-pan-x/touch-pan-y (touch-action) — every caller of this
-          // component lives inside MixerBar's own touch-none bar (see that
-          // component's own comment on its root className) or, for callers
-          // elsewhere (the results carousel, TagScrollArea), sits somewhere
-          // a stray native pan was never wanted either. touch-action is
-          // evaluated by the browser before any JS runs, so it's what
-          // actually stops a touch that starts on this exact viewport from
-          // being recognized as a page-pan at the compositor level — a
-          // plain preventDefault() in a touchmove handler (MixerBar's own
-          // blockScrollThrough) only ever races that native recognition,
-          // and confirmed live it can lose that race for non-scrollable
-          // chrome elsewhere on the same bar. Restricting to this
-          // instance's own single scrolling axis (not plain touch-auto)
-          // keeps the orthogonal axis blocked here too, matching
-          // overscroll-x/y-contain below's identical axis-scoping — this is
-          // the piece that makes an ancestor's touch-none *not* need to
-          // special-case this element: an element's own explicit
+          // touch-pan-x/touch-pan-y (touch-action) — opt-in via
+          // restrictTouchAction now, not unconditional (see that prop's own
+          // comment for the regression this caused when it was). Needed by
+          // MixerBar's own three callers, which sit inside MixerBar's own
+          // root-level touch-none (see that component's own comment on its
+          // root className) and need to carve their own single axis back
+          // out: touch-action is evaluated by the browser before any JS
+          // runs, so it's what actually stops a touch that starts on this
+          // exact viewport from being recognized as a page-pan at the
+          // compositor level — a plain preventDefault() in a touchmove
+          // handler (MixerBar's own blockScrollThrough) only ever races
+          // that native recognition, and confirmed live it can lose that
+          // race for non-scrollable chrome elsewhere on the same bar.
+          // Restricting to this instance's own single scrolling axis (not
+          // plain touch-auto) keeps the orthogonal axis blocked here too,
+          // matching overscroll-x/y-contain below's identical axis-scoping
+          // — this is the piece that makes an ancestor's touch-none *not*
+          // need to special-case this element: an element's own explicit
           // touch-action always governs a touch that starts on it,
-          // regardless of what a `none` ancestor declares.
-          horizontal ? "touch-pan-x" : "touch-pan-y",
+          // regardless of what a `none` ancestor declares. The results
+          // carousel and TagScrollArea have no such ancestor to escape —
+          // they don't pass this, and stay on plain touch-action: auto,
+          // the same as before this prop existed at all.
+          restrictTouchAction ? (horizontal ? "touch-pan-x" : "touch-pan-y") : "",
           snap ? (horizontal ? "snap-x snap-mandatory" : "snap-y snap-mandatory") : "",
           // scroll-smooth (scroll-behavior: smooth), snap-only: with no
           // explicit scroll-behavior at all, the browser's own re-snap

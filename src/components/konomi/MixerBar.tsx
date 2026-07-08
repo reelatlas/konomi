@@ -1438,7 +1438,7 @@ export function MixerBar({
               deliberately joining the @max-[352px] "final step" tier for
               the same consistency reason above. */}
           <div className="min-w-0 w-fit -mb-[26px] -mr-[4px]">
-            <ScrollFadeArea orientation="horizontal" scrollStep={140} fadeSize={12} fitContent arrowVerticalOffsetPx={-13}>
+            <ScrollFadeArea orientation="horizontal" scrollStep={140} fadeSize={12} fitContent arrowVerticalOffsetPx={-13} restrictTouchAction>
               <div className="flex items-center gap-[var(--space-lg)] flex-nowrap pb-[26px] pr-[4px]">
                 <div className="@max-[352px]:hidden flex items-center gap-[var(--space-sm)] shrink-0">
                   {/* hidden @min-[480px]:inline — same breakpoint Row 3's

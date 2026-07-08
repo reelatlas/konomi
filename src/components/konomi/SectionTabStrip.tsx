@@ -140,7 +140,7 @@ export function SectionTabStrip({ sections, activeKey, onChange, visible = true 
     // own comment on that prop for why it isn't the default for every
     // horizontal caller (the results carousel's CSS grid needs the
     // opposite: a real available width to size its own columns against).
-    <ScrollFadeArea orientation="horizontal" scrollStep={SCROLL_STEP} fadeSize={12} surfaceColor="var(--surface)" fitContent>
+    <ScrollFadeArea orientation="horizontal" scrollStep={SCROLL_STEP} fadeSize={12} surfaceColor="var(--surface)" fitContent restrictTouchAction>
       <div role="tablist" aria-label="Tag pool sections" onKeyDown={handleKeyDown} className="flex flex-nowrap items-center gap-[var(--space-xl)]">
         {sections.map((section) => {
           const active = section.key === activeKey;

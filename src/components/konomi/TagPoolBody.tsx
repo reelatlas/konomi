@@ -192,7 +192,7 @@ export function TagPoolBody({ allTags, selectedTags, totalSeriesCount, onChipTog
         aria-labelledby={`tagpool-tab-${active.section.key}`}
         tabIndex={0}
       >
-        <ScrollFadeArea height={CHIP_AREA_HEIGHT} heightPx={chipAreaHeightPx} scrollStep={92} fadeSize={4} surfaceColor="var(--surface)">
+        <ScrollFadeArea height={CHIP_AREA_HEIGHT} heightPx={chipAreaHeightPx} scrollStep={92} fadeSize={4} surfaceColor="var(--surface)" restrictTouchAction>
           {/* pb/pr-[3px]: base-size TagChip carries shadow-[var(--elev-2)]
               (3px 3px 0, bottom-right, no blur). ScrollFadeArea's vertical
               viewport sets overflow-y-auto/overflow-x-hidden, so a chip's
