@@ -662,6 +662,34 @@ export function MixerBar({
   // The very first `measure()` call below (drag never active yet at mount/
   // open) is unaffected — this only ever skips *later* resize-driven
   // updates that land while a drag is in flight.
+
+  // Same ref-mirroring pattern as effectiveHeightPxRef (below), for the same
+  // reason: fixedOverheadPx's and growableFixedOverheadPx's own
+  // ResizeObserver callbacks (both below) are async — they fire on their
+  // own schedule, not synchronously with whatever render scheduled them —
+  // so a callback created while editMode was true can still be sitting in
+  // the browser's delivery queue after a *later* render has already flipped
+  // editMode back to false (rapidly toggling edit mode open/closed, e.g.
+  // repeatedly tapping an empty slot now that doing so also closes it, is
+  // exactly the kind of input that can produce several such toggles faster
+  // than a ResizeObserver callback queue drains). `.disconnect()` in each
+  // effect's own cleanup is supposed to prevent that instance's callback
+  // from firing again, but isn't specified to guarantee an
+  // already-queued-but-not-yet-delivered callback is retroactively
+  // cancelled on every engine — a defensive belt-and-suspenders guard, not
+  // a replacement for disconnect(). Reading a plain closed-over `editMode`
+  // inside either measure() wouldn't catch this: the closure keeps
+  // whatever `editMode` was at the time that specific effect instance was
+  // created, not whatever it's actually become by the time a late callback
+  // fires — the same reason effectiveHeightPxRef exists instead of reading
+  // effectiveHeightPx directly. This ref, kept live via the same
+  // deps-less-effect trick, is always current for either measure() to
+  // check, regardless of which instance scheduled the callback that's
+  // asking.
+  const editModeRef = useRef(editMode);
+  useLayoutEffect(() => {
+    editModeRef.current = editMode;
+  });
   useLayoutEffect(() => {
     if (!editMode) return;
     const card = cardRef.current;
@@ -669,6 +697,11 @@ export function MixerBar({
     if (!card || !dialog) return;
     function measure() {
       if (isDraggingRef.current) return;
+      // See editModeRef's own comment — a late, async callback from an
+      // instance whose editMode has since flipped back to false would
+      // otherwise measure a collapsed (max-h-0) dialog and commit a wrong,
+      // inflated overhead.
+      if (!editModeRef.current) return;
       const cardRect = card!.getBoundingClientRect();
       const dialogHeight = dialog!.getBoundingClientRect().height;
       const surplusBelow = Math.max(0, window.innerHeight - cardRect.bottom);
@@ -831,6 +864,12 @@ export function MixerBar({
     const growable = growableRef.current;
     if (!growable) return;
     function measure() {
+      // See editModeRef's own comment near its declaration — a late,
+      // async callback from an instance whose editMode has since flipped
+      // back to false would otherwise measure growable's collapsed
+      // (resize row unmounted, dialog max-h-0) height and commit a wrong,
+      // near-zero overhead.
+      if (!editModeRef.current) return;
       setGrowableFixedOverheadPx(Math.max(0, growable!.getBoundingClientRect().height - effectiveHeightPxRef.current));
     }
     const observer = new ResizeObserver(measure);
