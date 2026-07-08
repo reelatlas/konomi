@@ -492,13 +492,13 @@ export function MixerBar({
   // tearing down and resubscribing its ResizeObserver on every drag
   // start/end, the same stale-closure-avoidance reason effectiveHeightPxRef
   // mirrors state below). Deliberately narrower in scope than
-  // isRowInteractionActive below: this is specifically "is the grip
+  // frozenReachability below: this is specifically "is the grip
   // actively changing the panel's height right now," which only the grip's
   // own handleResizeStart/handleEnd ever set — a tap on the 50%/100%/Reset
   // buttons doesn't touch this at all, since none of them are a continuous,
   // height-changing gesture that fixedOverheadPx would need frozen against.
   const isDraggingRef = useRef(false);
-  // A broader flag than isDraggingRef above — this one isn't about
+  // A broader mechanism than isDraggingRef above — this one isn't about
   // freezing fixedOverheadPx during an actual height-changing gesture,
   // it's about keeping the grip AND the 50%/100%/Reset shortcut buttons
   // mounted for the duration of ANY pointer press on any of the four, tap
@@ -512,17 +512,44 @@ export function MixerBar({
   // active scrolling/touch), poolPanelMaxHeight crossed its threshold, and
   // Reset unmounted while the finger was still down on it — whatever's now
   // under that same screen point (confirmed live: the bar's own outer
-  // card) is what a real release would activate instead. Deliberately a
-  // *plain* boolean, set true on pointerdown and false on pointerup/
-  // pointercancel only — never derived from poolPanelMaxHeight,
-  // scrollHeight, or any
-  // other live measurement, which would just reintroduce the same
+  // card) is what a real release would activate instead.
+  //
+  // A first version of this fix used one shared boolean, OR'd into all
+  // four elements' own conditions — confirmed live as a real, separate bug
+  // once shipped: pressing the grip alone (with the panel already sitting
+  // exactly at its default height, Reset correctly not yet shown) made
+  // Reset — and every other otherwise-hidden sibling — appear too, purely
+  // because *something* in the row was being pressed, not because
+  // anything about reachability actually changed. One shared boolean can't
+  // distinguish "reveal the specific thing that was already visible and
+  // is now being pressed" from "reveal everything in this row, whether it
+  // was ever visible or not."
+  //
+  // The fix: snapshot each element's own *reachability* (the
+  // poolPanelMaxHeight-derived half, which should never change mid-press
+  // for reasons outside the user's control) individually, at the exact
+  // instant a press starts, and hold that per-element snapshot — not a
+  // single blanket flag — until release. Deliberately does NOT snapshot
+  // isAtHalfHeight/isAtFullHeight/isAtDefaultHeight alongside it: those
+  // compare against the *live*, actively-dragged effectiveHeightPx, and
+  // freezing them too would break real, wanted feedback (a shortcut
+  // button correctly hiding itself the instant a live drag actually
+  // reaches that exact height). Only the "is this reachable at all"
+  // half needs freezing; "are we currently at that height" should keep
+  // reacting to the user's own gesture in real time.
+  //
+  // Still built from the same plain lifecycle as before — populated once
+  // on pointerdown, cleared to null on pointerup/pointercancel, reading
+  // each live value exactly once at that instant rather than continuously
+  // re-deriving anything from poolPanelMaxHeight/scrollHeight while a
+  // press is active, which would just reintroduce the same
   // feed-back-into-its-own-input shape the seventh trap instance already
-  // hit once this session (see DESIGN_SYSTEM.md) in a different guise: the
-  // whole point is to *freeze* the mounted set at whatever it already was
-  // when the press started, not to keep re-deriving it from the value the
-  // press is trying to outlast.
-  const [isRowInteractionActive, setIsRowInteractionActive] = useState(false);
+  // hit once this session (see DESIGN_SYSTEM.md) in a different guise.
+  const [frozenReachability, setFrozenReachability] = useState<null | {
+    canShowRow: boolean;
+    canReachHalf: boolean;
+    canReachFull: boolean;
+  }>(null);
   // Attached once, on the shared container both the grip and the
   // 50%/100%/Reset buttons live inside (below) — a single pointerdown
   // there catches a press starting on any of the four via normal bubbling,
@@ -533,9 +560,13 @@ export function MixerBar({
   // exactly the thing that's about to unmount, its own listeners would go
   // with it.
   function handleRowPointerDown() {
-    setIsRowInteractionActive(true);
+    setFrozenReachability({
+      canShowRow: canShowResizeHandleRow,
+      canReachHalf: canReachHalfHeight,
+      canReachFull: canReachFullHeight,
+    });
     function clear() {
-      setIsRowInteractionActive(false);
+      setFrozenReachability(null);
       window.removeEventListener("pointerup", clear);
       window.removeEventListener("pointercancel", clear);
     }
@@ -679,21 +710,30 @@ export function MixerBar({
   // viewport, and the tabs+filters row's own scroll/truncation behavior
   // going stale) until traced back here.
   //
-  // Reads isRowInteractionActive, not isDraggingRef directly — the same
+  // Reads frozenReachability, not isDraggingRef directly — the same
   // live ceiling also gates the 50%/100%/Reset buttons (see their own
   // conditions, below), and a press on any of *those* three is a tap, not
   // a drag, so isDraggingRef alone (only ever set by the grip's own
   // handleResizeStart) didn't protect them — confirmed live as the same
   // bug, one level over: pressed Reset, forced the ceiling to cross its
   // threshold mid-press, Reset unmounted with the finger still on it.
-  // isRowInteractionActive is true for the entire span of any press on any
+  // frozenReachability is populated for the entire span of any press on any
   // of the four (grip included — its own pointerdown bubbles up to the
   // shared container's handleRowPointerDown same as the others'), so
-  // or-ing it in keeps this whole row mounted for that whole span
-  // regardless of what the live ceiling does — the *display* value
-  // diverges from the real `canShowResizeHandleRow` only during a press,
-  // and only in the "still show it" direction.
-  const canShowResizeHandleRowDisplay = isRowInteractionActive || canShowResizeHandleRow;
+  // substituting its snapshotted canShowRow in place of the live value here
+  // keeps this whole row mounted for that whole span regardless of what the
+  // live ceiling does — the *display* value diverges from the real
+  // `canShowResizeHandleRow` only during a press, and only in the "still
+  // show it" direction. A straight substitution, not an OR: this row's own
+  // visibility was never in question when the press started (something
+  // inside it is what's being pressed), so there's no "reveal something
+  // that was already hidden" failure mode to guard against here the way
+  // there is for the three sibling buttons below, each of which can be
+  // individually hidden while a sibling is what's actually under the
+  // finger.
+  const canShowResizeHandleRowDisplay = frozenReachability
+    ? frozenReachability.canShowRow
+    : canShowResizeHandleRow;
   // clampPoolPanelHeight applies uniformly to every source (default,
   // persisted, or actively dragging) — one clamp, not "clamp the persisted
   // value on read, then separately clamp drags" — so the guarantee (fixed
@@ -872,7 +912,7 @@ export function MixerBar({
     // See fixedOverheadPx's own effect (above) for why this freezes
     // poolPanelMaxHeight for the duration of the drag — isDraggingRef's
     // own purpose, unrelated to the grip's mount guarantee: that comes
-    // from isRowInteractionActive instead (see its own declaration), set
+    // from frozenReachability instead (see its own declaration), set
     // by handleRowPointerDown on the shared container, which this
     // pointerdown already bubbles up to on its own — nothing extra needed
     // here for that half.
@@ -1291,14 +1331,20 @@ export function MixerBar({
             // children (the three shortcut buttons below, or the grip).
             <div className="flex items-center gap-0 shrink-0" onPointerDown={handleRowPointerDown}>
               <div className="flex items-center gap-0">
-                {/* isRowInteractionActive || (...) on all three shortcut
-                    buttons below — see that flag's own declaration for the
-                    confirmed-live bug this closes: each condition here is
-                    live and reactive to poolPanelMaxHeight, which can cross
-                    its own threshold mid-press (mobile address-bar
-                    hide/show is the common real-world trigger) and unmount
-                    whichever button is currently being tapped. */}
-                {(isRowInteractionActive || (canReachHalfHeight && !isAtHalfHeight)) && (
+                {/* frozenReachability substitutes for the live
+                    canReach*Height on all three shortcut buttons below —
+                    see that state's own declaration for the confirmed-live
+                    bug this closes, and for why an earlier one-shared-
+                    boolean version of this fix was itself wrong. A straight
+                    substitution (not an OR): each button's *reachability*
+                    freezes to whatever it was at press-start, but
+                    isAtHalfHeight/isAtFullHeight/isAtDefaultHeight stay
+                    fully live against the actively-dragged
+                    effectiveHeightPx, so a button already visible still
+                    correctly hides itself the instant a real drag reaches
+                    that exact height — only the "is this reachable at all"
+                    half is frozen, and only for the span of a press. */}
+                {((frozenReachability ? frozenReachability.canReachHalf : canReachHalfHeight) && !isAtHalfHeight) && (
                   <IconButton
                     size="sm"
                     border="none"
@@ -1310,7 +1356,7 @@ export function MixerBar({
                     <ArrowUpHalfIcon className="text-[var(--muted)]" />
                   </IconButton>
                 )}
-                {(isRowInteractionActive || (canReachFullHeight && !isAtFullHeight)) && (
+                {((frozenReachability ? frozenReachability.canReachFull : canReachFullHeight) && !isAtFullHeight) && (
                   <IconButton
                     size="sm"
                     border="none"
@@ -1332,7 +1378,7 @@ export function MixerBar({
                     would write POOL_HEIGHT_MIN and visibly change
                     nothing — a dead button in the exact same squeeze the
                     50%/100% buttons above already hide themselves for. */}
-                {(isRowInteractionActive || (!isAtDefaultHeight && canReachFullHeight)) && (
+                {(!isAtDefaultHeight && (frozenReachability ? frozenReachability.canReachFull : canReachFullHeight)) && (
                   <IconButton
                     size="sm"
                     border="none"
