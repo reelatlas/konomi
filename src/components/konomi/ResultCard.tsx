@@ -181,6 +181,34 @@ export function ResultCard({
   const lockDisplayHint = supportsHover ? lockHint : locked ? "locked" : "unlocked";
   const activeHint = hoveredIcon === "lock" ? lockDisplayHint : hoveredIcon === "swap" ? swapHint : null;
   const hintRef = useRef<HTMLSpanElement>(null);
+  const iconRowRef = useRef<HTMLDivElement>(null);
+  // Touch-only replacement for onBlur as the "click elsewhere dismisses
+  // the hint" mechanism. Confirmed live (real device, Web Inspector
+  // console): iOS itself fires a genuine, spontaneous blur on this row's
+  // buttons roughly 1000-1500ms after focus, with no user interaction at
+  // all — not something JS caused or can distinguish from a real,
+  // user-initiated blur once it's already fired. Relying on onBlur to
+  // clear hoveredIcon meant that automatic blur reset the state before a
+  // deliberate second tap ever landed, so every tap the user made saw
+  // hoveredIcon already null and read as "show" again, never "hide" —
+  // confirmed live via the exact same timestamps. onBlur is now gated off
+  // on touch entirely (see each icon's own onBlur below); this listener
+  // replaces its "tap elsewhere clears it" role with something
+  // deterministic and driven only by a real click, not native focus
+  // timing this app has no control over.
+  useEffect(() => {
+    if (supportsHover) return;
+    function handleDocumentClick(e: MouseEvent) {
+      if (!iconRowRef.current) return;
+      const target = e.target as Node;
+      if (iconRowRef.current.contains(target)) return;
+      // eslint-disable-next-line no-console
+      console.log("[DBG] document click outside icon row — clearing hoveredIcon, t=", Date.now());
+      setHoveredIcon(null);
+    }
+    document.addEventListener("click", handleDocumentClick);
+    return () => document.removeEventListener("click", handleDocumentClick);
+  }, [supportsHover]);
   const [hintWrapped, setHintWrapped] = useState(false);
   // CSS has no way to select on "did this text wrap to multiple lines," so
   // this is measured directly: derive the expected single-line box height
@@ -547,6 +575,7 @@ export function ResultCard({
                 edge instead, so only the hint grows downward. hintWrapped
                 is measured, not guessed (see the effect above). */}
             <div
+              ref={iconRowRef}
               className={[
                 "absolute top-[var(--space-md)] left-[var(--space-md)] right-[var(--space-md)] flex gap-[var(--space-sm)]",
                 hintWrapped ? "items-start" : "items-center",
@@ -596,7 +625,14 @@ export function ResultCard({
                 onMouseEnter={supportsHover ? () => setHoveredIcon("lock") : undefined}
                 onMouseLeave={supportsHover ? () => setHoveredIcon(null) : undefined}
                 onFocus={() => setHoveredIcon("lock")}
-                onBlur={() => setHoveredIcon(null)}
+                // supportsHover-gated too, same as onMouseEnter/Leave above
+                // — see iconRowRef's own document-click-listener effect for
+                // why: a real, spontaneous blur iOS fires on its own,
+                // ~1000-1500ms after focus with no user interaction,
+                // confirmed live via Web Inspector, corrupted hoveredIcon
+                // before a deliberate second tap ever landed. The document
+                // click listener replaces this on touch.
+                onBlur={supportsHover ? () => setHoveredIcon(null) : undefined}
                 shadow
                 backgroundColor={locked ? "var(--secondary)" : "var(--surface)"}
                 textColor={locked ? "var(--on-secondary)" : "var(--ink)"}
@@ -697,11 +733,19 @@ export function ResultCard({
                   console.log("[DBG] swap onFocus fired, t=", Date.now());
                   setHoveredIcon("swap");
                 }}
-                onBlur={() => {
-                  // eslint-disable-next-line no-console
-                  console.log("[DBG] swap onBlur fired, t=", Date.now());
-                  setHoveredIcon(null);
-                }}
+                // supportsHover-gated — same reasoning as lock's own onBlur
+                // above: a real, spontaneous blur iOS fires on its own here
+                // too, confirmed live, which corrupted this exact toggle.
+                // The document-click-listener effect (iconRowRef) replaces
+                // this on touch.
+                onBlur={
+                  supportsHover
+                    ? () => setHoveredIcon(null)
+                    : () => {
+                        // eslint-disable-next-line no-console
+                        console.log("[DBG] swap onBlur fired (should NOT happen if supportsHover is false!), t=", Date.now());
+                      }
+                }
                 shadow
                 visuallyDisabled={swapDisabled}
               >
