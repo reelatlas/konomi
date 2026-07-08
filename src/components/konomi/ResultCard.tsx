@@ -334,6 +334,82 @@ export function ResultCard({
             flipped ? "opacity-0 pointer-events-none z-[var(--z-base)]" : "opacity-100 pointer-events-auto z-[var(--z-raised)]",
           ].join(" ")}
         >
+          {/* Small-card cover continuation — below the 731px reflection
+              gate, this is the ONLY thing that makes the tag area show
+              "more of the same cover, continuing," matching the big-card
+              tag-area treatment's own top tier (clear cover) + middle tier
+              (continuation) two of its three (clear → continuation →
+              reflection); reflection itself stays gated to >731px,
+              untouched, exactly as before.
+
+              Positioned absolute against FRONT itself (this element's
+              parent — the very next div down, `flex-1`, is a sibling of
+              this one, not an ancestor), inset-0, so it spans cover-box +
+              tag-wrapper *combined*, not just one or the other. This is
+              the one part of the whole approach that makes "continue with
+              zero height measurement" actually true: object-fit: cover
+              recomputes its own crop purely from whatever this element's
+              real, currently-resolved height happens to be — cover-box's
+              own flex-1 height plus tag-wrapper's own shrink-0 height,
+              whatever those settle to at any given viewport, entirely via
+              layout, with no JS reading either one. A shorter version of
+              this same box (sized to cover-box alone, the way the sharp
+              cover below still is) would recompute a *different* crop —
+              this only works because it's sized to the taller, combined
+              box instead.
+
+              Cover art is portrait relative to this card's own width in
+              every real case this app ships (confirmed already, indirectly,
+              by the *existing* reflection block's own comment: real covers
+              show more of the source below the sharp crop than a same-
+              width prototype tested against did, "with room to spare") —
+              which means object-fit: cover's crop is width-driven here,
+              not height-driven (portrait art is *taller* than a 208px-wide
+              card's own cover area, at any of this card's real heights).
+              Width-driven cover scale is independent of the container's
+              own height: given the same width, a taller container reveals
+              strictly *more* of the same image, at the exact same
+              scale/zoom — never a different crop of it. That's what
+              guarantees the portion of this image showing through
+              cover-box's own window below (unchanged, still its own
+              independent Image, still exactly today's crop) is visually
+              identical whether or not this taller layer exists behind it,
+              and what guarantees whatever shows through tag-wrapper's own
+              window is a true, same-scale continuation of it, not a
+              re-crop from the top.
+
+              Placed *first*, before both cover-box and tag-wrapper — with
+              neither of those two (nor this) carrying an explicit z-index
+              of their own, plain z-index:auto + later-DOM-order-wins
+              stacking is what makes each of them correctly paint over this
+              layer within their own bounds (cover-box's opaque bg-[var(--fill)]
+              + its own Image hide this entirely there; tag-wrapper has no
+              opaque background of its own, so this shows through it,
+              tinted/scrimmed by what's inside — see that box's own
+              comments below). No explicit z-index needed here for that
+              reason; a scrim inside tag-wrapper (below) still needs its own
+              z-[var(--z-raised)], same as the >731px reflection's own
+              continuation scrim, to outrank the veil.
+
+              Unblurred (no filter:blur at all) and the same
+              contrast(1.05)/saturate(0.85) filter as cover-box's own
+              Image, matching this exactly: the existing reflection block's
+              own continuation tier is *also* unblurred (REFLECTION_BLUR_
+              CONTINUATION_PX is 0 — only the mirrored tier past it gets a
+              1px blur), so "the same effects the bigger cards already use"
+              for this tier specifically means sharp, not soft. */}
+          {hasImage && !reflectionBroken && (
+            <div className="absolute inset-0 pointer-events-none [@media(min-height:731px)]:hidden">
+              <Image
+                src={series.coverImageUrl as string}
+                alt=""
+                aria-hidden="true"
+                fill
+                sizes="208px"
+                className="object-cover object-top [filter:contrast(1.05)_saturate(0.85)]"
+              />
+            </div>
+          )}
           {/* flex-1, not a fixed h-[295px] anymore — this box now grows/
               shrinks with the card's own clamped height (see globals.css's
               --result-card-height), so it can shrink at small viewports
@@ -781,52 +857,39 @@ export function ResultCard({
                 </div>
               </div>
             )}
-            {/* Small-card blurred-cover fill — below the 731px reflection
-                gate above, there's no physically-continuous reflection to
-                show through the veil, so without this the tag area's only
-                background was a flat --fill color under a 10% tint: just a
-                muted swatch, no actual cover mood coming through. Reuses
-                BACK's own full-bleed blurred-cover technique verbatim (same
-                BACK_FILL_* constants — this is that same treatment, not a
-                new one) so small cards read as "cover continuing through,
-                with the scrim on top" the same way large cards do via the
-                real reflection, just a blurred stand-in instead of the
-                genuine continuation. Complementary breakpoint to the
-                reflection block above (hidden ABOVE 731px instead of below
-                it) — once the real reflection is showing there's nothing
-                for this to add, and it's never wanted layered underneath
-                it either. No z-index of its own — paints behind the veil's
-                explicit z-[var(--z-base)] by the same static-vs-positioned
-                stacking rule documented in MixerBar.tsx, not by DOM order,
-                so it doesn't need to out-rank anything explicitly. */}
+            {/* Small-card continuation scrim — below the 731px reflection
+                gate above, the sharp-cover-continuation layer (a sibling of
+                cover-box, above/outside this whole tag-wrapper — see its
+                own comment) is what now shows through here in place of the
+                old flat blurred-cover fill this replaced. This scrim is the
+                one piece specific to *this* box: solid right at the top
+                edge (the seam with cover-box, continuous with that box's
+                own bottom scrim, which fades the same direction in
+                reverse) fading to fully transparent going down — the exact
+                same from-[var(--on-secondary)] to-transparent gradient and
+                h-[100px] span the reflection block's own continuation
+                scrim above already uses for the identical purpose at
+                >731px, just anchored to this box's own top instead of a
+                filmstrip's COVER_HEIGHT_PX offset (this box's "top" already
+                *is* the seam — no offset math needed here at all).
+
+                z-[var(--z-raised)]: same local front/back pair as the
+                veil's own z-[var(--z-base)] below and the reflection
+                block's own identical scrim — without it this would be a
+                z-index:auto sibling, and the veil (also explicit-z, but a
+                later DOM sibling) would otherwise paint over it, washing
+                the seam's darkness down to the veil's own faint level, the
+                identical regression already documented on the reflection
+                block's own version of this fix.
+
+                Gated to [@media(min-height:731px)]:hidden — same
+                complementary breakpoint the block it replaced used: above
+                731px the real reflection's own internal scrim already
+                covers this exact same job for its own continuation zone,
+                so adding this one too would double the seam's darkness
+                there, a real regression this gate exists to prevent. */}
             {hasImage && !reflectionBroken && (
-              <div
-                aria-hidden="true"
-                className="absolute inset-0 pointer-events-none [@media(min-height:731px)]:hidden"
-                style={{ opacity: BACK_FILL_OPACITY }}
-              >
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    width: `${100 / BACK_FILL_SCALE_DOWN}%`,
-                    height: `${100 / BACK_FILL_SCALE_DOWN}%`,
-                    transformOrigin: "top left",
-                    transform: `scale(${BACK_FILL_SCALE_DOWN})`,
-                  }}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element -- plain <img>, blurred well past next/image's own optimized sizes mattering, sharing the sharp cover's cached URL */}
-                  <img
-                    src={series.coverImageUrl as string}
-                    alt=""
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                      filter: `blur(${BACK_FILL_BLUR_PX / BACK_FILL_SCALE_DOWN}px)`,
-                    }}
-                  />
-                </div>
-              </div>
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-[100px] z-[var(--z-raised)] bg-gradient-to-b from-[var(--on-secondary)] to-transparent [@media(min-height:731px)]:hidden" />
             )}
             {/* Veil: --cover-reflection-veil (globals.css) — a translucent
                 wash of this theme's --slot-empty over the tag area, so it
