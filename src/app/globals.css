@@ -448,7 +448,10 @@
      scrollbar-gutter: stable on html above, specifically to reserve the
      scrollbar's own width permanently so toggling this class couldn't also
      reflow the page's content width — reverted: confirmed live as a real,
-     separate regression, not a fix. iOS (Safari and Chrome, same
+     separate regression, not a fix (the second time this exact property
+     has been tried and reverted in this file — see html's own comment,
+     above, for the first, an unrelated --mixer-bar-height reflow loop).
+     iOS (Safari and Chrome, same
      underlying engine) uses an *overlay* scrollbar by default — it never
      reserves permanent layout space at all, appearing as a floating
      indicator only during active scroll — so scrollbar-gutter: stable was

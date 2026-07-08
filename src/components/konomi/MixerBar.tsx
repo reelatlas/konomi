@@ -482,14 +482,18 @@ export function MixerBar({
     // real visual glitch, distinct from the scroll-through behavior
     // itself, which was already correctly blocked). html.
     // hide-scrollbar-while-blocked (globals.css) sets overflow: hidden for
-    // as long as this stays applied; scrollbar-gutter: stable on html
-    // itself (same file) is what keeps toggling it from also reflowing the
-    // page's own content width. Re-armed (not just set once) on every
-    // blocked event so a sustained attempt (holding a scroll gesture over
-    // the tab strip) keeps it hidden for the gesture's whole duration
-    // rather than flickering the class on and off between individual wheel
-    // ticks; removed shortly after the last blocked event, once nothing's
-    // actively trying to scroll here anymore.
+    // as long as this stays applied — see that class's own comment for why
+    // it's just overflow: hidden alone now, not paired with a permanently
+    // reserved scrollbar-gutter the way a first version tried (reverted:
+    // iOS's own overlay scrollbar doesn't reserve space to begin with, so
+    // reserving one unconditionally just added a permanent, unwanted track
+    // artifact for no benefit on the platform this was written for).
+    // Re-armed (not just set once) on every blocked event so a sustained
+    // attempt (holding a scroll gesture over the tab strip) keeps it hidden
+    // for the gesture's whole duration rather than flickering the class on
+    // and off between individual wheel ticks; removed shortly after the
+    // last blocked event, once nothing's actively trying to scroll here
+    // anymore.
     function hideScrollbarWhileBlocked() {
       document.documentElement.classList.add("hide-scrollbar-while-blocked");
       if (hideScrollbarTimeout !== null) window.clearTimeout(hideScrollbarTimeout);
