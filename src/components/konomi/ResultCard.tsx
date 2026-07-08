@@ -609,52 +609,42 @@ export function ResultCard({
                 autoFocus={startWithSwapHint}
                 onClick={(e) => {
                   e.stopPropagation();
-                  // Touch, disabled, hint already showing: a second tap on
-                  // this same button dismisses it, same as tapping the lock
-                  // icon or anywhere else on the card already does (each
-                  // blurs this button naturally, via focus moving
-                  // elsewhere). This button can't rely on that same natural
-                  // blur for a *repeat* tap on itself, though — re-focusing
-                  // an already-focused element is a no-op (no fresh
-                  // blur+focus pair fires), so without this, a second tap
-                  // here would just silently do nothing instead of
-                  // toggling the hint off like every other dismissal path
-                  // does. Scoped to !supportsHover only — desktop's hint is
-                  // hover-driven, not tap-driven, so this branch never
-                  // applies there.
-                  //
-                  // setHoveredIcon(null) directly, not just e.currentTarget.
-                  // blur() (tried first) — confirmed on a real phone that
-                  // relying on blur() alone to drive this via onBlur below
-                  // isn't reliable: real mobile Safari/Chrome don't
-                  // consistently fire a blur event from a programmatic
-                  // .blur() call on the same tick as the tap that triggered
-                  // it, the same general category of mobile-focus
-                  // unreliability lock/swap's own onClick already works
-                  // around elsewhere in this file (forcing .focus()
-                  // explicitly, rather than trusting a tap to focus a
-                  // button natively). Setting the state directly is what
-                  // actually needs to happen; still calling .blur() too,
-                  // best-effort, purely so the native focus ring/state
-                  // doesn't linger on a button whose own hint just closed.
-                  if (swapDisabled && !supportsHover && hoveredIcon === "swap") {
-                    setHoveredIcon(null);
-                    e.currentTarget.blur();
+                  // Disabled: hoveredIcon is now toggled fully explicitly,
+                  // via setHoveredIcon, directly in this handler — not left
+                  // to depend on the browser's own focus/blur event timing
+                  // at all. Two earlier attempts both relied on that timing
+                  // (e.currentTarget.blur() alone, then a direct
+                  // setHoveredIcon(null) that still only ran on a branch
+                  // gated by an assumption about hover support) and both
+                  // were reported live as still unreliable on a real phone.
+                  // onClick itself is the one event confirmed to fire
+                  // reliably here (a first tap already shows the hint,
+                  // tapping elsewhere already dismisses it) — so it's now
+                  // the *only* thing this toggle depends on: every tap on
+                  // this disabled button flips hoveredIcon between "swap"
+                  // and null itself, deterministically, regardless of
+                  // whether focus/blur/mouseenter/mouseleave happen to fire
+                  // or land in whatever order a given browser/device
+                  // chooses for a given tap. .focus()/.blur() are still
+                  // called alongside (not depended on) purely so a *later*
+                  // tap elsewhere still finds this button genuinely focused
+                  // and can blur it the normal way.
+                  if (swapDisabled) {
+                    if (hoveredIcon === "swap") {
+                      setHoveredIcon(null);
+                      e.currentTarget.blur();
+                    } else {
+                      setHoveredIcon("swap");
+                      e.currentTarget.focus();
+                    }
                     return;
                   }
                   // e.currentTarget.focus() — same reasoning as lock's own
                   // onClick above: an ordinary tap on this already-mounted
                   // button (not the post-swap remount autoFocus covers)
                   // can't be trusted to focus it natively on mobile, so
-                  // force it explicitly every time, disabled or not.
+                  // force it explicitly every time.
                   e.currentTarget.focus();
-                  // aria-disabled, not the native disabled attribute — a
-                  // real disabled button can silently fail to fire hover
-                  // events in some browsers, which would break exactly the
-                  // hint this button needs to show (explaining *why* it's
-                  // disabled). Guarding the handler here instead keeps
-                  // hover/focus always reliable.
-                  if (swapDisabled) return;
                   onReplace(series.title);
                 }}
                 // supportsHover-gated — see lock's own onMouseEnter/
