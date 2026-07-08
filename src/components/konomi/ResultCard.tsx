@@ -86,11 +86,6 @@ export function ResultCard({
   // a later re-render with a still-true startWithSwapHint prop (harmless
   // leftover in the parent, see its own comment) can't re-trigger this.
   const [hoveredIcon, setHoveredIcon] = useState<"lock" | "swap" | null>(() => (startWithSwapHint ? "swap" : null));
-  // TEMP DEBUG — remove after diagnosing the real-device toggle issue.
-  useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log("[DBG] hoveredIcon COMMITTED to:", hoveredIcon, "t=", Date.now());
-  }, [hoveredIcon]);
   // Separate from `hasImage` below — that only tells us a URL exists, not
   // that it actually decoded. Set by the shared cover filmstrip's own
   // onError (see that block's own comment) — the one place the cover
@@ -120,9 +115,14 @@ export function ResultCard({
   // Same priority order as recommend()'s own error check in useKonomi.ts:
   // tag count below MIN TAG MATCH is checked (and reported) before "nothing
   // else qualifies," since that's the more specific, more actionable reason.
-  // null while locked — the lock icon's own hint already explains why swap
-  // is unavailable, so this doesn't duplicate/contradict that with a
-  // different reason.
+  // "card is locked" while locked, not null (an earlier version showed
+  // nothing at all here, on the theory that the lock icon's own hint
+  // already explains it — but on tap/hover, this button's own hint is
+  // what's actually being asked for, and a disabled icon that shows
+  // nothing at all just reads as broken, not as "look at the other icon
+  // instead"). Highest priority, checked before every other reason: once
+  // locked, none of those other conditions matter — swap is unavailable
+  // for this one, specific reason regardless of tag count/canSwap.
   //
   // The !canSwap branch does NOT reuse ERROR_MESSAGE["no-match"] — canSwap
   // excludes every currently-*shown* title (locked and unlocked), while
@@ -149,7 +149,7 @@ export function ResultCard({
   // count against, and the actually-actionable step is adding tags in the
   // first place.
   const swapHint = locked
-    ? null
+    ? "card is locked"
     : filledCount === 0
       ? "add tags"
       : filledCount < minNum
@@ -163,11 +163,6 @@ export function ResultCard({
   // state confirmation only sighted touch users see.
   const lockHint = locked ? "unlock" : "lock";
   const supportsHover = useSupportsHover();
-  // TEMP DEBUG — remove after diagnosing the real-device toggle issue.
-  useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log("[DBG] supportsHover resolved to:", supportsHover, "for", series.title);
-  }, [supportsHover, series.title]);
   // The *visual* subtext is a different story on touch: with no hover to
   // preview "what tapping will do" before you do it, the hint only ever
   // appears *after* the tap already changed the state (see hoveredIcon's
@@ -214,8 +209,6 @@ export function ResultCard({
       // is captured at dispatch time, before any DOM mutation, so it stays
       // valid regardless of what React unmounts afterward.
       if (e.composedPath().includes(iconRowRef.current)) return;
-      // eslint-disable-next-line no-console
-      console.log("[DBG] document click outside icon row — clearing hoveredIcon, t=", Date.now());
       setHoveredIcon(null);
     }
     document.addEventListener("click", handleDocumentClick);
@@ -667,10 +660,6 @@ export function ResultCard({
                 autoFocus={startWithSwapHint}
                 onClick={(e) => {
                   e.stopPropagation();
-                  // TEMP DEBUG — remove after diagnosing the real-device
-                  // toggle issue.
-                  // eslint-disable-next-line no-console
-                  console.log("[DBG] swap onClick fired. hoveredIcon(before)=", hoveredIcon, "swapDisabled=", swapDisabled, "supportsHover=", supportsHover, "t=", Date.now());
                   // Disabled: hoveredIcon is now toggled fully explicitly,
                   // via setHoveredIcon, directly in this handler — not left
                   // to depend on the browser's own focus/blur event timing
@@ -693,13 +682,9 @@ export function ResultCard({
                   // and can blur it the normal way.
                   if (swapDisabled) {
                     if (hoveredIcon === "swap") {
-                      // eslint-disable-next-line no-console
-                      console.log("[DBG] swap onClick: toggling OFF, t=", Date.now());
                       setHoveredIcon(null);
                       e.currentTarget.blur();
                     } else {
-                      // eslint-disable-next-line no-console
-                      console.log("[DBG] swap onClick: toggling ON, t=", Date.now());
                       setHoveredIcon("swap");
                       e.currentTarget.focus();
                     }
@@ -724,40 +709,15 @@ export function ResultCard({
                 // confirmed live as the actual reason a second tap wasn't
                 // dismissing this hint. Not wiring these at all on touch
                 // removes the interference at its source.
-                onMouseEnter={
-                  supportsHover
-                    ? () => setHoveredIcon("swap")
-                    : () => {
-                        // eslint-disable-next-line no-console
-                        console.log("[DBG] swap onMouseEnter fired (should NOT happen if supportsHover is false!), t=", Date.now());
-                      }
-                }
-                onMouseLeave={
-                  supportsHover
-                    ? () => setHoveredIcon(null)
-                    : () => {
-                        // eslint-disable-next-line no-console
-                        console.log("[DBG] swap onMouseLeave fired (should NOT happen if supportsHover is false!), t=", Date.now());
-                      }
-                }
-                onFocus={() => {
-                  // eslint-disable-next-line no-console
-                  console.log("[DBG] swap onFocus fired, t=", Date.now());
-                  setHoveredIcon("swap");
-                }}
+                onMouseEnter={supportsHover ? () => setHoveredIcon("swap") : undefined}
+                onMouseLeave={supportsHover ? () => setHoveredIcon(null) : undefined}
+                onFocus={() => setHoveredIcon("swap")}
                 // supportsHover-gated — same reasoning as lock's own onBlur
                 // above: a real, spontaneous blur iOS fires on its own here
                 // too, confirmed live, which corrupted this exact toggle.
                 // The document-click-listener effect (iconRowRef) replaces
                 // this on touch.
-                onBlur={
-                  supportsHover
-                    ? () => setHoveredIcon(null)
-                    : () => {
-                        // eslint-disable-next-line no-console
-                        console.log("[DBG] swap onBlur fired (should NOT happen if supportsHover is false!), t=", Date.now());
-                      }
-                }
+                onBlur={supportsHover ? () => setHoveredIcon(null) : undefined}
                 shadow
                 visuallyDisabled={swapDisabled}
               >
