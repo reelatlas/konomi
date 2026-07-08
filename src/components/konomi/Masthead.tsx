@@ -43,13 +43,47 @@ export function Masthead({ theme, onThemeChange }: MastheadProps) {
 
   return (
     <>
-      {/* Condensed sticky header. Conditionally mounted (not always-present
-          + opacity/pointer-events toggled) — matches this app's own default
-          for content that doesn't need a transition (see e.g. RatingBadge's
-          own comment on the same choice), and there's nothing here that
-          benefits from a fade: the sentinel-timed hand-off above already
-          means the real masthead visually occupies this same screen region
-          right up until this one takes over.
+      {/* Condensed sticky header. Always mounted — NOT conditionally
+          rendered on `stuck` (an earlier version was, and that was a real,
+          confirmed bug: this element still participates in normal
+          document flow even while `position: sticky`, so mounting/
+          unmounting it inserted/removed its own ~41.5px of real height
+          right before the sentinel below, shifting the sentinel itself —
+          which re-fired the IntersectionObserver in the opposite
+          direction, unmounting it again, shifting the sentinel back,
+          remounting it... a genuine, self-triggered feedback loop,
+          confirmed live via frame-by-frame sampling: 21 mount/unmount
+          flips while slowly scrolling through the crossing point once,
+          each one paired with a ~41-42px scrollY jump in the same tick).
+
+          Fixed by making this element's layout footprint permanently
+          constant instead: mb-[-41.5px] cancels its own real height
+          exactly (confirmed live in isolation — content after it sits at
+          the identical document position whether this element is here or
+          not), the same self-cancellation technique MixerBar's own
+          growing box already uses (marginTop: -growableRef's height, see
+          that file's own comment) for the identical reason — a box that
+          must not push anything below it regardless of its own size.
+          `stuck` now only toggles opacity/pointer-events, never mount
+          state, so there's nothing left for this element's own presence
+          to feed back into. (A zero-height wrapper was tried first and
+          confirmed live NOT to work: position: sticky's own containing-
+          block range collapses to nothing inside a 0-height ancestor, so
+          the child only reads top:0 for one transient scroll pixel before
+          scrolling away like a normal in-flow element — real height +
+          equal negative margin is what actually keeps it pinned for the
+          whole remaining scroll range.)
+
+          No transition-opacity — matches this app's own default for
+          content that doesn't need a fade (see e.g. RatingBadge's own
+          comment on the same choice): the sentinel-timed hand-off already
+          means the real masthead visually occupies this same screen
+          region right up until this one takes over, so there's no gap for
+          a transition to smooth over. pointer-events-none while !stuck is
+          load-bearing, not decoration — this element still renders
+          (invisibly) at its own natural in-flow position, overlapping
+          whatever's actually visible there, and would otherwise silently
+          swallow clicks meant for it.
 
           top-0, flush to the true viewport top (not e.g. top-[space-2xl]
           the way MixerBar floats space-2xl off the true viewport *bottom*
@@ -104,22 +138,25 @@ export function Masthead({ theme, onThemeChange }: MastheadProps) {
           content has scrolled beneath this sticky bar rather than over
           this component's own surface — unreadable against arbitrary
           scrolled content instead of a flat, predictable one. */}
-      {stuck && (
-        <div className="sticky top-0 z-[var(--z-sticky)] bg-[var(--surface)] border-b-[length:var(--border-base)] border-b-[var(--ink)] shadow-[var(--elev-3)]">
-          <div className="flex items-center justify-between min-h-[36.5px] gap-x-[var(--space-lg)] px-[var(--space-2xl)]">
-            <div className="flex items-baseline gap-x-[var(--space-md)] min-w-0">
-              <h1 className="font-display text-[length:var(--text-xl)] leading-[var(--leading-display)] m-0 uppercase tracking-[var(--tracking-sm)]">
-                KONOMI
-              </h1>
-              <span className="font-body font-bold leading-[var(--leading-tight)] text-[var(--primary)] text-[length:var(--text-md)] max-[417px]:hidden">
-                ミックス
-              </span>
-            </div>
-            <ThemeSwitcher value={theme} onChange={onThemeChange} subtextPlacement="left" />
+      <div
+        className={[
+          "sticky top-0 z-[var(--z-sticky)] bg-[var(--surface)] border-b-[length:var(--border-base)] border-b-[var(--ink)] shadow-[var(--elev-3)] mb-[-41.5px]",
+          stuck ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none",
+        ].join(" ")}
+      >
+        <div className="flex items-center justify-between min-h-[36.5px] gap-x-[var(--space-lg)] px-[var(--space-2xl)]">
+          <div className="flex items-baseline gap-x-[var(--space-md)] min-w-0">
+            <h1 className="font-display text-[length:var(--text-xl)] leading-[var(--leading-display)] m-0 uppercase tracking-[var(--tracking-sm)]">
+              KONOMI
+            </h1>
+            <span className="font-body font-bold leading-[var(--leading-tight)] text-[var(--primary)] text-[length:var(--text-md)] max-[417px]:hidden">
+              ミックス
+            </span>
           </div>
-          <div className="h-[3px] bg-[var(--secondary)]" />
+          <ThemeSwitcher value={theme} onChange={onThemeChange} subtextPlacement="left" />
         </div>
-      )}
+        <div className="h-[3px] bg-[var(--secondary)]" />
+      </div>
       {/* mb-[var(--space-3xl)] (32px): deliberately NOT the same X as the
           other gaps in the header+card+mixer group below (card→mixer,
           header→card, left/right margins, mixer→screen-bottom — all still
