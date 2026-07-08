@@ -66,14 +66,17 @@ interface MixerBarProps {
 // it. See DESIGN_SYSTEM.md's "MixerBar" section for the full rationale —
 // this comment covers only the mechanics.
 //
-// position:sticky; bottom:0 now, not plain normal flow and not
+// position:sticky; bottom:[space-2xl] now, not plain normal flow and not
 // position:fixed — the last section inside the page's own max-w-[1280px]
 // mx-auto column (see KonomiApp.tsx), still sized and framed as part of the
-// header+card+mixer "fits one viewport" group, but floats pinned to the
-// viewport bottom on pages tall enough to scroll and settles back into
-// ordinary in-flow position (respecting KonomiApp's own trailing
-// pb-[space-2xl]) once everything fits — native browser behavior, not
-// anything measured/computed here. This bar's position has now been each
+// header+card+mixer "fits one viewport" group, but floats pinned
+// space-2xl above the viewport bottom on pages tall enough to scroll and
+// settles back into ordinary in-flow position (respecting KonomiApp's own
+// trailing pb-[space-2xl]) once everything fits — the same minimum gap on
+// every side of this bar's frame either way, matching the page's own
+// left/right gutter (KonomiApp's px-[space-2xl]) — requested explicitly
+// once flush bottom-0 read as inconsistent with that gutter. This bar's
+// position has now been each
 // of the three real options in turn: position:fixed (the original design),
 // plain normal flow (un-pinned once, reverted on explicit instruction, then
 // re-approved with the edit-mode-growth design below specifically to
@@ -570,10 +573,10 @@ export function MixerBar({
     if (!card || !dialog) return;
     function measure() {
       if (isDraggingRef.current) return;
-      const cardHeight = card!.getBoundingClientRect().height;
+      const cardRect = card!.getBoundingClientRect();
       const dialogHeight = dialog!.getBoundingClientRect().height;
-      const surplusBelow = Math.max(0, window.innerHeight - card!.getBoundingClientRect().bottom);
-      setFixedOverheadPx(Math.max(0, cardHeight - dialogHeight + surplusBelow));
+      const surplusBelow = Math.max(0, window.innerHeight - cardRect.bottom);
+      setFixedOverheadPx(Math.max(0, cardRect.height - dialogHeight + surplusBelow));
     }
     measureFixedOverheadRef.current = measure;
     const observer = new ResizeObserver(measure);
@@ -867,31 +870,48 @@ export function MixerBar({
   }
 
   return (
-    // sticky bottom-0 — the last section of the page's own max-w-[1280px]
-    // mx-auto column (see KonomiApp.tsx), pinned to the viewport bottom
-    // once the page scrolls, settling back to its own ordinary in-flow
-    // position (respecting KonomiApp's own trailing pb-[space-2xl]) once
-    // everything already fits — see this file's own top comment for why
-    // this replaced plain normal flow and the history behind that choice.
-    // No px/pb-[space-2xl] here either, same reason as before: that framing
-    // comes from the shared max-w-[1280px] ancestor (left/right) and
-    // KonomiApp's own root pb-[space-2xl] (bottom) — this wrapper adding
-    // its own would double-count both, in either position mode.
+    // sticky bottom-[space-2xl] — the last section of the page's own
+    // max-w-[1280px] mx-auto column (see KonomiApp.tsx), pinned
+    // space-2xl above the viewport bottom once the page scrolls, settling
+    // back to its own ordinary in-flow position (respecting KonomiApp's own
+    // trailing pb-[space-2xl]) once everything already fits — see this
+    // file's own top comment for why this replaced plain normal flow and
+    // the history behind that choice. No px/pb-[space-2xl] here either,
+    // same reason as before: that framing comes from the shared
+    // max-w-[1280px] ancestor (left/right) and KonomiApp's own root
+    // pb-[space-2xl] (bottom) — this wrapper adding its own would
+    // double-count both, in either position mode.
     //
     // Confirmed live before adopting sticky: KonomiApp's own overflow-x-clip
     // ancestor does NOT make it (instead of the true viewport) this bar's
     // sticky containing block, despite overflow-x-clip technically making
     // that div a "scroll container" per spec — tested with a genuinely tall
     // page, the bar stuck to the real viewport bottom for the entire scroll
-    // range and returned to normal flow only once the page ran out. Also
-    // confirmed live: the marginTop mechanism below and native sticky don't
-    // fight each other — while genuinely stuck, marginTop's own contribution
-    // to the bar's *final* rendered position becomes a no-op (sticky's
-    // bottom:0 constraint wins regardless of what marginTop says), but it's
-    // still exactly as necessary as before for the not-stuck case (a short
-    // page, where this behaves like an ordinary in-flow box) — so it stays,
-    // unchanged, rather than branching this component's logic on which
-    // regime is currently active.
+    // range and returned to normal flow only once the page ran out.
+    //
+    // Conditionally zeroing marginTop while stuck (an `isStuck` state,
+    // detected via remaining-scroll-distance) was tried and reverted:
+    // while genuinely stuck, marginTop's own contribution to the bar's
+    // *final rendered position* really is a no-op regardless of its value
+    // (confirmed live, sticky's own bottom constraint wins) — but its
+    // OTHER job, canceling the growable content's contribution to the
+    // *page's total layout height*, is not a no-op, and nothing else was
+    // standing in for that once it was removed. Growing the box with
+    // marginTop zeroed made its un-compensated natural height push the
+    // page's own scrollHeight taller — which is exactly the input
+    // `isStuck`'s own remaining-scroll-distance measurement reads — so
+    // opening edit mode could flip `isStuck` true (or leave it stale) as a
+    // side effect of the very change its own value was supposed to gate,
+    // a real circular dependency, not just a redundant computation.
+    // Confirmed live as a real, reproducible regression: the bar's bottom
+    // edge visibly pushed *down* on open instead of the box growing purely
+    // upward, worse after repeated open/close cycles while stuck (each
+    // cycle compounding the same feedback rather than settling). Reverted
+    // in favor of what's below — marginTop always computed, unconditionally,
+    // the same as before sticky existed. It's a confirmed no-op purely
+    // visually whenever the bar happens to be stuck, at the cost of one
+    // redundant (harmless) style computation in that case — a much better
+    // trade than a value that can feed back into its own input.
     //
     // One box now, not two — resize row, pool panel, slots, and controls
     // are all ordinary children of the SAME bordered/shadowed element,
@@ -909,7 +929,13 @@ export function MixerBar({
     // marginTop (inline style, below) is what still lets this box grow
     // upward without ever moving slots/controls — see
     // growableFixedOverheadPx's own comment above (near its declaration)
-    // for the exact mechanism.
+    // for the exact mechanism, computed unconditionally (not gated on
+    // whether the bar happens to be stuck right now — see the paragraph
+    // above for why that was tried and reverted). While genuinely stuck,
+    // this ends up a harmless no-op for the bar's own final rendered
+    // position (native sticky's bottom offset determines that regardless),
+    // but it's still load-bearing for the not-stuck case, and for keeping
+    // the page's own total height correct in both.
     // The ternary reads `editMode` directly (not just the measured state
     // variable) so the margin snaps back to 0 the instant editMode goes
     // false, rather than waiting on the measurement effect's own cleanup
@@ -936,7 +962,7 @@ export function MixerBar({
       // requirement `relative` used to — confirmed live this stacking
       // still resolves correctly under sticky (a hit-test at the overlap
       // point still landed on this box, not whatever's behind it).
-      className="sticky bottom-0 z-[var(--z-overlay)] @container max-w-[1280px] mx-auto px-[var(--space-2xl)] py-[var(--space-xl)] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-4)]"
+      className="sticky bottom-[var(--space-2xl)] z-[var(--z-overlay)] @container max-w-[1280px] mx-auto px-[var(--space-2xl)] py-[var(--space-xl)] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-4)]"
     >
       {/* growableRef wraps just the resize-handle row + pool panel — see
           growableFixedOverheadPx's own comment above for why this exists
