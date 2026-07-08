@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { LevelKey, MatchKey, MixerError, Slot, TagInfo } from "@/lib/konomi/types";
 import { ActionButton } from "./ActionButton";
 import {
@@ -488,7 +488,20 @@ export function MixerBar({
   // actually above the bar. Zero whenever the mixer's bottom already sits
   // at the viewport's own bottom edge (every case this measurement used
   // to cover).
-  useEffect(() => {
+  //
+  // useLayoutEffect, not useEffect — confirmed live as a real bug with the
+  // plain-useEffect version: on the very first editMode open per page load,
+  // this (and growableFixedOverheadPx below) only resolved to their real
+  // values *after* the browser had already painted one frame using the
+  // stale bootstrap/zero values, so cardRef's own negative-marginTop
+  // compensation (see that ref's own comment) was momentarily wrong — the
+  // whole bar visibly jumped down by the resize row's height, then snapped
+  // back up a frame later once this measurement landed. useLayoutEffect
+  // runs synchronously after the DOM mutation but before the browser
+  // paints, so the correction lands in the same commit the open itself
+  // does — same fix, same reasoning as ResultCard.tsx's own hint-wrap
+  // measurement (see that file's comment on its own useLayoutEffect).
+  useLayoutEffect(() => {
     if (!editMode) return;
     const card = cardRef.current;
     const dialog = dialogRef.current;
@@ -551,8 +564,21 @@ export function MixerBar({
   // measure() callback it registers still needs to read the CURRENT
   // effectiveHeightPx whenever it actually runs, not a value frozen from
   // whenever the effect last (re-)ran.
+  // useLayoutEffect, not useEffect — the ResizeObserver callback below
+  // (async, fires on its own schedule) reads this ref, and it must never
+  // see a value more than one commit stale. A passive effect only
+  // guarantees "will run eventually after paint," which left a real window
+  // during a fast resize-drag where several state updates (and therefore
+  // DOM commits) could land before the previous one's effect flushed —
+  // the observer could then read a ref one or more renders behind the DOM
+  // it was actually measuring against, computing a wrong overhead and
+  // visibly glitching the drag. useLayoutEffect updates the ref
+  // synchronously in the same commit as the render that changed
+  // effectiveHeightPx, so it's always current by the time anything else
+  // (this commit's own layout effects, or a later async observer callback)
+  // reads it.
   const effectiveHeightPxRef = useRef(effectiveHeightPx);
-  useEffect(() => {
+  useLayoutEffect(() => {
     effectiveHeightPxRef.current = effectiveHeightPx;
   });
 
@@ -564,7 +590,12 @@ export function MixerBar({
   // during a plain resize-drag — effectiveHeightPx itself changes every
   // drag tick, but it's subtracted out here specifically so this stored
   // number doesn't have to.
-  useEffect(() => {
+  //
+  // useLayoutEffect, not useEffect — see fixedOverheadPx's own comment
+  // above for the confirmed-live first-open jump this fixes (this state
+  // starts at 0 with no bootstrap constant of its own, unlike
+  // fixedOverheadPx, so it was the more visible half of that bug).
+  useLayoutEffect(() => {
     if (!editMode) return;
     const growable = growableRef.current;
     if (!growable) return;
