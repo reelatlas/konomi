@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 import type { ThemeKey } from "@/lib/konomi/types";
 
@@ -7,18 +8,129 @@ interface MastheadProps {
 }
 
 export function Masthead({ theme, onThemeChange }: MastheadProps) {
+  // Condensed sticky header: appears once the real masthead below has
+  // scrolled fully out of view, disappears once it's back — a sentinel +
+  // IntersectionObserver, not a scroll listener, so this never runs
+  // per-scroll-event JS at all (the browser's own compositor drives it).
+  // sentinelRef sits as the *last* child inside the real header, right
+  // after its own bottom accent bar — not a separate element after
+  // </header> (which would trigger this a whole mb-[space-3xl] (32px)
+  // early, while the real masthead's own trailing margin is still fully
+  // visible) and not somewhere mid-header either (would trigger while real
+  // content is still on screen). This exact point is where the real
+  // masthead visually finishes — the moment it scrolls above y=0, nothing
+  // of it is left on screen, so the condensed bar mounting exactly then
+  // hands off with no visible gap and no overlap.
+  //
+  // entry.boundingClientRect.top < 0, not just !isIntersecting: on mount,
+  // before any scroll, the sentinel already fails isIntersecting exactly
+  // once in some engines while layout is still settling (a real, observed
+  // false-positive) — its boundingClientRect.top is still >= 0 in that
+  // case (it hasn't scrolled anywhere, it just hasn't been measured yet),
+  // so checking the sign disambiguates "scrolled past, above the
+  // viewport" from "not intersecting because nothing has settled yet."
+  const [stuck, setStuck] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      setStuck(!entry.isIntersecting && entry.boundingClientRect.top < 0);
+    });
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    // mb-[var(--space-3xl)] (32px): deliberately NOT the same X as the
-    // other gaps in the header+card+mixer group below (card→mixer,
-    // header→card, left/right margins, mixer→screen-bottom — all still
-    // space-2xl, see globals.css's --result-card-height comment for that
-    // uniform-frame reasoning). This one gap is intentionally bigger, by
-    // request — the masthead reads as its own distinct banner, clearly
-    // separated from the working area below, rather than one more edge of
-    // that otherwise-uniform group. (This is also this gap's original,
-    // pre-uniform-frame value, from before Step 2 shrank it to space-2xl
-    // for that now-relaxed symmetry.)
-    <header className="border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-5)] rotate-[-0.5deg] px-[var(--space-2xl)] pt-[var(--space-2xl)] pb-0 mb-[var(--space-3xl)]">
+    <>
+      {/* Condensed sticky header. Conditionally mounted (not always-present
+          + opacity/pointer-events toggled) — matches this app's own default
+          for content that doesn't need a transition (see e.g. RatingBadge's
+          own comment on the same choice), and there's nothing here that
+          benefits from a fade: the sentinel-timed hand-off above already
+          means the real masthead visually occupies this same screen region
+          right up until this one takes over.
+
+          top-0, flush to the true viewport top (not e.g. top-[space-2xl]
+          the way MixerBar floats space-2xl off the true viewport *bottom*
+          — that choice is about clearing mobile browser bottom chrome/
+          home-indicator, a bottom-specific concern that doesn't apply
+          here; a header sitting flush at the very top is the standard,
+          expected convention this app has no reason to deviate from).
+
+          min-h-[36.5px] items-center, the exact same technique
+          ResultsHeader's own row uses for the identical reason: this
+          row's tallest content (ThemeSwitcher's 24px-tall swatches, this
+          title's own ~22.36px line height) doesn't by itself reach
+          36.5px — the height explicitly requested (matching
+          --header-row-height, "the recommendations row header height") —
+          so it's pinned directly rather than left to hug whichever child
+          is tallest.
+
+          KONOMI's own classes here are TitleWithSubtitle's exact h2
+          treatment (text-xl/leading-display/tracking-sm/uppercase/
+          font-display) — the same size already used for every other
+          single-row header in this app (MixerBar's own title, Results'
+          "Recommendations") — reusing it instead of picking a fresh size
+          keeps the condensed masthead reading at the same visual weight
+          as the rest of the app's section titles rather than introducing
+          a new one. ミックス rides along too, TitleWithSubtitle's own
+          companion-span treatment (font-body font-bold leading-tight
+          text-primary text-md) — dropped below 417px (same threshold and
+          reasoning as ResultsHeader's own おすすめ: this row must never
+          wrap, so the companion is the one thing that gives at a width
+          this tight, not the row itself).
+
+          The outer box reforms the real masthead's own two-part border —
+          not a plain single border, an ink border-b (matching the real
+          header's own border-[ink] all around) THEN a thin secondary-
+          color accent strip as the box's own last child (mirroring that
+          header's own h-[9px] bg-secondary border-t-ink bar) — at roughly
+          a third of that bar's own height (9px), since a condensed row
+          reforming a whole banner's identity into ~36.5px of content
+          doesn't have room for a full-scale replica of every element,
+          just enough of its actual signature (ink border, secondary
+          accent) to read as the same design language rather than a
+          generic bar. No rotate-[-0.5deg] here, unlike the real header —
+          confirmed live that a rotated box flush against the true
+          viewport edge (top-0, no surrounding page padding to absorb the
+          tilt the way the real header's own pt/pb-2xl does) shows a
+          visible sliver of whatever's scrolled beneath it at one top
+          corner, not a stylistic choice worth the artifact.
+
+          ThemeSwitcher's subtextPlacement="left" (see that component's
+          own comment): its default bottom placement would hang the hover
+          subtext below this row's own 36.5px box, over whatever page
+          content has scrolled beneath this sticky bar rather than over
+          this component's own surface — unreadable against arbitrary
+          scrolled content instead of a flat, predictable one. */}
+      {stuck && (
+        <div className="sticky top-0 z-[var(--z-sticky)] bg-[var(--surface)] border-b-[length:var(--border-base)] border-b-[var(--ink)] shadow-[var(--elev-3)]">
+          <div className="flex items-center justify-between min-h-[36.5px] gap-x-[var(--space-lg)] px-[var(--space-2xl)]">
+            <div className="flex items-baseline gap-x-[var(--space-md)] min-w-0">
+              <h1 className="font-display text-[length:var(--text-xl)] leading-[var(--leading-display)] m-0 uppercase tracking-[var(--tracking-sm)]">
+                KONOMI
+              </h1>
+              <span className="font-body font-bold leading-[var(--leading-tight)] text-[var(--primary)] text-[length:var(--text-md)] max-[417px]:hidden">
+                ミックス
+              </span>
+            </div>
+            <ThemeSwitcher value={theme} onChange={onThemeChange} subtextPlacement="left" />
+          </div>
+          <div className="h-[3px] bg-[var(--secondary)]" />
+        </div>
+      )}
+      {/* mb-[var(--space-3xl)] (32px): deliberately NOT the same X as the
+          other gaps in the header+card+mixer group below (card→mixer,
+          header→card, left/right margins, mixer→screen-bottom — all still
+          space-2xl, see globals.css's --result-card-height comment for that
+          uniform-frame reasoning). This one gap is intentionally bigger, by
+          request — the masthead reads as its own distinct banner, clearly
+          separated from the working area below, rather than one more edge of
+          that otherwise-uniform group. (This is also this gap's original,
+          pre-uniform-frame value, from before Step 2 shrank it to space-2xl
+          for that now-relaxed symmetry.) */}
+      <header className="border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-5)] rotate-[-0.5deg] px-[var(--space-2xl)] pt-[var(--space-2xl)] pb-0 mb-[var(--space-3xl)]">
       {/* flex-nowrap (the default, not written out) on this outer row —
           ThemeSwitcher must never drop to its own line, full stop. Instead
           of the whole row wrapping at some bisected breakpoint (the
@@ -83,6 +195,16 @@ export function Masthead({ theme, onThemeChange }: MastheadProps) {
           this reads ~14.65px for a 9px-tall element. Check the computed
           height/border/margin values instead.) */}
       <div className="h-[9px] bg-[var(--secondary)] border-t-[length:var(--border-base)] border-t-[var(--ink)] mx-[calc(var(--space-2xl)*-1)] mt-[calc(var(--space-2xl)_-_9px)]" />
+      {/* Sentinel for the condensed header above — see this component's
+          own top comment for why it lives exactly here (the header's own
+          last child) and not as a sibling after </header>. h-px, not h-0:
+          a zero-height element can fail to ever register a real
+          intersection change in some engines (nothing to intersect);
+          a hairline is enough to observe reliably without being visually
+          noticeable against the header's own bottom border it sits
+          flush against. */}
+      <div ref={sentinelRef} aria-hidden="true" className="h-px" />
     </header>
+    </>
   );
 }
