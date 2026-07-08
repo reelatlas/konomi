@@ -1530,9 +1530,50 @@ export function MixerBar({
             // handleRowPointerDown — see its own declaration for why one
             // shared listener on this common ancestor, relying on normal
             // bubbling, covers a press starting on any of the four
-            // children (the three shortcut buttons below, or the grip).
+            // children (the three shortcut buttons below, or the grip) —
+            // below min-[993px] (mobile, see that div's own comment), only
+            // the grip is actually reachable, but the listener itself
+            // doesn't need to know or care which of the four is what
+            // bubbled the event up to it.
             <div className="flex items-center gap-0 shrink-0" onPointerDown={handleRowPointerDown}>
-              <div className="flex items-center gap-0">
+              {/* hidden min-[993px]:flex — mobile-only removal, requested
+                  directly: a touch-primary user already has the grip
+                  itself for manual resizing, full-range and one gesture
+                  away, so these three shortcuts (jump to 50%/100%/default)
+                  are redundant convenience desktop keeps for a
+                  mouse-driven, click-based interaction style. min-[993px]
+                  is not a new number invented for this — it's this exact
+                  row's own prior desktop threshold (see canShowResizeHandleRow's
+                  neighborhood, "an earlier version hid the resize handle
+                  below 993px" — reverted then because it hid the *grip*
+                  too, leaving mobile with no way to resize at all; this is
+                  deliberately narrower, hiding only the three shortcuts and
+                  never the grip) and the same breakpoint Row 3 below
+                  already uses for its own icon-vs-text desktop split
+                  (min-[993px]:hidden on Tag Pool/Random/Clear's mobile
+                  icon-only form) — one consistent "is this desktop" line
+                  for the whole bar, not a second one invented here.
+
+                  Purely a rendering change, nothing underneath it: every
+                  one of this session's fixes for these three buttons —
+                  frozenReachability's per-element reachability snapshot,
+                  the mid-press mount-unmount protection it replaced a
+                  flawed shared-boolean version of, handleRowPointerDown's
+                  own bubbling wiring — still runs exactly as before,
+                  completely unmodified, on every breakpoint including
+                  mobile. Hiding a subtree via CSS doesn't stop React from
+                  evaluating it or firing its effects; these three buttons'
+                  own JSX conditions below still read frozenReachability/
+                  canReachHalfHeight/canReachFullHeight/isAtHalfHeight/etc.
+                  exactly as they did before this change on every render,
+                  mobile included — they just don't paint or hit-test while
+                  min-[993px] doesn't match, the same as any other
+                  responsive Tailwind class elsewhere in this file. Nothing
+                  here is orphaned or dead: all three conditions, and every
+                  piece of state feeding them, are still fully live and
+                  still the actual gate for whether a *desktop* user sees
+                  each button. */}
+              <div className="hidden min-[993px]:flex items-center gap-0">
                 {/* frozenReachability substitutes for the live
                     canReach*Height on all three shortcut buttons below —
                     see that state's own declaration for the confirmed-live
