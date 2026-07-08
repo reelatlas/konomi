@@ -137,7 +137,21 @@ export function ResultCard({
   // This wording only claims what canSwap actually reports — no series is
   // available to swap in — without asserting anything about whether
   // what's currently on screen matches the current mix.
-  const swapHint = locked ? null : filledCount < minNum ? ERROR_MESSAGE["impossible-min"] : !canSwap ? "no swaps available for this mix" : "swap";
+  // "add tags" specifically at filledCount === 0 (not ERROR_MESSAGE
+  // ["impossible-min"], "lower MIN TAG MATCH") — that copy assumes a mix
+  // already exists and just needs a smaller threshold, which doesn't hold
+  // with zero tags selected at all: there's no mix yet to lower a match
+  // count against, and the actually-actionable step is adding tags in the
+  // first place.
+  const swapHint = locked
+    ? null
+    : filledCount === 0
+      ? "add tags"
+      : filledCount < minNum
+        ? ERROR_MESSAGE["impossible-min"]
+        : !canSwap
+          ? "no swaps available for this mix"
+          : "swap";
   // aria-label stays action-oriented always ("lock"/"unlock" — what
   // activating the button does), regardless of hover support: a screen
   // reader's accessible name should describe the action, not echo a visual
