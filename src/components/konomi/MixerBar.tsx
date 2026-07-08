@@ -230,6 +230,81 @@ export function MixerBar({
   const dialogRef = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
 
+  // Continuously tracks whether the page is currently scrolled to its own
+  // true bottom — read once below, right as editMode flips true, to know
+  // whether the scroll-position restoration there is needed. A plain
+  // scroll listener rather than a one-shot capture inside the tap handler
+  // itself: the value only needs to reflect wherever the user actually was
+  // an instant before tapping, and this way nothing has to thread a
+  // one-off flag through the open/close prop callbacks from the parent.
+  const wasAtDocumentBottomRef = useRef(false);
+  useEffect(() => {
+    function update() {
+      wasAtDocumentBottomRef.current =
+        window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
+    }
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, []);
+  // Confirmed live as a real bug, worst on a short (landscape/rotated)
+  // viewport: opening edit mode settles fixedOverheadPx and
+  // growableFixedOverheadPx (both below) across two separately triggered
+  // commits, not one — on the very first-ever open, the first of those
+  // still uses EDIT_MODE_FIXED_ROWS_HEIGHT, a worst-case narrow/portrait
+  // bootstrap constant, as fixedOverheadPx, which can wildly overestimate
+  // the real overhead on a wide/landscape layout — making that one commit's
+  // marginTop far more negative than its own final, corrected value.
+  // Confirmed via frame-by-frame sampling (requestAnimationFrame-gated):
+  // cardMarginTop briefly read -385.5px against a final, correct -90.125px,
+  // and document.documentElement.scrollHeight correspondingly dipped below
+  // its own final value for that same one frame. Invisible in the common
+  // case (there's slack scroll room above) — but if the user happens to
+  // already be scrolled to the document's true bottom at that exact
+  // instant (landing there is exactly what "scroll to the bottom, tap an
+  // empty slot" does), the browser is forced to clamp scrollY down to fit
+  // that transient, too-small height, and never restores it once the
+  // correct, taller height lands a frame later — browsers don't
+  // retroactively scroll back down just because more room became available.
+  // Confirmed live this alone explains the reported "opening edit mode
+  // auto-scrolls me away from the bottom, into sticky range" behavior,
+  // reproduced in both Chrome and Safari on iOS regardless of engine, and a
+  // very likely trigger for a second, WebKit-specific compositor desync
+  // reported downstream of it (a sudden, forced, non-gesture scroll jump —
+  // exactly what this is — is the kind of discontinuity that class of bug
+  // tends to need; see this file's own DESIGN_SYSTEM.md entry).
+  //
+  // Fixed by restoring position, not by trying to make that one transient
+  // frame perfectly accurate — a deeper change to how fixedOverheadPx and
+  // growableFixedOverheadPx settle together carries more risk to the
+  // drag-resize behavior those two states are otherwise carefully tuned
+  // for, for a bug that only ever shows up in this one specific corner.
+  // If the user was at the bottom right before this transition, keep
+  // pinning scroll back to the (possibly still-settling) bottom for a few
+  // frames afterward — comfortably past the single-frame settle time this
+  // was confirmed to actually need, while still stopping well short of
+  // ever fighting a genuine new scroll gesture of the user's own.
+  useLayoutEffect(() => {
+    if (!editMode) return;
+    if (!wasAtDocumentBottomRef.current) return;
+    let cancelled = false;
+    let framesLeft = 6;
+    function pinToBottom() {
+      if (cancelled) return;
+      window.scrollTo(0, document.documentElement.scrollHeight - window.innerHeight);
+      framesLeft -= 1;
+      if (framesLeft > 0) requestAnimationFrame(pinToBottom);
+    }
+    requestAnimationFrame(pinToBottom);
+    return () => {
+      cancelled = true;
+    };
+  }, [editMode]);
+
   // The negative-margin technique that lets cardRef grow upward (edit
   // mode's extra content pushes its own top edge up) without ever moving
   // its own bottom edge (where slots/controls sit): cardRef's natural,
@@ -397,6 +472,32 @@ export function MixerBar({
 
     let touchStart: { x: number; y: number } | null = null;
     let touchAxis: "horizontal" | "vertical" | null = null;
+    let hideScrollbarTimeout: number | null = null;
+
+    // Purely cosmetic, riding along on the same "this gesture is being
+    // blocked" decision blockScrollThrough already makes below — the
+    // page's own scrollbar can visibly flash/engage the instant it
+    // receives wheel input, even once preventDefault stops it from
+    // actually moving anything (confirmed live: reported as a brief but
+    // real visual glitch, distinct from the scroll-through behavior
+    // itself, which was already correctly blocked). html.
+    // hide-scrollbar-while-blocked (globals.css) sets overflow: hidden for
+    // as long as this stays applied; scrollbar-gutter: stable on html
+    // itself (same file) is what keeps toggling it from also reflowing the
+    // page's own content width. Re-armed (not just set once) on every
+    // blocked event so a sustained attempt (holding a scroll gesture over
+    // the tab strip) keeps it hidden for the gesture's whole duration
+    // rather than flickering the class on and off between individual wheel
+    // ticks; removed shortly after the last blocked event, once nothing's
+    // actively trying to scroll here anymore.
+    function hideScrollbarWhileBlocked() {
+      document.documentElement.classList.add("hide-scrollbar-while-blocked");
+      if (hideScrollbarTimeout !== null) window.clearTimeout(hideScrollbarTimeout);
+      hideScrollbarTimeout = window.setTimeout(() => {
+        document.documentElement.classList.remove("hide-scrollbar-while-blocked");
+        hideScrollbarTimeout = null;
+      }, 200);
+    }
 
     function scrollFadeOrientationAt(target: Node): "horizontal" | "vertical" | null {
       const el = target instanceof Element ? target : (target as Node).parentElement;
@@ -436,6 +537,7 @@ export function MixerBar({
       }
 
       e.preventDefault();
+      hideScrollbarWhileBlocked();
     }
     bar.addEventListener("wheel", blockScrollThrough, { passive: false });
     bar.addEventListener("touchstart", handleTouchStart, { passive: true });
@@ -444,6 +546,8 @@ export function MixerBar({
       bar.removeEventListener("wheel", blockScrollThrough);
       bar.removeEventListener("touchstart", handleTouchStart);
       bar.removeEventListener("touchmove", blockScrollThrough);
+      if (hideScrollbarTimeout !== null) window.clearTimeout(hideScrollbarTimeout);
+      document.documentElement.classList.remove("hide-scrollbar-while-blocked");
     };
   }, []);
 

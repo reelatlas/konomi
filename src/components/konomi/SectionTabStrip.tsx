@@ -42,23 +42,60 @@ export function SectionTabStrip({ sections, activeKey, onChange, visible = true 
 
   // Brings the active tab into view whenever it changes — a click already
   // scrolled there by definition, but arrow-key nav can move focus past
-  // whatever's currently visible in the strip. scrollIntoView on the tab
-  // button itself finds its nearest scrollable ancestor (ScrollFadeArea's
-  // own viewport) automatically, so this doesn't need a handle to that
-  // internal element — ScrollFadeArea deliberately doesn't expose one.
-  // block: "nearest" keeps this from also scrolling the page vertically —
-  // true whenever this strip is actually visible, but confirmed live as a
-  // real bug while it isn't: with no non-clipped block-axis scrollable
-  // ancestor nearby (this strip's own ScrollFadeArea viewport is
-  // horizontal-only, overflow-y hidden), "nearest" walks all the way up to
-  // the document itself and scrolls the *page* to bring this clipped,
-  // invisible button into view — reproduced on every fresh load, since
-  // this component mounts (and this effect fires) even while collapsed.
-  // Guarding on `visible` is required, not optional, once a caller can be
-  // mounted-but-clipped at all.
+  // whatever's currently visible in the strip.
+  //
+  // A first version of this called plain scrollIntoView({ inline: "nearest",
+  // block: "nearest" }) on the tab button itself, relying on it to find its
+  // nearest scrollable ancestor (ScrollFadeArea's own viewport)
+  // automatically, so it wouldn't need a handle to that internal element —
+  // ScrollFadeArea deliberately doesn't expose one. block: "nearest" was
+  // meant to keep this from also scrolling the page vertically, on the
+  // (wrong) assumption that "nearest" means "never move this axis" rather
+  // than what it actually means: scroll whichever nearby container CAN
+  // move on that axis, by the smallest amount that satisfies it — if
+  // *nothing* between this button and the document itself is vertically
+  // scrollable (true here: this strip's own ScrollFadeArea viewport is
+  // horizontal-only, overflow-y hidden, and nothing above it — dialogRef,
+  // cardRef — sets any vertical overflow either), the browser keeps
+  // walking up and lands on the document, and scrolls the whole *page*
+  // vertically to satisfy "nearest." Confirmed live, twice: once while this
+  // strip is mounted-but-clipped (collapsed browse mode — fixed by the
+  // `visible` guard below, kept as-is), and a second time — this fix —
+  // while genuinely visible, on a short (landscape/rotated) viewport:
+  // opening edit mode there can leave the tab strip positioned above the
+  // still-scrolled-to-the-bottom viewport's own top edge, and "nearest"
+  // then smooth-scrolls the entire page upward (confirmed live: scrollY
+  // dropped ~215px, correctly pulling a previously not-yet-stuck bar back
+  // into sticky range) to reveal a button the user never asked to bring
+  // into view — this strip's own horizontal position was the only thing
+  // that ever needed correcting. Worse than just an unwanted jump: an
+  // animated ("smooth") page scroll left mid-flight when the user's very
+  // next tap lands is a real, moving target — whatever's on screen at that
+  // exact frame is what the tap resolves against, not whatever was there
+  // when the gesture started, which reads as taps hitting the wrong
+  // row/control entirely (confirmed live as a distinct, separately
+  // reported symptom this same call was the root cause of).
+  //
+  // Fixed by doing the *only* adjustment this strip ever actually needs —
+  // horizontal — by hand, directly against its own known scroll viewport
+  // (found via data-scroll-fade-orientation="horizontal", the same marker
+  // MixerBar's own blockScrollThrough uses to identify a ScrollFadeArea
+  // instance from outside it — a DOM query, not a ref, so this still
+  // doesn't need ScrollFadeArea to expose one), instead of asking
+  // scrollIntoView to walk the ancestor chain and improvise an axis this
+  // strip was never supposed to touch.
   useEffect(() => {
     if (!visible) return;
-    tabRefs.current.get(activeKey)?.scrollIntoView({ behavior: "smooth", inline: "nearest", block: "nearest" });
+    const tab = tabRefs.current.get(activeKey);
+    const scroller = tab?.closest<HTMLElement>('[data-scroll-fade-orientation="horizontal"]');
+    if (!tab || !scroller) return;
+    const tabRect = tab.getBoundingClientRect();
+    const scrollerRect = scroller.getBoundingClientRect();
+    if (tabRect.left < scrollerRect.left) {
+      scroller.scrollBy({ left: tabRect.left - scrollerRect.left, behavior: "smooth" });
+    } else if (tabRect.right > scrollerRect.right) {
+      scroller.scrollBy({ left: tabRect.right - scrollerRect.right, behavior: "smooth" });
+    }
   }, [activeKey, visible]);
 
   const activeIndex = sections.findIndex((s) => s.key === activeKey);
