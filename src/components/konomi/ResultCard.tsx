@@ -200,8 +200,20 @@ export function ResultCard({
     if (supportsHover) return;
     function handleDocumentClick(e: MouseEvent) {
       if (!iconRowRef.current) return;
-      const target = e.target as Node;
-      if (iconRowRef.current.contains(target)) return;
+      // e.composedPath(), not iconRowRef.current.contains(e.target) — the
+      // lock icon swaps its own child component on every tap
+      // (LockClosedIcon <-> LockOpenIcon, toggled by the very click this
+      // listener is reacting to), so by the time this callback runs,
+      // e.target (the old, now-unmounted SVG node) is already detached
+      // from the live tree — .contains() against a detached node returns
+      // false even though the click genuinely landed inside this row.
+      // Confirmed live (real device logs): every lock tap correctly set
+      // hoveredIcon to "lock", then this listener immediately cleared it
+      // right back, ~1ms later, every single time — swap never showed
+      // this since its own icon (DiceIcon) never swaps out. composedPath()
+      // is captured at dispatch time, before any DOM mutation, so it stays
+      // valid regardless of what React unmounts afterward.
+      if (e.composedPath().includes(iconRowRef.current)) return;
       // eslint-disable-next-line no-console
       console.log("[DBG] document click outside icon row — clearing hoveredIcon, t=", Date.now());
       setHoveredIcon(null);
