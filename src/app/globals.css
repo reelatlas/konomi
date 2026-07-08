@@ -379,6 +379,24 @@
        (KonomiApp's own overflow-x-clip already guarantees that), so
        there's nothing for an -x rule to contain. */
     overscroll-behavior-y: contain;
+    /* Browsers' default scroll-anchoring tries to keep the same visual
+       content in view when layout shifts *above* the viewport — helpful in
+       general, but this page has a below-the-fold, continuously-animating
+       source of tiny layout change with nothing to do with user content:
+       RecommendButton's spinning star (RecommendButton.tsx), deliberately
+       left unclipped so it can overflow past MixerBar's own card (see that
+       file's own comment) — un-contained, its rotating bounding box used to
+       feed straight into this element's own scrollable overflow, oscillating
+       document.documentElement.scrollHeight by a couple px continuously,
+       forever, for as long as the page stays open (fixed at the source via
+       `contain: layout` on the star's wrapper, see RecommendButton.tsx).
+       Scroll anchoring reacting to *that* kind of never-settling, purely
+       decorative micro-change — most noticeable while scrolled at/past the
+       very bottom, where "the bottom" itself is whatever's fluctuating —
+       is never something a user should feel, regardless of source; `none`
+       here is a blanket backstop against this specific animation and any
+       future one like it, not a fix for one bug in particular. */
+    overflow-anchor: none;
   }
 
   html {
@@ -443,12 +461,24 @@
     background-size: 9px 9px;
   }
 
+  /* var(--font-anton)/var(--font-zen-kaku-gothic-new) — the CSS variables
+     next/font/google injects (layout.tsx's Anton(...)/Zen_Kaku_Gothic_New(...)
+     calls, applied via their own .variable classes on <html>), not bare
+     "Anton"/"Zen Kaku Gothic New" family-name strings — same reasoning
+     --font-ibm-plex-mono's own comment above already gives: referencing the
+     variable is what resolves to the actual self-hosted, next/font-fetched
+     files (plus their auto-generated, metrics-matched fallback, which is
+     what actually fixes the swap-reflow these two used to cause — see
+     layout.tsx's own comment on the Anton/Zen_Kaku_Gothic_New calls) rather
+     than a same-named font the browser has no reason to load. These two
+     don't collide with a Tailwind built-in family key the way font-mono
+     does, so a plain @layer base rule (not a @theme override) is enough. */
   .font-display {
-    font-family: "Anton", sans-serif;
+    font-family: var(--font-anton), sans-serif;
   }
 
   .font-body {
-    font-family: "Zen Kaku Gothic New", sans-serif;
+    font-family: var(--font-zen-kaku-gothic-new), sans-serif;
   }
 
   /* No .font-mono rule here — Tailwind's built-in font-mono utility now

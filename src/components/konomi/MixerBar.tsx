@@ -471,6 +471,27 @@ export function MixerBar({
   // together sidesteps that ordering entirely — nothing here depends on
   // which render or effect ran last.
   const [fixedOverheadPx, setFixedOverheadPx] = useState<number | null>(null);
+  // Set for the duration of an active resize-drag (handleResizeStart below,
+  // toggled together with isDragging state right below it) — a ref, read
+  // inside fixedOverheadPx's own measure() callback (this effect's "frozen
+  // while dragging" guard), specifically so that effect doesn't need
+  // isDragging in its own dependency array (which would mean tearing down
+  // and resubscribing its ResizeObserver on every drag start/end, the same
+  // stale-closure-avoidance reason effectiveHeightPxRef mirrors state below).
+  const isDraggingRef = useRef(false);
+  // The render-time twin of isDraggingRef above — real state, not just a
+  // ref, because canShowResizeHandleRowDisplay (below) reads it during
+  // render to decide whether to keep the resize row mounted, and this
+  // project's own lint rules correctly disallow reading a ref's `.current`
+  // during render (it wouldn't reliably trigger the re-render that decision
+  // needs). Both are set together, at the same two call sites
+  // (handleResizeStart/handleEnd) — isDraggingRef for the effect callback
+  // that must not go stale, isDragging for anything read during render.
+  const [isDragging, setIsDragging] = useState(false);
+  // Lets handleResizeStart's own handleEnd force one fresh measurement
+  // right as a drag releases, rather than waiting on the next incidental
+  // ResizeObserver/resize event to catch up — see the effect below.
+  const measureFixedOverheadRef = useRef<() => void>(() => {});
   // card.height - dialog.height = everything in the edit sheet that ISN'T
   // the pool panel (resize row, slots, controls, cardRef's own border +
   // padding) — now a single subtraction since there's only one box, rather
@@ -501,17 +522,49 @@ export function MixerBar({
   // paints, so the correction lands in the same commit the open itself
   // does — same fix, same reasoning as ResultCard.tsx's own hint-wrap
   // measurement (see that file's comment on its own useLayoutEffect).
+  //
+  // Frozen for the duration of an active resize-drag — confirmed live as a
+  // real bug otherwise: mobile browsers resize the *visual* viewport (and
+  // fire a real `resize` event) when their address bar/toolbar hides or
+  // shows, which commonly happens mid-touch, exactly while a user is
+  // dragging this very handle. That event reaches the `window.
+  // addEventListener("resize", measure)` below same as any other resize,
+  // recomputing `poolPanelMaxHeight` — and since the render body re-clamps
+  // `effectiveHeightPx` against that ceiling on every render (see its own
+  // declaration below), a shrinking ceiling mid-drag snapped the panel to
+  // the new, smaller max independent of any finger movement. Reproduced
+  // live: dragged to 413px, simulated a viewport shrink mid-drag (address
+  // bar showing), panel instantly snapped to 341px with the pointer still
+  // down. This compounds with the browser's own native scroll-position
+  // adjustment on the same resize (it re-anchors scrollY when the page is
+  // near its scroll max and the viewport height changes — ordinary browser
+  // behavior, not this app's doing) to read as "multiple things scrolling/
+  // resizing at once," reported live on a real device. The fix is the same
+  // standing rule as `growableFixedOverheadPx`'s own split above (see
+  // DESIGN_SYSTEM.md's MixerBar section) applied to a second trigger: don't
+  // let an async, externally-triggered measurement change a value that's
+  // also being driven synchronously by an in-progress gesture. Skipping the
+  // state update while `isDraggingRef.current` is true freezes the ceiling
+  // at whatever it was when the drag started; `handleResizeStart`'s own
+  // `poolPanelMaxHeight` closure is already effectively frozen the same way
+  // (captured once at drag-start, never reads a later render), so this
+  // keeps both halves of the clamp consistent for the drag's full duration.
+  // The very first `measure()` call below (drag never active yet at mount/
+  // open) is unaffected — this only ever skips *later* resize-driven
+  // updates that land while a drag is in flight.
   useLayoutEffect(() => {
     if (!editMode) return;
     const card = cardRef.current;
     const dialog = dialogRef.current;
     if (!card || !dialog) return;
     function measure() {
+      if (isDraggingRef.current) return;
       const cardHeight = card!.getBoundingClientRect().height;
       const dialogHeight = dialog!.getBoundingClientRect().height;
       const surplusBelow = Math.max(0, window.innerHeight - card!.getBoundingClientRect().bottom);
       setFixedOverheadPx(Math.max(0, cardHeight - dialogHeight + surplusBelow));
     }
+    measureFixedOverheadRef.current = measure;
     const observer = new ResizeObserver(measure);
     observer.observe(card);
     observer.observe(dialog);
@@ -549,12 +602,61 @@ export function MixerBar({
   // row's rendered height at all — fixedOverheadPx never moves as a side
   // effect of this decision, so there's nothing left to oscillate against.
   const canShowResizeHandleRow = poolPanelMaxHeight > POOL_HEIGHT_MIN;
+  // Confirmed live as a real, serious bug: this is a *live* value, reactive
+  // to the same window resize that can fire mid-drag (mobile address-bar
+  // hide/show, or a desktop user actually resizing the browser window while
+  // holding the handle) — if it flips false while a drag is in progress,
+  // the grip (and the pointerdown/setPointerCapture it owns) unmounts out
+  // from under the user's still-active pointer. Reproduced exactly this
+  // way: dragged, shrank the viewport mid-drag until this flipped false,
+  // released — the grip was gone, and because its own drag-continuation
+  // listeners went with it (see handleResizeStart's own comment on why
+  // they're on `window` now, not the grip, for the *other* half of this
+  // same fix), `handleEnd` never got to reset isDraggingRef/dragHeightPx.
+  // That left `fixedOverheadPx`'s measurement effect permanently frozen
+  // (its own guard skips every future update while isDraggingRef.current is
+  // true — see that effect's comment), which cascades into everything
+  // downstream of it forever, not just this row: `poolPanelMaxHeight`,
+  // `effectiveHeightPx`, and `TagPoolBody`'s own `poolPanelHeightPx` prop
+  // all stay stuck at whatever they were the instant the drag got
+  // orphaned — confirmed live as the same root cause behind two more
+  // symptoms that looked unrelated at first (reopening the pool later
+  // showing a stale height/position left over from a since-changed
+  // viewport, and the tabs+filters row's own scroll/truncation behavior
+  // going stale) until traced back here. isDraggingRef.current is already
+  // true for the entire span of an active drag (set at its very start,
+  // before the first pointermove), so or-ing it in keeps this row (and the
+  // grip) mounted for that whole span regardless of what the live ceiling
+  // does — the *display* value diverges from the real `canShowResizeHandleRow`
+  // only during a drag, and only in the "still show it" direction.
+  const canShowResizeHandleRowDisplay = isDragging || canShowResizeHandleRow;
   // clampPoolPanelHeight applies uniformly to every source (default,
   // persisted, or actively dragging) — one clamp, not "clamp the persisted
   // value on read, then separately clamp drags" — so the guarantee (fixed
   // rows are never pushed below the fold) holds regardless of where this
   // number came from.
-  const effectiveHeightPx = clampPoolPanelHeight(dragHeightPx ?? persistedHeightPx ?? defaultPoolHeightPx, poolPanelMaxHeight);
+  //
+  // dragHeightPx is the one exception to "re-clamp against the live
+  // poolPanelMaxHeight on every render," and deliberately so: handleMove
+  // (below) already clamps every drag tick against the ceiling as it stood
+  // at drag-*start* (a plain closure variable, never updated mid-drag by
+  // design — see handleMove's own comment). poolPanelMaxHeight itself is a
+  // *live* useSyncExternalStore value (usePoolPanelMaxHeight, tagPoolPrefs.ts)
+  // that reacts to `window resize` independently of anything in this
+  // component — confirmed live as a real bug otherwise: a mobile browser's
+  // address-bar hide/show fires exactly that event mid-touch-drag, and
+  // re-clamping dragHeightPx against the new, live ceiling on this line
+  // snapped the panel from 413px to 341px with the pointer still down, no
+  // finger movement involved. Trusting dragHeightPx as already-correctly-
+  // clamped (rather than clamping it a second time here against a ceiling
+  // that can differ from the one it was actually computed against) removes
+  // the double-clamp that caused the snap, while persisted/default still
+  // get the live ceiling, same as before — the fixedOverheadPx `isDraggingRef`
+  // freeze (above) covers the same class of mid-drag resize event for the
+  // other consumers of poolPanelMaxHeight (canShowResizeHandleRow, the
+  // 50%/100% buttons), so this line and that guard are two halves of one fix.
+  const effectiveHeightPx =
+    dragHeightPx !== null ? dragHeightPx : clampPoolPanelHeight(persistedHeightPx ?? defaultPoolHeightPx, poolPanelMaxHeight);
 
   // effectiveHeightPxRef mirrors effectiveHeightPx every render without
   // being a dependency of the effect below — same ref-mirroring pattern
@@ -653,31 +755,62 @@ export function MixerBar({
   const isAtHalfHeight = Math.abs(effectiveHeightPx - poolPanelMaxHeight * 0.5) <= 1;
   const isAtFullHeight = Math.abs(effectiveHeightPx - poolPanelMaxHeight) <= 1;
 
-  // Mouse AND touch — this has to work at every breakpoint, not just
-  // desktop/pointer. Mirrors the same dual mouse+touch handling
-  // ScrollFadeArea's own press-and-hold arrows already use, rather than
-  // introducing a new (e.g. Pointer Events) pattern for just this one
-  // control.
-  function handleResizeStart(e: React.MouseEvent | React.TouchEvent) {
+  // Pointer Events + setPointerCapture, not the dual mouse/touch listeners
+  // this used before (ScrollFadeArea's press-and-hold arrows still use that
+  // pattern, deliberately — see that file's own comment; this control's own
+  // history is below). Switched specifically for the capture guarantee:
+  // setPointerCapture tells the browser the grip now owns this gesture (a
+  // stronger guarantee than touch-action:none + preventDefault alone, which
+  // are what stop a *new*, not-yet-captured touch from starting a native
+  // scroll in the first place — capture doesn't cover that half, so both
+  // are kept, below). Confirmed live as a real, separate bug from the
+  // poolPanelMaxHeight double-clamp above: on a real mobile device, a
+  // resize-drag could still leak enough of a scroll gesture to the page
+  // behind it to nudge scrollY, which in turn can trigger the browser's own
+  // address-bar hide/show (itself a `resize` event) — the two fixes
+  // reinforce each other, but this one addresses the root cause (a leaking
+  // gesture) rather than only the symptom (this component reacting badly to
+  // a resize once one happens).
+  //
+  // The actual pointermove/pointerup/pointercancel listeners live on
+  // `window`, not the captured grip element itself — see handleEnd's own
+  // comment below for the real, confirmed-live bug that requires this
+  // (the grip can still be removed mid-drag by paths capture alone doesn't
+  // prevent, and window-level listeners are what keep the drag endable
+  // when that happens). setPointerCapture and "where the continuation
+  // listeners live" are independent concerns: capture is about gesture
+  // *ownership*, not about restricting which element may observe the
+  // resulting events.
+  function handleResizeStart(e: React.PointerEvent<HTMLDivElement>) {
+    // Primary button only for mouse (a right/middle-click drag makes no
+    // sense here) — pointerType is empty for this check on touch/pen,
+    // where e.button is always 0 anyway.
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
     const startHeight = effectiveHeightPx;
-    const startY = "touches" in e ? e.touches[0].clientY : e.clientY;
+    const startY = e.clientY;
     const liveHeightRef = { current: startHeight };
-    function handleMove(ev: MouseEvent | TouchEvent) {
-      // preventDefault on the touch path only: a touch-drag on this handle
-      // must not also scroll the page behind it, the way a native
-      // vertical swipe normally would. touch-none (className below)
-      // already tells the browser not to generate its own default touch
-      // scrolling for this element, but the listener itself still needs
-      // { passive: false } for preventDefault to actually take effect.
-      const clientY = "touches" in ev ? ev.touches[0].clientY : ev.clientY;
-      if ("touches" in ev) ev.preventDefault();
+    // See fixedOverheadPx's own effect (above) for why this freezes
+    // poolPanelMaxHeight for the duration of the drag, and
+    // canShowResizeHandleRowDisplay's own comment for why the grip itself
+    // is now guaranteed to stay mounted for that same span. Both set
+    // together (see isDragging's own declaration for why there are two).
+    isDraggingRef.current = true;
+    setIsDragging(true);
+    function handleMove(ev: PointerEvent) {
+      // Still calling preventDefault, even with capture + touch-action:none
+      // both already in place — belt-and-suspenders, matching this app's
+      // own established style of not relying on a single layer of defense
+      // for "must not scroll the page" guarantees elsewhere in this file
+      // (see blockScrollThrough, above).
+      ev.preventDefault();
       // Dragging up (finger/mouse Y decreases) grows the panel — matches
       // the physical "pull the sheet's ceiling up to make it taller"
       // model. The handle itself sits above the title row, but what it
       // actually resizes is still just the pool panel: title/slots/
       // controls are fixed, so growing the *total* bar can only ever be
       // absorbed by the one flexible region.
-      const delta = startY - clientY;
+      const delta = startY - ev.clientY;
       const next = clampPoolPanelHeight(startHeight + delta, poolPanelMaxHeight);
       liveHeightRef.current = next;
       setDragHeightPx(next);
@@ -685,15 +818,41 @@ export function MixerBar({
     function handleEnd() {
       setPoolPanelHeightPref(liveHeightRef.current);
       setDragHeightPx(null);
-      window.removeEventListener("mousemove", handleMove);
-      window.removeEventListener("touchmove", handleMove);
-      window.removeEventListener("mouseup", handleEnd);
-      window.removeEventListener("touchend", handleEnd);
+      isDraggingRef.current = false;
+      setIsDragging(false);
+      // Catches up on anything that changed while frozen (e.g. a mobile
+      // address-bar resize mid-drag) rather than waiting on the next
+      // incidental ResizeObserver/resize event to notice — see this ref's
+      // own comment near its declaration.
+      measureFixedOverheadRef.current();
+      window.removeEventListener("pointermove", handleMove);
+      window.removeEventListener("pointerup", handleEnd);
+      window.removeEventListener("pointercancel", handleEnd);
     }
-    window.addEventListener("mousemove", handleMove);
-    window.addEventListener("touchmove", handleMove, { passive: false });
-    window.addEventListener("mouseup", handleEnd);
-    window.addEventListener("touchend", handleEnd);
+    // Listeners live on `window`, not the captured grip element — confirmed
+    // live as a real, serious bug the other way: canShowResizeHandleRowDisplay
+    // (above) now keeps the grip mounted for a drag's whole duration, but
+    // that guard can't cover every path that removes it (editMode itself
+    // can still close mid-drag via Esc/click-outside, independent of
+    // anything this control does). When the grip's own listeners went with
+    // it, `handleEnd` was orphaned on a detached node that never receives
+    // another event — isDraggingRef.current stuck `true` forever, freezing
+    // fixedOverheadPx's measurement permanently and cascading into every
+    // downstream consumer (poolPanelMaxHeight, effectiveHeightPx,
+    // TagPoolBody's own poolPanelHeightPx), confirmed live as the shared
+    // root cause behind three symptoms that looked unrelated at first:
+    // a stuck-open drag, the resize controls vanishing for good, and a
+    // stale height/position on a later reopen. setPointerCapture (still on
+    // the grip, above) is unaffected by where these listeners live — it
+    // governs gesture *ownership*/hit-testing, not which element is
+    // allowed to listen for the resulting events, and `window` always
+    // receives pointermove/pointerup regardless of which element (if any)
+    // currently holds capture. pointercancel (a real gesture interruption —
+    // e.g. the OS taking over for a system gesture) ends the drag the same
+    // as a normal release, rather than leaving it stuck open.
+    window.addEventListener("pointermove", handleMove, { passive: false });
+    window.addEventListener("pointerup", handleEnd);
+    window.addEventListener("pointercancel", handleEnd);
   }
 
   return (
@@ -797,21 +956,25 @@ export function MixerBar({
           that's the more natural mental model for the user — "pull this
           to make the panel bigger."
 
-          Row itself gated on editMode alone, not canShowResizeHandleRow
+          Row itself gated on editMode alone, not canShowResizeHandleRowDisplay
           too — the filters need to stay reachable even once resizing
           itself stops being useful (a short viewport where
           poolPanelMaxHeight has dropped to/below POOL_HEIGHT_MIN); only
           the grip + 50%/100%/reset sub-elements are conditional on that,
-          inside the row. onMouseDown/onTouchStart (the drag-start
-          handlers) are attached to the row only when
-          canShowResizeHandleRow is true, for the same reason — dragging
-          a row that can't actually resize anything shouldn't start a
-          drag at all.
+          inside the row. onPointerDown (the drag-start handler) lives only
+          on the grip itself (see its own comment below), which is already
+          conditionally rendered alongside the rest of this cluster when
+          canShowResizeHandleRowDisplay is false — dragging something that
+          can't actually resize anything shouldn't be reachable at all.
+          canShowResizeHandleRowDisplay (not the raw canShowResizeHandleRow)
+          is the actual gate now — see its own declaration above for why:
+          the raw value can flip false mid-drag (a window resize while
+          holding the handle), which used to unmount this whole cluster,
+          including the grip, out from under an active pointer.
 
-          The left group is its own sub-container that stops
-          mousedown/touchstart from bubbling up to the row's own drag
-          handlers, so clicking a quick-resize button never also starts
-          a resize-drag. size="sm" (30px, ResultCard's own icon size)
+          The left group is its own sub-container, but no longer needs its
+          own stopPropagation to protect it from a row-level drag handler —
+          size="sm" (30px, ResultCard's own icon size)
           deliberately smaller than this bar's standard size="md" icon
           buttons below — these are quick secondary shortcuts, not
           primary actions. Reset is conditionally rendered (only once the
@@ -978,8 +1141,8 @@ export function MixerBar({
               arrows, then grip at the far-right end.
 
               Only the grip itself is the drag target — role/aria-label/
-              onMouseDown/onTouchStart/cursor-ns-resize all live on its
-              own box now, not the outer row. Confirmed live this reads
+              onPointerDown/cursor-ns-resize all live on its own box now,
+              not the outer row. Confirmed live this reads
               better: with the whole row draggable, hovering a filter
               control or the empty space between groups showed the
               resize cursor and could start a drag by accident. The
@@ -1001,7 +1164,7 @@ export function MixerBar({
               every icon's own inset identical, so gap-0 reads as evenly
               spaced across all four; it's also a larger, easier drag
               target than the bare icon glyph would be on its own. */}
-          {canShowResizeHandleRow && (
+          {canShowResizeHandleRowDisplay && (
             <div className="flex items-center gap-0 shrink-0">
               <div className="flex items-center gap-0">
                 {canReachHalfHeight && !isAtHalfHeight && (
@@ -1055,8 +1218,7 @@ export function MixerBar({
                 role="separator"
                 aria-orientation="horizontal"
                 aria-label="Drag to resize edit panel"
-                onMouseDown={handleResizeStart}
-                onTouchStart={handleResizeStart}
+                onPointerDown={handleResizeStart}
                 className="flex items-center justify-center w-[30px] h-[30px] cursor-ns-resize select-none touch-none"
               >
                 <GripHorizontalIcon className="text-[var(--muted)]" />

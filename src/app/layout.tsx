@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono } from "next/font/google";
+import { Anton, IBM_Plex_Mono, Zen_Kaku_Gothic_New } from "next/font/google";
 import { SHOW_HALFTONE } from "@/lib/konomi/config";
 import { THEME_KEYS, THEME_STORAGE_KEY } from "@/lib/konomi/themes";
 import "./globals.css";
@@ -22,9 +22,9 @@ export const metadata: Metadata = {
 };
 
 // The app's mono/UI-label font — self-hosted via next/font (actually
-// fetched at build time, not just referenced by a <link> the way
-// Anton/Zen Kaku Gothic New still are below). Replaces Space Mono
-// entirely: --font-ibm-plex-mono feeds globals.css's `@theme` block, which
+// fetched at build time, not just referenced by a <link>, the same
+// mechanism Anton/Zen Kaku Gothic New now use too, below). Replaces Space
+// Mono entirely: --font-ibm-plex-mono feeds globals.css's `@theme` block, which
 // sets it as Tailwind's own `--font-mono` theme key — the same layer-
 // correct approach that fixed Space Mono's font-mono cascade collision
 // (see that file's own comment) applies here too, just pointed at a real
@@ -37,6 +37,42 @@ const ibmPlexMono = IBM_Plex_Mono({
   weight: ["400", "500", "700"],
   subsets: ["latin"],
   variable: "--font-ibm-plex-mono",
+  display: "swap",
+});
+
+// Anton/Zen Kaku Gothic New — migrated off the plain <link>/fonts.googleapis.com
+// stylesheet below (removed) onto next/font/google, same self-hosted-at-
+// build-time mechanism IBM Plex Mono already uses above. Two real problems
+// with the old <link> approach, both now fixed for free: (1) it required an
+// extra round trip to fonts.googleapis.com/fonts.gstatic.com the self-hosted
+// files skip entirely; (2) more importantly, next/font/google automatically
+// generates a fallback font (matched to the real font's own metrics —
+// ascent/descent/line-gap/size-adjust) and serves that as the immediate
+// `font-family` fallback, specifically so the swap from fallback to the real
+// downloaded font doesn't reflow anything — a plain <link> gets none of that,
+// it's just font-display:swap with the *browser's own generic* fallback
+// (whatever sans-serif it picks), whose metrics have no relationship to
+// Anton/Zen Kaku Gothic New's real ones. Confirmed live as a real, measured
+// bug from exactly this gap: every fresh page load showed a constant, exact
+// 55px `document.documentElement.scrollHeight` jump ~350-600ms after
+// navigation (Playwright, sampled every animation frame) — constant
+// regardless of which randomized empty-state phrase happened to be showing
+// at the time (ruling out "content is a different length" as the cause,
+// since a content-length effect would vary the jump size), and it landed
+// close to font-loadingdone timing for exactly these two fonts. Same class
+// of fix as the Space Mono → IBM Plex Mono migration above (see that
+// constant's own comment) plus this additional CLS benefit, which Space
+// Mono's own migration didn't specifically need to solve.
+const anton = Anton({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-anton",
+  display: "swap",
+});
+const zenKakuGothicNew = Zen_Kaku_Gothic_New({
+  weight: ["400", "500", "700", "900"],
+  subsets: ["latin"],
+  variable: "--font-zen-kaku-gothic-new",
   display: "swap",
 });
 
@@ -71,7 +107,7 @@ export default function RootLayout({
       // data-theme-switcher's existing presence-only convention
       // elsewhere in this app.
       {...(SHOW_HALFTONE ? { "data-halftone": "" } : {})}
-      className={`h-full ${ibmPlexMono.variable}`}
+      className={`h-full ${ibmPlexMono.variable} ${anton.variable} ${zenKakuGothicNew.variable}`}
     >
       <head>
         {/* First child, deliberately — must run before the browser parses
@@ -80,17 +116,11 @@ export default function RootLayout({
             cases, but would leave that guarantee resting on nothing else
             ever being inserted above it in the future. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        {/* eslint-disable-next-line @next/next/no-page-custom-font -- this is the
-            App Router root layout, which already applies to every route (the
-            app-dir equivalent of pages/_document.js the rule asks for).
-            Anton/Zen Kaku Gothic New only now — Space Mono removed
-            entirely, replaced by the self-hosted next/font load above. */}
-        <link
-          href="https://fonts.googleapis.com/css2?family=Anton&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap"
-          rel="stylesheet"
-        />
+        {/* No preconnect/stylesheet <link> to fonts.googleapis.com/
+            fonts.gstatic.com anymore — Anton and Zen Kaku Gothic New are
+            both self-hosted via next/font/google now (see that call's own
+            comment above), so there's no external font request left to
+            preconnect for. */}
       </head>
       <body className="h-full">{children}</body>
     </html>

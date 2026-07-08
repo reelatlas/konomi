@@ -58,9 +58,37 @@ export function RecommendButton({ filledCount, onRecommend, error }: RecommendBu
     // matching its row-mates and centering correctly among them.
     <div className="flex-none flex items-center justify-center">
       <div
-        className={["relative flex items-center justify-center transition-transform duration-200", error ? ERROR_SHIFT : ""].join(
-          " ",
-        )}
+        // contain-[layout] — the star squares below rotate continuously
+        // (kono-spin, 20s linear infinite) and are deliberately left
+        // unclipped so they can overflow past MixerBar's own card on every
+        // side, "the intended look, not a bug to contain" (see this file's
+        // own DESIGN_SYSTEM.md section — do not add overflow-hidden/clip
+        // anywhere in this stack to "fix" that, it was tried and reverted
+        // by explicit request). The problem this actually fixes is
+        // different from clipping: a rotating square's own axis-aligned
+        // bounding box continuously grows and shrinks as it turns (largest
+        // at 45°/135°/etc., where it reaches the diagonal; smallest at
+        // 0°/90°/etc.) — and with nothing between here and <html> setting
+        // `overflow` to anything but the default `visible`, that
+        // continuously-changing box was feeding straight into
+        // document.documentElement's own scrollable overflow, confirmed
+        // live as a real, permanent bug: document.documentElement.
+        // scrollHeight oscillated by a couple px, forever, for as long as
+        // the page stayed open (froze solid the instant the animation was
+        // paused, in either direction — pausing it, or containing it here).
+        // `contain: layout` isolates this element's own layout/overflow
+        // contribution from its ancestors WITHOUT clipping paint (unlike
+        // `contain: paint`/`overflow: hidden`, which would) — confirmed
+        // live via screenshot in every variant (enabled, the zero-tags
+        // disabled/dimmed state, and the error state's paused+shifted
+        // form): the star still renders fully, still visibly overflows past
+        // the card exactly as before, while document.documentElement.
+        // scrollHeight stays perfectly constant regardless of rotation
+        // angle or which of those three states is active.
+        className={[
+          "relative flex items-center justify-center transition-transform duration-200 [contain:layout]",
+          error ? ERROR_SHIFT : "",
+        ].join(" ")}
       >
         <div
           className={[
