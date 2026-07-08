@@ -291,9 +291,28 @@ export function ResultCard({
           itself was doing. */}
       <div className="relative w-full h-full [perspective:1100px]">
       <div
+        // No rotateY(0deg) at rest — same trap as the perspective move onto
+        // the wrapper above (this element's own comment): a non-none
+        // transform on an ancestor sitting on the scroll-participating path
+        // (this div is between the carousel's snap-item and TagScrollArea's
+        // own scroll viewport) establishes its own containing block/
+        // compositing boundary on real iOS, which can interfere with
+        // gesture-chaining through it, even though rotateY(0deg) is visually
+        // the identity transform. Omitting the class entirely when !flipped
+        // is a safe no-op: `none` and `rotateY(0deg)` render identically,
+        // transition-transform still animates smoothly between `none` and a
+        // real transform value in both directions (spec-supported, all
+        // major engines), and FRONT/BACK's own `absolute inset-0` resolve
+        // identically either way — the wrapper above is also `position:
+        // relative` at this element's own exact size, so it's an equally
+        // valid absolute-positioning containing block whether or not this
+        // element currently has its own. The transform still applies while
+        // actually flipped/flipping — that's required for the visual effect
+        // and isn't the path a horizontal carousel swipe needs at that
+        // moment anyway.
         className={[
           "relative w-full h-full [transform-style:preserve-3d] transition-transform duration-500 [transition-timing-function:cubic-bezier(.4,.2,.2,1)]",
-          flipped ? "[transform:rotateY(180deg)]" : "[transform:rotateY(0deg)]",
+          flipped ? "[transform:rotateY(180deg)]" : "",
         ].join(" ")}
       >
         <div
@@ -696,20 +715,30 @@ export function ResultCard({
               conditionally, to
               avoid a second breakpoint ladder just for padding.
 
-              z-[var(--z-raised)] (new): explicit now, not left to plain
-              z-index:auto + later-DOM-order-wins the way it was before —
-              this box already correctly won hit-testing that way (DOM
-              order alone was never the actual gap), but explicit z-index
-              also gives this box its own stacking context, isolating
-              TagScrollArea's own touch-scroll gesture handling from
-              whatever compositing the filmstrip's mirror image (a sibling,
-              above — transform:scaleY(-1)) needs, rather than leaving both
-              to share FRONT's own stacking context together. Same
-              "explicit beats incidental, especially on real iOS" fix this
-              app already has direct precedent for — see the filmstrip's
-              own comment above for the confirmed original case this
-              mirrors (RecommendationsBody's carousel viewport / Clear ✕). */}
-          <div className="relative z-[var(--z-raised)] overflow-hidden shrink-0 px-[var(--space-lg)] pt-[var(--space-md)] pb-[var(--space-md)]">
+              Plain `relative`, no explicit z-index — a z-[var(--z-raised)]
+              was tried here (see git history), reasoned as "explicit beats
+              incidental, especially on real iOS," matching the
+              RecommendationsBody carousel viewport / Clear ✕ precedent.
+              That precedent doesn't actually apply the same way, though:
+              those cases had a real, confirmed hit-test overlap that
+              z-index was resolving. Here, this box already correctly won
+              hit-testing via plain DOM order alone (it's the later
+              sibling) — the z-index was never fixing a hit-test gap, only
+              speculatively added to give this box its own stacking
+              context, isolating it from whatever compositing the
+              filmstrip's mirror image (transform:scaleY(-1)) needs.
+              Confirmed live as a real regression instead: once this box
+              had its own explicit z-index/stacking context, a horizontal
+              carousel swipe starting over this card's tag area stopped
+              reaching the carousel specifically once the tag area had
+              real vertical overflow (few-tag cards, no overflow, were
+              unaffected) — i.e. the new stacking context itself, not
+              pointer-events or touch-action (both already axis-correct;
+              see TagScrollArea/ScrollFadeArea), was what broke gesture
+              chaining to the carousel. Removed; DOM order alone still
+              correctly wins hit-testing against the filmstrip sibling, no
+              regression there. */}
+          <div className="relative overflow-hidden shrink-0 px-[var(--space-lg)] pt-[var(--space-md)] pb-[var(--space-md)]">
             {/* Continuation scrim — the shared filmstrip (a sibling of
                 cover-box, above/outside this whole tag-wrapper — see its
                 own comment) shows through here at every card size now;
