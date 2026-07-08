@@ -180,10 +180,16 @@ export function MixerBar({
   // Tapping an empty slot opens edit mode instead of the no-op CLEAR_SLOT
   // dispatch it used to trigger; a filled slot still clears as before. This
   // decision has to live here (not in TagSlot or the reducer) since "open
-  // edit mode" is UI state the reducer deliberately doesn't own.
+  // edit mode" is UI state the reducer deliberately doesn't own. While edit
+  // mode is already open, tapping an empty slot closes it instead of
+  // no-op-reopening it — the same toggle behavior the "Done ✓"/checkmark
+  // button and click-outside already give, just reachable from a second,
+  // already-visible spot instead of only the header button.
   function handleSlotClick(index: number) {
     if (slots[index]) {
       onSlotClick(index);
+    } else if (editMode) {
+      onCloseEditMode();
     } else {
       onOpenEditMode();
     }
@@ -318,12 +324,6 @@ export function MixerBar({
     };
   }, [editMode]);
 
-  // The Tag Density/Sort filters' own ScrollFadeArea, in the resize-handle
-  // row below — outside dialogRef (a sibling, not a descendant), so it
-  // needs its own exclusion from blockScrollThrough below; see that
-  // effect's own comment.
-  const filtersScrollRef = useRef<HTMLDivElement>(null);
-
   // Wheel/touch scroll anywhere over this bar — collapsed or expanded,
   // desktop or mobile — must never fall through to scroll the page behind
   // it: hovering/touching this bar (or, in edit mode, the overlay it grows
@@ -332,28 +332,48 @@ export function MixerBar({
   // unconditionally active (not just while the edit-mode overlay visually
   // covers content) since this bar's own non-scrollable rows (slots,
   // controls) never had a reason to let a stray wheel/touch gesture bleed
-  // through to the page either, fixed or not. The one exception is the
-  // pool panel's own scrollable areas (TagPoolBody's chip
-  // area and section tabs, inside dialogRef), which must keep scrolling
-  // internally exactly as before — dialogRef.contains(target) is that
-  // exclusion, checked once here rather than duplicated per gesture type
-  // or per scrollable area within it.
+  // through to the page either, fixed or not.
   //
-  // The resize-handle row's own filters ScrollFadeArea (filtersScrollRef,
-  // Tag Density/Sort) needs a second, narrower exclusion — narrower
-  // because unlike dialogRef, it isn't a modal surface with nothing of its
-  // own below it; it's a thin strip sitting directly above the pool panel,
-  // so only a genuinely horizontal gesture should be let through. A
-  // vertical gesture over it must still fall through to preventDefault
-  // below, exactly like anywhere else on the bar — otherwise it'd
-  // scroll-chain to the page, the same leak this whole handler exists to
-  // plug. Direction is derived, not assumed: WheelEvent carries deltaX/
-  // deltaY directly, but TouchEvent's touchmove doesn't, so the touch case
-  // tracks the gesture's start point (touchstart, below) and locks an axis
-  // off the first touchmove that clears a small noise threshold, holding
-  // that lock for the rest of the gesture rather than re-deciding every
-  // event (a gesture that starts diagonal would otherwise flip between
-  // "let through" and "block" as it settles).
+  // The one exception is this bar's own genuinely scrollable areas — the
+  // Tag Density/Sort filters row, TagPoolBody's chip area, and its section
+  // tab strip, all three a ScrollFadeArea underneath — which must keep
+  // scrolling internally exactly as before. An earlier version of this
+  // exclusion keyed off dialogRef.contains(target) instead — exempting
+  // every descendant of the whole edit-mode dialog from preventDefault
+  // unconditionally, on the theory that only its own scrollable areas
+  // would ever receive a gesture there. Confirmed live as a real, reported
+  // bug: dialogRef wraps the *entire* TagPoolBody, not just its two
+  // scrollable pieces, so any gesture over genuinely non-scrollable chrome
+  // inside it — the section tab strip when only one tab is populated (no
+  // horizontal overflow to internally consume the gesture), the dialog's
+  // own borders/padding — fell through this check with no preventDefault
+  // and nothing else to stop it, chaining straight through to the actual
+  // page underneath. Only visible in sticky mode (position: sticky, unlike
+  // this bar's earlier position: fixed era, sits IN the page's own scroll
+  // flow — there's a real page directly behind it for an unconsumed
+  // gesture to reach) — reported as the tab row, and the borders of both
+  // panels, "scrolling through to the back page."
+  //
+  // scrollFadeOrientationAt (below) replaces that blanket exclusion with a
+  // narrower one, keyed off data-scroll-fade-orientation — an attribute
+  // ScrollFadeArea itself stamps on its own scroll viewport (see that
+  // component's own comment) — found via the same target.closest() lookup
+  // regardless of which of the three instances a gesture started on,
+  // rather than a separate ref-based check per instance (an earlier
+  // version of the filters-row exclusion alone needed its own ref for
+  // exactly this reason, before the other two instances existed here at
+  // all). Only a gesture whose own axis matches that specific instance's
+  // orientation is let through — a vertical gesture over the (horizontal-
+  // only) tab strip or filters row still falls through to preventDefault
+  // below, exactly like anywhere else on the bar, since letting it through
+  // would just chain to the page the same way the dialogRef version did.
+  // Direction is derived, not assumed: WheelEvent carries deltaX/deltaY
+  // directly, but TouchEvent's touchmove doesn't, so the touch case tracks
+  // the gesture's start point (touchstart, below) and locks an axis off
+  // the first touchmove that clears a small noise threshold, holding that
+  // lock for the rest of the gesture rather than re-deciding every event
+  // (a gesture that starts diagonal would otherwise flip between "let
+  // through" and "block" as it settles).
   //
   // Both wheel and touchmove are native, non-passive addEventListener
   // calls, not JSX onWheel/onTouchMove props — confirmed live this is
@@ -369,8 +389,8 @@ export function MixerBar({
   // for its own touchmove handling, for the same reason. Always active
   // (not gated to editMode) since browse mode's collapsed bar has the same
   // "don't let scroll leak to the page" expectation as the expanded one —
-  // there's just nothing inside dialogRef to exclude yet in that state
-  // (it's max-h-0).
+  // there's just nothing scrollable inside dialogRef to exclude yet in
+  // that state (it's max-h-0).
   useEffect(() => {
     const bar = cardRef.current;
     if (!bar) return;
@@ -378,9 +398,14 @@ export function MixerBar({
     let touchStart: { x: number; y: number } | null = null;
     let touchAxis: "horizontal" | "vertical" | null = null;
 
+    function scrollFadeOrientationAt(target: Node): "horizontal" | "vertical" | null {
+      const el = target instanceof Element ? target : (target as Node).parentElement;
+      const value = el?.closest("[data-scroll-fade-orientation]")?.getAttribute("data-scroll-fade-orientation");
+      return value === "horizontal" || value === "vertical" ? value : null;
+    }
+
     function handleTouchStart(e: TouchEvent) {
-      const target = e.target as Node;
-      if (filtersScrollRef.current?.contains(target)) {
+      if (scrollFadeOrientationAt(e.target as Node)) {
         const t = e.touches[0];
         touchStart = { x: t.clientX, y: t.clientY };
         touchAxis = null;
@@ -391,12 +416,12 @@ export function MixerBar({
     }
 
     function blockScrollThrough(e: WheelEvent | TouchEvent) {
-      const target = e.target as Node;
-      if (dialogRef.current?.contains(target)) return;
+      const orientation = scrollFadeOrientationAt(e.target as Node);
 
-      if (filtersScrollRef.current?.contains(target)) {
+      if (orientation) {
         if (e instanceof WheelEvent) {
-          if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+          const gestureIsHorizontal = Math.abs(e.deltaX) > Math.abs(e.deltaY);
+          if ((orientation === "horizontal") === gestureIsHorizontal) return;
         } else {
           const t = e.touches[0];
           if (touchAxis === null && touchStart) {
@@ -406,7 +431,7 @@ export function MixerBar({
               touchAxis = Math.abs(dx) > Math.abs(dy) ? "horizontal" : "vertical";
             }
           }
-          if (touchAxis === "horizontal") return;
+          if (touchAxis === orientation) return;
         }
       }
 
@@ -1067,7 +1092,37 @@ export function MixerBar({
       // requirement `relative` used to — confirmed live this stacking
       // still resolves correctly under sticky (a hit-test at the overlap
       // point still landed on this box, not whatever's behind it).
-      className="sticky bottom-[var(--space-2xl)] z-[var(--z-overlay)] @container max-w-[1280px] mx-auto px-[var(--space-2xl)] py-[var(--space-xl)] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-4)]"
+      //
+      // touch-none (touch-action: none) — a second, CSS-level layer behind
+      // blockScrollThrough's own JS preventDefault below, not a replacement
+      // for it (this bar already leans on exactly this same belt-and-
+      // suspenders pairing for the resize grip's own touch-action:none,
+      // see handleMove's comment). Confirmed live as a real gap
+      // preventDefault alone didn't close: touching non-scrollable dialog
+      // chrome (padding, borders, the tab strip when it has nothing to
+      // scroll) still visibly engaged the *page's* native touch-scroll —
+      // the page's content stopped moving once blockScrollThrough's JS fix
+      // landed, but the gesture was still being recognized as a page-pan by
+      // the browser first, at the compositor level, before JS ever got a
+      // chance to preventDefault it. touch-action is evaluated before any
+      // JS runs, so it closes that gap directly rather than racing it.
+      // Applied here, at the bar's own root, as one blanket default rather
+      // than hunting down every individual non-scrollable spot inside it
+      // (borders, padding, a tab row with nothing to scroll) — the same
+      // "the exemption was for two specific elements, not their whole
+      // container" lesson blockScrollThrough's own fix just re-learned
+      // (see that effect's comment) argues for the opposite shape here:
+      // default to blocking, then carve out only the specific elements that
+      // truly need to pan. Each ScrollFadeArea viewport (the chip area, the
+      // section tab strip, the filters row) carves its own axis back out
+      // via touch-pan-x/touch-pan-y directly on itself (see that
+      // component's own comment) — confirmed live this still works even
+      // nested inside this `touch-none` ancestor: touch-action's "used
+      // value" for a touch is resolved against the element the touch
+      // actually starts on, not force-inherited from `none` ancestors, so a
+      // descendant's own explicit pan-x/pan-y value governs gestures that
+      // start on it regardless of what a `none` ancestor says.
+      className="sticky bottom-[var(--space-2xl)] z-[var(--z-overlay)] @container max-w-[1280px] mx-auto px-[var(--space-2xl)] py-[var(--space-xl)] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-4)] touch-none"
     >
       {/* growableRef wraps just the resize-handle row + pool panel — see
           growableFixedOverheadPx's own comment above for why this exists
@@ -1235,7 +1290,7 @@ export function MixerBar({
               Adding a new rung: give it its own breakpoint unless it's
               deliberately joining the @max-[352px] "final step" tier for
               the same consistency reason above. */}
-          <div ref={filtersScrollRef} className="min-w-0 w-fit -mb-[26px] -mr-[4px]">
+          <div className="min-w-0 w-fit -mb-[26px] -mr-[4px]">
             <ScrollFadeArea orientation="horizontal" scrollStep={140} fadeSize={12} fitContent arrowVerticalOffsetPx={-13}>
               <div className="flex items-center gap-[var(--space-lg)] flex-nowrap pb-[26px] pr-[4px]">
                 <div className="@max-[352px]:hidden flex items-center gap-[var(--space-sm)] shrink-0">

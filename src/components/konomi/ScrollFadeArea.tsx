@@ -491,6 +491,21 @@ export function ScrollFadeArea({
           reinterpreting vertical scroll as horizontal. */}
       <div
         ref={scrollRef}
+        // MixerBar's own blockScrollThrough (the "don't let a wheel/touch
+        // gesture over this bar leak through to scroll the page behind it"
+        // guard) needs to tell a genuine internal scroll container like
+        // this one apart from ordinary, non-scrolling chrome sitting
+        // alongside it (borders, padding, a tab strip with nothing to
+        // scroll) — it can't safely exempt an entire ancestor subtree the
+        // way an earlier version did (see that effect's own comment on the
+        // real, confirmed leak this caused), so it looks for this
+        // attribute specifically, then only lets a gesture through when its
+        // axis actually matches `orientation` here — the exact same
+        // axis-lock idea this file's own overscroll-x/y-contain classes
+        // below already apply in CSS, just usable from a distant caller
+        // that only has the event target to go on, not a ref to this
+        // component's internals.
+        data-scroll-fade-orientation={horizontal ? "horizontal" : "vertical"}
         onScroll={updateScrollState}
         style={{
           ...(scrollPaddingStart
@@ -522,6 +537,26 @@ export function ScrollFadeArea({
         className={[
           horizontal ? "w-full overflow-x-auto overflow-y-hidden" : `${heightPx !== undefined ? "" : height} overflow-y-auto overflow-x-hidden`,
           "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+          // touch-pan-x/touch-pan-y (touch-action) — every caller of this
+          // component lives inside MixerBar's own touch-none bar (see that
+          // component's own comment on its root className) or, for callers
+          // elsewhere (the results carousel, TagScrollArea), sits somewhere
+          // a stray native pan was never wanted either. touch-action is
+          // evaluated by the browser before any JS runs, so it's what
+          // actually stops a touch that starts on this exact viewport from
+          // being recognized as a page-pan at the compositor level — a
+          // plain preventDefault() in a touchmove handler (MixerBar's own
+          // blockScrollThrough) only ever races that native recognition,
+          // and confirmed live it can lose that race for non-scrollable
+          // chrome elsewhere on the same bar. Restricting to this
+          // instance's own single scrolling axis (not plain touch-auto)
+          // keeps the orthogonal axis blocked here too, matching
+          // overscroll-x/y-contain below's identical axis-scoping — this is
+          // the piece that makes an ancestor's touch-none *not* need to
+          // special-case this element: an element's own explicit
+          // touch-action always governs a touch that starts on it,
+          // regardless of what a `none` ancestor declares.
+          horizontal ? "touch-pan-x" : "touch-pan-y",
           snap ? (horizontal ? "snap-x snap-mandatory" : "snap-y snap-mandatory") : "",
           // scroll-smooth (scroll-behavior: smooth), snap-only: with no
           // explicit scroll-behavior at all, the browser's own re-snap
