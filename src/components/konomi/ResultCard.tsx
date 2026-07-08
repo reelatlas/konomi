@@ -567,8 +567,24 @@ export function ResultCard({
                   e.currentTarget.focus();
                   onToggleLock(series.title);
                 }}
-                onMouseEnter={() => setHoveredIcon("lock")}
-                onMouseLeave={() => setHoveredIcon(null)}
+                // supportsHover-gated, not unconditional: real touch
+                // devices still fire synthetic mouseenter/mouseleave as
+                // part of iOS/Android's own touch-to-mouse-event
+                // compatibility shim, on a timing this app doesn't
+                // control and that isn't guaranteed to stay before/after
+                // the tap's own click handler — confirmed live as the
+                // actual cause behind swap's own hint failing to dismiss
+                // on a second tap (see that icon's own onClick comment):
+                // a synthetic mouseenter firing after the click handler
+                // had just cleared it would immediately re-set hoveredIcon
+                // right back, undoing the toggle within the same tap.
+                // Wiring these only when a real mouse is present removes
+                // that entire interference on touch — onFocus/onBlur
+                // (real, or forced via .focus()/setHoveredIcon(null)
+                // above) are the only things that ever drive this on a
+                // touch-only device now.
+                onMouseEnter={supportsHover ? () => setHoveredIcon("lock") : undefined}
+                onMouseLeave={supportsHover ? () => setHoveredIcon(null) : undefined}
                 onFocus={() => setHoveredIcon("lock")}
                 onBlur={() => setHoveredIcon(null)}
                 shadow
@@ -641,8 +657,19 @@ export function ResultCard({
                   if (swapDisabled) return;
                   onReplace(series.title);
                 }}
-                onMouseEnter={() => setHoveredIcon("swap")}
-                onMouseLeave={() => setHoveredIcon(null)}
+                // supportsHover-gated — see lock's own onMouseEnter/
+                // onMouseLeave comment above for the full mechanism this
+                // fixes: a real touch device's synthetic mouseenter/
+                // mouseleave (part of the browser's own touch-to-mouse
+                // compatibility shim) could otherwise fire at an
+                // uncontrolled point relative to this button's own click
+                // handler, immediately re-setting hoveredIcon right back
+                // after the toggle-off branch above just cleared it —
+                // confirmed live as the actual reason a second tap wasn't
+                // dismissing this hint. Not wiring these at all on touch
+                // removes the interference at its source.
+                onMouseEnter={supportsHover ? () => setHoveredIcon("swap") : undefined}
+                onMouseLeave={supportsHover ? () => setHoveredIcon(null) : undefined}
                 onFocus={() => setHoveredIcon("swap")}
                 onBlur={() => setHoveredIcon(null)}
                 shadow
