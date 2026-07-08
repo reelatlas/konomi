@@ -387,9 +387,40 @@ export function ResultCard({
               inline) on both images: an inline image carries a few px of
               baseline/line-height gap below it, which would otherwise open
               a hairline seam between the two stacked copies — confirmed
-              live as a real, if subtle, artifact. */}
+              live as a real, if subtle, artifact.
+
+              touch-none, alongside pointer-events-none, not instead of it —
+              belt-and-suspenders, the same pairing this app's own touch
+              scroll-blocking already establishes elsewhere (see MixerBar's
+              own cardRef comment): pointer-events-none is a DOM-level hit-
+              testing guarantee (this layer can never be event.target), but
+              touch-action is resolved by the compositor, separately,
+              before any DOM-level dispatch even happens. This layer's own
+              mirrored image (below) carries transform:scaleY(-1) — a
+              transform that typically promotes an element onto its own
+              GPU compositing layer — and unlike the old, since-removed
+              reflection this replaced (only ever mounted above a 731px
+              viewport-height gate), this one is now mounted at every card
+              size, unconditionally. Reported live as a regression, real-
+              iOS-only (Safari and Chrome-iOS both — same underlying
+              WebKit, doesn't reproduce in headless/emulated Chromium
+              either way, the identical category of gap this session's own
+              touch-action work already closed once for MixerBar): the tag
+              area's own vertical scroll stopped responding to a real touch
+              drag on cards where this filmstrip is now always present,
+              even though this layer sits behind tag-wrapper in the DOM and
+              a plain elementFromPoint() check at the touch point already
+              resolves correctly to the scroll viewport. touch-action:none
+              here is the defensive fix for the leading hypothesis — a
+              GPU-composited sibling geometrically overlapping a scroll
+              container's own region is a known category of touch-routing
+              confusion on WebKit specifically, independent of what
+              pointer-events/DOM hit-testing say — closing it at the
+              compositor level, not just the DOM level, removes the gap
+              regardless of whether this exact mechanism turns out to be
+              the precise cause. */}
           {hasImage && !reflectionBroken && (
-            <div className="absolute left-0 top-0 w-full pointer-events-none bg-[var(--fill)]">
+            <div className="absolute left-0 top-0 w-full pointer-events-none touch-none bg-[var(--fill)]">
               {/* eslint-disable-next-line @next/next/no-img-element -- needs width:100%/height:auto (natural scale), which next/image's fill mode can't do — see this whole block's own comment above */}
               <img
                 src={series.coverImageUrl as string}
