@@ -283,26 +283,53 @@ export function MixerBar({
   // growableFixedOverheadPx settle together carries more risk to the
   // drag-resize behavior those two states are otherwise carefully tuned
   // for, for a bug that only ever shows up in this one specific corner.
-  // If the user was at the bottom right before this transition, keep
-  // pinning scroll back to the (possibly still-settling) bottom for a few
-  // frames afterward — comfortably past the single-frame settle time this
-  // was confirmed to actually need, while still stopping well short of
-  // ever fighting a genuine new scroll gesture of the user's own.
+  // If the user was at the bottom right before a growth event, keep pinning
+  // scroll back to the (possibly still-settling) bottom for a few frames
+  // afterward — comfortably past the single-frame settle time this was
+  // confirmed to actually need, while still stopping well short of ever
+  // fighting a genuine new scroll gesture of the user's own.
+  //
+  // One shared pin loop, not a separate copy per trigger: editMode's own
+  // open transition (the effect right below) was the first confirmed
+  // trigger, but it isn't the only one — a live drag-resize (handleMove,
+  // handleEnd below) grows/shrinks this exact same box by the exact same
+  // mechanism (marginTop tracking effectiveHeightPx), and reported live as
+  // a second, independent trigger for the identical symptom: holds
+  // position mid-page, but scrolls the page toward the top specifically
+  // when dragging from the document's true bottom. Same box, same
+  // marginTop-overlay mechanism, same fix — re-arming this one loop's
+  // frame countdown from multiple call sites, instead of duplicating the
+  // loop, is what keeps both call sites guaranteed to stay in sync if this
+  // ever needs retuning again. Repeated calls in quick succession (every
+  // pointermove during a drag) just re-arm framesLeft rather than spawning
+  // a new concurrent loop — pinLoopRunningRef guards that. Safe to hold for
+  // a drag's entire duration, not just a few frames: the resize grip
+  // already captures the pointer and preventDefaults its own move (see
+  // handleResizeStart/handleMove below), so there's no genuine competing
+  // scroll gesture of the user's own to fight while a drag is actually in
+  // progress — the 6-frame tail only matters for winding down cleanly after
+  // the trigger (editMode settling, or the drag actually ending).
+  const pinFramesLeftRef = useRef(0);
+  const pinLoopRunningRef = useRef(false);
+  function pinScrollToDocumentBottomIfWasAtBottom() {
+    if (!wasAtDocumentBottomRef.current) return;
+    pinFramesLeftRef.current = 6;
+    if (pinLoopRunningRef.current) return;
+    pinLoopRunningRef.current = true;
+    function tick() {
+      window.scrollTo(0, document.documentElement.scrollHeight - window.innerHeight);
+      pinFramesLeftRef.current -= 1;
+      if (pinFramesLeftRef.current > 0) {
+        requestAnimationFrame(tick);
+      } else {
+        pinLoopRunningRef.current = false;
+      }
+    }
+    requestAnimationFrame(tick);
+  }
   useLayoutEffect(() => {
     if (!editMode) return;
-    if (!wasAtDocumentBottomRef.current) return;
-    let cancelled = false;
-    let framesLeft = 6;
-    function pinToBottom() {
-      if (cancelled) return;
-      window.scrollTo(0, document.documentElement.scrollHeight - window.innerHeight);
-      framesLeft -= 1;
-      if (framesLeft > 0) requestAnimationFrame(pinToBottom);
-    }
-    requestAnimationFrame(pinToBottom);
-    return () => {
-      cancelled = true;
-    };
+    pinScrollToDocumentBottomIfWasAtBottom();
   }, [editMode]);
 
   // The negative-margin technique that lets cardRef grow upward (edit
@@ -1089,6 +1116,16 @@ export function MixerBar({
     // pointerdown already bubbles up to on its own — nothing extra needed
     // here for that half.
     isDraggingRef.current = true;
+    // Same bottom-scroll-restore the editMode-open effect above uses (see
+    // its own comment for the full mechanism/reasoning) — reported live as
+    // a second trigger for the identical symptom: dragging this grip grows
+    // this same marginTop-overlaid box the same way opening edit mode's
+    // content does, and at the document's true bottom it hit the same
+    // clamp. Armed here (drag start) and on every move below, not just
+    // once, since the growth — and therefore the risk of a transient
+    // scrollHeight dip clamping scrollY — continues for the whole drag, not
+    // just its first frame.
+    pinScrollToDocumentBottomIfWasAtBottom();
     function handleMove(ev: PointerEvent) {
       // Still calling preventDefault, even with capture + touch-action:none
       // both already in place — belt-and-suspenders, matching this app's
@@ -1106,6 +1143,7 @@ export function MixerBar({
       const next = clampPoolPanelHeight(startHeight + delta, poolPanelMaxHeight);
       liveHeightRef.current = next;
       setDragHeightPx(next);
+      pinScrollToDocumentBottomIfWasAtBottom();
     }
     function handleEnd() {
       setPoolPanelHeightPref(liveHeightRef.current);
@@ -1116,6 +1154,10 @@ export function MixerBar({
       // incidental ResizeObserver/resize event to notice — see this ref's
       // own comment near its declaration.
       measureFixedOverheadRef.current();
+      // One more arm: measureFixedOverheadRef's own catch-up measurement,
+      // right above, can itself commit a state update that shifts marginTop
+      // for one more frame right as the drag ends.
+      pinScrollToDocumentBottomIfWasAtBottom();
       window.removeEventListener("pointermove", handleMove);
       window.removeEventListener("pointerup", handleEnd);
       window.removeEventListener("pointercancel", handleEnd);
