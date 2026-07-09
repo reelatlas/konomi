@@ -1760,40 +1760,54 @@ export function MixerBar({
           ))}
         </div>
 
-        {/* Row 3: MIN TAG MATCH, Random/Clear, Recommend — unchanged from
-            the old Mixer controls row — plus a persistent Tag Pool
-            open/close toggle, replacing both the old edit-mode-only
-            "Done ✓" button here and the standalone "+ Tag Pool" affordance
-            that used to sit in the page's main content column (removed
-            from KonomiApp.tsx — see its own git history). One button now
-            covers both directions: closed state opens edit mode (same as
-            tapping an empty slot), open state closes it, same as Done
-            always did. Random/Clear/this toggle are icon-only IconButtons
-            now (TagPoolIcon/CheckIcon here) — RECOMMEND is the one control in
-            this row still a labeled text button, deliberately: it's the
-            hero action, not icon-ified alongside the others.
+        {/* Row 3: MIN TAG MATCH, Clear/Tag Pool/Random, Recommend, plus a
+            persistent Tag Pool open/close toggle, replacing both the old
+            edit-mode-only "Done ✓" button here and the standalone "+ Tag
+            Pool" affordance that used to sit in the page's main content
+            column (removed from KonomiApp.tsx, see its own git history).
+            One button now covers both directions: closed state opens edit
+            mode (same as tapping an empty slot), open state closes it,
+            same as Done always did. Clear/Random/this toggle are
+            icon-only IconButtons now (TagPoolIcon/CheckIcon here);
+            RECOMMEND is the one control in this row still a labeled text
+            button, deliberately: it's the hero action, not icon-ified
+            alongside the others.
 
-            This row's own responsive ladder, widest to narrowest — every
+            Tag Pool sits centered between Clear and Random now (by
+            request), not paired with RECOMMEND the way it used to be, see
+            that button's own comment below for the full reasoning and
+            the "Divider and RECOMMEND-wrap thresholds" section of
+            DESIGN_SYSTEM.md for why moving it re-bisected several of this
+            row's own numbers rather than just relocating markup.
+
+            This row's own responsive ladder, widest to narrowest, every
             rung a flat CSS breakpoint toggling between two fully-rendered
             forms, no ResizeObserver/JS measurement anywhere, so there's no
             shared trigger for rungs to race or oscillate against:
-              - min-[993px]  — Tag Pool/Random/Clear: text+icon → icon-only
+              - min-[993px]  - Clear/Tag Pool/Random: text+icon -> icon-only
                                 (below 993px)
-              - min-[640px]  — RECOMMEND: text → icon-only (below 640px,
+              - min-[640px]  - RECOMMEND: text -> icon-only (below 640px,
                                 RecommendButton.tsx's own breakpoint)
-              - max-[452px]  — Min Tag Match: full "1 2 3" segment → collapsed
-                                tap-to-cycle single button (live-bisected;
+              - max-[452px]  - Min Tag Match: full "1 2 3" segment -> collapsed
+                                tap-to-cycle single button (live-bisected,
                                 wraps at 451px, see that div's own comment for
                                 the off-by-one reasoning)
-              - max-[408px]  — Tag Pool/Done button: hidden entirely, in both
-                                browse and edit mode (live-bisected; row wraps
-                                at 407px even with every action above already
-                                icon-only — removing this one button, not
-                                shrinking padding/gap/icon-size, is what Sean
-                                confirmed keeps this single-line down to
-                                ~310px)
+              - max-[408px]  - Tag Pool/Done button: hidden entirely, in both
+                                browse and edit mode (live-bisected, unchanged
+                                by the move: row still wraps at 407px with
+                                Tag Pool visible and every action already
+                                icon-only, confirmed live against the new
+                                grouping too, not just carried over from the
+                                old one - removing this one button, not
+                                shrinking padding/gap/icon-size, is what keeps
+                                this single-line down to ~310px)
+              - max-[351px]  - RECOMMEND: right-aligns once wrapped to its own
+                                second line (live-bisected against the new
+                                Clear/Tag Pool/Random grouping: 351px fits on
+                                one line, 350px wraps - see RECOMMEND's own
+                                wrapper comment below for the full derivation)
             Adding a new rung: give it its own breakpoint, don't reuse or
-            nudge one of the above — these were each bisected against real
+            nudge one of the above, these were each bisected against real
             rendered content independently. */}
         <div className="flex flex-wrap items-center gap-x-[var(--space-lg)] gap-y-[var(--space-lg)]">
           {/* Two full sibling forms, not one component branching internally
@@ -1856,6 +1870,36 @@ export function MixerBar({
               <IconButton size="md" border="base" shadow="elev-2" backgroundColor="transparent" title="Clear" aria-label="Clear" onClick={onClearSlots}>
                 <EraserIcon className="text-[var(--ink)]" />
               </IconButton>
+              {/* Tag Pool, centered in the Clear/Random group by simple DOM
+                  position (a plain flex row with gap, no justify tricks
+                  needed for 3 items to read as one centered on the middle
+                  one), moved here from its own pairing with RECOMMEND
+                  below, by request, not a bug fix. max-[408px]:hidden is
+                  this row's own narrowest rung (see the row's own top
+                  comment for the full ladder): re-bisected live against
+                  this new grouping, still the width past which Row 3
+                  can't otherwise stay single-line (nothing left to shrink
+                  once every action is already icon-only). Applies
+                  regardless of editMode (hides both the TagPoolIcon/browse
+                  and CheckIcon/edit-mode forms), since it's a pure
+                  viewport toggle, not conditioned on the button's own
+                  state. Hiding the middle item of a gap-based flex row
+                  (not justify-between) closes the gap cleanly, Clear and
+                  Random end up adjacent with one gap between them, not two
+                  gaps with dead space where Tag Pool used to sit. */}
+              <div className="max-[408px]:hidden">
+                <IconButton
+                  size="md"
+                  border="base"
+                  shadow="elev-2"
+                  backgroundColor="transparent"
+                  title={editMode ? "Done" : "Tag Pool"}
+                  aria-label={editMode ? "Done" : "Tag Pool"}
+                  onClick={editMode ? onCloseEditMode : onOpenEditMode}
+                >
+                  {editMode ? <CheckIcon className="text-[var(--ink)]" /> : <TagPoolIcon className="text-[var(--ink)]" />}
+                </IconButton>
+              </div>
               <IconButton
                 size="md"
                 border="base"
@@ -1875,6 +1919,21 @@ export function MixerBar({
                   <EraserIcon className="text-[var(--ink)]" />
                 </span>
               </ActionButton>
+              {/* Same centered placement as the icon form above, at the
+                  desktop labeled-button tier. Unlike the icon form, this
+                  one never hides (max-[408px] only ever applies below the
+                  993px breakpoint this whole div is already gated on), so
+                  there's no equivalent collapse rung to re-derive here. */}
+              <ActionButton variant="outline" onClick={editMode ? onCloseEditMode : onOpenEditMode}>
+                {editMode ? (
+                  "Done ✓"
+                ) : (
+                  <span className="inline-flex items-center gap-[var(--space-sm)]">
+                    Tag Pool
+                    <TagPoolIcon className="text-[var(--ink)]" />
+                  </span>
+                )}
+              </ActionButton>
               <ActionButton variant="filled" onClick={onRandomTags}>
                 <span className="inline-flex items-center gap-[var(--space-sm)]">
                   Random
@@ -1884,109 +1943,36 @@ export function MixerBar({
             </div>
           </div>
           <div className="hidden min-[993px]:block ml-[calc(var(--space-xl)_+_2px)] mr-[var(--space-xl)] w-[length:var(--border-thin)] h-[32px] bg-[var(--ink)]" />
-          {/* Tag Pool + RECOMMEND grouped in one shared flex wrapper, not
-              two independent flex-wrap items — confirmed live this was a
-              real bug otherwise: flex-wrap breaks strictly by available
-              width per top-level item, with no concept of "keep these two
-              together," so at some widths Tag Pool stayed on Random/Clear's
-              line while RECOMMEND alone wrapped to the next one, splitting
-              a pair that reads as one unit (Tag Pool opens the editor
-              RECOMMEND then acts on). Nesting them in one wrapper makes the
-              *pair* the flex-wrap unit — either both fit on the current
-              line or both move to the next one together, never split apart
-              or merged into Random/Clear's group.
+          {/* RECOMMEND stands alone now: Tag Pool moved into the Clear/
+              Random group above (by request, not a bug fix), so the old
+              "Tag Pool + RECOMMEND paired wrapper" this div used to be
+              (kept the two from being split across a flex-wrap line break
+              independently) no longer applies, there's only ever one item
+              here now. Moving Tag Pool made the remaining Clear/Tag Pool/
+              Random group + divider + RECOMMEND fit on one line all the
+              way down to 351px, live-bisected (351px fits, 350px wraps)
+              against the actual new content, not reused from any of the
+              row's older numbers (474px/674px), none of which describe
+              this grouping anymore.
 
-              The wraps-alone right-alignment (`ml-auto`) threshold was
-              674px, but that number went stale once RECOMMEND gained its
-              own icon-only fallback below 640px (see RecommendButton.tsx) —
-              the icon form is so much narrower that the row stopped
-              needing to wrap into 2 lines at all through most of the old
-              674-993 range, yet this wrapper's `ml-auto` was still keyed to
-              674px and kept firing anyway. That's a real, confirmed-live
-              bug, not a hypothetical: with the row genuinely back to one
-              line but this `ml-auto` still active, it competed with Random/
-              Clear's own `ml-auto` for the *same* line's leftover space —
-              CSS splits available space evenly across every auto-margin
-              sharing a line, so both groups visibly got pulled toward the
-              row's center instead of docking at the right edge (same
-              failure mode DESIGN_SYSTEM.md's "Divider and RECOMMEND-wrap
-              thresholds" already documents for the pre-grouping version of
-              this exact bug). Re-bisected live against the *current*
-              (icon-Recommend) content: one line down to 474px, wraps at
-              473px — that's the new number, replacing the stale 674.
-              min-[686px]:max-[993px]:ml-[space-lg] (breathing room right
-              after the divider disappears) is untouched — unaffected by
-              the Recommend-icon change, still correct.
-
-              min-[408px]:max-[474px]:ml-auto, not a plain max-[474px]:ml-auto
-              — scoped to stop exactly where Tag Pool (below) hides. Same
-              double-ml-auto collision as the paragraph above, re-triggered
-              by the new max-[408px] rung: once Tag Pool disappears this
-              wrapper holds only RecommendButton, but the class was still
-              unconditionally pushing it right, competing with Random/
-              Clear's own (always-on) `ml-auto` for the same line's leftover
-              space — confirmed live as the same "both groups pulled toward
-              center instead of docking at the edge" symptom. Below 408px,
-              Random/Clear's own ml-auto is what docks this whole remaining
-              cluster (Random/Clear + Recommend, Tag Pool gone) at the right
-              edge as one unit; this wrapper doesn't need its own anymore. */}
-          <div className="flex items-center gap-[var(--space-lg)] min-[686px]:max-[993px]:ml-[var(--space-lg)] min-[408px]:max-[474px]:ml-auto">
-            {/* max-[408px]:hidden — this row's narrowest rung (see the row's
-                own top comment for the full ladder). Live-bisected: Row 3
-                wraps at 407px even with every action already icon-only
-                (nothing left to shrink), so the fix is removing this one
-                button's footprint outright rather than tightening padding/
-                gap/icon-size — confirmed live this keeps the row single-line
-                down to ~310px in both browse and edit mode. Applies
-                regardless of editMode (hides both the TagPoolIcon/browse and
-                CheckIcon/edit-mode forms below), since it's a pure viewport
-                toggle, not conditioned on the button's own state. */}
-            <div className="max-[408px]:hidden">
-              {/* min-[993px] icon-below/text-at-desktop split, same as
-                  Random/Clear above. Icon-only in both states, not text in
-                  one and icon in the other — TagPoolIcon (browse, "open the
-                  pool") swaps for CheckIcon (edit mode, "close/confirm")
-                  rather than falling back to a text button for Done, so the
-                  icon form reads as one consistent icon button regardless
-                  of mode; the text form below mirrors that with its own
-                  "+ Tag Pool"/"Done ✓" swap, unchanged from before.
-
-                  Browse-mode label form only, not edit mode: "+ Tag Pool"
-                  drops its decorative "+" and gains TagPoolIcon after the
-                  text, label-then-icon like Random/Clear above — the same
-                  glyph the icon-only form below 993px already uses, not a
-                  new one just for this width. "Done ✓" is left exactly as
-                  it was — explicitly NOT given the bigger CheckIcon
-                  component alongside its label; that swap only happens in
-                  the icon-only form, where CheckIcon *is* the whole
-                  button's content rather than sitting beside text sized
-                  for it. */}
-              <div className="min-[993px]:hidden">
-                <IconButton
-                  size="md"
-                  border="base"
-                  shadow="elev-2"
-                  backgroundColor="transparent"
-                  title={editMode ? "Done" : "Tag Pool"}
-                  aria-label={editMode ? "Done" : "Tag Pool"}
-                  onClick={editMode ? onCloseEditMode : onOpenEditMode}
-                >
-                  {editMode ? <CheckIcon className="text-[var(--ink)]" /> : <TagPoolIcon className="text-[var(--ink)]" />}
-                </IconButton>
-              </div>
-              <div className="hidden min-[993px]:block">
-                <ActionButton variant="outline" onClick={editMode ? onCloseEditMode : onOpenEditMode}>
-                  {editMode ? (
-                    "Done ✓"
-                  ) : (
-                    <span className="inline-flex items-center gap-[var(--space-sm)]">
-                      Tag Pool
-                      <TagPoolIcon className="text-[var(--ink)]" />
-                    </span>
-                  )}
-                </ActionButton>
-              </div>
-            </div>
+              max-[351px]:ml-auto right-aligns RECOMMEND only once it's
+              guaranteed alone on a wrapped second line, the same mechanism
+              (and the same reasoning: CSS splits a line's free space
+              evenly across every auto-margin sharing that line, so a
+              second one only belongs on a line where the first can't
+              reach it) DESIGN_SYSTEM.md's "Divider and RECOMMEND-wrap
+              thresholds" already documents at length for the original,
+              pre-Tag-Pool-pairing version of this exact div. Confirmed
+              live this collision is real here too, not just a risk: an
+              interim version of this margin gated at max-[900px] (well
+              above the real 351px wrap point) measured a 47px gap between
+              the Clear/Tag Pool/Random group and RECOMMEND at 700px
+              width, over 4x the row's own intended 12px gap-x, the two
+              auto-margins splitting free space that should have gone
+              entirely to the *other* group's own always-on ml-auto.
+              Narrowing this one to the real, confirmed-alone-on-its-own-
+              line width closes that gap back down to the intended 12px. */}
+          <div className="max-[351px]:ml-auto">
             <RecommendButton filledCount={filledCount} onRecommend={onRecommend} error={error} />
           </div>
         </div>
