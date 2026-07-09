@@ -31,8 +31,8 @@ function useSupportsHover(): boolean {
 // BACK face's own full-bleed cover fill: a blurred copy of the cover as
 // BACK's background, mounted directly on BACK's own div (see its JSX
 // below) so it flips with the card. Gentle blur (detail would otherwise
-// still show through a sharper one) and a fairly high opacity — BACK's own
-// content (the WATCH ON header, description, and stream row) still has to
+// still show through a sharper one) and a fairly high opacity: BACK's own
+// content (the title header, description, and stream row) still has to
 // read on top of it.
 const BACK_FILL_BLUR_PX = 10;
 const BACK_FILL_OPACITY = 0.9;
@@ -1069,9 +1069,28 @@ export function ResultCard({
               why minmax(0,1fr), not a bare 1fr, is required for that row
               to actually cap its content instead of growing to fit it. */}
           <div className="relative shrink-0 h-[var(--result-card-cover-height)] grid grid-rows-[auto_minmax(0,1fr)] overflow-hidden">
-            <div className="relative bg-[var(--primary)] text-[var(--secondary)] font-display text-[length:var(--text-lg)] tracking-[var(--tracking-md)] px-[var(--space-lg)] py-[var(--space-md)] border-b-[length:var(--border-base)] border-b-[var(--ink)] uppercase flex gap-[var(--space-md)] items-baseline">
-              WATCH ON
-              <span className="font-body font-bold text-[length:var(--text-base)] text-[var(--on-primary)]">配信</span>
+            {/* Series title, not the old "WATCH ON 配信" label: this bar now
+                mirrors FRONT's own <h3> (font-body font-black, same role),
+                not the arbitrary label styling (font-display, uppercase,
+                tracking) that made sense for a fixed two-word tag but not
+                for real, variable-length title content.
+                line-clamp-2 break-words pb-[4px]: wraps freely up to 2
+                lines, only clipping a rare 3rd line with an ellipsis, the
+                exact same pattern (down to the same 4px) TagSlot.tsx
+                already establishes and documents for the identical reason,
+                see that file's own comment for the full derivation.
+                Short version: -webkit-line-clamp's own clip boundary sits
+                at exactly 2 * line-height with zero allowance for a
+                descender (the tail on a "g"/"y"/"p" etc.), which
+                leading-tight's own tight line-height doesn't leave room
+                for on its own; pb-[4px] buys that room back at the
+                padding box (where line-clamp's own overflow:hidden clips)
+                without touching line-height or the line count, confirmed
+                live in TagSlot's own case at exactly this value. */}
+            <div className="relative bg-[var(--primary)] px-[var(--space-lg)] py-[var(--space-md)] border-b-[length:var(--border-base)] border-b-[var(--ink)]">
+              <h3 className="font-body font-black text-[length:var(--text-lg)] leading-[var(--leading-tight)] text-[var(--secondary)] line-clamp-2 break-words pb-[4px] m-0">
+                {series.title}
+              </h3>
             </div>
             {/* min-h-0 + grid-rows-[minmax(0,1fr)]: this div is zone 1's
                 own row-2 grid item (capped to that row's resolved height by
