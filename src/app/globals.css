@@ -239,6 +239,67 @@
      JS/ResizeObserver/hysteresis needed. Retune by hand if MixerBar's own
      browse-mode content changes enough to raise this ceiling. */
   --mixer-bar-height: 185px;
+  /* ResultCard's own internal split: which of its two areas (cover image,
+     tag pool) actually shrinks once --result-card-height above hits its
+     clamp and gets shorter. The cover used to be the one that shrank (see
+     ResultCard.tsx's git history for that version); flipped so the cover
+     stays legible (title/rating/art) at nearly every size instead, and the
+     tag area gives up room first, down to a floor that still guarantees
+     one full chip row before it has to scroll.
+
+     --result-card-tag-area-height: the tag-wrapper's own OUTER box height
+     in ResultCard.tsx (padding included). clamp(floor, ideal, ceiling):
+       - ceiling 137px: today's original, unshrunk natural size (this
+         box's own space-md*2 padding + TagScrollArea.tsx's own natural
+         121px) - same reasoning as --result-card-height's own 445px
+         ceiling above, this area never grows past its current design.
+       - ideal calc(...): shrinks 1:1 with --result-card-height once that
+         drops below its own 445px ceiling (445 - 137 = 308, so
+         result-card-height - 308 reproduces 137 exactly at 445px and
+         falls linearly below that) - this is what makes
+         --result-card-cover-height below cancel out to a flat constant
+         across most of the range; see its own comment.
+       - floor 63px: TagScrollArea.tsx's own TOP_RESERVE_PX(14) + one
+         ROW_STEP_PX(33) = 47px of actual scrollable content, plus this
+         box's own space-md*2 (16px) padding - enough for one full chip
+         row plus its usual top peek, never less. Hand-derived from those
+         two JS constants, not shared automatically - retune by hand if
+         TagScrollArea.tsx's own ROW_STEP_PX/TOP_RESERVE_PX ever change.
+         Below this floor the tag area stops absorbing the shrink and
+         --result-card-cover-height starts giving up room instead, which
+         is what keeps this from ever going to zero or negative at
+         --result-card-height's own 322px floor.
+
+     --result-card-cover-height: whatever's left of --result-card-height
+     once the tag area above and the card's own top+bottom border
+     (border-base * 2) are accounted for. Because the tag area's own ideal
+     term above is just result-card-height - 308, this resolves to a flat
+     308 - (border-base * 2) for every --result-card-height from 445px
+     down to about 372px (the point where the tag area's floor engages) -
+     the cover genuinely does not shrink across most of the supported
+     range, only in the narrow ~322-372px band at the very bottom (real
+     small-phone heights, per --result-card-height's own comment above)
+     once the tag area has already hit its own floor.
+
+     --result-card-tag-scroll-height: --result-card-tag-area-height minus
+     this box's own space-md*2 vertical padding - the actual height fed to
+     TagScrollArea.tsx's own ScrollFadeArea, replacing that component's old
+     flat h-[121px]. Kept as its own token rather than inlined at the call
+     site so TagScrollArea.tsx can reference one static Tailwind
+     arbitrary-value class (h-[var(--result-card-tag-scroll-height)]), the
+     same way it already references other custom properties - a class
+     built from a runtime template string would be invisible to Tailwind's
+     scanner instead (see ScrollFadeArea.tsx's own heightPx comment for the
+     same caveat). */
+  --result-card-tag-area-height: clamp(
+    63px,
+    calc(var(--result-card-height) - 308px),
+    137px
+  );
+  --result-card-cover-height: calc(
+    var(--result-card-height) - var(--result-card-tag-area-height) - (var(--border-base) * 2)
+  );
+  --result-card-tag-scroll-height: calc(var(--result-card-tag-area-height) - (var(--space-md) * 2));
 }
 
 /* ── color roles, one palette per theme ──────────────────────────────────

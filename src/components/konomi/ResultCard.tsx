@@ -533,28 +533,37 @@ export function ResultCard({
               />
             </div>
           )}
-          {/* flex-1, not a fixed h-[295px] anymore — this box now grows/
-              shrinks with the card's own clamped height (see globals.css's
-              --result-card-height), so it can shrink at small viewports
-              without clipping the tag area below it. The tag-wrapper
-              sibling below is shrink-0 (its own fixed content size,
-              protected) specifically so *this* box is the one that
-              absorbs the card's total height changing, never the tags.
+          {/* shrink-0 + h-[var(--result-card-cover-height)], not flex-1
+              anymore. Reversed again (see git history for the flex-1
+              version this replaces, and tag-wrapper's own comment below
+              for the full back-and-forth): that version let this box
+              absorb 100% of the card's own clamped-height shrinkage, so
+              title/rating/art all got smaller right along with the card.
+              --result-card-cover-height (globals.css) now holds this box
+              fixed across nearly the whole clamp range instead, and the
+              tag-wrapper sibling below (flex-shrinkable now, see its own
+              comment) absorbs the shrink first, deliberately, so the cover
+              stays legible even when the card is squeezed, at the cost of
+              the tag area sometimes only showing a single row before it
+              scrolls. See --result-card-cover-height's own comment in
+              globals.css for the full derivation, and for where cover
+              itself starts giving up room too, once the tag area has
+              nowhere further to shrink.
 
               bg-[var(--fill)] only in the no-image/broken-image case now
-              (was unconditional) — the shared filmstrip above (a sibling,
+              (was unconditional): the shared filmstrip above (a sibling,
               painting behind this box) is what shows through whenever
               there IS a real image; an unconditional opaque background
               here would hide it completely, defeating the entire point.
-              No <Image> of its own anymore either — the filmstrip owns
+              No <Image> of its own anymore either, the filmstrip owns
               every pixel of the actual cover art now, this box is purely a
               clipping window into it (plus its own overlays below: the
-              bottom scrim, the icon row) — see the filmstrip's own comment
+              bottom scrim, the icon row). See the filmstrip's own comment
               above for why this box's own crop is still visually identical
               to what its previous independent <Image> rendered. */}
           <div
             className={[
-              "relative flex-1 border-b-[length:var(--border-base)] border-b-[var(--ink)] overflow-hidden",
+              "relative shrink-0 h-[var(--result-card-cover-height)] border-b-[length:var(--border-base)] border-b-[var(--ink)] overflow-hidden",
               hasImage && !reflectionBroken ? "" : "bg-[var(--fill)]",
             ].join(" ")}
           >
@@ -808,19 +817,29 @@ export function ResultCard({
               exactly at this box's edges, not bleed into the cover image
               above or past the card's own border.
 
-              shrink-0, not flex-1 — inverted from the original version of
-              this box (see git history): back then, cover had a fixed
-              height and THIS box absorbed whatever of FRONT's own fixed
-              --result-card-height was left over. Now that
-              --result-card-height is itself a clamp() that shrinks at
-              small viewports (one-viewport-fit feature, globals.css), the
-              box that stretches/shrinks with the card's total height must
-              be the one that's safe to compress — the cover (now flex-1,
-              above) — not this one, which holds the actual tags and must
-              never be crushed below its own real content. shrink-0 locks
-              this box at exactly its natural size (padding + TagScrollArea's
-              121px) regardless of how much or little room FRONT's own
-              flex-col has left after the cover claims its share.
+              flex-1 + min-h-0 + h-[var(--result-card-tag-area-height)], not
+              shrink-0 anymore. Reversed again (see git history for the
+              shrink-0 version this replaces, and cover-box's own comment
+              above for the full back-and-forth): that version locked this
+              box at its natural size (padding + TagScrollArea's full
+              121px) no matter what, so cover-box (flex-1 then) absorbed
+              100% of the card's own clamped-height shrinkage instead. Now
+              this box is the one that shrinks first: --result-card-tag-area-height
+              (globals.css) clamps it down to a floor that still keeps one
+              full chip row visible, and only past that floor does
+              cover-box's own height give up any room. min-h-0 overrides
+              the flexbox default (min-height: auto, which would otherwise
+              refuse to shrink this box below TagScrollArea's own natural
+              content height regardless of the explicit h- class) so the
+              explicit height actually takes effect at every size, not just
+              above the natural 137px. TagScrollArea.tsx's own ScrollFadeArea
+              reads a matching --result-card-tag-scroll-height (the same
+              value minus this box's own padding below) instead of its old
+              flat h-[121px], so the fade gradient and down arrow (both
+              positioned relative to that inner height) stay correctly
+              placed at whatever height this box actually ends up at,
+              rather than sitting past this box's own bottom edge and
+              silently getting clipped off by the overflow-hidden here.
 
               pt/pb space-md (8px), not space-lg (12px) — px stays lg,
               unchanged, since only the *vertical* budget matters for the
@@ -853,7 +872,7 @@ export function ResultCard({
               chaining to the carousel. Removed; DOM order alone still
               correctly wins hit-testing against the filmstrip sibling, no
               regression there. */}
-          <div className="relative overflow-hidden shrink-0 px-[var(--space-lg)] pt-[var(--space-md)] pb-[var(--space-md)]">
+          <div className="relative overflow-hidden flex-1 min-h-0 h-[var(--result-card-tag-area-height)] px-[var(--space-lg)] pt-[var(--space-md)] pb-[var(--space-md)]">
             {/* Continuation scrim — the shared filmstrip (a sibling of
                 cover-box, above/outside this whole tag-wrapper — see its
                 own comment) shows through here at every card size now;

@@ -34,39 +34,59 @@ interface TagScrollAreaProps {
 }
 
 // Row geometry: 33px step (27px chip + 6px gap), 3 rows fully visible by
-// design, one row peeking at each edge. ROW_STEP_PX and VISIBLE_ROWS are
-// the two real inputs everything else below is derived from.
+// design at this component's own natural (unshrunk) height, one row
+// peeking at each edge. ROW_STEP_PX and VISIBLE_ROWS are the two real
+// inputs everything else below is derived from, including scrollStep
+// (VISIBLE_ROWS * ROW_STEP_PX, passed to ScrollFadeArea below): that stays
+// fixed at "3 rows" even once TAG_AREA_HEIGHT shrinks and fewer rows are
+// actually visible at once, so a single arrow click can jump further than
+// one screen's worth of content at the smallest card heights. Accepted,
+// not fixed: a bigger jump on an already-small card is a minor rough edge,
+// not a broken interaction, and continuous (held) scrolling is unaffected
+// either way.
 const ROW_STEP_PX = 33;
 const VISIBLE_ROWS = 3;
 // scrollPaddingTop's own reservation, at the top. Only 8px of this 14px
 // actually shows as a visible "previous row" peek in the steady (mid-list)
-// state — the remaining 6px is the row-to-row gap itself (empty space, no
+// state: the remaining 6px is the row-to-row gap itself (empty space, no
 // content).
 const TOP_RESERVE_PX = 14;
-// TAG_AREA_HEIGHT is a deliberate compromise, not a value that gives an
-// identical peek in every scroll position — that turns out to be
-// impossible with this mechanism. At the very first row, reaching it wants
-// scrollTop = 0 − TOP_RESERVE_PX (negative), which the browser clamps to
-// 0 — so row 0's reservation goes entirely unused there, and that unused
-// 14px doesn't vanish, it becomes 14px of *extra* room at the bottom
-// instead. That means the bottom peek at row 0 is mathematically always
-// exactly TOP_RESERVE_PX bigger than the bottom peek anywhere else in the
-// list, for any single fixed height — there's no height where both match.
+// TAG_AREA_HEIGHT was a deliberate compromise even before it became
+// variable, not a value that gives an identical peek in every scroll
+// position: that turns out to be impossible with this mechanism. At the
+// very first row, reaching it wants scrollTop = 0 - TOP_RESERVE_PX
+// (negative), which the browser clamps to 0, so row 0's reservation goes
+// entirely unused there, and that unused 14px doesn't vanish, it becomes
+// 14px of *extra* room at the bottom instead. That means the bottom peek
+// at row 0 is mathematically always exactly TOP_RESERVE_PX bigger than the
+// bottom peek anywhere else in the list, for any single fixed height:
+// there's no height where both match.
 //
 // A content padding-top matching TOP_RESERVE_PX was tried first, to make
 // row 0 consume its reservation like every other row instead of being a
-// special case — confirmed live that it does fix the peek-size mismatch,
+// special case: confirmed live that it does fix the peek-size mismatch,
 // but at the cost of a real regression: a permanently empty 14px gap
 // between whatever precedes this component and the first chip row,
 // visible even when there's nothing to peek yet, which read as broken
 // spacing rather than a peek. Reverted in favor of this simpler
 // compromise: pick one height that keeps *both* the row-0 case and every
 // other position showing a genuinely partial (non-zero, non-full) peek,
-// rather than eliminating the mismatch outright. 121px gives an 8px peek
-// at every position after row 0 (matching the top peek's own 8px) and a
-// 22px peek at row 0 specifically — bigger, but still visibly short of
-// the full 27px row, confirmed live.
-const TAG_AREA_HEIGHT = "h-[121px]";
+// rather than eliminating the mismatch outright. 121px (this component's
+// own natural, unshrunk height, see below) gives an 8px peek at every
+// position after row 0 (matching the top peek's own 8px) and a 22px peek
+// at row 0 specifically: bigger, but still visibly short of the full 27px
+// row, confirmed live.
+//
+// That 121px math is exact only at ResultCard's own tallest card height
+// (--result-card-height's 445px ceiling, globals.css). TAG_AREA_HEIGHT now
+// reads --result-card-tag-scroll-height instead of a flat 121px, which
+// shrinks this area first as the card itself shrinks, down to a floor that
+// still guarantees one full row plus its usual top peek (see that token's
+// own comment in globals.css for the exact derivation). Below 121px the
+// specific 8px/22px peek amounts above stop being exact, since they were
+// tuned against that one fixed number, but the underlying scroll/snap
+// mechanics, and the one-row floor, keep working at every size in between.
+const TAG_AREA_HEIGHT = "h-[var(--result-card-tag-scroll-height)]";
 
 export function TagScrollArea({ tags, selectedTags, onChipToggle, surfaceColor, arrowBackgroundColor, fadeSize = 4 }: TagScrollAreaProps) {
   return (
