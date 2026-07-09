@@ -12,6 +12,8 @@ interface RawSeriesRow {
   cover_image_url: string | null;
   genres: string[];
   average_score: number | null;
+  description: string | null;
+  streaming_services: { name: string; url: string; icon: string | null; color: string | null }[];
   series_tags: { rank: number; tags: { name: string; category: string | null } | null }[] | null;
 }
 
@@ -26,7 +28,9 @@ export interface Catalog {
 export async function getCatalog(): Promise<Catalog> {
   const { data, error } = await supabase
     .from("series")
-    .select("title_romaji, title_english, year, episodes, cover_image_url, genres, average_score, series_tags(rank, tags(name, category))")
+    .select(
+      "title_romaji, title_english, year, episodes, cover_image_url, genres, average_score, description, streaming_services, series_tags(rank, tags(name, category))",
+    )
     .order("title_romaji", { ascending: true })
     .returns<RawSeriesRow[]>();
 
@@ -71,6 +75,8 @@ export async function getCatalog(): Promise<Catalog> {
       coverImageUrl: row.cover_image_url,
       genres,
       averageScore: row.average_score,
+      description: row.description,
+      streamingServices: row.streaming_services ?? [],
     };
   });
 

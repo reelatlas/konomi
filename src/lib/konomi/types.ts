@@ -11,6 +11,21 @@ export interface Series {
   // AniList itself has too few scores to report one yet (e.g. very new/
   // unreleased media) — genuinely absent, not a real 0.
   averageScore: number | null;
+  // Pre-cleaned plain text (real newlines, no <br> tags, no trailing
+  // "(Source: ...)" citation, no ~!spoiler!~ markup), see
+  // cleanDescription() in scripts/import-anilist.ts. Null when AniList
+  // genuinely has none, same "absent, not faked" reasoning as averageScore.
+  description: string | null;
+  // Real per-series watch links, filtered to a curated allow-list of known
+  // platforms at import time (see STREAMING_ALLOW_LIST in
+  // scripts/import-anilist.ts), not every platform AniList tracks. Empty,
+  // not null, when nothing on the allow-list matched, same "absent is an
+  // empty array, not null" reasoning genres already uses. icon/color are
+  // both nullable (AniList's own schema doesn't guarantee either for every
+  // link, though every allow-listed platform has always had both,
+  // confirmed live) so the chip UI has to handle a label-only, ink-filled
+  // fallback either way.
+  streamingServices: { name: string; url: string; icon: string | null; color: string | null }[];
 }
 
 export interface ResultEntry {

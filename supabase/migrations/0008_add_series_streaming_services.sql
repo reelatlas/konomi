@@ -1,0 +1,25 @@
+-- Adds real per-series streaming availability, sourced from AniList's
+-- Media.externalLinks (filtered to type: STREAMING and a curated allow-list
+-- of known platforms — see STREAMING_ALLOW_LIST in
+-- scripts/import-anilist.ts). Replaces the old permanent dummy data
+-- (PLATFORMS in src/lib/konomi/data.ts, streamsFor() in scoring.ts, both
+-- removed).
+--
+-- jsonb, not text[] the way genres is: unlike genres, each entry needs
+-- per-value metadata (the actual watch url), the same reason tags needed
+-- `rank` on a join row rather than living in a plain array. A full join
+-- table (mirroring tags/series_tags) isn't warranted though — the allow-list
+-- is a small, fixed, closed set with no per-platform aggregate stat this app
+-- needs anywhere (no "platform pool" the way tags have a Tag Pool) — so a
+-- jsonb array of {name, url} objects directly on series is the proportionate
+-- middle ground. PostgREST returns jsonb columns as already-parsed JS
+-- values, no extra client-side parsing needed.
+--
+-- not null default '{}'::jsonb → '[]': "no streaming service matched the
+-- allow-list" is more naturally an empty array than a null one, same
+-- reasoning genres already uses, keeps every consumer from needing a
+-- `?? []` fallback.
+--
+-- No RLS/grant changes needed, same reasoning as 0004/0005/0006/0007.
+
+alter table public.series add column streaming_services jsonb not null default '[]'::jsonb;

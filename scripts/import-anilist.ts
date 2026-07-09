@@ -22,6 +22,27 @@ const FETCH_TIMEOUT_MS = 30_000;
 
 const ANILIST_URL = "https://graphql.anilist.co";
 
+// Curated, not "every externalLinks entry AniList tags STREAMING": that set
+// also includes promo-only YouTube playlists and regional platforms (iQiyi,
+// WeTV, Bilibili) that aren't a real "watch the whole series here" option
+// for this app's audience. Keyed by AniList's own exact `site` string
+// (confirmed live against the real API, not guessed), valued by the display
+// name to store, handles real naming mismatches found the same way (e.g.
+// AniList's "Amazon Prime Video"/"Disney Plus" vs. this app's shorter
+// "Prime Video"/"Disney+"). Hand-maintained, same "retune by hand" precedent
+// already used for --masthead-height/--mixer-bar-height in globals.css, not
+// attempted as fuzzy matching: if a legitimate platform is missing here,
+// add its exact AniList site string.
+const STREAMING_ALLOW_LIST: Record<string, string> = {
+  Crunchyroll: "Crunchyroll",
+  Netflix: "Netflix",
+  Hulu: "Hulu",
+  "Amazon Prime Video": "Prime Video",
+  Max: "Max",
+  "Disney Plus": "Disney+",
+  HIDIVE: "HIDIVE",
+};
+
 const PAGE_QUERY = `
   query ($page: Int, $perPage: Int) {
     Page(page: $page, perPage: $perPage) {
@@ -47,6 +68,14 @@ const PAGE_QUERY = `
         }
         genres
         averageScore
+        description(asHtml: false)
+        externalLinks {
+          site
+          url
+          type
+          icon
+          color
+        }
         tags {
           id
           name
@@ -71,6 +100,28 @@ interface AniListTag {
   category: string | null;
 }
 
+interface AniListExternalLink {
+  site: string;
+  url: string;
+  type: string | null; // "STREAMING" | "INFO" | "SOCIAL", per AniList's ExternalLinkType enum
+  // Transparent 64x64 PNG on AniList's own CDN, per their own schema docs.
+  // Nullable per that same schema ("not available for all links"), though
+  // confirmed live across a 50-series sample that every allow-listed
+  // platform (STREAMING_ALLOW_LIST, below) always has one, same URL every
+  // time regardless of which series it's attached to (the URL itself
+  // encodes AniList's own fixed per-site id, e.g. the "5-" in Crunchyroll's
+  // own icon path), consistent with this being a property of the site
+  // itself, not of any one (series, platform) pairing.
+  icon: string | null;
+  // The site's own brand color (hex), same "property of the site, not the
+  // pairing" behavior as icon, confirmed live the same way: every
+  // allow-listed platform had exactly one consistent, non-null value
+  // across the same 50-series sample (Crunchyroll #F88B24, Netflix
+  // #E50914, Hulu #1CE783, etc). Nullable anyway, same reasoning as icon,
+  // AniList's schema doesn't guarantee it for every link.
+  color: string | null;
+}
+
 interface AniListMedia {
   id: number;
   title: { romaji: string | null; english: string | null; native: string | null };
@@ -81,6 +132,12 @@ interface AniListMedia {
   // 0-100, AniList's own weighted-average viewer score. Null for media with
   // too few scores (e.g. very new/unreleased) — genuinely absent, not 0.
   averageScore: number | null;
+  // Raw prose summary, asHtml:false, still contains literal <br> tags and
+  // often a trailing "(Source: ...)" citation in practice (confirmed live
+  // against the real API), cleaned up by cleanDescription() below before
+  // it's ever stored.
+  description: string | null;
+  externalLinks: AniListExternalLink[] | null;
   tags: AniListTag[] | null;
 }
 
@@ -103,6 +160,71 @@ function sleep(ms: number) {
 function chunk<T>(items: T[], size: number): T[][] {
   const out: T[][] = [];
   for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
+  return out;
+}
+
+// AniList's raw description text, cleaned up for plain-text rendering (the
+// app uses CSS white-space handling, never dangerouslySetInnerHTML, so raw
+// HTML has no use once stored, see 0007_add_series_description.sql).
+function cleanDescription(raw: string | null): string | null {
+  if (!raw) return null;
+  let text = raw;
+  // AniList's own spoiler markup, remove the wrapped text entirely, not
+  // just the ~! !~ delimiters. This is a short teaser summary, not a
+  // plot-details view, so unmasking spoiler text isn't the right default.
+  // Runs first, so a general tag-strip below never has to reason about tags
+  // that might appear inside a spoiler-wrapped span.
+  text = text.replace(/~![\s\S]*?!~/g, "");
+  // Literal <br>/<br/>/<br /> tags (present even with asHtml:false) become
+  // real newlines, so CSS white-space:pre-line can render them as line
+  // breaks without needing to render actual HTML. Has to run BEFORE the
+  // general tag-strip below, not after: that pass removes tag markup with
+  // no replacement at all, so <br> would just vanish (no line break left
+  // behind) if it ran first instead of being converted here.
+  text = text.replace(/<br\s*\/?>/gi, "\n");
+  // General HTML-tag strip, not an allow-list of specific tags. The
+  // earlier version only ever handled <br>, so any other inline tag
+  // AniList's markup includes (<i>, <b>, <a href="...">, etc.) passed
+  // straight through untouched, confirmed live on real cards (e.g. a
+  // literal "<i>Fairy Tail</i>" in one description) once this was reported
+  // as a bug. Strips the tag markup itself, keeps the text between tags
+  // (e.g. "<i>Fairy Tail</i>" becomes "Fairy Tail", not empty).
+  text = text.replace(/<[^>]+>/g, "");
+  // Trailing "(Source: Crunchyroll)"-style citation, AniList's own
+  // convention, not part of the actual summary. Runs after the general
+  // tag-strip, in case the citation itself is ever wrapped in a tag.
+  text = text.replace(/\(Source:[^)]*\)\s*$/i, "");
+  // Collapse runs of 3+ newlines (left behind by the strips above) down to
+  // one blank line, and trim the edges.
+  text = text.replace(/\n{3,}/g, "\n\n").trim();
+  return text.length > 0 ? text : null;
+}
+
+// Filters AniList's own externalLinks down to this app's curated
+// STREAMING_ALLOW_LIST, see that constant's own comment for why this isn't
+// just "every type: STREAMING link." Drops any entry whose url isn't a
+// plain https link too, defensive: this ends up as a stored, later-rendered
+// <a href>, and there's no reason a legitimate streaming link would ever be
+// anything else.
+function streamServicesFor(media: AniListMedia): { name: string; url: string; icon: string | null; color: string | null }[] {
+  const seen = new Set<string>();
+  const out: { name: string; url: string; icon: string | null; color: string | null }[] = [];
+  for (const link of media.externalLinks ?? []) {
+    if (link.type !== "STREAMING" || !(link.site in STREAMING_ALLOW_LIST) || !link.url.startsWith("https://")) continue;
+    const name = STREAMING_ALLOW_LIST[link.site];
+    // Defensive dedupe, same reasoning as the per-series tag dedupe below:
+    // a malformed/duplicate externalLinks entry (e.g. two regional
+    // Crunchyroll URLs) shouldn't produce two rows for the same platform.
+    if (seen.has(name)) continue;
+    seen.add(name);
+    // icon/color come straight from AniList's own link entry, the same as
+    // url, not hardcoded into STREAMING_ALLOW_LIST the way name is: unlike
+    // the display name (which genuinely needs a manual override for cases
+    // like "Amazon Prime Video" to "Prime Video"), both are already
+    // exactly what this app wants as-is, confirmed live, so there's
+    // nothing to correct.
+    out.push({ name, url: link.url, icon: link.icon, color: link.color });
+  }
   return out;
 }
 
@@ -229,6 +351,8 @@ async function main() {
     cover_image_url: media.coverImage?.large ?? null,
     genres: media.genres ?? [],
     average_score: media.averageScore ?? null,
+    description: cleanDescription(media.description),
+    streaming_services: streamServicesFor(media),
   }));
 
   const seriesIdMap = new Map<number, string>(); // anilist media id -> uuid

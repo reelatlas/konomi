@@ -1,15 +1,14 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { scoreSeries, streamsFor } from "@/lib/konomi/scoring";
+import { scoreSeries } from "@/lib/konomi/scoring";
 import { isTagVisibleAtLevel, sortTags } from "@/lib/konomi/tagPool";
 import type { LevelKey, ResultEntry, SortKey, TagInfo } from "@/lib/konomi/types";
 import { DiceIcon, LockClosedIcon, LockOpenIcon } from "./icons";
 import { IconButton } from "./IconButton";
 import { RatingBadge } from "./RatingBadge";
 import { ERROR_MESSAGE } from "./RecommendButton";
+import { ScrollFadeArea } from "./ScrollFadeArea";
 import { TagCountBadge } from "./TagCountBadge";
 import { TagScrollArea } from "./TagScrollArea";
-
-const DOT_CLASSES = ["bg-[var(--secondary)]", "bg-[var(--primary)]", "bg-[var(--muted)]"];
 
 // True on mouse/trackpad devices, false on touch-only ones — defaults to
 // true (desktop's own existing behavior, unchanged) until the one-time
@@ -33,8 +32,8 @@ function useSupportsHover(): boolean {
 // BACK's background, mounted directly on BACK's own div (see its JSX
 // below) so it flips with the card. Gentle blur (detail would otherwise
 // still show through a sharper one) and a fairly high opacity — BACK's own
-// content (the WATCH ON header and stream list) still has to read on top
-// of it.
+// content (the WATCH ON header, description, and stream row) still has to
+// read on top of it.
 const BACK_FILL_BLUR_PX = 10;
 const BACK_FILL_OPACITY = 0.9;
 const BACK_FILL_SCALE_DOWN = 4;
@@ -242,7 +241,6 @@ export function ResultCard({
       parseFloat(style.borderBottomWidth);
     setHintWrapped(el.offsetHeight > singleLineHeight + 1);
   }, [activeHint]);
-  const streams = streamsFor(series.title);
   const hasImage = Boolean(series.coverImageUrl);
   // year/eps come from AniList and can genuinely be null (e.g. unreleased
   // media) — omit whichever part is missing instead of rendering "null".
@@ -1051,20 +1049,182 @@ export function ResultCard({
               </div>
             </div>
           )}
-          <div className="relative bg-[var(--primary)] text-[var(--secondary)] font-display text-[length:var(--text-lg)] tracking-[var(--tracking-md)] px-[var(--space-lg)] py-[var(--space-md)] border-b-[length:var(--border-base)] border-b-[var(--ink)] uppercase flex gap-[var(--space-md)] items-baseline">
-            WATCH ON
-            <span className="font-body font-bold text-[length:var(--text-base)] text-[var(--on-primary)]">配信</span>
-          </div>
-          <div className="relative px-[var(--space-lg)] py-[var(--space-lg)] flex flex-col gap-[var(--space-md)] flex-1 overflow-hidden">
-            {streams.map((name, di) => (
-              <div
-                key={name}
-                className="flex items-center gap-[var(--space-md)] bg-[var(--surface)] border-[length:var(--border-thin)] border-[var(--ink)] px-[var(--space-md)] py-[var(--space-md)] shadow-[var(--elev-1)]"
-              >
-                <span className={["w-[14px] h-[14px] flex-none border-[length:var(--border-hair)] border-[var(--ink)]", DOT_CLASSES[di % DOT_CLASSES.length]].join(" ")} />
-                <span className="font-body font-bold text-[length:var(--text-base)]">{name}</span>
+          {/* Zone 1, mirroring FRONT's cover-box height: identical
+              shrink-0 + h-[var(--result-card-cover-height)] (see
+              cover-box's own comment above), so the boundary between this
+              zone and zone 2 below lands at the exact same Y position
+              FRONT's cover/tag-area boundary does. No border-b here
+              unlike cover-box's own: confirmed live against the actual
+              proportional split working correctly, a visible dividing
+              line reads as unwanted clutter on this face specifically,
+              the bg-surface panel below already gives the description its
+              own clear edge. Header AND description both live inside this
+              one zone, rather than the header being an extra flow sibling
+              stacked above it, which would push the total past
+              --result-card-cover-height and break the very boundary match
+              this zone exists for. grid-rows-[auto_minmax(0,1fr)] splits
+              this zone's own height between the header (row 1, its own
+              natural size) and the description (row 2, fills whatever's
+              left). See the description wrapper's own comment below for
+              why minmax(0,1fr), not a bare 1fr, is required for that row
+              to actually cap its content instead of growing to fit it. */}
+          <div className="relative shrink-0 h-[var(--result-card-cover-height)] grid grid-rows-[auto_minmax(0,1fr)] overflow-hidden">
+            <div className="relative bg-[var(--primary)] text-[var(--secondary)] font-display text-[length:var(--text-lg)] tracking-[var(--tracking-md)] px-[var(--space-lg)] py-[var(--space-md)] border-b-[length:var(--border-base)] border-b-[var(--ink)] uppercase flex gap-[var(--space-md)] items-baseline">
+              WATCH ON
+              <span className="font-body font-bold text-[length:var(--text-base)] text-[var(--on-primary)]">配信</span>
+            </div>
+            {/* min-h-0 + grid-rows-[minmax(0,1fr)]: this div is zone 1's
+                own row-2 grid item (capped to that row's resolved height by
+                the minmax(0,1fr) on the PARENT's template above, min-h-0
+                is this div's own matching override for ITS role as that
+                item, the same pairing used at every level below), and is
+                itself a one-row grid for its own single child (the bg-
+                surface panel), for the identical reason one level further
+                in: a grid item only stretches to fill a DIRECT parent
+                grid's track, so reaching ScrollFadeArea's own root (whose
+                className is entirely internal to ScrollFadeArea.tsx, not
+                exposed as a prop to style from here) needs a grid
+                ancestor at every level between here and there, not just
+                one. px/py-lg here (not on zone 1 itself) so the header
+                above stays full-bleed, edge to edge, while only the
+                description gets inset from this zone's own edges. */}
+            <div className="min-h-0 overflow-hidden grid grid-rows-[minmax(0,1fr)] px-[var(--space-lg)] py-[var(--space-lg)]">
+              {/* grid-rows-[minmax(0,1fr)], not bare "grid" and not even a
+                  bare "1fr" row: two separate bugs, both confirmed live
+                  before landing on this (full derivation in
+                  DESIGN_SYSTEM.md's "ResultCard's back face" section).
+                  Short version: an implicit track (no grid-template-rows
+                  at all) sizes to fit its content, same as a plain block,
+                  so ScrollFadeArea's root just grew to its full natural
+                  height and this div's own overflow-hidden hard-clipped
+                  whatever didn't fit, no scrollbar, no fade. A bare "1fr"
+                  row still didn't fix it: a 1fr track's own automatic
+                  minimum size is content-based by default too, the same
+                  "won't shrink below content" behavior min-h-0 exists to
+                  override on a flex/grid ITEM, except the item sizing
+                  THIS track is ScrollFadeArea's root, which can't take a
+                  min-h-0 className any more than it can take height
+                  directly. minmax(0, 1fr) moves that override onto the
+                  TRACK itself instead of the item, the one place this
+                  div's own className can still reach. bg-surface/border/
+                  shadow: an opaque backing panel, the same legibility idea
+                  the old streaming cards already used (this text sits
+                  over BACK's own blurred-photo fill otherwise, unlike
+                  FRONT's title/meta, which has no such panel and instead
+                  relies on an on-primary/on-secondary color pairing plus a
+                  dedicated scrim). */}
+              <div className="grid grid-rows-[minmax(0,1fr)] min-h-0 overflow-hidden bg-[var(--surface)] border-[length:var(--border-thin)] border-[var(--ink)] shadow-[var(--elev-1)]">
+                {/* groupName="reveal-nested", not the default "reveal":
+                    this sits inside the exact same carousel ScrollFadeArea
+                    TagScrollArea already does (both are descendants of the
+                    same per-card <article>, itself a child of the
+                    carousel row). See TagScrollArea.tsx's own comment on
+                    why sharing the default group name lets hovering
+                    anywhere in the carousel reveal every card's arrows at
+                    once. No restrictTouchAction either, same reasoning
+                    TagScrollArea already documents: this has no
+                    touch-none ancestor to carve an axis back out from, and
+                    restricting it to touch-pan-y broke the carousel's own
+                    horizontal swipe handoff on real iOS the one time that
+                    was tried unconditionally (see DESIGN_SYSTEM.md's
+                    "Round five"). No snap either: this is plain scrolling
+                    prose, not a row grid with real snap points to
+                    register. */}
+                <ScrollFadeArea height="h-full" groupName="reveal-nested" surfaceColor="var(--surface)">
+                  <p className="whitespace-pre-line font-body text-[length:var(--text-sm)] text-[var(--ink)] px-[var(--space-md)] py-[var(--space-md)]">
+                    {series.description ?? "No description available."}
+                  </p>
+                </ScrollFadeArea>
               </div>
-            ))}
+            </div>
+          </div>
+          {/* Zone 2, mirroring FRONT's tag-wrapper: identical
+              flex-1 + min-h-0 + h-[var(--result-card-tag-area-height)]
+              treatment and identical px/pt/pb padding tokens (see
+              tag-wrapper's own comment above), completing the boundary
+              match zone 1 sets up, this zone's own top edge is exactly
+              zone 1's own bottom edge, which is exactly where FRONT's
+              cover/tag-area boundary is. overflow-y-auto, not
+              ScrollFadeArea: up to 7 allow-listed platforms
+              (STREAMING_ALLOW_LIST, import-anilist.ts) wrapped inside a
+              zone as short as --result-card-tag-area-height's own 63px
+              floor can need more rows than fit, and this doesn't need
+              TagScrollArea's own row-snap/peek machinery, there's no grid
+              of same-sized rows to snap between, so a plain native scroll
+              is enough here rather than reaching for ScrollFadeArea and
+              its own root-stretch problem a second time. */}
+          <div className="relative flex-1 min-h-0 h-[var(--result-card-tag-area-height)] overflow-y-auto px-[var(--space-lg)] pt-[var(--space-md)] pb-[var(--space-md)]">
+            {/* Omitted entirely when empty, not rendered as an empty strip:
+                same "genuinely absent, don't fake a placeholder" pattern
+                this app already applies to other missing AniList data
+                (year/episodes/averageScore). Zone 1's own description
+                panel is what a user actually sees taking up the rest of
+                the space either way, since it's zone 1's own sibling now,
+                not a shared row the way it used to be. */}
+            {series.streamingServices.length > 0 && (
+              <div className="flex flex-wrap gap-[var(--space-sm)]">
+                {series.streamingServices.map((s) => (
+                  // onClick's own stopPropagation, not preventDefault: the
+                  // whole card flips on a plain onClick at the <article>
+                  // root (see this component's own top-level onClick), so
+                  // any click here would bubble up and flip the card back
+                  // to FRONT in the same gesture unless stopped: the exact
+                  // one-line guard the lock/swap icon buttons above already
+                  // use for the same reason, not a new pattern. Stopping
+                  // propagation (not the default action) is what lets the
+                  // link still actually navigate/open its tab normally.
+                  <a
+                    key={s.name}
+                    href={s.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="inline-flex items-center gap-[var(--space-xs)] uppercase font-mono font-bold border-[length:var(--border-thin)] border-[var(--ink)] rounded-[var(--radius-chip)] text-[length:var(--text-2xs)] tracking-[var(--tracking-sm)] px-[var(--space-md)] py-[var(--space-xs)] bg-[var(--surface)] text-[var(--ink)] shadow-[var(--elev-1)]"
+                  >
+                    {/* Rendered as a CSS mask, not a plain <img>: AniList's
+                        own icon PNGs (transparent 64x64, hotlinked from
+                        their CDN like the cover art already is elsewhere
+                        in this file) are a white glyph on transparent,
+                        meant to sit on that platform's own dark brand
+                        background, not this chip's light --surface.
+                        Confirmed live: rendered plain, every one of
+                        Crunchyroll/Netflix/Hulu/Max/HIDIVE was nearly
+                        invisible here, technically present but
+                        unreadable. mask-image uses the PNG's own alpha
+                        channel as a stencil and fills it with a plain
+                        background-color instead of showing the PNG's own
+                        (white) pixels, turning the glyph into a flat,
+                        brand-colored silhouette, s.color, AniList's own
+                        per-platform hex (Crunchyroll orange, Netflix red,
+                        etc.), confirmed live as consistent and non-null
+                        for every allow-listed platform, same as icon
+                        itself. Falls back to --ink (this app's own
+                        neutral foreground token) on the rare null color,
+                        same reasoning as the label-only icon fallback
+                        below it. Both mask-image and its -webkit- prefix
+                        are set: unprefixed alone doesn't render on Safari. */}
+                    {s.icon && (
+                      <span
+                        aria-hidden="true"
+                        className="w-[14px] h-[14px] flex-none inline-block"
+                        style={{
+                          backgroundColor: s.color ?? "var(--ink)",
+                          maskImage: `url(${s.icon})`,
+                          WebkitMaskImage: `url(${s.icon})`,
+                          maskSize: "contain",
+                          WebkitMaskSize: "contain",
+                          maskRepeat: "no-repeat",
+                          WebkitMaskRepeat: "no-repeat",
+                          maskPosition: "center",
+                          WebkitMaskPosition: "center",
+                        }}
+                      />
+                    )}
+                    {s.name}
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

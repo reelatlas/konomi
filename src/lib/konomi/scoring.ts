@@ -1,21 +1,4 @@
-import { PLATFORMS } from "./data";
 import type { ResultEntry, Series } from "./types";
-
-// Deterministic per-title pick from the platform list, so the same series
-// always shows the same "where to watch" set.
-export function streamsFor(title: string): string[] {
-  const all = PLATFORMS;
-  const seed = [...title].reduce((a, c) => a + c.charCodeAt(0), 0);
-  const count = 2 + (seed % 2);
-  const out: string[] = [];
-  let i = seed % all.length;
-  while (out.length < count) {
-    const p = all[i % all.length];
-    if (!out.includes(p)) out.push(p);
-    i += 2;
-  }
-  return out;
-}
 
 export function scoreSeries(series: Series, selectedTags: string[]): number {
   return selectedTags.filter((t) => series.tags.includes(t) || series.genres.includes(t)).length;
