@@ -760,7 +760,7 @@ export function ResultCard({
                 offset math. Both on-primary — guaranteed light in every
                 theme, same reasoning as the scrim above. */}
             <div className="absolute inset-x-0 bottom-0 flex flex-col items-start gap-[var(--space-sm)] px-[var(--space-lg)] pb-[var(--space-md)]">
-              <TagCountBadge label={scoreLabel} perfect={perfect} tiltDeg={-4} />
+              <TagCountBadge label={scoreLabel} perfect={perfect} tiltDeg={-5} />
               <div>
                 {/* pr-[85px]: reserves horizontal clearance for RatingBadge
                     (bottom-right of the cover, below), so a long title's

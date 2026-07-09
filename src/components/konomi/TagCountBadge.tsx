@@ -17,8 +17,6 @@
 
 import { useId, useLayoutEffect, useRef, useState } from "react";
 
-const HEIGHT = 36;
-
 // Body's own left-corner radius. Both this and POINT_RADIUS are plain
 // circular-arc radii, drawn with real SVG arc commands (not bezier
 // approximations) so the geometry below can reason about them exactly.
@@ -53,20 +51,45 @@ const CORNER_RADIUS = 7;
 // not just a touching point.
 const POINT_RADIUS = 6;
 
-// Matches --space-md (globals.css) — the same horizontal padding token
-// TagChip and this app's other bordered chips use. Hardcoded as a number
-// (not a Tailwind class) because it has to feed into path-width math, not
-// just apply a CSS class — but the VALUE still has to track the real
-// design token, or the fit reads inconsistent with every other bordered
-// shape in the app.
-const BODY_PADDING = 8;
+// Horizontal padding around the label. Hardcoded as a number (not a
+// Tailwind class) because it has to feed into path-width math, not just
+// apply a CSS class. Deliberately a bit tighter than --space-md (8px,
+// TagChip and this app's other bordered chips' own token) — matching that
+// token exactly measured out visually looser than felt right once compared
+// directly against RatingBadge.
+const BODY_PADDING = 6;
 
-// The hole's radius. Sized so a meaningful transparent center still shows
-// through even under this component's thickest stroke (see holeRingWidth
-// below) — a smaller radius reads as solid ink rather than a visible hole,
-// since the ring stroke is centered on the hole's own boundary and eats
-// into it from both sides.
-const HOLE_RADIUS = 3.5;
+// Vertical counterpart to BODY_PADDING, matching --space-xs. HEIGHT is
+// derived from this plus the label's own measured line-height (see
+// TagCountBadge's own textHeight), not a flat constant — that measurement-
+// driven construction is what let this land exactly on RatingBadge's own
+// real rendered height (30px total: 18px line-height + 4+4px padding +
+// 2+2px border) once actually compared side by side, instead of an
+// earlier, ungrounded flat HEIGHT=36 guess.
+const VERTICAL_PADDING = 4;
+
+// The hole's radius, as a fraction of HEIGHT rather than a fixed pixel
+// value — 3.5/36, the original validated proportion (sized so a meaningful
+// transparent center still shows through even under this component's
+// thickest stroke; see holeRingWidth below — a smaller radius reads as
+// solid ink rather than a visible hole, since the ring stroke is centered
+// on the hole's own boundary and eats into it from both sides).
+//
+// A fixed absolute radius went visibly stale here once: HEIGHT is
+// measurement-driven (see TagCountBadge's own HEIGHT comment), so it can
+// legitimately change for reasons that have nothing to do with the hole at
+// all — the tighter line-height fix below shrank HEIGHT from 30 to 24, and
+// a hole radius that had stayed fixed at 3.5 immediately read as too big
+// for the new, shorter badge. Deriving it as a ratio of whatever HEIGHT
+// actually is keeps it right-sized automatically instead of needing a
+// re-tuned magic number every time HEIGHT moves for an unrelated reason.
+const HOLE_RADIUS_RATIO = 3.5 / 36;
+
+// Nudges the hole left from dead-center on the body box's own right edge —
+// confirmed (via getBBox, exact SVG-space geometry) that dead-center itself
+// measures out perfectly true, so this isn't correcting an alignment bug;
+// it's a deliberate default offset. Negative moves left.
+const HOLE_NUDGE_X = -1;
 
 // Deliberately NOT the same width as the main outline's own border — a
 // hole ring drawn at the full border width reads as heavy/graphic; half
@@ -186,8 +209,10 @@ interface TagCountBadgeProps {
   bold?: boolean;
   // Rotation in degrees, applied to the whole badge (shape, border, hole,
   // shadow, and label together) as one rigid unit. Defaults to 0 — this
-  // component's own neutral default. ResultCard's own usage passes -4 to
-  // match its previous plain-rectangle badge's own "-rotate-[4deg]".
+  // component's own neutral default, not tied to any one caller's own
+  // placement needs. ResultCard's own usage passes -5 (a touch more than
+  // its previous plain-rectangle badge's own "-rotate-[4deg]", tuned once
+  // placed alongside this badge's own new shape).
   tiltDeg?: number;
 }
 
@@ -206,21 +231,35 @@ export function TagCountBadge({ label, perfect = false, bordered = true, shadow 
   // borderWidth is ever changed here.
   const maskPad = borderWidth / 2 + 4;
 
-  // Measures the label's own rendered width (real text, real font/weight)
-  // so the body genuinely grows to fit content, the same requirement
-  // ordinary HTML flex layout satisfies for free — SVG has no equivalent
-  // auto-sizing, so this measures a real DOM text node and feeds its width
-  // back into the path generator. Stores textWidth itself (not the padded
-  // body width) since the centering calc below needs the raw text width
-  // too.
+  // Measures the label's own rendered width AND height (real text, real
+  // font/weight) so the badge genuinely sizes to content on both axes, the
+  // same requirement ordinary HTML flex layout satisfies for free — SVG
+  // has no equivalent auto-sizing, so this measures a real DOM text node
+  // and feeds both dimensions back into the geometry below. Stores
+  // textWidth/textHeight themselves (not the padded body/badge size)
+  // since the centering calc further down needs the raw text width too.
+  // Fallback defaults (32/18) are just there to avoid an ugly flash of a
+  // wrong size before the very first layout effect runs — 18 specifically
+  // matches text-sm's own real line-height, measured live.
   const textRef = useRef<HTMLSpanElement>(null);
   const [textWidth, setTextWidth] = useState(32);
+  const [textHeight, setTextHeight] = useState(18);
   useLayoutEffect(() => {
     if (textRef.current) {
       setTextWidth(textRef.current.offsetWidth);
+      setTextHeight(textRef.current.offsetHeight);
     }
   }, [label, bold]);
   const bodyW = textWidth + BODY_PADDING * 2;
+
+  // HEIGHT is the label's own measured line-height plus vertical padding
+  // plus the border on both top and bottom — not a flat guessed constant
+  // (see VERTICAL_PADDING's own comment for why that changed). This is the
+  // exact same "measure content, add padding/border" construction
+  // RatingBadge's own plain CSS box gets for free; SVG just has to do it
+  // by hand.
+  const HEIGHT = textHeight + VERTICAL_PADDING * 2 + borderWidth * 2;
+  const holeRadius = HEIGHT * HOLE_RADIUS_RATIO;
 
   // The path is built at hEff = HEIGHT - borderWidth, then translated by
   // borderWidth/2 (below) — this is what makes an SVG stroke (which by
@@ -258,7 +297,7 @@ export function TagCountBadge({ label, perfect = false, bordered = true, shadow 
   // an earlier version of this drift a pixel off from the body box's own
   // edge.
   const holeMaskId = useId();
-  const holeXFinal = bodyBoxLeft + bodyBoxWidth; // outer/final frame
+  const holeXFinal = bodyBoxLeft + bodyBoxWidth + HOLE_NUDGE_X; // outer/final frame
   const holeYFinal = HEIGHT / 2;
   const holeXEff = holeXFinal - borderWidth / 2; // back to the pre-translate
   const holeYEff = holeYFinal - borderWidth / 2; // frame the masked <g> uses
@@ -270,7 +309,13 @@ export function TagCountBadge({ label, perfect = false, bordered = true, shadow 
         height={HEIGHT}
         viewBox={`0 0 ${totalW} ${HEIGHT}`}
         className="absolute inset-0 block"
-        style={shadow ? { filter: "drop-shadow(2px 2px 0 var(--ink))" } : undefined}
+        // 1px offset, not --elev-1's own 2px — at 2px the shadow (a same-
+        // shaped, offset copy of this badge's own silhouette, hole
+        // included) fully covers the now-small holeRadius: background only
+        // shows through where the true hole and the shadow's own shifted
+        // hole overlap, and 2px isn't small relative to holeRadius the way
+        // it is against a bigger hole.
+        style={shadow ? { filter: "drop-shadow(1px 1px 0 var(--ink))" } : undefined}
       >
         <defs>
           {/* Padded well past [0,totalW]x[0,HEIGHT] on every side, not sized
@@ -278,20 +323,30 @@ export function TagCountBadge({ label, perfect = false, bordered = true, shadow 
               comment for why. */}
           <mask id={holeMaskId} maskUnits="userSpaceOnUse" x={-maskPad} y={-maskPad} width={totalW + maskPad * 2} height={HEIGHT + maskPad * 2}>
             <rect x={-maskPad} y={-maskPad} width={totalW + maskPad * 2} height={HEIGHT + maskPad * 2} fill="white" />
-            <circle cx={holeXEff} cy={holeYEff} r={HOLE_RADIUS} fill="black" />
+            <circle cx={holeXEff} cy={holeYEff} r={holeRadius} fill="black" />
           </mask>
         </defs>
         <g transform={`translate(${borderWidth / 2}, ${borderWidth / 2})`} mask={`url(#${holeMaskId})`}>
           <path d={path} fill={fill} stroke={borderWidth > 0 ? "var(--ink)" : "none"} strokeWidth={borderWidth} />
         </g>
         {borderWidth > 0 && (
-          <circle cx={holeXFinal} cy={holeYFinal} r={HOLE_RADIUS} fill="none" stroke="var(--ink)" strokeWidth={ringWidth} />
+          <circle cx={holeXFinal} cy={holeYFinal} r={holeRadius} fill="none" stroke="var(--ink)" strokeWidth={ringWidth} />
         )}
       </svg>
+      {/* leading-none: the top:50%/translateY(-50%) pair below centers this
+          span's own CSS line-height box exactly on HEIGHT/2 (confirmed via
+          the resolved transform matrix, not just assumed) — but a font's
+          default line-height reserves descender space (for g/y/p/q/j) that
+          digit labels like "1/3" never use, so the reserved space above and
+          below the actual glyphs isn't symmetric even though the BOX is
+          centered. That reads as the glyphs themselves sitting above true
+          center (confirmed live, zoomed in). Tightening the line-height
+          shrinks that mismatched reserve so the glyphs' own visual center
+          lands much closer to the box's center. */}
       <span
         ref={textRef}
         className={[
-          "absolute whitespace-nowrap font-display",
+          "absolute whitespace-nowrap font-display leading-none",
           textColorClass,
           bold ? "font-black" : "",
           "text-[length:var(--text-sm)] tracking-[var(--tracking-lg)]",
