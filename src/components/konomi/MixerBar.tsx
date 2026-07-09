@@ -1743,151 +1743,94 @@ export function MixerBar({
       </div>
       </div>
 
-        {/* Row 2: the 3 tag slots. Fixed — never resizes, never scrolls,
-            regardless of how tall the pool panel above gets dragged. */}
-        <div className="flex gap-[var(--space-lg)] mb-[var(--space-lg)]">
-          {slots.map((tag, index) => (
-            <TagSlot
-              key={index}
-              index={index}
-              tag={tag}
-              isDragOver={dragOverIndex === index}
-              onDragOver={onSlotDragOver}
-              onDragLeave={onSlotDragLeave}
-              onDrop={onSlotDrop}
-              onClick={handleSlotClick}
-            />
-          ))}
-        </div>
+        {/* Row 2 (combined): the 3 tag slots and every control that used to
+            be Row 3 now share ONE row, requested directly, not a bug fix.
+            TagSlot itself dropped to a single, fixed height (44.5px,
+            matching IconButton/ActionButton's own shared md height, see
+            TagSlot.tsx's own comment) specifically so it could sit in the
+            same line as these buttons at all, not just visually near them.
 
-        {/* Row 3: MIN TAG MATCH, Clear/Tag Pool/Random, Recommend, plus a
-            persistent Tag Pool open/close toggle, replacing both the old
-            edit-mode-only "Done ✓" button here and the standalone "+ Tag
-            Pool" affordance that used to sit in the page's main content
-            column (removed from KonomiApp.tsx, see its own git history).
-            One button now covers both directions: closed state opens edit
-            mode (same as tapping an empty slot), open state closes it,
-            same as Done always did. Clear/Random/this toggle are
-            icon-only IconButtons now (TagPoolIcon/CheckIcon here);
-            RECOMMEND is the one control in this row still a labeled text
-            button, deliberately: it's the hero action, not icon-ified
-            alongside the others.
+            LEFT group: 2 sub-groupings (3 slots, then Tag Pool/Clear).
+            RIGHT group: 1 group (Min Match, Random, divider, Recommend).
+            Both groups share this row's own gap-lg for every internal
+            gap, including the divider's own (plus a small measured
+            correction, see the divider's own comment below), not a
+            special wider margin around it the way the old separate Row 3
+            gave it, so removing the divider below min-[793px] leaves the
+            same spacing behind rather than a gap that visibly changes
+            shape once it's gone.
 
-            Tag Pool sits centered between Clear and Random now (by
-            request), not paired with RECOMMEND the way it used to be, see
-            that button's own comment below for the full reasoning and
-            the "Divider and RECOMMEND-wrap thresholds" section of
-            DESIGN_SYSTEM.md for why moving it re-bisected several of this
-            row's own numbers rather than just relocating markup.
+            flex-wrap on the outer row, with LEFT and RIGHT each ONE flex
+            item (not every individual control wrap-flattened onto this
+            level), means the row degrades to LEFT alone on one line and
+            RIGHT wrapped below it as a single atomic block once there
+            isn't room for both, rather than an unpredictable per-control
+            wrap order. Live-bisected at exactly 1070px (1071px still
+            fits, 1070px wraps) against this row's own full-width content,
+            not reused from any prior number: nothing about the old,
+            separate Row 2/Row 3 pairing describes this row's real width
+            budget anymore.
 
             This row's own responsive ladder, widest to narrowest, every
             rung a flat CSS breakpoint toggling between two fully-rendered
-            forms, no ResizeObserver/JS measurement anywhere, so there's no
-            shared trigger for rungs to race or oscillate against:
-              - min-[993px]  - Clear/Tag Pool/Random: text+icon -> icon-only
-                                (below 993px)
-              - min-[640px]  - RECOMMEND: text -> icon-only (below 640px,
-                                RecommendButton.tsx's own breakpoint)
-              - max-[452px]  - Min Tag Match: full "1 2 3" segment -> collapsed
-                                tap-to-cycle single button (live-bisected,
-                                wraps at 451px, see that div's own comment for
-                                the off-by-one reasoning)
-              - max-[408px]  - Tag Pool/Done button: hidden entirely, in both
-                                browse and edit mode (live-bisected, unchanged
-                                by the move: row still wraps at 407px with
-                                Tag Pool visible and every action already
-                                icon-only, confirmed live against the new
-                                grouping too, not just carried over from the
-                                old one - removing this one button, not
-                                shrinking padding/gap/icon-size, is what keeps
-                                this single-line down to ~310px)
-              - max-[351px]  - RECOMMEND: right-aligns once wrapped to its own
-                                second line (live-bisected against the new
-                                Clear/Tag Pool/Random grouping: 351px fits on
-                                one line, 350px wraps - see RECOMMEND's own
-                                wrapper comment below for the full derivation)
+            forms, no ResizeObserver/JS measurement anywhere:
+              - min-[793px]  - Tag Pool/Clear/Random: icon-only -> text+icon
+                                (793px and up). Chosen as one shared
+                                threshold for all three, not independently
+                                bisected per button, so "the wide desktop
+                                form" means one thing across this whole row.
+              - max-[692px]  - Min Match: full label+icons+segmented control
+                                -> collapsed tap-to-cycle single button
+                                (live-bisected against this row's own new
+                                content, replacing the old separate
+                                controls row's own 452px, which described a
+                                row this content no longer shares).
+              - max-[445px]  - Clear: hidden entirely (icon tier only; the
+                                label tier only ever applies at 793px and up,
+                                far from this range). Live-bisected: with 3
+                                always-visible slots now sharing this row,
+                                the icon-tier LEFT group (3 slots + Tag Pool
+                                + Clear) genuinely overflows the card below
+                                445px, confirmed live via
+                                getBoundingClientRect (Clear's own right edge
+                                measured past the card's right edge, 25px of
+                                real overflow at 420px, shrinking to exactly
+                                0 at 445px). Tag Pool, not Clear, stays: it
+                                now sits directly next to the slots it
+                                fills, and reads as the more fundamental of
+                                the two at the tightest widths (reversed
+                                from the old separate controls row's own
+                                choice, which hid Tag Pool first, since Tag
+                                Pool wasn't adjacent to anything more
+                                essential there).
             Adding a new rung: give it its own breakpoint, don't reuse or
-            nudge one of the above, these were each bisected against real
-            rendered content independently. */}
+            nudge one of the above, these were each bisected against this
+            row's own real rendered content, not inherited from the old,
+            separate rows. */}
         <div className="flex flex-wrap items-center gap-x-[var(--space-lg)] gap-y-[var(--space-lg)]">
-          {/* Two full sibling forms, not one component branching internally
-              — same dual-render idiom as Random/Clear below. This row's own
-              live-bisected wrap threshold is fits-at-452px/wraps-at-451px;
-              Tailwind's max-[Npx] compiles to "not (min-width: Npx)" — i.e.
-              strictly narrower than N, not "N and below" — so max-[452px]
-              (not 451) is what actually fires at 451px and below. The
-              collapse engages exactly where the row would otherwise wrap,
-              not a guessed number. */}
-          <div className="max-[452px]:hidden flex items-center gap-[var(--space-sm)]">
-            <span className="hidden @min-[480px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
-              Min Tag Match
-            </span>
-            {/* Dropped below max-[474px] (the same width this row's own
-                Tag Pool+RECOMMEND wrap threshold uses) only — GreaterEqualIcon
-                (≥) is what actually communicates "minimum match," this tag
-                glyph is just reinforcement, so it's the cheapest thing to
-                give up first when space is genuinely tight. Kept at every
-                wider breakpoint, unchanged. */}
-            <TagIcon className="max-[474px]:hidden text-[var(--ink)]" />
-            <GreaterEqualIcon className="text-[var(--ink)]" />
-            <MatchSelector value={minMatch} onChange={onSetMatch} />
-          </div>
-          <div className="hidden max-[452px]:flex items-center gap-[var(--space-sm)]">
-            <TagIcon className="text-[var(--ink)]" />
-            <GreaterEqualIcon className="text-[var(--ink)]" />
-            <MatchSelector value={minMatch} onChange={onSetMatch} collapsed />
-          </div>
-          {/* Random/Clear render as icon buttons below min-[993px] (the
-              same breakpoint the divider right after this group already
-              disappears at — reusing it, not inventing a new number, keeps
-              "not enough room for the full desktop layout" meaning one
-              thing everywhere in this row) and as the original ActionButton
-              text buttons at 993px and up — icons exist specifically to
-              conserve horizontal space at narrower widths; at the widest
-              tier there's room to spare, so the more self-explanatory
-              labeled buttons are what should show. Two full sets rendered,
-              each hidden/shown via the same breakpoint rather than one
-              set whose content swaps, so neither form has to compromise
-              its own markup to accommodate the other.
-              size="md" + border="base" + shadow="elev-2" on the icon set
-              matches ActionButton's own md rendered height/border/shadow
-              exactly, so these read as the same button family as RECOMMEND
-              (still a labeled ActionButton at every width, deliberately
-              not icon-ified — hero action) whichever form is showing.
-              backgroundColor on the icon buttons mirrors each one's
-              ActionButton variant: Random is "filled" (bg-fill), Clear is
-              "outline" (bg-transparent) — same distinction, both forms.
-
-              The label form now carries the same glyph too, label-then-
-              icon, not label-only — both "Random ×3" and "Clear ✕" drop
-              their trailing decorative glyph ("×3", "✕") in favor of the
-              real DiceIcon/EraserIcon in the same spot, so each button
-              reads "label, then the icon this same action collapses to
-              below 993px" instead of carrying a redundant second symbol
-              alongside the real one. */}
-          <div className="ml-auto flex items-center gap-[var(--space-lg)]">
-            <div className="min-[993px]:hidden flex items-center gap-[var(--space-lg)]">
-              <IconButton size="md" border="base" shadow="elev-2" backgroundColor="transparent" title="Clear" aria-label="Clear" onClick={onClearSlots}>
-                <EraserIcon className="text-[var(--ink)]" />
-              </IconButton>
-              {/* Tag Pool, centered in the Clear/Random group by simple DOM
-                  position (a plain flex row with gap, no justify tricks
-                  needed for 3 items to read as one centered on the middle
-                  one), moved here from its own pairing with RECOMMEND
-                  below, by request, not a bug fix. max-[408px]:hidden is
-                  this row's own narrowest rung (see the row's own top
-                  comment for the full ladder): re-bisected live against
-                  this new grouping, still the width past which Row 3
-                  can't otherwise stay single-line (nothing left to shrink
-                  once every action is already icon-only). Applies
-                  regardless of editMode (hides both the TagPoolIcon/browse
-                  and CheckIcon/edit-mode forms), since it's a pure
-                  viewport toggle, not conditioned on the button's own
-                  state. Hiding the middle item of a gap-based flex row
-                  (not justify-between) closes the gap cleanly, Clear and
-                  Random end up adjacent with one gap between them, not two
-                  gaps with dead space where Tag Pool used to sit. */}
-              <div className="max-[408px]:hidden">
+          {/* LEFT group. */}
+          <div className="flex items-center gap-[var(--space-lg)]">
+            {/* Sub-group A: the 3 tag slots. */}
+            <div className="flex gap-[var(--space-lg)]">
+              {slots.map((tag, index) => (
+                <TagSlot
+                  key={index}
+                  index={index}
+                  tag={tag}
+                  isDragOver={dragOverIndex === index}
+                  onDragOver={onSlotDragOver}
+                  onDragLeave={onSlotDragLeave}
+                  onDrop={onSlotDrop}
+                  onClick={handleSlotClick}
+                />
+              ))}
+            </div>
+            {/* Sub-group B: Tag Pool + Clear. Tag Pool first, not Clear,
+                matching this pair's own left-to-right reading order
+                against the slots immediately to its left (open the pool
+                to fill slots, or clear them). */}
+            <div className="flex items-center gap-[var(--space-lg)]">
+              <div className="min-[793px]:hidden flex items-center gap-[var(--space-lg)]">
                 <IconButton
                   size="md"
                   border="base"
@@ -1899,7 +1842,62 @@ export function MixerBar({
                 >
                   {editMode ? <CheckIcon className="text-[var(--ink)]" /> : <TagPoolIcon className="text-[var(--ink)]" />}
                 </IconButton>
+                {/* max-[445px]:hidden: with 3 always-visible slots now
+                    sharing this row (unlike the old separate controls
+                    row), the icon-tier LEFT group (3 slots + Tag Pool +
+                    Clear) genuinely overflows the card below 445px,
+                    confirmed live via getBoundingClientRect (Clear's own
+                    right edge measured past the card's right edge, 25px
+                    of real overflow at 420px, shrinking to exactly 0 at
+                    445px). Clear hides first, not Tag Pool, reversed from
+                    the old Row 3's own choice: Tag Pool now sits directly
+                    next to the slots it fills, reads as the more
+                    fundamental of the two at the tightest widths, and
+                    Clear alone can't be reached this way below 445px but
+                    remains reachable per-slot (drag a tag back out) or via
+                    edit mode regardless. */}
+                <div className="max-[445px]:hidden">
+                  <IconButton size="md" border="base" shadow="elev-2" backgroundColor="transparent" title="Clear" aria-label="Clear" onClick={onClearSlots}>
+                    <EraserIcon className="text-[var(--ink)]" />
+                  </IconButton>
+                </div>
               </div>
+              <div className="hidden min-[793px]:flex items-center gap-[var(--space-lg)]">
+                <ActionButton variant="outline" onClick={editMode ? onCloseEditMode : onOpenEditMode}>
+                  {editMode ? (
+                    "Done ✓"
+                  ) : (
+                    <span className="inline-flex items-center gap-[var(--space-sm)]">
+                      Tag Pool
+                      <TagPoolIcon className="text-[var(--ink)]" />
+                    </span>
+                  )}
+                </ActionButton>
+                <ActionButton variant="outline" onClick={onClearSlots}>
+                  <span className="inline-flex items-center gap-[var(--space-sm)]">
+                    Clear
+                    <EraserIcon className="text-[var(--ink)]" />
+                  </span>
+                </ActionButton>
+              </div>
+            </div>
+          </div>
+          {/* RIGHT group. */}
+          <div className="ml-auto flex items-center gap-[var(--space-lg)]">
+            <div className="max-[692px]:hidden flex items-center gap-[var(--space-sm)]">
+              <span className="hidden @min-[480px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
+                Min Match
+              </span>
+              <TagIcon className="max-[792px]:hidden text-[var(--ink)]" />
+              <GreaterEqualIcon className="text-[var(--ink)]" />
+              <MatchSelector value={minMatch} onChange={onSetMatch} />
+            </div>
+            <div className="hidden max-[692px]:flex items-center gap-[var(--space-sm)]">
+              <TagIcon className="text-[var(--ink)]" />
+              <GreaterEqualIcon className="text-[var(--ink)]" />
+              <MatchSelector value={minMatch} onChange={onSetMatch} collapsed />
+            </div>
+            <div className="min-[793px]:hidden">
               <IconButton
                 size="md"
                 border="base"
@@ -1912,28 +1910,7 @@ export function MixerBar({
                 <DiceIcon className="text-[var(--ink)]" />
               </IconButton>
             </div>
-            <div className="hidden min-[993px]:flex items-center gap-[var(--space-lg)]">
-              <ActionButton variant="outline" onClick={onClearSlots}>
-                <span className="inline-flex items-center gap-[var(--space-sm)]">
-                  Clear
-                  <EraserIcon className="text-[var(--ink)]" />
-                </span>
-              </ActionButton>
-              {/* Same centered placement as the icon form above, at the
-                  desktop labeled-button tier. Unlike the icon form, this
-                  one never hides (max-[408px] only ever applies below the
-                  993px breakpoint this whole div is already gated on), so
-                  there's no equivalent collapse rung to re-derive here. */}
-              <ActionButton variant="outline" onClick={editMode ? onCloseEditMode : onOpenEditMode}>
-                {editMode ? (
-                  "Done ✓"
-                ) : (
-                  <span className="inline-flex items-center gap-[var(--space-sm)]">
-                    Tag Pool
-                    <TagPoolIcon className="text-[var(--ink)]" />
-                  </span>
-                )}
-              </ActionButton>
+            <div className="hidden min-[793px]:block">
               <ActionButton variant="filled" onClick={onRandomTags}>
                 <span className="inline-flex items-center gap-[var(--space-sm)]">
                   Random
@@ -1941,38 +1918,26 @@ export function MixerBar({
                 </span>
               </ActionButton>
             </div>
-          </div>
-          <div className="hidden min-[993px]:block ml-[calc(var(--space-xl)_+_2px)] mr-[var(--space-xl)] w-[length:var(--border-thin)] h-[32px] bg-[var(--ink)]" />
-          {/* RECOMMEND stands alone now: Tag Pool moved into the Clear/
-              Random group above (by request, not a bug fix), so the old
-              "Tag Pool + RECOMMEND paired wrapper" this div used to be
-              (kept the two from being split across a flex-wrap line break
-              independently) no longer applies, there's only ever one item
-              here now. Moving Tag Pool made the remaining Clear/Tag Pool/
-              Random group + divider + RECOMMEND fit on one line all the
-              way down to 351px, live-bisected (351px fits, 350px wraps)
-              against the actual new content, not reused from any of the
-              row's older numbers (474px/674px), none of which describe
-              this grouping anymore.
-
-              max-[351px]:ml-auto right-aligns RECOMMEND only once it's
-              guaranteed alone on a wrapped second line, the same mechanism
-              (and the same reasoning: CSS splits a line's free space
-              evenly across every auto-margin sharing that line, so a
-              second one only belongs on a line where the first can't
-              reach it) DESIGN_SYSTEM.md's "Divider and RECOMMEND-wrap
-              thresholds" already documents at length for the original,
-              pre-Tag-Pool-pairing version of this exact div. Confirmed
-              live this collision is real here too, not just a risk: an
-              interim version of this margin gated at max-[900px] (well
-              above the real 351px wrap point) measured a 47px gap between
-              the Clear/Tag Pool/Random group and RECOMMEND at 700px
-              width, over 4x the row's own intended 12px gap-x, the two
-              auto-margins splitting free space that should have gone
-              entirely to the *other* group's own always-on ml-auto.
-              Narrowing this one to the real, confirmed-alone-on-its-own-
-              line width closes that gap back down to the intended 12px. */}
-          <div className="max-[351px]:ml-auto">
+            {/* ml-[3px], not a plain gap-lg on both sides: RANDOM's own
+                shadow (shadow="elev-2"/shadow-[var(--elev-2)], a flat,
+                blur-free 3px-right/3px-down offset copy, both the icon and
+                labeled forms) bleeds 3px into the raw gap on ITS side of
+                the divider, visually eating into it, while RECOMMEND's own
+                shadow bleeds the other way (down-right, away from this
+                gap) and doesn't touch its own side at all. Confirmed live
+                via getBoundingClientRect: the layout gap on both sides was
+                already mathematically identical (12px, this row's shared
+                gap-lg), but the *visual* gap read smaller on RANDOM's side
+                specifically because of that 3px of shadow sitting inside
+                it, the same "match the rendered distance, not just the
+                token" principle DESIGN_SYSTEM.md's own "A visual gap has
+                to match the other gap's rendered distance" section already
+                documents for two earlier, differently-shaped instances of
+                this. The extra 3px here gives the shadow exactly the room
+                it bleeds into without eating into the clean 12px, so both
+                sides read as the same gap instead of just measuring the
+                same. */}
+            <div className="hidden min-[793px]:block ml-[3px] w-[length:var(--border-thin)] h-[32px] bg-[var(--ink)]" />
             <RecommendButton filledCount={filledCount} onRecommend={onRecommend} error={error} />
           </div>
         </div>
