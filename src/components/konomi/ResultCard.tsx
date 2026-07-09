@@ -755,12 +755,13 @@ export function ResultCard({
                 </span>
               )}
             </div>
-            {/* Score badge + title/meta stack together, bottom-anchored, so
-                the badge naturally sits above the title with no manual
-                offset math. Both on-primary — guaranteed light in every
-                theme, same reasoning as the scrim above. */}
+            {/* Title/meta, bottom-anchored. The score badge used to stack
+                here too (above the title), now moved to the top-right of
+                the tag area below instead, mirroring RatingBadge's own
+                corner placement on this box; see that box's own comment.
+                Both on-primary, guaranteed light in every theme, same
+                reasoning as the scrim above. */}
             <div className="absolute inset-x-0 bottom-0 flex flex-col items-start gap-[var(--space-sm)] px-[var(--space-lg)] pb-[var(--space-md)]">
-              <TagCountBadge label={scoreLabel} perfect={perfect} tiltDeg={-5} />
               <div>
                 {/* pr-[85px]: reserves horizontal clearance for RatingBadge
                     (bottom-right of the cover, below), so a long title's
@@ -781,20 +782,20 @@ export function ResultCard({
                 <div className="font-mono text-[length:var(--text-xs)] text-[var(--on-primary)] opacity-80 mt-[var(--space-xs)]">{meta}</div>
               </div>
             </div>
-            {/* AniList rating badge — bottom-right of the cover, above the
+            {/* AniList rating badge, bottom-right of the cover, above the
                 tag section below it (a sibling, not part of this box).
-                right-[24px]/bottom-[22px]: NOT flush against the corner —
+                right-[24px]/bottom-[22px]: NOT flush against the corner,
                 reserves clearance for RatingBadge's own ghost echoes, which
                 extend up to (16,14)px further toward the bottom-right of
                 the plate itself (GOOD tier, its own farthest ghost). Confirmed
                 live at every required breakpoint (375px, the 640-992px
                 carousel tier, and >=1024px) that the farthest ghost's own
                 clearance to this box's edge lands at a consistent, positive
-                8px (right) / 10px (bottom) at this inset — comfortably
+                8px (right) / 10px (bottom) at this inset: comfortably
                 inside the clip boundary at every width tested, not a
                 near-miss. Last child of this box (not the scrim/icon-row/
                 title's own DOM position) so it reliably paints on top of
-                all of them via plain DOM order — nothing here has an
+                all of them via plain DOM order. Nothing here has an
                 explicit z-index, so order is what decides it (see
                 DESIGN_SYSTEM.md's Z-index scale section). */}
             <div className="absolute right-[24px] bottom-[22px]">
@@ -948,6 +949,33 @@ export function ResultCard({
                 surfaceColor="transparent"
                 arrowBackgroundColor="var(--surface)"
               />
+            </div>
+            {/* Score/tag-count badge. Top-right of the tag area, mirroring
+                RatingBadge's own bottom-right corner placement on the cover
+                above: two badges, each anchored to a corner of its own half
+                of the card, each closer to the specific content it's
+                actually about (this one to the tags it's counting, the
+                rating to nothing in particular on the cover, its own
+                placement is just "a corner of the artwork"). Deliberately
+                left overlapping the top row of tag chips rather than
+                pushed clear of them: the tighter association with what
+                it's representing outweighs the overlap.
+                top-[20px]/right-[17px]: chosen by eye, not derived from
+                RatingBadge's own right-[24px]/bottom-[22px] the way the
+                overall corner placement is. Matching those insets exactly
+                does NOT visually center- or edge-align the two badges with
+                each other: RatingBadge is a plain rectangle, this badge's
+                own point extends further right than its text+padding
+                alone would (see TagCountBadge's own totalW comment), so
+                the two need their own independently tuned insets to read
+                as a settled pair rather than a strict mirror.
+                z-[3]: one tier above TagScrollArea's own z-[2], needed for
+                the same reason that div needed an explicit z-index over
+                the scrim/veil below it (see that div's own comment). A
+                z-index:auto sibling doesn't reliably paint over an
+                explicit-z one regardless of DOM order. */}
+            <div className="absolute top-[20px] right-[17px] z-[3]">
+              <TagCountBadge label={scoreLabel} perfect={perfect} tiltDeg={-5} />
             </div>
           </div>
         </div>

@@ -285,10 +285,22 @@ export function TagCountBadge({ label, perfect = false, bordered = true, shadow 
   const textLeft = bodyBoxLeft + (bodyBoxWidth - textWidth) / 2;
 
   const path = buildTagPath(bodyWEff, hEff, CORNER_RADIUS, POINT_RADIUS);
-  // Deliberately generous, not pixel-exact — this only pads the SVG's own
-  // viewBox/wrapper width; erring larger just adds a hair of transparent
-  // margin, while erring smaller would clip the tip outright.
-  const totalW = bodyW + hEff / 2 + POINT_RADIUS * 2 + borderWidth * 2;
+  // The visible tip's own outer edge, stroke included, lands at exactly
+  // bodyW + hEff/2: the rounded tip's own true peak (after the recession
+  // POINT_RADIUS pulls back by, see buildTagPath) sits at bodyWEff + hEff/2
+  // in the path's own local frame, then the shared translate and the
+  // stroke's own outward half both add borderWidth/2, and bodyWEff already
+  // subtracted a full borderWidth from bodyW, so the two cancel out to
+  // exactly bodyW + hEff/2. An earlier version padded this by a much larger
+  // POINT_RADIUS*2 + borderWidth*2 "to be safe," reasoning it would only
+  // cost "a hair of transparent margin" past the visible tip — measured
+  // live and confirmed that hair was actually 18px out of about 55px total
+  // width, which is what made a badge placed with an exact CSS inset (to
+  // deliberately match another element's own inset) still visibly sit much
+  // further from the edge than that other element does. +2 here, not 0,
+  // only to cover the shadow filter's own small rightward bleed when
+  // shadow is on.
+  const totalW = bodyW + hEff / 2 + 2;
 
   // Hole position: centered on the body box's own right edge, vertically
   // on the badge's true center. Derived FROM bodyBoxLeft/bodyBoxWidth
