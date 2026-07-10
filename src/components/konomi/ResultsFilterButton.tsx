@@ -60,19 +60,39 @@ export function ResultsFilterButton({ onLevelChange }: ResultsFilterButtonProps)
     // side effect, the identical footgun Clear was already protected
     // against for the same reason.
     //
-    // z-[var(--z-raised)]: confirmed live as a real bug without it, the
-    // identical one ResultsHeader's Clear ✕ already has this exact fix
-    // for (see that file's own comment) — once results exist, the
-    // carousel's own ScrollFadeArea wrappers (RecommendationsBody.tsx)
-    // carry invisible pt-40px flip-bulge padding that geometrically
-    // overlaps this row's own bottom edge, and without an explicit
-    // z-index this button loses the hit-test to that empty padding,
-    // silently swallowing every click once a result set is present.
-    <div ref={wrapperRef} data-results-filter className="relative z-[var(--z-raised)]">
+    // This wrapper's own z-index switches between z-raised and z-popover
+    // based on `open`, rather than sitting at one fixed value — the
+    // *trigger button* should only ever need to outrank the results
+    // carousel behind it (z-raised already covers that, the same fix
+    // ResultsHeader's Clear ✕ has for the identical reason — see that
+    // file's own comment), not MixerBar's own z-overlay edit sheet, which
+    // is free to visually cover this closed button like any other content
+    // in its path. Only once the *popover* actually opens does this need
+    // to outrank MixerBar too, since the sheet can grow tall enough to
+    // reach this row. z-popover only applies while `open`, so the closed
+    // trigger never claims priority it doesn't need — requested directly,
+    // "the button shouldn't outrank the edit panel, just the popover
+    // should, if it's open."
+    //
+    // Bumping the *whole wrapper* (trigger included) rather than just the
+    // popover panel below is still required even though only the popover
+    // itself needs to visually win — confirmed live: a nested z-index
+    // doesn't escape its own ancestor's stacking context, so giving only
+    // the inner popover panel a high z-index has no effect on how this
+    // whole component stacks against a sibling subtree like MixerBar's
+    // cardRef; that comparison is governed entirely by this outer
+    // wrapper's own z-index; the trigger button riding along with it while
+    // open is a side effect of that, not a separate ask. z-popover (20,
+    // globals.css) is deliberately its own token, not a reused z-overlay:
+    // two siblings both claiming the same "floating, on top of everything"
+    // tier would leave their relative order decided by DOM position
+    // rather than an explicit ranking (see globals.css's own comment on
+    // this token for why MixerBar's cardRef, later in the DOM, would
+    // otherwise silently win by accident).
+    <div ref={wrapperRef} data-results-filter className={["relative", open ? "z-[var(--z-popover)]" : "z-[var(--z-raised)]"].join(" ")}>
       <IconButton
         size="sm"
         border="base"
-        shadow="elev-2"
         backgroundColor="transparent"
         title="Filters"
         aria-label="Filters"
@@ -105,7 +125,13 @@ export function ResultsFilterButton({ onLevelChange }: ResultsFilterButtonProps)
           // reason the old MixerBar cardRef (this pattern's origin) was
           // already a definite-width box (max-w-[1280px] mx-auto), never
           // an intrinsically-sized one.
-          className="@container absolute right-0 top-full mt-[var(--space-sm)] z-[var(--z-overlay)] w-[min(340px,calc(100vw-3rem))] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-2)] p-[var(--space-lg)] flex flex-col"
+          //
+          // No z-index needed here — the wrapper above already carries
+          // z-popover for the whole time this panel exists (it only
+          // renders while `open`), and position:absolute alone already
+          // paints this above its own static-positioned trigger-button
+          // sibling within that same local context.
+          className="@container absolute right-0 top-full mt-[var(--space-sm)] w-[min(340px,calc(100vw-3rem))] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-2)] p-[var(--space-lg)] flex flex-col"
         >
           {/* pb-[24px]: reserves clearance for LevelSelector's own hover/tap
               hint, which renders *below* the control via absolute

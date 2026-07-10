@@ -18,6 +18,7 @@ import {
 import { IconButton } from "./IconButton";
 import { MatchSelector } from "./MatchSelector";
 import { RecommendButton } from "./RecommendButton";
+import { ScrollFadeArea } from "./ScrollFadeArea";
 import {
   clampPoolPanelHeight,
   EDIT_MODE_FIXED_ROWS_HEIGHT,
@@ -1552,12 +1553,15 @@ export function MixerBar({
             behind rather than a gap that visibly changes shape once it's
             gone.
 
-            flex-wrap on the outer row, with LEFT and RIGHT each ONE flex
-            item (not every individual control wrap-flattened onto this
-            level), is the FINAL fallback once every rung below has
-            already given up everything it can: the row degrades to LEFT
-            alone on one line and RIGHT wrapped below it as a single atomic
-            block, rather than an unpredictable per-control wrap order.
+            The outer row is flex-nowrap — it never wraps at all, at any
+            width. An earlier version wrapped to a LEFT-alone/RIGHT-below
+            2-line fallback once every rung below had already given up
+            everything it could; that's gone now, replaced by letting the
+            3 tag slots (the LAST, most expensive rung — see below) scroll
+            horizontally instead, the same `ScrollFadeArea` treatment the
+            section tab strip elsewhere in this bar already uses. Requested
+            directly: the row stays a single line continuously, all the
+            way down, rather than degrading to two lines at its narrowest.
 
             This row's entire responsive ladder is ONE priority-hide chain
             now, requested directly and rebuilt from scratch this round:
@@ -1640,43 +1644,76 @@ export function MixerBar({
                                 control), Recommend (icon only), nothing
                                 left in this chain to hide.
             Below 511px even that final composition no longer fits on one
-            line, confirmed live: the row just wraps to the LEFT/RIGHT
-            2-line fallback described above rather than clipping or
-            overflowing. Left as-is deliberately: shrinking further would
-            mean touching the 3 slots' own fixed width or Recommend's own
-            floor, out of scope for this round, a known limit raised
-            directly and left for a later evaluation (a horizontal-scroll
-            treatment for the 3 slots, similar to the section tab strip
-            elsewhere in this bar, was floated as one option to revisit).
+            line — this is where the 3 slots' own sub-group (below) takes
+            over the squeeze instead of the row wrapping: this is the LAST
+            rung in the chain, only reachable once every other rung above
+            has already given up everything it can (Tag Pool/Clear/Random
+            all hidden, divider gone, Min Match down to one icon + its
+            collapsed control, Recommend icon-only) — the slots are the
+            final, most expensive thing to give up, so they're the last to
+            change, not the first.
 
             Adding a new rung: give it its own breakpoint, and re-bisect
             the WHOLE chain from that point down (not just the one new
             number): every threshold above is only correct in reference
             to which others are already hidden or changed at that width,
             not a value that stands alone. */}
-        <div className="flex flex-wrap items-center gap-x-[var(--space-lg)] gap-y-[var(--space-lg)]">
-          {/* LEFT group. */}
-          <div className="flex items-center gap-[var(--space-lg)]">
-            {/* Sub-group A: the 3 tag slots. */}
-            <div className="flex gap-[var(--space-lg)]">
-              {slots.map((tag, index) => (
-                <TagSlot
-                  key={index}
-                  index={index}
-                  tag={tag}
-                  isDragOver={dragOverIndex === index}
-                  onDragOver={onSlotDragOver}
-                  onDragLeave={onSlotDragLeave}
-                  onDrop={onSlotDrop}
-                  onClick={handleSlotClick}
-                />
-              ))}
+        <div className="flex flex-nowrap items-center gap-x-[var(--space-lg)]">
+          {/* LEFT group. min-w-0: lets this flex item (and, more directly,
+              its own min-w-0 slots sub-group below) actually shrink below
+              its natural content width once the row runs out of room —
+              same reasoning as every other instance of this pattern in
+              this file (the old filters row, TagPoolBody's tab row). */}
+          <div className="flex items-center gap-[var(--space-lg)] min-w-0">
+            {/* Sub-group A: the 3 tag slots. min-w-0 on this wrapper (not
+                the ScrollFadeArea instance itself, which fitContent
+                already sizes to its own intrinsic content) is what lets
+                it shrink below 3-slots-wide once Sub-group B and RIGHT
+                have already claimed what they need — the same "min-w-0
+                lets this specific child give way first" role the old
+                filters row's own wrapper played opposite MixerBar's
+                former resize cluster. Requested directly: once every
+                other rung in this row's own priority-hide chain has
+                already fired (Tag Pool/Clear/Random/divider all gone, Min
+                Match and Recommend both down to their narrowest forms),
+                the 3 slots are the last thing left that could force this
+                row to wrap — scrolling them internally instead is what
+                keeps this row a single line all the way down, rather than
+                wrapping to the LEFT/RIGHT 2-line fallback an earlier
+                version of this comment flagged as a known limit to
+                revisit. scrollStep={90}: one slot's own width (78px) plus
+                this row's shared gap-lg (12px), so a click/arrow-tap
+                scrolls almost exactly one slot at a time, the same
+                "one meaningful unit per step" reasoning SectionTabStrip's
+                own SCROLL_STEP already uses for its tabs. */}
+            <div className="min-w-0">
+              <ScrollFadeArea orientation="horizontal" scrollStep={90} fadeSize={12} fitContent restrictTouchAction>
+                <div className="flex gap-[var(--space-lg)]">
+                  {slots.map((tag, index) => (
+                    <TagSlot
+                      key={index}
+                      index={index}
+                      tag={tag}
+                      isDragOver={dragOverIndex === index}
+                      onDragOver={onSlotDragOver}
+                      onDragLeave={onSlotDragLeave}
+                      onDrop={onSlotDrop}
+                      onClick={handleSlotClick}
+                    />
+                  ))}
+                </div>
+              </ScrollFadeArea>
             </div>
             {/* Sub-group B: Tag Pool + Clear. Tag Pool first, not Clear,
                 matching this pair's own left-to-right reading order
                 against the slots immediately to its left (open the pool
-                to fill slots, or clear them). */}
-            <div className="flex items-center gap-[var(--space-lg)]">
+                to fill slots, or clear them). shrink-0: this sub-group
+                never shrinks/scrolls, only the slots do — by the width
+                where the slots' own scroll actually engages, Tag Pool and
+                Clear are already both hidden anyway (rungs 4/5 above), but
+                shrink-0 keeps that guarantee explicit rather than
+                incidental. */}
+            <div className="flex items-center gap-[var(--space-lg)] shrink-0">
               <div className="min-[1071px]:hidden flex items-center gap-[var(--space-lg)]">
                 {/* max-[657px]:hidden, live-bisected: Tag Pool is the FIRST
                     of the three (Tag Pool, then Clear, then Random) to give
@@ -1741,8 +1778,12 @@ export function MixerBar({
               </div>
             </div>
           </div>
-          {/* RIGHT group. */}
-          <div className="ml-auto flex items-center gap-[var(--space-lg)]">
+          {/* RIGHT group. shrink-0: never shrinks either, same reasoning as
+              Sub-group B above — only the slots' own ScrollFadeArea
+              absorbs the squeeze, so this group's own icons/controls
+              never get compressed or clipped, just individually hidden by
+              their own breakpoints as already documented above. */}
+          <div className="ml-auto flex items-center gap-[var(--space-lg)] shrink-0">
             <div className="max-[750px]:hidden flex items-center gap-[var(--space-sm)]">
               {/* max-[1071px]:hidden: the "Min Match" label is the Min
                   Match side of RUNG 2, the same shared icon-only switch

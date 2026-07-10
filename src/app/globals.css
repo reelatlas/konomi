@@ -88,11 +88,19 @@
      base    → decorative backdrop / the "back" layer in a local pair
      raised  → the "front" layer in that same local pair
      sticky  → sticky headers pinned within their own scroll container
-     overlay → floating controls on top of scrollable/hoverable content */
+     overlay → floating controls on top of scrollable/hoverable content
+     popover → a floating panel that must outrank an *already* z-overlay
+                element it can visually land on top of — narrower than
+                overlay on purpose (see ResultsFilterButton.tsx's own
+                comment for the one case that needs it: its popover vs.
+                MixerBar's own z-overlay edit sheet, both siblings in the
+                same stacking context, both capable of visually
+                overlapping the other) */
   --z-base: 0;
   --z-raised: 1;
   --z-sticky: 5;
   --z-overlay: 10;
+  --z-popover: 20;
 
   /* borders & radius (hard-edged manga vocabulary) */
   --border-hair: 1.5px;
