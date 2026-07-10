@@ -180,7 +180,7 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
             while relying on some margin on MixerBar's side to shrink the
             gap wouldn't have worked; this is the one that has to change. */}
         <section className="mb-[var(--space-2xl)]">
-          <ResultsHeader hasResults={k.hasResults} onClearRecs={k.clearRecs} />
+          <ResultsHeader hasResults={k.hasResults} onClearRecs={k.clearRecs} onLevelChange={handleLevelChange} />
 
           <RecommendationsBody
             results={k.results}
@@ -232,7 +232,6 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
           allTags={k.allTags}
           selectedTags={k.selectedTags}
           totalSeriesCount={k.totalSeriesCount}
-          onLevelChange={handleLevelChange}
           onChipToggle={k.toggleTag}
         />
       </div>

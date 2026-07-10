@@ -1,9 +1,14 @@
+import type { LevelKey } from "@/lib/konomi/types";
 import { ActionButton } from "./ActionButton";
+import { CloseIcon } from "./icons";
+import { IconButton } from "./IconButton";
+import { ResultsFilterButton } from "./ResultsFilterButton";
 import { TitleWithSubtitle } from "./TitleWithSubtitle";
 
 interface ResultsHeaderProps {
   hasResults: boolean;
   onClearRecs: () => void;
+  onLevelChange: (level: LevelKey) => void;
 }
 
 // Extracted from the retired PanelToggleHeader's Recommendations-active
@@ -11,7 +16,7 @@ interface ResultsHeaderProps {
 // instead of tab-gated. Title/JP-subtitle classes match the app's own
 // title-row rule exactly (leading-display on the title, leading-tight on
 // the companion span), same as Mixer/MixerBar's own title row.
-export function ResultsHeader({ hasResults, onClearRecs }: ResultsHeaderProps) {
+export function ResultsHeader({ hasResults, onClearRecs, onLevelChange }: ResultsHeaderProps) {
   return (
     // Always flex-row, never flex-col — this row must never wrap to two
     // lines: wrapping would push the card row's own spawn position down,
@@ -26,46 +31,43 @@ export function ResultsHeader({ hasResults, onClearRecs }: ResultsHeaderProps) {
     // shrink to make room for it before that breakpoint, and stops the
     // row itself from ever being forced wider than available space.
     //
-    // min-h-[36.5px], unconditional now (was min-[417px]:min-h-[36.5px]):
-    // the title's own line-height (22.36px) is shorter than Clear ✕'s
-    // rendered height (36.5px), so mounting Clear ✕ would otherwise grow
-    // the row and — with items-center — visibly drop the title by half
-    // that delta (confirmed live: 7.06px, back when this row could still
-    // be in flex-col mode without it). Pinning the height directly avoids
-    // that regardless of hasResults. 36.5px is Clear ✕'s own measured
-    // rendered height (ActionButton size="sm") — retune by hand if that
-    // ever changes.
+    // min-h-[30px] (was 36.5px, retuned when Clear ✕/Filter both dropped
+    // to a shared 30px height — see ActionButton.tsx's own comment on its
+    // sm size): the title's own line-height (22.36px) is still shorter
+    // than either button's rendered height (30px now, not 36.5px), so
+    // mounting Clear ✕ would otherwise grow the row and — with
+    // items-center — visibly drop the title by half that delta. Pinning
+    // the height directly avoids that regardless of hasResults. 30px is
+    // Clear ✕'s and the Filter button's own shared, measured rendered
+    // height — retune by hand if that ever changes.
     //
-    // mb-[calc(var(--space-2xl)_-_7.08px)]: the *visual* gap from the
+    // mb-[calc(var(--space-2xl)_-_3.82px)]: the *visual* gap from the
     // title's own text to the card row below, which is the one that has
     // to match card→mixer's 24px, not the raw margin value alone. Because
     // this row is items-center (required — see below) and min-h pins it to
-    // Clear ✕'s 36.5px while the title's own text is only ~22.36px tall,
-    // centering leaves ~7.08px of invisible slack *below* the text before
-    // this margin even starts (the same slack sits above it too, harmless —
+    // 30px while the title's own text is only ~22.36px tall, centering
+    // leaves ~3.82px of invisible slack *below* the text before this
+    // margin even starts (the same slack sits above it too, harmless —
     // it's just breathing room under the masthead gap). Left as a flat
-    // space-2xl, the text-to-card gap would visually read as ~31px
-    // (7.08 + 24), noticeably bigger than the mixer's tight 24px — confirmed
-    // live. Subtracting the slack here means margin + slack = 24 again,
-    // matching visually rather than just matching the token. Not swapping
-    // to items-end instead (which would remove the slack at its source):
-    // that would also un-center Clear ✕ from the title text (Clear already
-    // spans the row's full 36.5px either way, so its own alignment never
-    // moves it — only the title's alignment is actually in play here, and
-    // center is what keeps Clear vertically centered on the title, a
-    // separate, confirmed-correct requirement this fix must not undo).
-    // 7.08 = half of (36.5 − 22.36), both already-documented measured
-    // constants above — not a fresh guess, but also not expressible purely
-    // in existing tokens (the title's exact rendered line-height isn't one),
-    // so it's recorded here the same way this file already records 36.5
-    // and 417.
+    // space-2xl, the text-to-card gap would visually read bigger than the
+    // mixer's tight 24px. Subtracting the slack here means margin + slack
+    // = 24 again, matching visually rather than just matching the token.
+    // Not swapping to items-end instead (which would remove the slack at
+    // its source): that would also un-center Clear ✕/Filter from the title
+    // text (both already span the row's full 30px either way, so their own
+    // alignment never moves — only the title's alignment is actually in
+    // play here, and center is what keeps them vertically centered on the
+    // title, a separate, confirmed-correct requirement this fix must not
+    // undo). 3.82 = half of (30 − 22.36), both live-measured — not a fresh
+    // guess, but also not expressible purely in existing tokens (the
+    // title's exact rendered line-height isn't one), so it's recorded here
+    // the same way this file already records 30 and 417.
     //
-    // --header-row-height in globals.css (36.5px, a single flat value
-    // since this row can't wrap anymore) is this row's own *content*
-    // height only, read independently by the card-height clamp — that
-    // constant and this margin must never both change without checking
-    // the other.
-    <div className="flex flex-row items-center justify-between min-h-[36.5px] gap-x-[var(--space-lg)] mb-[calc(var(--space-2xl)_-_7.08px)]">
+    // --header-row-height in globals.css (30px, a single flat value since
+    // this row can't wrap anymore) is this row's own *content* height
+    // only, read independently by the card-height clamp — that constant
+    // and this margin must never both change without checking the other.
+    <div className="flex flex-row items-center justify-between min-h-[30px] gap-x-[var(--space-lg)] mb-[calc(var(--space-2xl)_-_3.82px)]">
       <div className="flex items-center gap-[var(--space-md)] min-w-0">
         {/* max-[417px]:hidden on the JP span — bisected live against this
             row's own worst-case content (title + Clear ✕ both mounted):
@@ -124,11 +126,44 @@ export function ResultsHeader({ hasResults, onClearRecs }: ResultsHeaderProps) {
                 guess at a different root cause — confirm on-device that
                 this actually resolves it, since it couldn't be verified
                 by direct reproduction here. */}
-            <ActionButton variant="inverted" size="sm" onClick={onClearRecs} className="relative z-[var(--z-raised)] shrink-0 grow-0">
+            {/* Two full sibling forms below 480px, not one button with
+                internal conditional content — same idiom LevelSelector/
+                SortSelect already use for their own collapsed form,
+                needed here because the collapsed state isn't just "hide
+                the text," it's a differently-shaped button: IconButton's
+                own fixed 30×30 size="sm" box (border-base, no shadow —
+                same treatment as the ActionButton form's own shadowless
+                inverted look), matching the Filter button
+                (ResultsFilterButton) it now sits directly beside,
+                requested directly so the two read as the same size.
+                ActionButton's padding-based sizing has no equivalent fixed
+                box, so swapping its own content for just an icon doesn't
+                get there on its own. */}
+            <ActionButton
+              variant="inverted"
+              size="sm"
+              onClick={onClearRecs}
+              aria-label="Clear results"
+              className="hidden min-[480px]:inline-flex relative z-[var(--z-raised)] shrink-0 grow-0"
+            >
               Clear ✕
             </ActionButton>
+            <IconButton
+              size="sm"
+              border="base"
+              backgroundColor="var(--ink)"
+              textColor="var(--bg)"
+              title="Clear results"
+              aria-label="Clear results"
+              onClick={onClearRecs}
+              display="flex min-[480px]:hidden"
+              className="relative z-[var(--z-raised)] shrink-0 grow-0"
+            >
+              <CloseIcon />
+            </IconButton>
           </span>
         )}
+        <ResultsFilterButton onLevelChange={onLevelChange} />
       </div>
     </div>
   );

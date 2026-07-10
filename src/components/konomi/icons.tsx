@@ -245,6 +245,52 @@ export function CheckIcon({ className }: IconProps) {
   );
 }
 
+// A plain "X" — two crossing diagonals. Used both as Clear results' own
+// icon-only collapsed form (ResultsHeader) and as MixerBar's edit-panel
+// close button, sharing one glyph for "dismiss/close" across both. 16×16,
+// matching FilterIcon exactly — Clear's collapsed form and the Filter
+// button sit directly beside each other in the same row and were
+// requested to read as the same size.
+export function CloseIcon({ className }: IconProps) {
+  return (
+    <svg
+      className={className}
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.4}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M5 5 19 19" />
+      <path d="M19 5 5 19" />
+    </svg>
+  );
+}
+
+// A funnel silhouette — wide mouth narrowing to a short stem — standard
+// "filter" glyph. ResultsHeader's Filter button, which opens the Tag
+// Density/Sort popover.
+export function FilterIcon({ className }: IconProps) {
+  return (
+    <svg
+      className={className}
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M4 5h16l-6.5 7.5v6l-3 1.5v-7.5Z" />
+    </svg>
+  );
+}
+
 // A solid filled triangle (play-button shape), not a thin chevron outline —
 // RecommendButton's own icon-only fallback below the width where
 // "RECOMMEND ▸" no longer fits alongside the rest of MixerBar's controls

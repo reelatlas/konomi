@@ -207,11 +207,15 @@
      col/row switch is gone entirely, replaced by always-flex-row with the
      JP companion span dropping out at narrow widths instead of the row
      wrapping), so its rendered height is now constant everywhere.
-     36.5px is that row's own live-measured min-h (Clear ✕'s rendered
-     height, taller than the title's own line-height — see
-     ResultsHeader.tsx's own comment on why that's pinned via min-h rather
-     than left to whichever child is tallest at a given moment). */
-  --header-row-height: 36.5px;
+     30px is that row's own live-measured min-h (Clear ✕'s and the Filter
+     button's shared rendered height, taller than the title's own
+     line-height — see ResultsHeader.tsx's own comment on why that's
+     pinned via min-h rather than left to whichever child is tallest at a
+     given moment). Was 36.5px — retuned when Clear ✕ dropped to match
+     IconButton's own size="sm" box (30px) for visual consistency with the
+     Filter button beside it; see ActionButton.tsx's own comment on its sm
+     size. */
+  --header-row-height: 30px;
   /* MixerBar's own collapsed (browse-mode) height — used to be a 4-tier
      width breakpoint ladder (<351px 203.5px, 351–639px 148.5px, 640–992px
      168.5px, 993–1023px 169px, ≥1024px 185px), live-measured against

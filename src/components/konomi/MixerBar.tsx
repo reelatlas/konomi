@@ -1,37 +1,30 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import type { LevelKey, MatchKey, MixerError, Slot, TagInfo } from "@/lib/konomi/types";
+import type { MatchKey, MixerError, Slot, TagInfo } from "@/lib/konomi/types";
 import { ActionButton } from "./ActionButton";
 import {
-  ArrowDownIcon,
   ArrowUpHalfIcon,
   ArrowUpIcon,
   CheckIcon,
+  CloseIcon,
   DiceIcon,
   EraserIcon,
   GreaterEqualIcon,
   GripHorizontalIcon,
-  SortIcon,
   TagIcon,
   TagPoolIcon,
 } from "./icons";
 import { IconButton } from "./IconButton";
-import { LevelSelector } from "./LevelSelector";
 import { MatchSelector } from "./MatchSelector";
 import { RecommendButton } from "./RecommendButton";
-import { ScrollFadeArea } from "./ScrollFadeArea";
-import { SortSelect } from "./SortSelect";
 import {
   clampPoolPanelHeight,
   EDIT_MODE_FIXED_ROWS_HEIGHT,
   POOL_HEIGHT_MIN,
   setPoolPanelHeightPref,
-  setSortPref,
-  useLevel,
   usePoolPanelHeight,
   usePoolPanelMaxHeight,
-  useSort,
 } from "./tagPoolPrefs";
 import { TagPoolBody } from "./TagPoolBody";
 import { TagSlot } from "./TagSlot";
@@ -56,7 +49,6 @@ interface MixerBarProps {
   allTags: TagInfo[];
   selectedTags: string[];
   totalSeriesCount: number;
-  onLevelChange: (level: LevelKey) => void;
   onChipToggle: (tag: string) => void;
 }
 
@@ -110,20 +102,24 @@ interface MixerBarProps {
 // No header row in either mode — no title, no JP subtitle, no filled-
 // count badge. Both used to occupy their own Row 1 above the pool panel;
 // removed entirely (not relocated) as a deliberate simplification, not an
-// oversight. Level/Sort (Tag Density/Sort filters) moved down into
-// TagPoolBody's own combined tabs+filters row instead of disappearing
-// alongside the rest of that header — see TagPoolBody.tsx's own top
-// comment for that row's responsive stacking behavior.
+// oversight. Tag Density/Sort don't live in this bar at all anymore either —
+// they moved a second time, out to a Filter icon's popover next to the
+// Recommendations header (ResultsFilterButton.tsx) — see that file's own
+// top comment. This bar's own edit sheet no longer needs a row just for
+// them, which is what let the resize grip/shortcuts fold into TagPoolBody's
+// tab row instead (next paragraph).
 //
-// Edit mode's row order, top to bottom: resize handle (desktop only) →
-// pool panel → slots → controls. Slots and controls are FIXED — they
-// never scroll, never resize, and never move, in either mode; they're
-// what determines this bar's own normal-flow position and height, always.
-// The pool panel is the only part of this bar that ever changes size, and
-// the only part that ever scrolls internally (via TagPoolBody's own
-// ScrollFadeArea, unchanged). This is a hard invariant, not a preference —
-// see the clamp math below for how that's guaranteed safe rather than just
-// hoped for.
+// Edit mode's row order, top to bottom: TagPoolBody's own tab row (section
+// tabs, scrollable, plus the resize grip/50%/100%/Reset shortcuts and a
+// close button, all fixed to its trailing edge — see TagPoolBody.tsx's own
+// top comment) → chip area → slots → controls. Slots and controls are
+// FIXED — they never scroll, never resize, and never move, in either mode;
+// they're what determines this bar's own normal-flow position and height,
+// always. The pool panel is the only part of this bar that ever changes
+// size, and the only part that ever scrolls internally (via TagPoolBody's
+// own ScrollFadeArea instances, unchanged). This is a hard invariant, not a
+// preference — see the clamp math below for how that's guaranteed safe
+// rather than just hoped for.
 //
 // Pool panel sits directly above the slots — not between the slots and
 // controls. Opening/closing edit mode then only ever inserts/removes this
@@ -134,22 +130,26 @@ interface MixerBarProps {
 // down twice-removed). One block appearing/disappearing in one place
 // reads as calmer than that.
 //
-// `@container` lives on cardRef itself now, the one box everything is a
-// child of — LevelSelector/SortSelect's `@min-[480px]`/`@max-[352px]`
-// queries inside the resize-handle row read this same context slots/
-// controls would too, if they needed it.
+// growableRef wraps dialogRef alone now — there used to be a separate
+// resize-handle row as its own sibling here, gated on editMode alone
+// (deliberately not also on canShowResizeHandleRowDisplay, since Tag
+// Density/Sort needed to stay reachable even once resizing itself stopped
+// being useful). Now that those filters are gone and the grip/shortcuts
+// live inside TagPoolBody's already-self-measuring tab row instead, that
+// separate row — and the risk of its own height feeding back into
+// canShowResizeHandleRowDisplay once it held nothing but the very cluster
+// that gating decides — doesn't exist to worry about.
 //
-// The pool panel (TagPoolBody, which now owns its own combined
-// SectionTabStrip + Level/Sort row, plus the chip area) is always
-// mounted, never conditionally rendered — toggled via max-h-0
-// overflow-hidden keyed off `editMode`, the same trick the retired
-// TagPoolRecommendationsPanel used for tab-switching, generalized from
-// two tab keys to one boolean. This is required, not stylistic:
-// TagPoolBody's own activeSectionKey state and every ScrollFadeArea
-// scroll position inside it have no persistence outside the live DOM, so
-// unmounting this subtree on every close would reset both every time —
-// see TagPoolBody.tsx's own top comment, unchanged from before, for why
-// it already relies on exactly this guarantee.
+// The pool panel (TagPoolBody, which now owns the tab row, the resize
+// grip/shortcuts/close button, and the chip area) is always mounted, never
+// conditionally rendered — toggled via max-h-0 overflow-hidden keyed off
+// `editMode`, the same trick the retired TagPoolRecommendationsPanel used
+// for tab-switching, generalized from two tab keys to one boolean. This is
+// required, not stylistic: TagPoolBody's own activeSectionKey state and
+// every ScrollFadeArea scroll position inside it have no persistence
+// outside the live DOM, so unmounting this subtree on every close would
+// reset both every time — see TagPoolBody.tsx's own top comment, unchanged
+// from before, for why it already relies on exactly this guarantee.
 //
 // Esc, click-outside, and the resize handle all work at every breakpoint —
 // none of the three is gated to desktop/pointer specifically.
@@ -174,7 +174,6 @@ export function MixerBar({
   allTags,
   selectedTags,
   totalSeriesCount,
-  onLevelChange,
   onChipToggle,
 }: MixerBarProps) {
   // Tapping an empty slot opens edit mode instead of the no-op CLEAR_SLOT
@@ -194,16 +193,6 @@ export function MixerBar({
       onOpenEditMode();
     }
   }
-
-  // Read directly (not threaded through TagPoolBody), same split as
-  // onLevelChange below: LevelSelector/SortSelect now render here, in the
-  // resize-handle row, not inside TagPoolBody — but TagPoolBody still reads
-  // its own useLevel()/useSort() independently, to filter/sort the chips
-  // that respond to these same values. Two independent reads of the same
-  // preference store, not one passed down as a prop — the same pattern
-  // TagPoolBody's own top comment already documents for level/sort.
-  const level = useLevel();
-  const sort = useSort();
 
   // cardRef is the one bordered/shadowed box — everything (resize row,
   // pool panel, slots, controls) is a normal child of it now. No more
@@ -410,12 +399,17 @@ export function MixerBar({
       // covers the card body, its lock/dice icon buttons, and its tag
       // chips in one shot, since all three are descendants of that same
       // element), the theme swatches (data-theme-switcher, ThemeSwitcher.tsx),
-      // and the results Clear ✕ button (data-clear-results, ResultsHeader.tsx).
+      // the results Clear ✕ button (data-clear-results, ResultsHeader.tsx),
+      // and the Filter popover (data-results-filter, ResultsFilterButton.tsx)
+      // — without that last one, opening/using the Filter popover while
+      // Tag Pool's edit mode happens to already be open would close edit
+      // mode as an unrelated side effect, the same footgun Clear was
+      // already protected against.
       // target is typed as Node (a mousedown's target can in principle be a
       // text node), but .closest() is Element-only — falls back to the
       // nearest element via parentElement for that case.
       const el = target instanceof Element ? target : (target as Node).parentElement;
-      if (el?.closest("[data-result-card], [data-theme-switcher], [data-clear-results]")) return;
+      if (el?.closest("[data-result-card], [data-theme-switcher], [data-clear-results], [data-results-filter]")) return;
       onCloseEditModeRef.current();
     }
     document.addEventListener("keydown", handleKeyDown);
@@ -436,10 +430,10 @@ export function MixerBar({
   // controls) never had a reason to let a stray wheel/touch gesture bleed
   // through to the page either, fixed or not.
   //
-  // The one exception is this bar's own genuinely scrollable areas — the
-  // Tag Density/Sort filters row, TagPoolBody's chip area, and its section
-  // tab strip, all three a ScrollFadeArea underneath — which must keep
-  // scrolling internally exactly as before. An earlier version of this
+  // The one exception is this bar's own genuinely scrollable areas —
+  // TagPoolBody's chip area and its section tab strip, both a
+  // ScrollFadeArea underneath — which must keep scrolling internally
+  // exactly as before. An earlier version of this
   // exclusion keyed off dialogRef.contains(target) instead — exempting
   // every descendant of the whole edit-mode dialog from preventDefault
   // unconditionally, on the theory that only its own scrollable areas
@@ -660,23 +654,26 @@ export function MixerBar({
   const isDraggingRef = useRef(false);
   // A broader mechanism than isDraggingRef above — this one isn't about
   // freezing fixedOverheadPx during an actual height-changing gesture,
-  // it's about keeping the grip AND the 50%/100%/Reset shortcut buttons
-  // mounted for the duration of ANY pointer press on any of the four, tap
+  // it's about keeping the grip AND the resize shortcut arrow (whichever
+  // one of 50%/100% is currently showing — see trailingControls' own
+  // comment) mounted for the duration of ANY pointer press on either, tap
   // or drag alike. Confirmed live as a real, separate instance of the
-  // sixth trap's own family (see DESIGN_SYSTEM.md): those three shortcut
-  // buttons are each individually gated on poolPanelMaxHeight-derived
-  // conditions (canReachHalfHeight/isAtHalfHeight/etc.) that nothing
-  // protected before this, since pressing one of *them* isn't a drag at
-  // all. Reproduced: pressed the Reset button, forced a viewport-height
-  // change mid-press (what an iPhone's Safari address bar does during
-  // active scrolling/touch), poolPanelMaxHeight crossed its threshold, and
-  // Reset unmounted while the finger was still down on it — whatever's now
-  // under that same screen point (confirmed live: the bar's own outer
-  // card) is what a real release would activate instead.
+  // sixth trap's own family (see DESIGN_SYSTEM.md): back when this row
+  // held three separate shortcut buttons (50%/100%/Reset, since reduced to
+  // one arrow at a time), each was individually gated on
+  // poolPanelMaxHeight-derived conditions (canReachHalfHeight/etc.) that
+  // nothing protected before this, since pressing one of *them* isn't a
+  // drag at all. Reproduced: pressed the (now-removed) Reset button,
+  // forced a viewport-height change mid-press (what an iPhone's Safari
+  // address bar does during active scrolling/touch), poolPanelMaxHeight
+  // crossed its threshold, and Reset unmounted while the finger was still
+  // down on it — whatever's now under that same screen point (confirmed
+  // live: the bar's own outer card) is what a real release would activate
+  // instead.
   //
-  // A first version of this fix used one shared boolean, OR'd into all
-  // four elements' own conditions — confirmed live as a real, separate bug
-  // once shipped: pressing the grip alone (with the panel already sitting
+  // A first version of this fix used one shared boolean, OR'd into every
+  // element's own conditions — confirmed live as a real, separate bug once
+  // shipped: pressing the grip alone (with the panel already sitting
   // exactly at its default height, Reset correctly not yet shown) made
   // Reset — and every other otherwise-hidden sibling — appear too, purely
   // because *something* in the row was being pressed, not because
@@ -690,13 +687,14 @@ export function MixerBar({
   // for reasons outside the user's control) individually, at the exact
   // instant a press starts, and hold that per-element snapshot — not a
   // single blanket flag — until release. Deliberately does NOT snapshot
-  // isAtHalfHeight/isAtFullHeight/isAtDefaultHeight alongside it: those
-  // compare against the *live*, actively-dragged effectiveHeightPx, and
-  // freezing them too would break real, wanted feedback (a shortcut
-  // button correctly hiding itself the instant a live drag actually
-  // reaches that exact height). Only the "is this reachable at all"
-  // half needs freezing; "are we currently at that height" should keep
-  // reacting to the user's own gesture in real time.
+  // isAtFullHeight (or the plain position comparison the single arrow's
+  // own choice of target is now based on) alongside it: those compare
+  // against the *live*, actively-dragged effectiveHeightPx, and freezing
+  // them too would break real, wanted feedback (the arrow correctly
+  // hiding/swapping the instant a live drag actually reaches that exact
+  // height). Only the "is this reachable at all" half needs freezing;
+  // "are we currently at that height" should keep reacting to the user's
+  // own gesture in real time.
   //
   // Still built from the same plain lifecycle as before — populated once
   // on pointerdown, cleared to null on pointerup/pointercancel, reading
@@ -1023,40 +1021,39 @@ export function MixerBar({
     setDragHeightPx(null);
     setPoolPanelHeightPref(poolPanelMaxHeight * fraction);
   }
-  function handleResetPoolHeight() {
-    setDragHeightPx(null);
-    setPoolPanelHeightPref(POOL_HEIGHT_MIN);
-  }
-  // Reset only shows once the panel has actually moved off its default —
-  // checked against the live effectiveHeightPx (not just the last-saved
-  // value) so it appears/disappears in real time during a manual drag too,
-  // not only after the 50%/100% buttons or a drag-release. 1px tolerance
-  // for float rounding, not an exact equality check.
-  const isAtDefaultHeight = Math.abs(effectiveHeightPx - POOL_HEIGHT_MIN) <= 1;
-  // 50%/100% only show when their own target is actually reachable — on a
-  // short enough viewport, poolPanelMaxHeight itself shrinks small enough
-  // that a fraction of it (half, for 50%; the whole ceiling, for 100%)
-  // lands at or below POOL_HEIGHT_MIN, the floor clampPoolPanelHeight
-  // already enforces on every source (default/persisted/dragged). Without
-  // this check, the button would still be tappable but silently do the
-  // same thing the floor already guarantees on its own — clamped straight
-  // back up to POOL_HEIGHT_MIN, never actually landing at a visibly
-  // distinct "half" or "full" — reading as broken rather than just
-  // unreachable at this size. Both live (poolPanelMaxHeight is the
-  // resize-reactive hook, not a one-time read), so they hide/reappear in
-  // step with the same window resizes that make effectiveHeightPx itself
-  // re-clamp.
+  // The single resize arrow only shows when its own target is actually
+  // reachable — on a short enough viewport, poolPanelMaxHeight itself
+  // shrinks small enough that a fraction of it (half, for 50%; the whole
+  // ceiling, for 100%) lands at or below POOL_HEIGHT_MIN, the floor
+  // clampPoolPanelHeight already enforces on every source (default/
+  // persisted/dragged). Without this check, the arrow would still be
+  // tappable but silently do the same thing the floor already guarantees
+  // on its own — clamped straight back up to POOL_HEIGHT_MIN, never
+  // actually landing at a visibly distinct "half" or "full" — reading as
+  // broken rather than just unreachable at this size. Both live
+  // (poolPanelMaxHeight is the resize-reactive hook, not a one-time read),
+  // so they hide/reappear in step with the same window resizes that make
+  // effectiveHeightPx itself re-clamp.
   const canReachHalfHeight = poolPanelMaxHeight * 0.5 > POOL_HEIGHT_MIN;
   const canReachFullHeight = poolPanelMaxHeight > POOL_HEIGHT_MIN;
-  // Same "don't show a control that would do nothing" rule as Reset above,
-  // applied to 50%/100% themselves — hidden not just when unreachable but
-  // also when the panel is already sitting at that exact target (dragged
-  // there by hand, or already snapped via the button), reappearing the
-  // moment a resize (drag, the other snap button, or the viewport ceiling
-  // itself moving) takes it elsewhere. Same 1px float tolerance as
-  // isAtDefaultHeight, same reasoning.
-  const isAtHalfHeight = Math.abs(effectiveHeightPx - poolPanelMaxHeight * 0.5) <= 1;
+  // Hides the arrow entirely once the panel is already at its ceiling —
+  // there's nowhere left to jump to (see trailingControls' own comment for
+  // the full one-arrow-at-a-time logic this feeds). 1px tolerance for
+  // float rounding, not an exact equality check.
   const isAtFullHeight = Math.abs(effectiveHeightPx - poolPanelMaxHeight) <= 1;
+  // Which of the two arrows trailingControls shows: below this, 50%;
+  // at/above it, 100% (see that comment for the full one-arrow logic).
+  // The same 1px tolerance as isAtFullHeight above, biased toward "at or
+  // above half" rather than a bare strict `<` — confirmed live as a real
+  // bug without it: clicking the 50% snap button sets effectiveHeightPx to
+  // exactly poolPanelMaxHeight*0.5 at that instant, but poolPanelMaxHeight
+  // itself can drift by a sub-pixel amount on the very next measurement
+  // (the same live ResizeObserver-driven value used throughout this file),
+  // and a zero-tolerance `effectiveHeightPx < poolPanelMaxHeight * 0.5`
+  // flipped back to "below half" from that drift alone, leaving the 50%
+  // arrow stuck showing forever after the very first tap even though the
+  // panel had genuinely already snapped to half.
+  const isBelowHalfHeight = effectiveHeightPx < poolPanelMaxHeight * 0.5 - 1;
 
   // Pointer Events + setPointerCapture, not the dual mouse/touch listeners
   // this used before (ScrollFadeArea's press-and-hold arrows still use that
@@ -1084,7 +1081,7 @@ export function MixerBar({
   // listeners live" are independent concerns: capture is about gesture
   // *ownership*, not about restricting which element may observe the
   // resulting events.
-  function handleResizeStart(e: React.PointerEvent<HTMLDivElement>) {
+  function handleResizeStart(e: React.PointerEvent<HTMLButtonElement>) {
     // Primary button only for mouse (a right/middle-click drag makes no
     // sense here) — pointerType is empty for this check on touch/pen,
     // where e.button is always 0 anyway.
@@ -1187,6 +1184,147 @@ export function MixerBar({
     window.addEventListener("pointerup", handleEnd);
     window.addEventListener("pointercancel", handleEnd);
   }
+
+  // Passed into TagPoolBody as trailingControls, rendered as the fixed
+  // (shrink-0) sibling next to its own scrollable section-tab strip — this
+  // used to be its own row here, above the pool panel, back when it also
+  // held the Tag Density/Sort filters (which kept that row reachable even
+  // when canShowResizeHandleRowDisplay was false). Now that those filters
+  // live in ResultsFilterButton's popover instead, there's nothing left to
+  // anchor a separate row's own height independent of this cluster's — so
+  // rather than patch that row to stay stable, it's gone, and this cluster
+  // rides along inside TagPoolBody's own already-self-measuring tab row.
+  // All of the state/handlers below (frozenReachability,
+  // canShowResizeHandleRowDisplay, handleRowPointerDown, handleResizeStart,
+  // handleSnapPoolHeight, handleResetPoolHeight) are untouched — only where
+  // this JSX renders moved.
+  //
+  // 50%/100%/Reset + grip stay gated on canShowResizeHandleRowDisplay,
+  // exactly as before (dragging/snapping something that can't actually
+  // resize anything shouldn't be reachable at all). The close button is
+  // NOT inside that gate — closing the panel must stay reachable even at
+  // the shortest viewports where resizing itself has stopped being useful.
+  const trailingControls = (
+    <div className="flex items-center gap-0 shrink-0">
+      {canShowResizeHandleRowDisplay && (
+        // onPointerDown here (not on each button individually) is
+        // handleRowPointerDown — see its own declaration for why one
+        // shared listener on this common ancestor, relying on normal
+        // bubbling, covers a press starting on any of the four children
+        // (the three shortcut buttons below, or the grip) — below
+        // min-[993px] (mobile, see that div's own comment), only the grip
+        // is actually reachable, but the listener itself doesn't need to
+        // know or care which of the four is what bubbled the event up to
+        // it.
+        <div className="flex items-center gap-0" onPointerDown={handleRowPointerDown}>
+          {/* hidden min-[993px]:flex — mobile-only removal, requested
+              directly: a touch-primary user already has the grip itself
+              for manual resizing, full-range and one gesture away, so
+              these three shortcuts (jump to 50%/100%/default) are
+              redundant convenience desktop keeps for a mouse-driven,
+              click-based interaction style. min-[993px] is not a new
+              number invented for this — it's this cluster's own prior
+              desktop threshold (see canShowResizeHandleRow's neighborhood,
+              "an earlier version hid the resize handle below 993px" —
+              reverted then because it hid the *grip* too, leaving mobile
+              with no way to resize at all; this is deliberately narrower,
+              hiding only the three shortcuts and never the grip) and the
+              same breakpoint Row 3 below already uses for its own
+              icon-vs-text desktop split (min-[993px]:hidden on Tag
+              Pool/Random/Clear's mobile icon-only form) — one consistent
+              "is this desktop" line for the whole bar, not a second one
+              invented here.
+
+              Purely a rendering change, nothing underneath it: every one
+              of this session's fixes for these three buttons —
+              frozenReachability's per-element reachability snapshot, the
+              mid-press mount-unmount protection it replaced a flawed
+              shared-boolean version of, handleRowPointerDown's own
+              bubbling wiring — still runs exactly as before, completely
+              unmodified, on every breakpoint including mobile. */}
+          <div className="hidden min-[993px]:flex items-center gap-0">
+            {/* One arrow at a time, chosen by the panel's current position,
+                not two independently-gated buttons anymore — requested
+                directly. Below 50% of poolPanelMaxHeight: only the 50%
+                arrow. At 50% or above (but not yet at 100%): only the 100%
+                arrow. At 100%: neither — there's nowhere left to jump to,
+                so no arrow at all. The old Reset/down-arrow button is gone
+                entirely, not hidden; dragging back down is still always
+                available via the grip itself.
+
+                frozenReachability substitutes for the live
+                canReach*Height — see that state's own declaration for the
+                confirmed-live bug this closes, and for why an earlier
+                one-shared-boolean version of this fix was itself wrong. A
+                straight substitution (not an OR): each button's
+                *reachability* freezes to whatever it was at press-start,
+                but isAtFullHeight and the position comparison below stay
+                fully live against the actively-dragged effectiveHeightPx,
+                so this still correctly swaps/hides the instant a real drag
+                crosses 50% or reaches 100% — only the "is this reachable
+                at all" half is frozen, and only for the span of a press. */}
+            {!isAtFullHeight &&
+              (isBelowHalfHeight
+                ? (frozenReachability ? frozenReachability.canReachHalf : canReachHalfHeight) && (
+                    <IconButton
+                      size="sm"
+                      border="none"
+                      backgroundColor="transparent"
+                      title="Resize to 50%"
+                      aria-label="Resize to 50%"
+                      onClick={() => handleSnapPoolHeight(0.5)}
+                    >
+                      <ArrowUpHalfIcon className="text-[var(--muted)]" />
+                    </IconButton>
+                  )
+                : (frozenReachability ? frozenReachability.canReachFull : canReachFullHeight) && (
+                    <IconButton
+                      size="sm"
+                      border="none"
+                      backgroundColor="transparent"
+                      title="Resize to 100%"
+                      aria-label="Resize to 100%"
+                      onClick={() => handleSnapPoolHeight(1)}
+                    >
+                      <ArrowUpIcon className="text-[var(--muted)]" />
+                    </IconButton>
+                  ))}
+          </div>
+          {/* IconButton, not a bare div — matches the arrow and Close
+              buttons on either side of it exactly (same size="sm" 30×30
+              box, same border/background treatment), requested directly
+              for consistency after a reported (not reproduced in this
+              project's own headless testing, across many click/drag
+              orderings and timings) real-device issue where dragging
+              right after tapping a resize arrow didn't respond. Still not
+              a <button>-flavored *action* — role="separator" overrides
+              the implicit button role, since this element still isn't
+              "activatable" the way Close is, only draggable — but going
+              through IconButton at least gives it the same defensive
+              pointer-events-auto every other icon control on this bar
+              already has (see IconButton's own comment on why that's
+              there), which a plain div never picked up. onPointerDown is
+              still handleResizeStart, unchanged — only the element it's
+              attached to changed. */}
+          <IconButton
+            size="sm"
+            border="none"
+            backgroundColor="transparent"
+            role="separator"
+            aria-orientation="horizontal"
+            aria-label="Drag to resize edit panel"
+            onPointerDown={handleResizeStart}
+            className="cursor-ns-resize select-none touch-none"
+          >
+            <GripHorizontalIcon className="text-[var(--muted)]" />
+          </IconButton>
+        </div>
+      )}
+      <IconButton size="sm" border="none" backgroundColor="transparent" title="Close" aria-label="Close" onClick={onCloseEditMode}>
+        <CloseIcon className="text-[var(--muted)]" />
+      </IconButton>
+    </div>
+  );
 
   return (
     // sticky bottom-[space-2xl] — the last section of the page's own
@@ -1303,7 +1441,7 @@ export function MixerBar({
       // (see that effect's comment) argues for the opposite shape here:
       // default to blocking, then carve out only the specific elements that
       // truly need to pan. Each ScrollFadeArea viewport (the chip area, the
-      // section tab strip, the filters row) carves its own axis back out
+      // section tab strip) carves its own axis back out
       // via touch-pan-x/touch-pan-y directly on itself (see that
       // component's own comment) — confirmed live this still works even
       // nested inside this `touch-none` ancestor: touch-action's "used
@@ -1311,12 +1449,13 @@ export function MixerBar({
       // actually starts on, not force-inherited from `none` ancestors, so a
       // descendant's own explicit pan-x/pan-y value governs gestures that
       // start on it regardless of what a `none` ancestor says.
-      className="sticky bottom-[var(--space-2xl)] z-[var(--z-overlay)] @container max-w-[1280px] mx-auto px-[var(--space-2xl)] py-[var(--space-xl)] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-4)] touch-none"
+      className="sticky bottom-[var(--space-2xl)] z-[var(--z-overlay)] max-w-[1280px] mx-auto px-[var(--space-2xl)] py-[var(--space-xl)] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-4)] touch-none"
     >
-      {/* growableRef wraps just the resize-handle row + pool panel — see
-          growableFixedOverheadPx's own comment above for why this exists
-          purely for measurement, with no border/background/padding of
-          its own.
+      {/* growableRef wraps dialogRef alone now — no separate resize-handle
+          row sibling anymore (see this file's own top comment for why that
+          row is gone entirely rather than patched). Still exists purely
+          for measurement (see growableFixedOverheadPx's own comment
+          above), with no border/background/padding of its own.
           Sits directly above the slots — not between the slots and
           controls, where an earlier version placed it — so opening/
           closing edit mode only ever inserts/removes this one block in a
@@ -1324,371 +1463,23 @@ export function MixerBar({
           down and back.
 
           flow-root — confirmed live as a real bug without it: this div
-          has no border/padding of its own, and neither dialogRef's own
-          mb-[space-lg] nor the resize row's own mb-xl are contained by
-          it as a result — an unbroken parent/child edge lets a margin
-          collapse straight through, meaning it takes up real vertical
-          space in the page but isn't reflected in THIS element's own
-          getBoundingClientRect().height, which is exactly what feeds
-          growableFixedOverheadPx (and, added to effectiveHeightPx,
-          cardRef's own negative marginTop). Under-measuring by that
-          collapsed amount meant the
-          margin never fully canceled this box's own contribution —
-          slots/controls visibly shifted position by tens of px when
-          opening edit mode, the exact regression this whole mechanism
-          exists to prevent. flow-root establishes a new block formatting
-          context, the same fix RecommendationsBody.tsx already uses for
-          an identical collapse-through-the-parent case — margins stop
-          escaping this box's own boundary, so its measured height always
-          matches its true footprint. */}
+          has no border/padding of its own, and dialogRef's own
+          mb-[space-lg] isn't contained by it as a result — an unbroken
+          parent/child edge lets a margin collapse straight through,
+          meaning it takes up real vertical space in the page but isn't
+          reflected in THIS element's own getBoundingClientRect().height,
+          which is exactly what feeds growableFixedOverheadPx (and, added
+          to effectiveHeightPx, cardRef's own negative marginTop).
+          Under-measuring by that collapsed amount meant the margin never
+          fully canceled this box's own contribution — slots/controls
+          visibly shifted position by tens of px when opening edit mode,
+          the exact regression this whole mechanism exists to prevent.
+          flow-root establishes a new block formatting context, the same
+          fix RecommendationsBody.tsx already uses for an identical
+          collapse-through-the-parent case — margins stop escaping this
+          box's own boundary, so its measured height always matches its
+          true footprint. */}
       <div ref={growableRef} className="flow-root">
-      {/* Resize handle + Tag Density/Sort filters, one row — above the
-          pool panel, at the very top of the edit surface. Grip + quick-
-          resize shortcuts group on the left, filters on the right; both
-          now share this one row instead of filters living inline with
-          the section tabs below (see TagPoolBody.tsx's own top comment
-          for why that combined row was retired — this is where those
-          controls moved). Usable at every breakpoint (mouse *and*
-          touch, see handleResizeStart) — an earlier version hid the
-          resize handle below 993px, leaving mobile with no way to
-          resize at all; that gate is gone. No keyboard equivalent yet
-          (an accepted gap, same spirit as the no-focus-trap one — not
-          solved in this pass). Dragging only ever visibly resizes the
-          pool panel below (slots/controls are fixed), but this row is
-          positioned as if it controls the whole sheet's height, since
-          that's the more natural mental model for the user — "pull this
-          to make the panel bigger."
-
-          Row itself gated on editMode alone, not canShowResizeHandleRowDisplay
-          too — the filters need to stay reachable even once resizing
-          itself stops being useful (a short viewport where
-          poolPanelMaxHeight has dropped to/below POOL_HEIGHT_MIN); only
-          the grip + 50%/100%/reset sub-elements are conditional on that,
-          inside the row. onPointerDown (the drag-start handler) lives only
-          on the grip itself (see its own comment below), which is already
-          conditionally rendered alongside the rest of this cluster when
-          canShowResizeHandleRowDisplay is false — dragging something that
-          can't actually resize anything shouldn't be reachable at all.
-          canShowResizeHandleRowDisplay (not the raw canShowResizeHandleRow)
-          is the actual gate now — see its own declaration above for why:
-          the raw value can flip false mid-drag (a window resize while
-          holding the handle), which used to unmount this whole cluster,
-          including the grip, out from under an active pointer.
-
-          The left group is its own sub-container, but no longer needs its
-          own stopPropagation to protect it from a row-level drag handler —
-          size="sm" (30px, ResultCard's own icon size)
-          deliberately smaller than this bar's standard size="md" icon
-          buttons below — these are quick secondary shortcuts, not
-          primary actions. Reset is conditionally rendered (only once the
-          panel has actually left its default height — see
-          isAtDefaultHeight above) since 50%/100% cover the "I want it
-          bigger" cases on their own; Reset exists for "put it back,"
-          which only means something once it's already been moved. */}
-      {editMode && (
-        <div
-          className={[
-            // justify-between — filters group (first in DOM) pins to the
-            // row's left edge, the resize cluster (last in DOM) pins to
-            // its right edge, with whatever width is left between them.
-            // Filters is still min-w-0 (below), so it's still the one
-            // that gives way as the row narrows — justify-content only
-            // decides how any *leftover* space is distributed when the
-            // row isn't squeezed; it doesn't change which side shrinks
-            // under pressure.
-            //
-            // mb-xl (16px) — one step more than the slots-row-to-controls
-            // rhythm elsewhere in this bar (space-lg/12px): confirmed
-            // live that this row's own content (grip+arrows plus filters,
-            // heavier than a plain fixed row) reads better with a bit
-            // more separation from the tabs row below it than that
-            // baseline rhythm gives.
-            //
-            // No role/cursor/drag-handlers on this outer row anymore —
-            // only the grip icon itself is the drag target now (see its
-            // own comment below), not the whole row. Confirmed live this
-            // was worth doing: with the whole row draggable, an
-            // accidental drag-start from anywhere between the filters
-            // and the grip (or from a hover meant for a filter control)
-            // was too easy to trigger by mistake.
-            "flex items-center justify-between gap-x-[var(--space-lg)] mb-[var(--space-xl)]",
-          ].join(" ")}
-        >
-          {/* Filters group comes FIRST in DOM now (resize cluster is
-              second/rightmost — see below), so it's the one that gives
-              way as the row narrows: min-w-0 lets this flex item shrink
-              below its own content's natural (w-fit/max-content) width
-              once the row runs out of room, which is what lets
-              ScrollFadeArea's overflow-x-auto viewport actually detect
-              real overflow and start scrolling — unaffected by the
-              reorder, since flex-shrink math doesn't care about a flex
-              item's position, only its own min-w-0/shrink-0 and the
-              row's total available width. The resize cluster below is
-              shrink-0 (fixed, never shrinks), so 100% of the squeeze
-              lands on this group, exactly as before the reorder.
-              -mb-[26px]/-mr-[4px] cancel the pb-[26px]/pr-[4px] on the
-              scrollable content below — pad-then-cancel, not
-              pad-and-let-grow, so ScrollFadeArea's own overflow-y-hidden
-              viewport doesn't clip LevelSelector/SortSelect's shadow
-              bleed or LevelSelector's hover-subtext (which renders
-              *below* the control — see LevelSelector's own comment).
-              26px covers the hover-subtext's worst case (control bottom +
-              mt-space-sm + its own text-xs line height); 4px covers the
-              controls' own shadow-[var(--elev-2)] bleed at the trailing
-              edge. fitContent: this group's children (label/icon/
-              selector pairs) are naturally sized — see ScrollFadeArea's
-              own comment on that prop.
-
-              arrowVerticalOffsetPx={-13} (half of the 26px pb above,
-              negative to shift up): the pb-26 makes THIS row's own
-              ScrollFadeArea root 26px taller than the visible controls
-              alone, since that padding lives inside its measured content
-              — its arrows' default 50% centers on the full padded box,
-              landing visibly low relative to the controls themselves
-              (confirmed live as a real bug — the exact "aligned bottom
-              instead of center" report this prop exists to fix). Half
-              the extra padding re-centers the arrow on the controls, not
-              the hover-subtext clearance beneath them. */}
-          {/* This row's own responsive ladder, widest to narrowest — same
-              flat-CSS, dual-render, no-ResizeObserver pattern as Row 3's
-              ladder above, just container- rather than viewport-scoped
-              (this whole filters group lives inside the bar's own
-              @container, and there's nothing external — like the divider's
-              993px — worth syncing against here):
-                - @min-[480px] — Tag Density/Sort labels: shown above,
-                                  hidden below (shared breakpoint, one
-                                  number for both labels, not independently
-                                  bisected per label)
-                - @max-[352px] — Level: full 3-segment row → collapsed
-                                  tap-to-cycle button; Sort: native <select>
-                                  → collapsed tap-to-cycle button. Both
-                                  controls share this one breakpoint
-                                  deliberately, not because either's own
-                                  content demands exactly this number (Sort's
-                                  collapse only reclaims ~13-26px on its
-                                  own — measured, not assumed) but for
-                                  design consistency: this row's two filter
-                                  controls transform together as one "final
-                                  compact mode" step rather than staggering
-                                  at two barely-different thresholds. This
-                                  row already scrolls horizontally below
-                                  ~580px regardless (ScrollFadeArea's own
-                                  overflow-x-auto fallback), so neither
-                                  collapse is about eliminating scroll, only
-                                  reducing how far it goes.
-              Adding a new rung: give it its own breakpoint unless it's
-              deliberately joining the @max-[352px] "final step" tier for
-              the same consistency reason above. */}
-          <div className="min-w-0 w-fit -mb-[26px] -mr-[4px]">
-            <ScrollFadeArea orientation="horizontal" scrollStep={140} fadeSize={12} fitContent arrowVerticalOffsetPx={-13} restrictTouchAction>
-              <div className="flex items-center gap-[var(--space-lg)] flex-nowrap pb-[26px] pr-[4px]">
-                <div className="@max-[352px]:hidden flex items-center gap-[var(--space-sm)] shrink-0">
-                  {/* hidden @min-[480px]:inline — same breakpoint Row 3's
-                      own "Min Tag Match" label already uses in this same
-                      bar, not a new one bisected for this row. No JS
-                      measurement needed: these filters no longer compete
-                      with anything else for this row's width (the grip/
-                      arrows group is fixed-size and small; filters have
-                      their own horizontal scroll, above, as the fallback
-                      once even icon-only stops fitting) — a plain
-                      container query is enough. */}
-                  <span className="hidden @min-[480px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
-                    Tag Density
-                  </span>
-                  <TagIcon className="text-[var(--ink)]" />
-                  <LevelSelector value={level} onChange={onLevelChange} />
-                </div>
-                {/* Collapsed final step — two full sibling forms, same
-                    dual-render idiom as Row 3's Min Tag Match above, just
-                    container- rather than viewport-scoped (this row keys
-                    its own label-hide off @min-[480px] already, not a
-                    viewport query). @max-[352px] (not 351 — Tailwind's
-                    @max-[Npx] compiles to "not (min-width: Npx)", strictly
-                    narrower than N, so 352 is what actually fires at
-                    351px and below) is Row 3's own live-bisected 452/451px
-                    wrap threshold translated to this container's content-
-                    box (a fixed, confirmed 100px offset from viewport
-                    width at every width tested) — same step-down point,
-                    expressed as this row's own query type rather than a
-                    fresh guess. */}
-                <div className="hidden @max-[352px]:flex items-center gap-[var(--space-sm)] shrink-0">
-                  <TagIcon className="text-[var(--ink)]" />
-                  <LevelSelector value={level} onChange={onLevelChange} collapsed />
-                </div>
-                <div className="@max-[352px]:hidden flex items-center gap-[var(--space-sm)] shrink-0">
-                  <span className="hidden @min-[480px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
-                    Sort
-                  </span>
-                  <SortIcon className="text-[var(--ink)]" />
-                  <SortSelect value={sort} onChange={setSortPref} />
-                </div>
-                {/* Collapsed final step — same @max-[352px] tier as Level
-                    above, shared deliberately (see this row's own top
-                    comment). No hint span here, unlike Level/Min Tag
-                    Match's collapsed forms — SORT_OPTIONS has no hint
-                    field, and Popular/Unpopular/A-Z/Z-A are already
-                    self-explanatory; inventing hint copy just to fill that
-                    slot would be backwards. */}
-                <div className="hidden @max-[352px]:flex items-center gap-[var(--space-sm)] shrink-0">
-                  <SortIcon className="text-[var(--ink)]" />
-                  <SortSelect value={sort} onChange={setSortPref} collapsed />
-                </div>
-              </div>
-            </ScrollFadeArea>
-          </div>
-          {/* Resize cluster is second/rightmost now, and shrink-0 (fixed
-              width, never shrinks) — the stable right anchor the filters
-              group above gives way to. Grip is last within this group
-              (previously first), so it ends up the single rightmost
-              element of the entire row, per the requested order:
-              arrows, then grip at the far-right end.
-
-              Only the grip itself is the drag target — role/aria-label/
-              onPointerDown/cursor-ns-resize all live on its own box now,
-              not the outer row. Confirmed live this reads
-              better: with the whole row draggable, hovering a filter
-              control or the empty space between groups showed the
-              resize cursor and could start a drag by accident. The
-              arrow buttons no longer need their own stopPropagation
-              either, now that dragging isn't wired to anything above
-              them — clicking one only ever fires its own onClick.
-
-              The grip sits in its own 30×30 box (matching IconButton's
-              own size="sm" box the arrow buttons use) instead of just
-              the bare 8px-tall SVG — confirmed live as a real bug
-              otherwise: IconButton centers its 16×16 glyph inside a
-              30×30 box, so two adjacent arrow buttons at gap-0 still
-              read ~14px apart glyph-to-glyph (7px of each button's own
-              inset on either side of the shared edge), while a bare
-              grip SVG butted directly against the last button's edge
-              read only ~7px from its own edge to that button's glyph —
-              visibly tighter than the arrow-to-arrow spacing despite the
-              same gap-0. Matching the box size (not just the gap) makes
-              every icon's own inset identical, so gap-0 reads as evenly
-              spaced across all four; it's also a larger, easier drag
-              target than the bare icon glyph would be on its own. */}
-          {canShowResizeHandleRowDisplay && (
-            // onPointerDown here (not on each button individually) is
-            // handleRowPointerDown — see its own declaration for why one
-            // shared listener on this common ancestor, relying on normal
-            // bubbling, covers a press starting on any of the four
-            // children (the three shortcut buttons below, or the grip) —
-            // below min-[993px] (mobile, see that div's own comment), only
-            // the grip is actually reachable, but the listener itself
-            // doesn't need to know or care which of the four is what
-            // bubbled the event up to it.
-            <div className="flex items-center gap-0 shrink-0" onPointerDown={handleRowPointerDown}>
-              {/* hidden min-[993px]:flex — mobile-only removal, requested
-                  directly: a touch-primary user already has the grip
-                  itself for manual resizing, full-range and one gesture
-                  away, so these three shortcuts (jump to 50%/100%/default)
-                  are redundant convenience desktop keeps for a
-                  mouse-driven, click-based interaction style. min-[993px]
-                  is not a new number invented for this — it's this exact
-                  row's own prior desktop threshold (see canShowResizeHandleRow's
-                  neighborhood, "an earlier version hid the resize handle
-                  below 993px" — reverted then because it hid the *grip*
-                  too, leaving mobile with no way to resize at all; this is
-                  deliberately narrower, hiding only the three shortcuts and
-                  never the grip) and the same breakpoint Row 3 below
-                  already uses for its own icon-vs-text desktop split
-                  (min-[993px]:hidden on Tag Pool/Random/Clear's mobile
-                  icon-only form) — one consistent "is this desktop" line
-                  for the whole bar, not a second one invented here.
-
-                  Purely a rendering change, nothing underneath it: every
-                  one of this session's fixes for these three buttons —
-                  frozenReachability's per-element reachability snapshot,
-                  the mid-press mount-unmount protection it replaced a
-                  flawed shared-boolean version of, handleRowPointerDown's
-                  own bubbling wiring — still runs exactly as before,
-                  completely unmodified, on every breakpoint including
-                  mobile. Hiding a subtree via CSS doesn't stop React from
-                  evaluating it or firing its effects; these three buttons'
-                  own JSX conditions below still read frozenReachability/
-                  canReachHalfHeight/canReachFullHeight/isAtHalfHeight/etc.
-                  exactly as they did before this change on every render,
-                  mobile included — they just don't paint or hit-test while
-                  min-[993px] doesn't match, the same as any other
-                  responsive Tailwind class elsewhere in this file. Nothing
-                  here is orphaned or dead: all three conditions, and every
-                  piece of state feeding them, are still fully live and
-                  still the actual gate for whether a *desktop* user sees
-                  each button. */}
-              <div className="hidden min-[993px]:flex items-center gap-0">
-                {/* frozenReachability substitutes for the live
-                    canReach*Height on all three shortcut buttons below —
-                    see that state's own declaration for the confirmed-live
-                    bug this closes, and for why an earlier one-shared-
-                    boolean version of this fix was itself wrong. A straight
-                    substitution (not an OR): each button's *reachability*
-                    freezes to whatever it was at press-start, but
-                    isAtHalfHeight/isAtFullHeight/isAtDefaultHeight stay
-                    fully live against the actively-dragged
-                    effectiveHeightPx, so a button already visible still
-                    correctly hides itself the instant a real drag reaches
-                    that exact height — only the "is this reachable at all"
-                    half is frozen, and only for the span of a press. */}
-                {((frozenReachability ? frozenReachability.canReachHalf : canReachHalfHeight) && !isAtHalfHeight) && (
-                  <IconButton
-                    size="sm"
-                    border="none"
-                    backgroundColor="transparent"
-                    title="Resize to 50%"
-                    aria-label="Resize to 50%"
-                    onClick={() => handleSnapPoolHeight(0.5)}
-                  >
-                    <ArrowUpHalfIcon className="text-[var(--muted)]" />
-                  </IconButton>
-                )}
-                {((frozenReachability ? frozenReachability.canReachFull : canReachFullHeight) && !isAtFullHeight) && (
-                  <IconButton
-                    size="sm"
-                    border="none"
-                    backgroundColor="transparent"
-                    title="Resize to 100%"
-                    aria-label="Resize to 100%"
-                    onClick={() => handleSnapPoolHeight(1)}
-                  >
-                    <ArrowUpIcon className="text-[var(--muted)]" />
-                  </IconButton>
-                )}
-                {/* canReachFullHeight, not just !isAtDefaultHeight: once
-                    poolPanelMaxHeight itself drops below POOL_HEIGHT_MIN,
-                    clampPoolPanelHeight pins effectiveHeightPx to that
-                    shrunken ceiling regardless of what's stored (see
-                    clampPoolPanelHeight — Math.max(px, MIN) can't win
-                    once MIN exceeds the ceiling it's then Math.min'd
-                    against), so "not at default" stays true but Reset
-                    would write POOL_HEIGHT_MIN and visibly change
-                    nothing — a dead button in the exact same squeeze the
-                    50%/100% buttons above already hide themselves for. */}
-                {(!isAtDefaultHeight && (frozenReachability ? frozenReachability.canReachFull : canReachFullHeight)) && (
-                  <IconButton
-                    size="sm"
-                    border="none"
-                    backgroundColor="transparent"
-                    title="Reset pool panel to default height"
-                    aria-label="Reset pool panel to default height"
-                    onClick={handleResetPoolHeight}
-                  >
-                    <ArrowDownIcon className="text-[var(--muted)]" />
-                  </IconButton>
-                )}
-              </div>
-              <div
-                role="separator"
-                aria-orientation="horizontal"
-                aria-label="Drag to resize edit panel"
-                onPointerDown={handleResizeStart}
-                className="flex items-center justify-center w-[30px] h-[30px] cursor-ns-resize select-none touch-none"
-              >
-                <GripHorizontalIcon className="text-[var(--muted)]" />
-              </div>
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Row 1 (formerly Row 2 — Row 1 was the title/badge/filters
           header, now removed entirely; see this file's own top comment):
@@ -1739,6 +1530,7 @@ export function MixerBar({
           onChipToggle={onChipToggle}
           poolPanelHeightPx={effectiveHeightPx}
           editMode={editMode}
+          trailingControls={trailingControls}
         />
       </div>
       </div>

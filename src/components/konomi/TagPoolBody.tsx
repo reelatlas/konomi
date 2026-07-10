@@ -28,6 +28,16 @@ interface TagPoolBodyProps {
   // component's comment for the real bug (a page-level scroll on every
   // load) this exists to prevent.
   editMode: boolean;
+  // MixerBar's resize grip/50%/100%/Reset shortcuts and its edit-panel
+  // close button — rendered as the fixed (shrink-0) sibling next to
+  // SectionTabStrip in the tabs row below. Built and owned entirely by
+  // MixerBar (all the drag/reachability state and handlers live there,
+  // see that file's own top comment); this component just places the
+  // finished node, the same "accept a slot, don't know what's in it"
+  // relationship this component already has with its own children
+  // elsewhere. Optional only so this component doesn't require a caller
+  // that has no use for it — MixerBar always passes one today.
+  trailingControls?: React.ReactNode;
 }
 
 const STRIP_GAP = 12; // --space-lg
@@ -85,15 +95,20 @@ function ChipRow({
 // MixerBar, which renders this inside its bottom-anchored edit-mode pool
 // panel. `level`/`sort` are read directly via useLevel()/useSort() to
 // filter/sort chips — Tag Density/Sort's own UI controls (LevelSelector/
-// SortSelect) live in MixerBar's resize-handle row instead, not here; see
-// that file's own top comment for why they moved there rather than
-// sitting in a row of their own above the tabs.
+// SortSelect) don't live in this bar at all anymore; they moved to a
+// Filter icon's popover next to the Recommendations header
+// (ResultsFilterButton.tsx). What DOES live in this component's own tab
+// row now is MixerBar's resize grip/50%/100%/Reset shortcuts and its
+// close button (trailingControls, below) — they moved the opposite
+// direction, in from MixerBar, once removing the filters left that bar's
+// old resize-handle row with no reason to exist as a row of its own (see
+// MixerBar.tsx's own top comment).
 //
 // Section navigation is a horizontal tab strip (SectionTabStrip), not
 // collapsible sections — see DESIGN_SYSTEM.md for why that replaced the
 // old sticky-header/mask machinery entirely rather than keeping it around
 // in reduced form.
-export function TagPoolBody({ allTags, selectedTags, totalSeriesCount, onChipToggle, poolPanelHeightPx, editMode }: TagPoolBodyProps) {
+export function TagPoolBody({ allTags, selectedTags, totalSeriesCount, onChipToggle, poolPanelHeightPx, editMode, trailingControls }: TagPoolBodyProps) {
   const level = useLevel();
   const sort = useSort();
   // Plain component state, not localStorage-backed — TagPoolBody itself
@@ -148,28 +163,34 @@ export function TagPoolBody({ allTags, selectedTags, totalSeriesCount, onChipTog
 
   return (
     <div className="flex flex-col" style={{ gap: STRIP_GAP }}>
-      {/* Tabs row, alone — Tag Density/Sort used to sit inline with these
-          tabs in one combined row, responsively shrinking/stacking to
-          negotiate the shared width (see git history/DESIGN_SYSTEM.md);
-          they've since moved up into MixerBar's resize-handle row instead
-          (see that file's own top comment), so this row is just
-          SectionTabStrip now, full width, with nothing to negotiate
-          against. fitContent inside SectionTabStrip's own ScrollFadeArea
-          (unchanged) still makes its hover arrows recompute correctly when
-          a Level switch changes which tabs render — that was always this
-          row's own self-measurement, never part of the cross-row
-          negotiation that got removed. */}
-      <div ref={rowRef}>
-        <SectionTabStrip
-          sections={visibleSections.map(({ section, tags }) => ({
-            key: section.key,
-            label: section.label,
-            selectedCount: tags.filter((t) => selectedTags.includes(t.name)).length,
-          }))}
-          activeKey={active.section.key}
-          onChange={setActiveSectionKey}
-          visible={editMode}
-        />
+      {/* Tabs row — SectionTabStrip on the left, MixerBar's resize grip/
+          shortcuts/close button (trailingControls) fixed to the right.
+          Same layout convention MixerBar's own old resize-handle row used
+          for its filters-vs-cluster split: the scrollable/shrinkable
+          child first with min-w-0 (here, SectionTabStrip's own wrapper),
+          the fixed child second with shrink-0 (supplied by the caller,
+          not this file — trailingControls arrives pre-wrapped). min-w-0
+          is what lets SectionTabStrip's own ScrollFadeArea (fitContent,
+          unchanged) actually detect overflow and start scrolling once
+          trailingControls and the tabs together don't fit, exactly the
+          same mechanism the old filters row relied on. rowRef's own
+          ResizeObserver (below) measures this whole row, trailingControls
+          included, with no extra code needed for that — it already
+          measures whatever this row's real rendered height is. */}
+      <div ref={rowRef} className="flex items-center justify-between gap-x-[var(--space-lg)]">
+        <div className="min-w-0 w-fit">
+          <SectionTabStrip
+            sections={visibleSections.map(({ section, tags }) => ({
+              key: section.key,
+              label: section.label,
+              selectedCount: tags.filter((t) => selectedTags.includes(t.name)).length,
+            }))}
+            activeKey={active.section.key}
+            onChange={setActiveSectionKey}
+            visible={editMode}
+          />
+        </div>
+        {trailingControls}
       </div>
 
       {/* key={active.section.key}: forces a clean remount (and therefore a

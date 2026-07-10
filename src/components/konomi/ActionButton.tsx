@@ -31,8 +31,28 @@ const SIZE_CLASSES: Record<ActionButtonSize, string> = {
   // this padding.
   md: "px-[var(--space-xl)] py-[var(--space-lg)]",
   // Only Clear ✕ (Recommendations tab) uses this smaller size — confirmed
-  // against the original markup, not a guess.
-  sm: "px-[var(--space-lg)] py-[var(--space-md)]",
+  // against the original markup, not a guess. Fixed h-[30px] + flex
+  // centering, not py-based like md above: requested directly, so this
+  // button's rendered height exactly matches IconButton's own size="sm"
+  // box (30px) that the Filter button (ResultsFilterButton) next to it
+  // uses, in both of Clear's own forms (full text and its collapsed
+  // IconButton sibling, ResultsHeader.tsx) — a plain vertical-padding
+  // approach can't hit an exact px target the way a fixed height can.
+  // px-space-lg keeps the same horizontal breathing room the old
+  // padding-only version had.
+  //
+  // Deliberately no `inline-flex`/`flex` here, only the alignment
+  // utilities (`items-center`/`justify-center`) that need one to do
+  // anything — the caller supplies the actual display value via its own
+  // className (ResultsHeader.tsx toggles `hidden`/`inline-flex`
+  // responsively). Baking a fixed `inline-flex` in here and then trying
+  // to override it from outside would recreate the exact undefined-
+  // cascade-order problem IconButton's own `display` prop exists to avoid
+  // (see that component's comment) — two classes both declaring `display`
+  // in the same joined string, with no guaranteed winner. A future size=
+  // "sm" caller that always shows (no responsive toggle) needs to supply
+  // its own unconditional `inline-flex` too.
+  sm: "h-[30px] items-center justify-center px-[var(--space-lg)]",
 };
 
 // Consolidates four previously hand-rolled buttons (Random ×3, Clear ✕
