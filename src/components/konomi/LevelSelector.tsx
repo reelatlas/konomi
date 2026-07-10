@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { LEVEL_OPTIONS } from "@/lib/konomi/tagPool";
 import type { LevelKey } from "@/lib/konomi/types";
 import { ROLL_DURATION_MS, RollingLabel } from "./RollingLabel";
+import { useSupportsHover } from "./useSupportsHover";
 
 const LEVEL_LABELS = LEVEL_OPTIONS.map((o) => o.label);
 
@@ -51,6 +52,7 @@ export function LevelSelector({ value, onChange, collapsed }: LevelSelectorProps
   // already-working mobile tap-hint (ResultCard.tsx) — tap shows it, tap
   // elsewhere blurs it.
   const [shown, setShown] = useState(false);
+  const supportsHover = useSupportsHover();
   // Gates the collapsed button's own onClick against firing a second
   // onChange before RollingLabel's own roll (triggered by the FIRST click)
   // has actually finished. A plain ref, not state, since gating a click
@@ -109,10 +111,15 @@ export function LevelSelector({ value, onChange, collapsed }: LevelSelectorProps
           type="button"
           aria-label={activeOption.hint}
           onClick={handleCollapsedClick}
-          onMouseEnter={() => setShown(true)}
-          onMouseLeave={() => setShown(false)}
+          // Gated to supportsHover — see MatchSelector's own identical
+          // comment for the full reasoning (byte-identical mechanism here:
+          // RollingLabel restructures its DOM on every value change, right
+          // under a touch tap, which can trigger a spurious blur that
+          // hides this hint even though the tap never left the button).
+          onMouseEnter={supportsHover ? () => setShown(true) : undefined}
+          onMouseLeave={supportsHover ? () => setShown(false) : undefined}
           onFocus={() => setShown(true)}
-          onBlur={() => setShown(false)}
+          onBlur={supportsHover ? () => setShown(false) : undefined}
           // bg-surface/text-ink, matching an INACTIVE segment's own colors
           // above, not bg-primary/text-surface (the active segment's
           // colors, what this used before). See MatchSelector's own

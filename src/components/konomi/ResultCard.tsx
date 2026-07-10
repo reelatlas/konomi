@@ -11,24 +11,7 @@ import { ERROR_MESSAGE } from "./RecommendButton";
 import { ScrollFadeArea } from "./ScrollFadeArea";
 import { TagCountBadge } from "./TagCountBadge";
 import { TagScrollArea } from "./TagScrollArea";
-
-// True on mouse/trackpad devices, false on touch-only ones — defaults to
-// true (desktop's own existing behavior, unchanged) until the one-time
-// client-side matchMedia check resolves post-hydration, so SSR output
-// always matches the default and there's no hydration mismatch warning.
-// Not a persistent listener (no addEventListener for changes mid-session,
-// e.g. a 2-in-1 laptop's mouse getting connected/disconnected) — this app
-// has no other reactive capability-detection like that, and the lock hint
-// re-rendering out from under a held hover isn't worth the extra
-// machinery for a case nobody's asked for yet.
-function useSupportsHover(): boolean {
-  const [supportsHover, setSupportsHover] = useState(true);
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSupportsHover(window.matchMedia("(hover: hover)").matches);
-  }, []);
-  return supportsHover;
-}
+import { useSupportsHover } from "./useSupportsHover";
 
 // BACK face's own full-bleed cover fill: a blurred copy of the cover as
 // BACK's background, mounted directly on BACK's own div (see its JSX

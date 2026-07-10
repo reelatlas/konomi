@@ -25,6 +25,30 @@ interface RollingLabelProps {
 // `value` prop changing), nothing about the roll itself is component-
 // specific.
 //
+// IMPORTANT for any future caller that also shows a hover/focus-driven hint
+// next to this label (as MatchSelector/LevelSelector both do): this
+// component swaps its own child DOM on every roll (the idle span unmounts,
+// a two-span rolling pair mounts in its place, then unmounts back to a
+// fresh idle span ROLL_DURATION_MS later) — directly under wherever a tap
+// just landed, since the surrounding button doesn't move. Swapping a child
+// out from under an active touch point is the same mechanism already
+// confirmed (via real-device Web Inspector logging) to trigger a spurious
+// blur/mouseleave on the ancestor button in ResultCard.tsx's own lock icon
+// (LockClosedIcon <-> LockOpenIcon). If a caller's hint-dismiss logic
+// depends on native onBlur/onMouseLeave without gating them to
+// supportsHover (useSupportsHover.ts), that spurious blur can fire right as
+// a roll starts and hide the hint immediately — the roll itself still
+// plays fine (nothing about it depends on the hint's own state), so the
+// bug reads as "the animation happens but the hint doesn't show," and only
+// intermittently, since it depends on real device paint/compositor timing
+// this app doesn't control (confirmed not reproducible in headless/
+// emulated Chromium). Any button pairing this component with a hover/
+// blur-driven hint must gate onBlur/onMouseEnter/onMouseLeave behind
+// supportsHover and rely on something timing-independent (e.g. an outside-
+// pointerdown listener) for touch dismissal instead — see MatchSelector.tsx/
+// LevelSelector.tsx for the reference implementation, and DESIGN_SYSTEM.md
+// for the full incident writeup.
+//
 // Exported so each caller's own collapsed onClick can gate against firing a
 // second `onChange` before this component's own roll has actually finished
 // (see each caller's own comment on why that gate exists at all). Sharing

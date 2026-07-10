@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { MatchKey } from "@/lib/konomi/types";
 import { ROLL_DURATION_MS, RollingLabel } from "./RollingLabel";
+import { useSupportsHover } from "./useSupportsHover";
 
 const OPTIONS: MatchKey[] = ["1", "2", "3"];
 
@@ -44,6 +45,7 @@ export function MatchSelector({ value, onChange, collapsed }: MatchSelectorProps
   // onFocus/onBlur show/dismiss wiring as the lock icon's already-working
   // mobile tap-hint (ResultCard.tsx) — tap shows it, tap elsewhere blurs it.
   const [shown, setShown] = useState(false);
+  const supportsHover = useSupportsHover();
   // Gates the collapsed button's own onClick against firing a second
   // onChange before RollingLabel's own roll (triggered by the FIRST click)
   // has actually finished. See LevelSelector's own identical comment for
@@ -87,10 +89,31 @@ export function MatchSelector({ value, onChange, collapsed }: MatchSelectorProps
           type="button"
           aria-label={HINTS[value]}
           onClick={handleCollapsedClick}
-          onMouseEnter={() => setShown(true)}
-          onMouseLeave={() => setShown(false)}
+          // onMouseEnter/onMouseLeave/onBlur gated to supportsHover —
+          // requested directly after a real, reported bug: RollingLabel
+          // (below) restructures its own DOM on every value change (an
+          // idle span swaps for a two-span rolling pair, then back), right
+          // under the same point a touch tap just landed on. Confirmed
+          // live as this app's own already-diagnosed pattern (ResultCard's
+          // lock icon: swapping a child directly under the touch point can
+          // trigger a spurious blur/mouseleave) — that spurious blur fired
+          // right as a roll started, hiding this hint (setShown(false))
+          // even though the tap never actually left the button, so the
+          // roll animation visibly played but the subtext never showed
+          // (or vanished too fast to register). Intermittent by nature —
+          // it depends on real device paint/compositor timing this app
+          // doesn't control, the same class of "can't repro in headless
+          // Chromium, only on a real device" bug already documented
+          // elsewhere in this file's history. On touch, dismissal already
+          // has a reliable, timing-independent mechanism regardless (the
+          // outside-pointerdown listener below), so onBlur/onMouseLeave
+          // have nothing left to do there — only hover-capable devices
+          // need them at all. onFocus stays unconditional: it's still
+          // touch's own only way to show this hint in the first place.
+          onMouseEnter={supportsHover ? () => setShown(true) : undefined}
+          onMouseLeave={supportsHover ? () => setShown(false) : undefined}
           onFocus={() => setShown(true)}
-          onBlur={() => setShown(false)}
+          onBlur={supportsHover ? () => setShown(false) : undefined}
           // bg-surface/text-ink, the same colors an INACTIVE segment uses
           // in the full 3-segment form above, not bg-primary/text-surface
           // (the active segment's own colors, what this used before).
