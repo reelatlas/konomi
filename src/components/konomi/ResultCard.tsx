@@ -734,33 +734,49 @@ export function ResultCard({
                 autoFocus={startWithSwapHint}
                 onClick={(e) => {
                   e.stopPropagation();
-                  // Disabled: hoveredIcon is now toggled fully explicitly,
-                  // via setHoveredIcon, directly in this handler — not left
-                  // to depend on the browser's own focus/blur event timing
-                  // at all. Two earlier attempts both relied on that timing
-                  // (e.currentTarget.blur() alone, then a direct
-                  // setHoveredIcon(null) that still only ran on a branch
-                  // gated by an assumption about hover support) and both
-                  // were reported live as still unreliable on a real phone.
-                  // onClick itself is the one event confirmed to fire
-                  // reliably here (a first tap already shows the hint,
-                  // tapping elsewhere already dismisses it) — so it's now
-                  // the *only* thing this toggle depends on: every tap on
-                  // this disabled button flips hoveredIcon between "swap"
-                  // and null itself, deterministically, regardless of
-                  // whether focus/blur/mouseenter/mouseleave happen to fire
-                  // or land in whatever order a given browser/device
-                  // chooses for a given tap. .focus()/.blur() are still
-                  // called alongside (not depended on) purely so a *later*
-                  // tap elsewhere still finds this button genuinely focused
-                  // and can blur it the normal way.
+                  // Disabled + touch-only (!supportsHover): hoveredIcon is
+                  // toggled fully explicitly, via setHoveredIcon, directly
+                  // in this handler — not left to depend on the browser's
+                  // own focus/blur event timing at all. Two earlier
+                  // attempts both relied on that timing (e.currentTarget.
+                  // blur() alone, then a direct setHoveredIcon(null) that
+                  // still only ran on a branch gated by an assumption about
+                  // hover support) and both were reported live as still
+                  // unreliable on a real phone. onClick itself is the one
+                  // event confirmed to fire reliably here (a first tap
+                  // already shows the hint, tapping elsewhere already
+                  // dismisses it) — so it's now the *only* thing this
+                  // toggle depends on: every tap on this disabled button
+                  // flips hoveredIcon between "swap" and null itself,
+                  // deterministically, regardless of whether focus/blur/
+                  // mouseenter/mouseleave happen to fire or land in
+                  // whatever order a given device chooses for a given tap.
+                  //
+                  // Gated to !supportsHover now — reported live as a real
+                  // bug otherwise: on a hover-capable (mouse) device,
+                  // hovering this disabled button already shows its hint
+                  // via onMouseEnter below, and clicking it (disabled
+                  // buttons still receive clicks here — see
+                  // visuallyDisabled's own doc comment, IconButton.tsx) hit
+                  // this same toggle and, since hoveredIcon was already
+                  // "swap" from the hover, immediately cleared it — hiding
+                  // the tooltip the instant you clicked, even though the
+                  // mouse never left the button. On hover-capable devices
+                  // the hint should only ever disappear on an actual
+                  // pointer leave/blur, never merely because a disabled
+                  // button was clicked, so this whole toggle is a no-op
+                  // there — mouseenter/mouseleave (below) are already the
+                  // sole, correct drivers of hoveredIcon on that class of
+                  // device.
                   if (swapDisabled) {
-                    if (hoveredIcon === "swap") {
-                      setHoveredIcon(null);
-                      e.currentTarget.blur();
-                    } else {
-                      setHoveredIcon("swap");
-                      e.currentTarget.focus();
+                    if (!supportsHover) {
+                      if (hoveredIcon === "swap") {
+                        setHoveredIcon(null);
+                        e.currentTarget.blur();
+                      } else {
+                        setHoveredIcon("swap");
+                        e.currentTarget.focus();
+                      }
                     }
                     return;
                   }

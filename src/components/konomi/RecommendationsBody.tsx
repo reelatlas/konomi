@@ -273,6 +273,23 @@ export function RecommendationsBody({
   // position, not title — the whole point is surviving a title change at
   // the same slot, which a title-keyed tracker couldn't do by definition.
   const [justSwappedIndex, setJustSwappedIndex] = useState<number | null>(null);
+  // Resets justSwappedIndex back to null the instant a genuine new
+  // RECOMMEND lands (render-phase conditional setState, comparing against
+  // state rather than a ref — the same pattern this session's MixerBar.tsx
+  // work established to satisfy react-hooks/set-state-in-effect and
+  // react-hooks/refs simultaneously). Confirmed live as a real bug
+  // otherwise: swap a card, then hit RECOMMEND — the fresh card that
+  // mounts at that same grid position also satisfies
+  // `justSwappedIndex === index` (still stale from the earlier swap), so
+  // startWithSwapHint seeded its hoveredIcon to "swap" even though nothing
+  // was actually swapped this time, showing the tooltip immediately and
+  // (on touch, with no hover to naturally dismiss it) leaving it stuck
+  // until the user tapped elsewhere.
+  const [lastRecommendGenForSwapHint, setLastRecommendGenForSwapHint] = useState(recommendGen);
+  if (recommendGen !== lastRecommendGenForSwapHint) {
+    setLastRecommendGenForSwapHint(recommendGen);
+    setJustSwappedIndex(null);
+  }
   const visibleCardTierCount = useVisibleCardTierCount();
   // Lags one step behind `results` specifically so a Clear ✕ has a window
   // to play its exit animation before the removed cards actually leave the
@@ -706,17 +723,35 @@ export function RecommendationsBody({
                   // deliberately decoupled from live lock state so
                   // locking/unlocking a card never replays its entrance;
                   // see newTitles' own comment on KonomiState for why.
-                  const isEntering = newTitles.includes(entry.series.title);
+                  //
+                  // A single-card dice swap also counts as entering now,
+                  // via justSwappedIndex (the same signal that already
+                  // seeds startWithSwapHint below) — requested directly:
+                  // the freshly-swapped card should rise+fade in exactly
+                  // like a RECOMMEND entrance, reusing the same duration/
+                  // easing/distance, just as the one and only card
+                  // entering right now rather than part of a batch.
+                  const isEnteringFromSwap = justSwappedIndex === index;
+                  const isEntering = newTitles.includes(entry.series.title) || isEnteringFromSwap;
                   // Enter: L->R, index * stagger. Exit: R->L,
                   // (count-1-index) * stagger, using this card's own index
                   // in the full displayed row (not a compacted
                   // exiting-only count) — a locked card that stays put
                   // doesn't shift the timing of the ones sweeping around
                   // it, it just sits still while the sweep passes its
-                  // slot.
+                  // slot. A swap-driven entrance is the one exception:
+                  // it's always exactly one card, regardless of its row
+                  // position, so it gets 0 delay (immediate) instead of
+                  // index*stagger — otherwise a swap on, say, card #4
+                  // would wait through 3 stagger steps for no reason, the
+                  // same "single card, no one else to sweep with" pacing
+                  // getAnimatingPaceCount already applies for a RECOMMEND
+                  // that leaves only one card entering.
                   const animationDelayMs = isExiting
                     ? (displayedResults.length - 1 - index) * effectiveStaggerMs
-                    : index * effectiveStaggerMs;
+                    : isEnteringFromSwap
+                      ? 0
+                      : index * effectiveStaggerMs;
                   return (
                     <ResultCard
                       key={entry.series.title}
