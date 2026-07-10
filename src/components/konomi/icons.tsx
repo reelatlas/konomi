@@ -170,22 +170,25 @@ export function ArrowUpHalfIcon({ className }: IconProps) {
   );
 }
 
-// Two rows of three dots — the standard "grip" drag affordance, oriented
-// for a row that drags vertically (the dots themselves read as a horizontal
-// bar, hence "Horizontal"; c.f. Lucide's grip-horizontal). Replaces a plain
-// 1px line in MixerBar's resize-handle row — a more legible "this is
-// draggable" signal now that the row also carries the Tag Density/Sort
-// filters, so the drag target itself needed to read as its own affordance
-// rather than blend in.
-export function GripHorizontalIcon({ className }: IconProps) {
+// A 3×3 grid of dots — the standard "grip" drag affordance (c.f. Lucide's
+// grip-vertical/grip icons). Square, not the earlier 2-row/6-dot version
+// (GripHorizontalIcon, wider than tall) — requested directly, swapped for
+// a fuller 9-dot grid now that the grip sits in its own 30×30 IconButton
+// box (TagPoolBody's tab row) alongside the resize arrow and Close, rather
+// than a bare icon that needed to read as "draggable" on its own within a
+// wider, busier row.
+export function GripIcon({ className }: IconProps) {
   return (
-    <svg className={className} width="16" height="8" viewBox="0 0 16 8" fill="currentColor">
+    <svg className={className} width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
       <circle cx="2" cy="2" r="1.3" />
       <circle cx="8" cy="2" r="1.3" />
       <circle cx="14" cy="2" r="1.3" />
-      <circle cx="2" cy="6" r="1.3" />
-      <circle cx="8" cy="6" r="1.3" />
-      <circle cx="14" cy="6" r="1.3" />
+      <circle cx="2" cy="8" r="1.3" />
+      <circle cx="8" cy="8" r="1.3" />
+      <circle cx="14" cy="8" r="1.3" />
+      <circle cx="2" cy="14" r="1.3" />
+      <circle cx="8" cy="14" r="1.3" />
+      <circle cx="14" cy="14" r="1.3" />
     </svg>
   );
 }

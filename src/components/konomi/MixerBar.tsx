@@ -11,7 +11,7 @@ import {
   DiceIcon,
   EraserIcon,
   GreaterEqualIcon,
-  GripHorizontalIcon,
+  GripIcon,
   TagIcon,
   TagPoolIcon,
 } from "./icons";
@@ -1316,7 +1316,7 @@ export function MixerBar({
             onPointerDown={handleResizeStart}
             className="cursor-ns-resize select-none touch-none"
           >
-            <GripHorizontalIcon className="text-[var(--muted)]" />
+            <GripIcon className="text-[var(--muted)]" />
           </IconButton>
         </div>
       )}
