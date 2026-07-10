@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { MatchKey } from "@/lib/konomi/types";
 import { ROLL_DURATION_MS, RollingLabel } from "./RollingLabel";
 
@@ -61,9 +61,28 @@ export function MatchSelector({ value, onChange, collapsed }: MatchSelectorProps
     onChange(nextMatch(value));
   }
 
+  // Closes the collapsed hint on ANY outside pointerdown, not just this
+  // button's own onBlur. See LevelSelector's own identical comment for the
+  // full reasoning (a real, reported bug there: the hint persisted on a
+  // real device in a way this control's own onBlur-only wiring apparently
+  // didn't, most likely because LevelSelector/SortSelect's own neighbors
+  // are mostly non-form-control chrome rather than the other buttons this
+  // control sits beside here). Added here too for the same robustness,
+  // even though this control wasn't the one reported as broken.
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!shown) return;
+    function handlePointerDown(e: PointerEvent) {
+      if (wrapperRef.current?.contains(e.target as Node)) return;
+      setShown(false);
+    }
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [shown]);
+
   if (collapsed) {
     return (
-      <div className="relative flex border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-2)]">
+      <div ref={wrapperRef} className="relative flex border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-2)]">
         <button
           type="button"
           aria-label={HINTS[value]}

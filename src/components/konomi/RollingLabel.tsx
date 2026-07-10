@@ -151,15 +151,24 @@ export function RollingLabel({ value, sizeToWidestOf, className }: RollingLabelP
           unwanted animated "bounce back" right after the intended roll had
           already finished. */}
       {outgoing === null ? (
-        <span aria-hidden className="absolute inset-0">
+        <span aria-hidden className="absolute inset-0 pointer-events-none">
           {value}
         </span>
       ) : (
+        // pointer-events-none on both animating spans, belt-and-suspenders
+        // against a real, reported (though not yet reproduced outside a
+        // real device) mobile paint/hit-test desync near this row's
+        // collapsed controls. A click always reaches the actual <button>
+        // regardless of which of its own decorative children happens to be
+        // painted on top, but these spans have no interactive purpose of
+        // their own either way, so there's no reason to leave them
+        // hit-testable at all while a translate animation (and whatever
+        // compositing layer promotion it triggers) is actively running.
         <span key={rollId} aria-hidden>
-          <span className="absolute inset-0" style={{ animation: `roll-out-up ${ANIMATION_STYLE}` }}>
+          <span className="absolute inset-0 pointer-events-none" style={{ animation: `roll-out-up ${ANIMATION_STYLE}` }}>
             {outgoing}
           </span>
-          <span className="absolute inset-0" style={{ animation: `roll-in-up ${ANIMATION_STYLE}` }}>
+          <span className="absolute inset-0 pointer-events-none" style={{ animation: `roll-in-up ${ANIMATION_STYLE}` }}>
             {value}
           </span>
         </span>

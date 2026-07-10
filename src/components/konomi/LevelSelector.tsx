@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LEVEL_OPTIONS } from "@/lib/konomi/tagPool";
 import type { LevelKey } from "@/lib/konomi/types";
 import { ROLL_DURATION_MS, RollingLabel } from "./RollingLabel";
@@ -78,9 +78,33 @@ export function LevelSelector({ value, onChange, collapsed }: LevelSelectorProps
     onChange(nextLevel(value));
   }
 
+  // Closes the collapsed hint on ANY outside pointerdown, not just this
+  // button's own onBlur. Requested directly after a real, reported bug:
+  // this hint persisted (never hid) on a real device in a way MatchSelector's
+  // own, byte-identical onBlur wiring didn't. onBlur only fires reliably
+  // when the NEW target is itself focusable, and this control's own
+  // neighbors are mostly non-form-control chrome (a plain "GENRES" text
+  // heading, empty space around chips) rather than the other buttons
+  // MatchSelector sits beside in the main controls row, a known class of
+  // mobile Safari/WebKit inconsistency (tapping non-form-control content
+  // doesn't always transfer focus/blur the way tapping another button
+  // does). A document-level listener doesn't depend on the tapped target
+  // being focusable at all, only on whether it's inside this control's own
+  // wrapper, so it closes the hint regardless of what was actually tapped.
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!shown) return;
+    function handlePointerDown(e: PointerEvent) {
+      if (wrapperRef.current?.contains(e.target as Node)) return;
+      setShown(false);
+    }
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [shown]);
+
   if (collapsed) {
     return (
-      <div className="relative flex border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-2)]">
+      <div ref={wrapperRef} className="relative flex border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-2)]">
         <button
           type="button"
           aria-label={activeOption.hint}
