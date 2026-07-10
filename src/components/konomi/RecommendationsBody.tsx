@@ -1,17 +1,9 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { ResultEntry, TagInfo } from "@/lib/konomi/types";
-import { CardAnimDebugPanel } from "./CardAnimDebugPanel";
-import { getAnimatingPaceCount, getCardAnimTuning, getEffectiveStaggerMs, getVisibleCardTierCount, useCardAnimTuning } from "./cardAnimTuning";
+import { CARD_ANIM_DURATION_MS, CARD_ANIM_STAGGER_MS, getAnimatingPaceCount, getEffectiveStaggerMs, getVisibleCardTierCount } from "./cardAnimTuning";
 import { ResultCard } from "./ResultCard";
 import { ScrollFadeArea } from "./ScrollFadeArea";
 import { useLevel, useSort } from "./tagPoolPrefs";
-
-// Testing-only live-tweak panel for the result-card enter/exit animation
-// constants (cardAnimTuning.ts). Flip to false, or delete this constant,
-// CardAnimDebugPanel.tsx, and the one render call below, to remove it
-// completely for production — nothing else in this file (or
-// cardAnimTuning.ts) needs to change either way.
-const SHOW_CARD_ANIM_DEBUG = true;
 
 // How many cards are visibly "in frame" at the current viewport width, per
 // the same breakpoint tiers ResultCard.tsx's own card-width classes already
@@ -281,7 +273,6 @@ export function RecommendationsBody({
   // position, not title — the whole point is surviving a title change at
   // the same slot, which a title-keyed tracker couldn't do by definition.
   const [justSwappedIndex, setJustSwappedIndex] = useState<number | null>(null);
-  const cardAnimTuning = useCardAnimTuning();
   const visibleCardTierCount = useVisibleCardTierCount();
   // Lags one step behind `results` specifically so a Clear ✕ has a window
   // to play its exit animation before the removed cards actually leave the
@@ -320,24 +311,21 @@ export function RecommendationsBody({
   // animation-completion *events* unreliable enough on real devices to
   // avoid entirely (see RollingLabel.tsx/MixerBar.tsx's own history), a
   // plain timer matching the declared duration is the established fix.
-  // Only re-fires on a genuine empty->non-empty exitingTitles transition —
-  // not on every render, and not on cardAnimTuning changing mid-exit (a
-  // debug-panel edit while a clear is already animating is not a
-  // real-world case worth chasing).
+  // Only re-fires on a genuine empty->non-empty exitingTitles transition,
+  // not on every render.
   useEffect(() => {
     if (exitingTitles.size === 0) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const tuning = getCardAnimTuning();
     const paceCount = getAnimatingPaceCount(
       displayedResults.map((r) => r.series.title),
       locked,
       visibleCardTierCount,
     );
-    const effectiveStaggerMs = getEffectiveStaggerMs(tuning.staggerMs, paceCount);
+    const effectiveStaggerMs = getEffectiveStaggerMs(CARD_ANIM_STAGGER_MS, paceCount);
     // R->L sweep: index 0 has the largest delay (see ResultCard's own
     // isExiting delay math below), so it's the last one to finish.
     const lastExitIndex = displayedResults.length - 1;
-    const totalMs = reduced ? 0 : tuning.durationMs + lastExitIndex * effectiveStaggerMs;
+    const totalMs = reduced ? 0 : CARD_ANIM_DURATION_MS + lastExitIndex * effectiveStaggerMs;
     const t = setTimeout(() => {
       setDisplayedResults(results);
       setExitingTitles(new Set());
@@ -711,7 +699,7 @@ export function RecommendationsBody({
                   locked,
                   visibleCardTierCount,
                 );
-                const effectiveStaggerMs = getEffectiveStaggerMs(cardAnimTuning.staggerMs, paceCount);
+                const effectiveStaggerMs = getEffectiveStaggerMs(CARD_ANIM_STAGGER_MS, paceCount);
                 return displayedResults.map((entry, index) => {
                   const isExiting = exitingTitles.has(entry.series.title);
                   // Gated on newTitles (useKonomi.ts), not `!locked` —
@@ -825,7 +813,6 @@ export function RecommendationsBody({
           </ScrollFadeArea>
         </div>
       )}
-      {SHOW_CARD_ANIM_DEBUG && <CardAnimDebugPanel />}
     </div>
   );
 }

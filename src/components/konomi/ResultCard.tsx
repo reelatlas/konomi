@@ -3,7 +3,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { scoreSeries } from "@/lib/konomi/scoring";
 import { isTagVisibleAtLevel, sortTags } from "@/lib/konomi/tagPool";
 import type { LevelKey, ResultEntry, SortKey, TagInfo } from "@/lib/konomi/types";
-import { useCardAnimTuning } from "./cardAnimTuning";
+import { CARD_ANIM_DISTANCE_PX, CARD_ANIM_DURATION_MS, CARD_ANIM_EASE_IN, CARD_ANIM_EASE_OUT } from "./cardAnimTuning";
 import { DiceIcon, LockClosedIcon, LockOpenIcon } from "./icons";
 import { IconButton } from "./IconButton";
 import { RatingBadge } from "./RatingBadge";
@@ -110,7 +110,6 @@ export function ResultCard({
   // a later re-render with a still-true startWithSwapHint prop (harmless
   // leftover in the parent, see its own comment) can't re-trigger this.
   const [hoveredIcon, setHoveredIcon] = useState<"lock" | "swap" | null>(() => (startWithSwapHint ? "swap" : null));
-  const cardAnimTuning = useCardAnimTuning();
   // Separate from `hasImage` below — that only tells us a URL exists, not
   // that it actually decoded. Set by the shared cover filmstrip's own
   // onError (see that block's own comment) — the one place the cover
@@ -379,31 +378,36 @@ export function ResultCard({
           transform-adjacent property (perspective) safely, and sits
           outside the flip container's own rotateY, so animating it here
           doesn't double up with or fight the flip transition.
-          --card-anim-distance/animationDuration/Delay/TimingFunction are
-          all inline style, not Tailwind classes, so cardAnimTuning.ts's
-          live debug-panel edits apply with no rebuild (Tailwind's scanner
-          can't see a JS-interpolated class — see IconButton.tsx/
-          MixerBar.tsx's own precedent for this same constraint).
+          --card-anim-distance/animationDuration/TimingFunction are inline
+          style, not Tailwind classes, sourced from cardAnimTuning.ts's
+          plain constants — kept as inline style (not a static Tailwind
+          class) because animationDelay alongside them genuinely is
+          per-card/dynamic (index-based), and Tailwind's scanner can't see
+          a JS-interpolated class regardless (see IconButton.tsx/
+          MixerBar.tsx's own precedent for this same constraint), so
+          keeping all four together in one style object is simpler than
+          splitting the fixed ones out to a class.
 
           isExiting checked BEFORE isEntering in both the class and the
-          easing pick below — not the reverse. isEntering is just `!locked`
-          (RecommendationsBody.tsx), true for the entire time a card sits
-          on screen unlocked, so on Clear ✕ it's still true for every
-          non-locked card at the exact same moment isExiting also becomes
-          true for it. Exiting is the one time-boxed, definitively-correct
-          signal here (only ever true during an actual in-flight exit), so
-          it has to win that overlap or the exit would incorrectly play the
-          enter keyframe/easing instead — confirmed live as a real bug
-          before this ordering was fixed. */}
+          easing pick below — not the reverse. isEntering (newTitles-gated,
+          RecommendationsBody.tsx) stays true for a card that finished
+          entering a while ago and never got locked since, so on Clear ✕
+          it can still be true for a non-locked card at the exact same
+          moment isExiting also becomes true for it. Exiting is the one
+          time-boxed, definitively-correct signal here (only ever true
+          during an actual in-flight exit), so it has to win that overlap
+          or the exit would incorrectly play the enter keyframe/easing
+          instead — confirmed live as a real bug before this ordering was
+          fixed. */}
       <div
         className={["relative w-full h-full [perspective:1100px]", isExiting ? "animate-card-exit" : isEntering ? "animate-card-enter" : ""].join(" ")}
         style={
           isEntering || isExiting
             ? ({
-                "--card-anim-distance": `${cardAnimTuning.distancePx}px`,
-                animationDuration: `${cardAnimTuning.durationMs}ms`,
+                "--card-anim-distance": `${CARD_ANIM_DISTANCE_PX}px`,
+                animationDuration: `${CARD_ANIM_DURATION_MS}ms`,
                 animationDelay: `${animationDelayMs ?? 0}ms`,
-                animationTimingFunction: isExiting ? cardAnimTuning.easeIn : cardAnimTuning.easeOut,
+                animationTimingFunction: isExiting ? CARD_ANIM_EASE_IN : CARD_ANIM_EASE_OUT,
               } as CSSProperties)
             : undefined
         }

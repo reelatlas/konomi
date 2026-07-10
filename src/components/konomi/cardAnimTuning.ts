@@ -1,85 +1,31 @@
-import { useSyncExternalStore } from "react";
 import { DEFAULT_RESULT_COUNT } from "@/lib/konomi/config";
 
-// Live-tweakable constants for the result-card enter/exit animation
-// (RecommendationsBody.tsx / ResultCard.tsx). Shaped exactly like
-// RecommendationsBody.tsx's own empty-state headline shuffle-bag (module
-// vars + a listener Set + useSyncExternalStore) — a proven pattern in this
-// codebase for "one piece of module state that isn't React state, but
-// still needs every subscribed component to re-render when it changes."
-//
-// Named to match the constants the original spec asked for directly:
-// CARD_ANIM_DURATION_MS/CARD_ANIM_STAGGER_MS/CARD_ANIM_DISTANCE_PX/
-// CARD_ANIM_EASE_IN/CARD_ANIM_EASE_OUT — kept here as one object's fields
-// rather than five separate top-level consts specifically so they can be
-// live-edited as a group via CardAnimDebugPanel.tsx while testing, then
-// hardcoded back to plain constants (or left as-is; this module works
-// standalone with these defaults either way) once the desired feel is
-// found. See CardAnimDebugPanel.tsx's own comment for the removal story.
-export interface CardAnimTuning {
-  durationMs: number;
-  staggerMs: number;
-  distancePx: number;
-  easeIn: string;
-  easeOut: string;
-}
+// Named constants for the result-card enter/exit animation
+// (RecommendationsBody.tsx / ResultCard.tsx) — same convention as
+// ROLL_DURATION_MS (RollingLabel.tsx) / EDIT_PANEL_TRANSITION_MS
+// (MixerBar.tsx). These were live-tweakable via a CardAnimDebugPanel
+// (useSyncExternalStore-backed store, matching RecommendationsBody.tsx's
+// own empty-state shuffle-bag pattern) while dialing in the feel; that
+// panel and its store plumbing were removed once these five values were
+// settled — see DESIGN_SYSTEM.md for the tuning story. Retune by editing
+// these numbers directly.
+export const CARD_ANIM_DURATION_MS = 300;
+export const CARD_ANIM_STAGGER_MS = 50;
+export const CARD_ANIM_DISTANCE_PX = 8;
+export const CARD_ANIM_EASE_IN = "cubic-bezier(0,0,.2,1)";
+export const CARD_ANIM_EASE_OUT = "cubic-bezier(0,0,.2,1)";
 
-export const CARD_ANIM_DEFAULTS: CardAnimTuning = {
-  durationMs: 300,
-  staggerMs: 50,
-  distancePx: 8,
-  easeIn: "cubic-bezier(0,0,.2,1)",
-  easeOut: "cubic-bezier(0,0,.2,1)",
-};
-
-let cardAnimTuning: CardAnimTuning = { ...CARD_ANIM_DEFAULTS };
-const listeners = new Set<() => void>();
-
-export function getCardAnimTuning(): CardAnimTuning {
-  return cardAnimTuning;
-}
-
-// Fixed to the defaults, same as the empty-state bag's own server
-// snapshot — this value is never itself hydration-sensitive (nothing here
-// is randomized), but returning a stable reference keeps this hook usable
-// from server-rendered components without needing its own opt-out.
-function getServerSnapshot(): CardAnimTuning {
-  return CARD_ANIM_DEFAULTS;
-}
-
-function subscribe(callback: () => void): () => void {
-  listeners.add(callback);
-  return () => listeners.delete(callback);
-}
-
-// The only mutator — used by CardAnimDebugPanel.tsx. Replaces the whole
-// object (not a per-field mutation) so every subscriber sees one
-// consistent snapshot, then notifies.
-export function setCardAnimTuning(partial: Partial<CardAnimTuning>): void {
-  cardAnimTuning = { ...cardAnimTuning, ...partial };
-  listeners.forEach((listener) => listener());
-}
-
-export function resetCardAnimTuning(): void {
-  cardAnimTuning = { ...CARD_ANIM_DEFAULTS };
-  listeners.forEach((listener) => listener());
-}
-
-export function useCardAnimTuning(): CardAnimTuning {
-  return useSyncExternalStore(subscribe, getCardAnimTuning, getServerSnapshot);
-}
-
-// staggerMs (from tuning/the debug panel) is the value AT DEFAULT_RESULT_COUNT
-// (5) cards — as fewer cards are actually on screen (a smaller catalog, a
-// clear that leaves only a couple locked cards mid-exit, etc.), the sweep
-// tightens proportionally rather than staying fixed: fewer cards already
-// read as a shorter row, so the same absolute stagger would either drag the
-// sweep out disproportionately (exit) or make the cascade barely register
+// CARD_ANIM_STAGGER_MS is the value AT DEFAULT_RESULT_COUNT (5) cards — as
+// fewer cards are actually sweeping (a narrower carousel tier, some locked
+// and excluded — see getAnimatingPaceCount below), the sweep tightens
+// proportionally rather than staying fixed: fewer cards already read as a
+// shorter row, so the same absolute stagger would either drag the sweep
+// out disproportionately (exit) or make the cascade barely register
 // (enter, only 2-3 cards). Proportional to DEFAULT_RESULT_COUNT, not a
-// separate hardcoded lookup table, so a debug-panel edit to the base
-// staggerMs automatically rescales every card-count case with it — 5→full
-// value, 4→4/5, 3→3/5, matching "reduce by ~10ms per card fewer" at the
-// 50ms default (50/5 = 10ms/card) without hardcoding that 10ms anywhere.
+// hardcoded lookup table, so retuning CARD_ANIM_STAGGER_MS above rescales
+// every card-count case with it — 5→full value, 4→4/5, 3→3/5, matching
+// "reduce by ~10ms per card fewer" at the 50ms default (50/5 = 10ms/card)
+// without hardcoding that 10ms anywhere.
 export function getEffectiveStaggerMs(staggerMs: number, cardCount: number): number {
   return (staggerMs * cardCount) / DEFAULT_RESULT_COUNT;
 }
