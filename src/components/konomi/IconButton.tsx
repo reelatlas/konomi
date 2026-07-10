@@ -68,6 +68,16 @@ type IconButtonBaseProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "classN
   shadow?: boolean | "elev-1" | "elev-2";
   backgroundColor?: string;
   textColor?: string;
+  // Defaults to var(--ink) — every existing caller relied on this being
+  // hardcoded (it used to be a literal class, not a prop), so the default
+  // preserves that exactly. Added as an inline style, not a className
+  // override, for the same reason backgroundColor/textColor already are:
+  // an appended className with its own border-color utility would sit
+  // alongside this component's own hardcoded one in the same joined
+  // string, and Tailwind doesn't order generated classes by source
+  // position (see this file's own `display` prop comment for the
+  // identical constraint) — there'd be no guaranteed winner.
+  borderColor?: string;
   // opacity-0, revealed via an ancestor carrying the matching group class —
   // see RevealGroup above for why this takes one of a closed set of named
   // groups rather than a plain boolean.
@@ -130,6 +140,7 @@ export function IconButton({
   shadow = false,
   backgroundColor = "var(--surface)",
   textColor = "var(--ink)",
+  borderColor = "var(--ink)",
   revealOnHover,
   visuallyDisabled,
   display = "inline-flex",
@@ -157,14 +168,13 @@ export function IconButton({
         "pointer-events-auto flex-none items-center justify-center p-0",
         display,
         BORDER_CLASSES[border],
-        "border-[var(--ink)]",
         shape === "circle" ? "rounded-full" : "",
         shadowClass,
         revealOnHover ? REVEAL_CLASSES[revealOnHover] : "",
         visuallyDisabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer",
         className ?? "",
       ].join(" ")}
-      style={{ width: resolvedWidth, height: resolvedHeight, backgroundColor, color: textColor, ...style }}
+      style={{ width: resolvedWidth, height: resolvedHeight, backgroundColor, color: textColor, borderColor, ...style }}
       {...rest}
     >
       {children}

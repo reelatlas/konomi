@@ -4,6 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { MatchKey, MixerError, Slot, TagInfo } from "@/lib/konomi/types";
 import { ActionButton } from "./ActionButton";
 import {
+  ArrowDownIcon,
   ArrowUpHalfIcon,
   ArrowUpIcon,
   CheckIcon,
@@ -219,6 +220,74 @@ export function MixerBar({
   const growableRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
+
+  // Shared by the open/close transition's own inline style (below, on both
+  // cardRef's marginTop and dialogRef's height) and the setTimeout that
+  // watches for it to finish (near isTransitioningRef, below) — one number,
+  // not two independently-tuned ones that could silently drift apart, same
+  // reasoning RollingLabel.tsx's own ROLL_DURATION_MS already established
+  // for the identical "a CSS duration and a JS timer need to agree"
+  // constraint. Inline style, not a Tailwind `duration-[280ms]` class:
+  // Tailwind's scanner needs a class to appear as complete static text to
+  // generate CSS for it (see IconButton.tsx's own comment on the same
+  // constraint for BORDER_CLASSES) — a template-interpolated value would be
+  // invisible to it.
+  const EDIT_PANEL_TRANSITION_MS = 280;
+  // dialogRef's own marginBottom while open (applied below as the literal
+  // "var(--space-xl)" — kept as a plain number here too, for the
+  // growableFixedOverheadPx pre-seed a few lines down, which needs an
+  // actual px value to do math with, not a CSS variable reference. Must
+  // stay equal to --space-xl (globals.css) by hand if that token's value
+  // ever changes.
+  const DIALOG_MARGIN_BOTTOM_PX = 16;
+  // True for the duration of the open/close transition only — NOT the same
+  // thing as `editMode` itself (which flips instantly, before the visual
+  // transition even starts) or `isDraggingRef` (which covers an active
+  // resize-drag, a completely different trigger for these same values
+  // changing). Exists purely to freeze fixedOverheadPx's and
+  // growableFixedOverheadPx's own ResizeObserver-driven measurement while
+  // dialogRef's real rendered height is mid-transition — without this,
+  // both observers fire many times as dialogRef smoothly grows/shrinks,
+  // each time computing a wrong intermediate overhead value from a
+  // still-animating rect and feeding it back into poolPanelMaxHeight ->
+  // effectiveHeightPx -> the very values driving this same transition (see
+  // this file's own DESIGN_SYSTEM.md entry for the full reasoning). A ref,
+  // not state: nothing here needs to re-render when this flips, only to be
+  // read inside the two measure() callbacks below at the instant they fire.
+  const isTransitioningRef = useRef(false);
+  // The render-visible twin of isTransitioningRef above — same true/false
+  // lifecycle (set together, in the same effect below), but as state
+  // rather than a ref, since THIS one has to actually affect what's
+  // rendered (whether cardRef's/dialogRef's own transition CSS is active
+  // at all), not just be read inside an async callback. Two variables
+  // tracking one boolean is the same split this file already has for
+  // `editMode` (state, drives rendering) vs. `editModeRef` (ref, read
+  // inside async measure() callbacks without risking a stale closure).
+  //
+  // Confirmed live as a real bug without this split: an earlier version
+  // gated the transition on `dragHeightPx === null` alone (the signal for
+  // "not actively being drag-updated"), reasoning that this was the only
+  // other thing that changes marginTop/height on every tick. It
+  // missed a second case — `handleSnapPoolHeight` (the 50%/100% resize
+  // shortcuts) also sets `dragHeightPx` to `null` (it's a discrete jump,
+  // not a drag), which meant clicking either shortcut also passed the
+  // `dragHeightPx === null` check and picked up the transition, turning
+  // what should be an instant snap into an unwanted smooth animation.
+  // `isEditModeTransitioning` is only ever true for an actual `editMode`
+  // toggle, so a resize-shortcut click (which never touches `editMode`)
+  // no longer qualifies.
+  const [isEditModeTransitioning, setIsEditModeTransitioning] = useState(false);
+  // Same role as isEditModeTransitioning, for the 50%/100% resize-shortcut
+  // snap instead of an editMode toggle — see handleSnapPoolHeight's own
+  // comment (further below) for why this one's set directly in an event
+  // handler rather than via the render-phase pattern the editMode version
+  // needs. Kept separate rather than reusing one flag for both triggers:
+  // the two are set from genuinely different call sites (a render-phase
+  // comparison vs. a plain event handler) and this avoids either one's
+  // own clear-timeout accidentally clobbering the other's still-active
+  // state in the (currently unreachable, but not worth relying on) case
+  // they ever overlapped.
+  const [isSnapTransitioning, setIsSnapTransitioning] = useState(false);
 
   // Continuously tracks whether the page is currently scrolled to its own
   // true bottom — read once below, right as editMode flips true, to know
@@ -736,6 +805,80 @@ export function MixerBar({
   // right as a drag releases, rather than waiting on the next incidental
   // ResizeObserver/resize event to catch up — see the effect below.
   const measureFixedOverheadRef = useRef<() => void>(() => {});
+  // Same role as measureFixedOverheadRef above, for growableFixedOverheadPx's
+  // own measure() (declared further below) — a second, separate ref since
+  // the two measurements are independent effects with their own
+  // ResizeObservers, not one shared measure() doing both jobs.
+  const measureGrowableFixedOverheadRef = useRef<() => void>(() => {});
+  // Flips isEditModeTransitioning on the instant editMode changes — during
+  // render itself, via React's own documented "adjust state when a value
+  // changes" pattern (a conditional setState call in the render body,
+  // comparing against a previous value tracked in *state*, not a ref —
+  // this project's own lint config flags both ref reads during render and
+  // unconditional setState calls inside effect bodies, so this is the one
+  // shape that satisfies both: no ref touched here at all, and this isn't
+  // inside an effect). prevEditModeForTransition holds editMode as of the
+  // last render this ran on; disagreeing with the current render's
+  // editMode is the transition starting.
+  const [prevEditModeForTransition, setPrevEditModeForTransition] = useState(editMode);
+  if (editMode !== prevEditModeForTransition) {
+    setPrevEditModeForTransition(editMode);
+    setIsEditModeTransitioning(true);
+    // Also pre-seeds growableFixedOverheadPx to its correct value for the
+    // NEW editMode, rather than leaving it frozen at whatever it measured
+    // last (stale — possibly 0, from browse mode, or from before this
+    // render) for the entire transition. Confirmed live as a real bug
+    // without this: the slots/controls row visibly drifted ~16px during
+    // an open animation before snapping back once the transition's own
+    // catch-up remeasurement finally landed — growableFixedOverheadPx is
+    // exactly dialogRef's own marginBottom now that growableRef wraps
+    // dialogRef alone (see that ref's own comment), which is a known,
+    // deterministic value (DIALOG_MARGIN_BOTTOM_PX, matching the literal
+    // var(--space-xl) applied below — not measured from the DOM, since
+    // there's nothing left to discover: dialogRef has no border/padding
+    // of its own, so growableRef's entire "overhead beyond the pool
+    // panel" is just this one margin), not something that actually needs
+    // a live ResizeObserver round-trip to learn. Setting it correctly up
+    // front means cardRef's own marginTop compensation is right from the
+    // very first frame of the transition, and the later catch-up
+    // measurement (isEditModeTransitioning's own effect, below) just
+    // reconfirms the same number instead of correcting a wrong one.
+    setGrowableFixedOverheadPx(editMode ? DIALOG_MARGIN_BOTTOM_PX : 0);
+  }
+  // isTransitioningRef's own write is a genuine effect (`useLayoutEffect`,
+  // matching editModeRef's own identical pattern just above it) — ref
+  // writes belong in effects/handlers, not render, and this still lands
+  // synchronously before paint, well before either measure() effect's own
+  // (inherently asynchronous) ResizeObserver callback could fire against a
+  // mid-transition rect.
+  useLayoutEffect(() => {
+    isTransitioningRef.current = true;
+  }, [editMode]);
+  // Clears the freeze via a plain setTimeout matching
+  // EDIT_PANEL_TRANSITION_MS — not `transitionend`, the same reliability
+  // call RollingLabel.tsx's own comment already makes: an animation/
+  // transition-completion *event* depends on the browser actually
+  // dispatching it, confirmed unreliable enough on real devices in this
+  // app to avoid; a timer tied to the duration this file already controls
+  // doesn't depend on that. Re-measures once via measureFixedOverheadRef/
+  // measureGrowableFixedOverheadRef the instant the freeze lifts — the
+  // same "catch up on anything that changed while frozen" pattern
+  // handleResizeStart's own handleEnd already uses when a drag releases.
+  // Keyed on isEditModeTransitioning itself rather than editMode — it only
+  // ever needs to run while the freeze is actually active, and setting
+  // state unconditionally at the top of this one is fine (not flagged):
+  // it's entirely inside the `if` guard just below, not an unconditional
+  // effect-body call.
+  useEffect(() => {
+    if (!isEditModeTransitioning) return;
+    const timeout = setTimeout(() => {
+      isTransitioningRef.current = false;
+      setIsEditModeTransitioning(false);
+      measureFixedOverheadRef.current();
+      measureGrowableFixedOverheadRef.current();
+    }, EDIT_PANEL_TRANSITION_MS);
+    return () => clearTimeout(timeout);
+  }, [isEditModeTransitioning]);
   // card.height - dialog.height = everything in the edit sheet that ISN'T
   // the pool panel (resize row, slots, controls, cardRef's own border +
   // padding) — now a single subtraction since there's only one box, rather
@@ -831,6 +974,14 @@ export function MixerBar({
     if (!card || !dialog) return;
     function measure() {
       if (isDraggingRef.current) return;
+      // Skips every call while the open/close transition is in flight —
+      // see isTransitioningRef's own declaration for why: dialog's real
+      // height is still animating toward its target here, so anything
+      // measured mid-transition is wrong by construction, not just
+      // occasionally stale. The catch-up call that fires the instant the
+      // freeze lifts (same ref's own effect) is what re-syncs this once
+      // dialog has actually settled at its true final height.
+      if (isTransitioningRef.current) return;
       // See editModeRef's own comment — a late, async callback from an
       // instance whose editMode has since flipped back to false would
       // otherwise measure a collapsed (max-h-0) dialog and commit a wrong,
@@ -998,6 +1149,16 @@ export function MixerBar({
     const growable = growableRef.current;
     if (!growable) return;
     function measure() {
+      // Same open/close-transition freeze as fixedOverheadPx's own
+      // measure() — see isTransitioningRef's own declaration. Especially
+      // important here: this subtraction (growable.height minus the
+      // *already-final-target* effectiveHeightPxRef.current) goes
+      // negative for most of an opening transition, since growable's real
+      // height starts near 0 and only catches up to effectiveHeightPx at
+      // the very end — clamped to 0 by the Math.max below, so an
+      // unfrozen mid-transition read wouldn't just be imprecise, it would
+      // be a flat wrong 0 for nearly the whole animation.
+      if (isTransitioningRef.current) return;
       // See editModeRef's own comment near its declaration — a late,
       // async callback from an instance whose editMode has since flipped
       // back to false would otherwise measure growable's collapsed
@@ -1006,6 +1167,7 @@ export function MixerBar({
       if (!editModeRef.current) return;
       setGrowableFixedOverheadPx(Math.max(0, growable!.getBoundingClientRect().height - effectiveHeightPxRef.current));
     }
+    measureGrowableFixedOverheadRef.current = measure;
     const observer = new ResizeObserver(measure);
     observer.observe(growable);
     measure();
@@ -1016,12 +1178,48 @@ export function MixerBar({
   // fractions of the SAME reference, poolPanelMaxHeight (the live-measured
   // ceiling the drag handle itself already respects), not the raw
   // viewport — one consistent basis for the pair rather than two different
-  // ones. Clears any in-flight drag too, not just the persisted value, so
-  // this is a real, immediate jump even if triggered mid-drag.
+  // ones. Clears any in-flight drag too, not just the persisted value.
+  //
+  // isSnapTransitioning triggers the same smooth grow/shrink animation as
+  // opening/closing (see EDIT_PANEL_TRANSITION_MS's own comment), requested
+  // as a follow-up once that mechanism was confirmed stable — a snap-click
+  // now eases toward its target instead of jumping instantly. A plain
+  // state set directly in this event handler, not the render-phase
+  // pattern isEditModeTransitioning needs (that one exists specifically
+  // because editMode is a prop this component doesn't control the timing
+  // of; this one changes in response to a click this same handler already
+  // owns, so there's no "adjust state when a prop changes" problem to work
+  // around — an ordinary setState call in an event handler needs no
+  // special-casing).
   function handleSnapPoolHeight(fraction: number) {
     setDragHeightPx(null);
+    isTransitioningRef.current = true;
+    setIsSnapTransitioning(true);
     setPoolPanelHeightPref(poolPanelMaxHeight * fraction);
   }
+  // The down arrow's own target — POOL_HEIGHT_MIN, not a fraction of
+  // poolPanelMaxHeight, so this can't just be another handleSnapPoolHeight
+  // call. Same transition-triggering as the 50%/100% snaps, requested to
+  // match.
+  function handleResetPoolHeight() {
+    setDragHeightPx(null);
+    isTransitioningRef.current = true;
+    setIsSnapTransitioning(true);
+    setPoolPanelHeightPref(POOL_HEIGHT_MIN);
+  }
+  // Clears the snap-triggered freeze/animation the same way
+  // isEditModeTransitioning's own effect clears its — see that effect's
+  // comment for why a setTimeout, not transitionend.
+  useEffect(() => {
+    if (!isSnapTransitioning) return;
+    const timeout = setTimeout(() => {
+      isTransitioningRef.current = false;
+      setIsSnapTransitioning(false);
+      measureFixedOverheadRef.current();
+      measureGrowableFixedOverheadRef.current();
+    }, EDIT_PANEL_TRANSITION_MS);
+    return () => clearTimeout(timeout);
+  }, [isSnapTransitioning]);
   // The single resize arrow only shows when its own target is actually
   // reachable — on a short enough viewport, poolPanelMaxHeight itself
   // shrinks small enough that a fraction of it (half, for 50%; the whole
@@ -1244,14 +1442,16 @@ export function MixerBar({
               bubbling wiring — still runs exactly as before, completely
               unmodified, on every breakpoint including mobile. */}
           <div className="hidden min-[993px]:flex items-center gap-0">
-            {/* One arrow at a time, chosen by the panel's current position,
-                not two independently-gated buttons anymore — requested
-                directly. Below 50% of poolPanelMaxHeight: only the 50%
-                arrow. At 50% or above (but not yet at 100%): only the 100%
-                arrow. At 100%: neither — there's nowhere left to jump to,
-                so no arrow at all. The old Reset/down-arrow button is gone
-                entirely, not hidden; dragging back down is still always
-                available via the grip itself.
+            {/* One arrow at a time, chosen by the panel's current position —
+                a clean 3-state cycle, never two shown together. Below 50%
+                of poolPanelMaxHeight: the 50% arrow. At 50% or above but
+                short of 100%: the 100% arrow. At 100%: a down arrow back to
+                POOL_HEIGHT_MIN (the default/minimum, not halfway back down
+                to 50% — requested directly, matching the old Reset
+                button's own target from before this became a single-arrow
+                cycle). Dragging back down by hand via the grip is also
+                always available regardless of which arrow (if any) is
+                currently showing.
 
                 frozenReachability substitutes for the live
                 canReach*Height — see that state's own declaration for the
@@ -1264,8 +1464,20 @@ export function MixerBar({
                 so this still correctly swaps/hides the instant a real drag
                 crosses 50% or reaches 100% — only the "is this reachable
                 at all" half is frozen, and only for the span of a press. */}
-            {!isAtFullHeight &&
-              (isBelowHalfHeight
+            {isAtFullHeight
+              ? (frozenReachability ? frozenReachability.canReachFull : canReachFullHeight) && (
+                  <IconButton
+                    size="sm"
+                    border="none"
+                    backgroundColor="transparent"
+                    title="Reset pool panel to default height"
+                    aria-label="Reset pool panel to default height"
+                    onClick={handleResetPoolHeight}
+                  >
+                    <ArrowDownIcon className="text-[var(--muted)]" />
+                  </IconButton>
+                )
+              : isBelowHalfHeight
                 ? (frozenReachability ? frozenReachability.canReachHalf : canReachHalfHeight) && (
                     <IconButton
                       size="sm"
@@ -1289,7 +1501,7 @@ export function MixerBar({
                     >
                       <ArrowUpIcon className="text-[var(--muted)]" />
                     </IconButton>
-                  ))}
+                  )}
           </div>
           {/* IconButton, not a bare div — matches the arrow and Close
               buttons on either side of it exactly (same size="sm" 30×30
@@ -1398,9 +1610,38 @@ export function MixerBar({
     // variable) so the margin snaps back to 0 the instant editMode goes
     // false, rather than waiting on the measurement effect's own cleanup
     // to catch up.
+    //
+    // transitionProperty/transitionDuration below: smoothly animates this
+    // box growing upward on open/resize-up, shrinking down on close/
+    // resize-down — requested directly, this used to snap instantly.
+    // Active while isEditModeTransitioning OR isSnapTransitioning (see
+    // each state's own declaration) — deliberately NOT simply "not
+    // dragging": an earlier version gated this on `dragHeightPx === null`
+    // alone, which covers an editMode toggle correctly but also included
+    // `handleSnapPoolHeight`'s own instant jump (the 50%/100%/reset
+    // shortcuts also set `dragHeightPx` to `null`, since a discrete snap
+    // isn't a drag either), animating something that was supposed to stay
+    // instant at the time — confirmed live as a real, reported regression
+    // ("resize arrows glitch... continuous instead of instant"). Once
+    // snap-triggered animation was later requested too, `isSnapTransitioning`
+    // was added as its own explicit flag (set directly in
+    // handleSnapPoolHeight/handleResetPoolHeight, both event handlers, not
+    // render) rather than reverting to the broader-but-wrong
+    // `dragHeightPx === null` check — the two flags compose with a plain
+    // OR, and an active drag still never sets either one, so dragging
+    // remains exactly as instant/1:1 as before. EDIT_PANEL_TRANSITION_MS
+    // drives both this and dialogRef's own matching height/margin-bottom
+    // transition below (same constant, so the two can't drift out of
+    // sync) — see that constant's own comment for why this is an inline
+    // style, not a Tailwind duration-[Npx] class.
     <div
       ref={cardRef}
-      style={{ marginTop: editMode ? -(growableFixedOverheadPx + effectiveHeightPx) : 0 }}
+      style={{
+        marginTop: editMode ? -(growableFixedOverheadPx + effectiveHeightPx) : 0,
+        transitionProperty: isEditModeTransitioning || isSnapTransitioning ? "margin-top" : "none",
+        transitionDuration: `${EDIT_PANEL_TRANSITION_MS}ms`,
+        transitionTimingFunction: "ease-in-out",
+      }}
       // z-[var(--z-overlay)] — confirmed live as a real bug without a
       // z-index here: ResultCard's own front face (ResultCard.tsx) is
       // `position:absolute` with an explicit z-[var(--z-raised)] — per
@@ -1492,27 +1733,70 @@ export function MixerBar({
           derived — see TagPoolBody's own top comment for why that
           derivation moved out of this file). This wrapper's natural
           height is just TagPoolBody's own rendered height, which sums to
-          ~effectiveHeightPx by construction. Explicit height +
-          overflow-hidden was tried here first and reverted: a flex-col
-          container whose explicit height is *smaller* than its natural
-          content height clips from the START (top) under overflow:hidden,
-          not the end — confirmed live via getBoundingClientRect (the tab
-          strip measured *above* its own parent's top edge once clipped),
-          which is exactly backwards from what's wanted here (tabs should
-          stay visible; chips are what should ever be the clipped/scrolled
-          part).
+          ~effectiveHeightPx by construction.
 
-          Sits directly above the slots — not between the slots and
-          controls, where an earlier version placed it. Placing it here
-          means opening/closing edit mode only ever inserts/removes this
-          one block in a single spot, rather than also shifting the
-          slots row itself down and back. */}
+          An EARLIER attempt at a *fixed, static* explicit height here
+          (unrelated to the animation below, from before this file settled
+          on max-h-0/unconstrained as the open/closed toggle) was tried and
+          reverted: a flex-col container whose explicit height was smaller
+          than its natural content height clipped from the START (top)
+          under overflow:hidden, not the end — confirmed live via
+          getBoundingClientRect (the tab strip measured *above* its own
+          parent's top edge once clipped). That was a plain miscalculated
+          height value, not a general "flex-col + overflow-hidden always
+          clips the wrong edge" rule — this element's own children stack
+          top-down with default (flex-start) alignment, so overflow:hidden
+          ordinarily clips whatever doesn't fit at the *bottom*, matching
+          what's wanted (tabs stay visible, chips are what scrolls/clips).
+          The animated height below reuses this same reasoning, now
+          transitioning toward effectiveHeightPx (the one number this file
+          already trusts as the pool panel's own exact target height, not
+          a fresh guess) rather than being statically wrong — live-verified
+          on open that the tab row stays visible throughout the reveal, not
+          clipped away until the end. */}
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-label="Edit tags"
         tabIndex={-1}
+        // height (not max-height)/overflow-hidden/transition* — animates
+        // this panel's own reveal (grows on open, shrinks on close) in
+        // lockstep with cardRef's own marginTop transition above (same
+        // EDIT_PANEL_TRANSITION_MS, same drag-suppression rule — see that
+        // style's own comment for the full reasoning, identical here).
+        // overflow-hidden is now permanent (open and closed alike, not
+        // just while closed) — needed for the height animation itself to
+        // clip correctly mid-transition; confirmed live nothing inside
+        // TagPoolBody currently needs to bleed outside this box once fully
+        // open (its own ScrollFadeArea instances are already self-
+        // contained).
+        //
+        // height, not max-height — confirmed live as a real bug with
+        // max-height specifically for *shrinking* transitions (the 100%→
+        // default down-arrow, or any decreasing resize snap): TagPoolBody
+        // receives effectiveHeightPx directly as its own poolPanelHeightPx
+        // prop, with no transition of its own, so its internal chip-area
+        // height snaps to the new, smaller target the instant React
+        // commits — before dialogRef's own CSS transition has had any
+        // chance to visually shrink. With max-height, once that
+        // now-already-shrunk content becomes smaller than the
+        // still-transitioning (still large) max-height ceiling, this
+        // element's own rendered size collapses to match content
+        // immediately — the max-height transition becomes irrelevant the
+        // moment content stops being the larger of the two, and growing
+        // transitions never hit this because content is always *already*
+        // at its full new (larger) size from the first frame, so the
+        // ceiling stays the binding constraint throughout. A hard
+        // `height` doesn't have this escape hatch: the box is always
+        // exactly the CSS-interpolated value, whether content is smaller
+        // (leaving it clipped-but-not-yet-caught-up, invisible under
+        // overflow-hidden) or larger, so growableRef's own true rendered
+        // height — and therefore cardRef's required marginTop
+        // compensation — now changes smoothly and predictably in every
+        // direction, not just growing ones. Confirmed live: the
+        // slots/controls row previously visibly jumped when the down
+        // arrow reset the panel; it no longer moves.
         // mb-xl (16px), not mb-lg (12px) like this row's other internal
         // gaps: this is specifically the gap the chip area's down arrow
         // sits flush against (bottom:0, no inset of its own — see
@@ -1522,7 +1806,47 @@ export function MixerBar({
         // before the slots below — confirmed live that nudging the arrow's
         // own inset instead left it floating oddly off the edge it's meant
         // to sit against.
-        className={editMode ? "flex flex-col mb-[var(--space-xl)] outline-none" : "max-h-0 overflow-hidden"}
+        //
+        // marginBottom stays in the inline style (editMode-conditional,
+        // not baked into the className unconditionally) — kept from
+        // leaking into browse mode: growableRef's own flow-root (see that
+        // ref's comment) means dialogRef's bottom margin counts toward
+        // growableRef's own measured height whenever it's present, so an
+        // unconditional margin here would add 16px of unwanted dead space
+        // below the (fully collapsed, max-height:0) bar in browse mode,
+        // where marginTop is unconditionally 0 and can't compensate for
+        // it — confirmed by reasoning through growableFixedOverheadPx's
+        // own flow-root comment, not assumed.
+        //
+        // margin-bottom is animated too, not just max-height — confirmed
+        // live as a real bug otherwise: an earlier version toggled it
+        // instantly (no transition) while max-height animated smoothly,
+        // so growableRef's own true rendered height (max-height +
+        // margin-bottom) took a sudden +16px/-16px step the instant
+        // editMode flipped, on top of the smooth max-height change —
+        // cardRef's own marginTop transition has no matching step (it
+        // transitions smoothly toward its final target from the start),
+        // so the two drifted out of sync for the transition's own
+        // duration, reading as the slots/controls row briefly shifting
+        // position (confirmed live via getBoundingClientRect: ~4px)
+        // before settling back to its correct, unmoved spot at the end —
+        // the exact "slots/controls never move" invariant this whole
+        // mechanism exists to guarantee. Animating both together keeps
+        // growableRef's real height (and therefore cardRef's required
+        // compensation) changing smoothly and only in the ways
+        // marginTop's own transition already accounts for.
+        //
+        // Same isEditModeTransitioning gate as cardRef's own marginTop
+        // transition above (see that style's own comment for why this
+        // isn't simply `dragHeightPx === null`).
+        style={{
+          height: editMode ? effectiveHeightPx : 0,
+          marginBottom: editMode ? "var(--space-xl)" : 0,
+          transitionProperty: isEditModeTransitioning || isSnapTransitioning ? "height, margin-bottom" : "none",
+          transitionDuration: `${EDIT_PANEL_TRANSITION_MS}ms`,
+          transitionTimingFunction: "ease-in-out",
+        }}
+        className="flex flex-col outline-none overflow-hidden"
       >
         <TagPoolBody
           allTags={allTags}
@@ -1686,9 +2010,24 @@ export function MixerBar({
                 scrolls almost exactly one slot at a time, the same
                 "one meaningful unit per step" reasoning SectionTabStrip's
                 own SCROLL_STEP already uses for its tabs. */}
-            <div className="min-w-0">
+            {/* -mb-[4px]/-mr-[4px] cancel the pb-[4px]/pr-[4px] on the
+                scrollable content below — the same pad-then-cancel shadow-
+                clipping fix already established for the results carousel
+                and ResultCard (see DESIGN_SYSTEM.md), applied here for the
+                identical reason: ScrollFadeArea's own horizontal viewport
+                is unconditionally overflow-x-auto/overflow-y-hidden, which
+                clips a filled TagSlot's own shadow-[var(--elev-3-accent)]
+                (a flat 4px/4px bottom-right offset, no blur) at the
+                viewport's bottom edge for every slot, and additionally at
+                the right edge for whichever slot is currently last/
+                right-most in the scrollable content — confirmed live as
+                exactly the reported bug (filled slots missing their own
+                bottom shadow, the last slot missing its right shadow too).
+                4px matches --elev-3-accent's own offset exactly, not a
+                guess. */}
+            <div className="min-w-0 -mb-[4px] -mr-[4px]">
               <ScrollFadeArea orientation="horizontal" scrollStep={90} fadeSize={12} fitContent restrictTouchAction>
-                <div className="flex gap-[var(--space-lg)]">
+                <div className="flex gap-[var(--space-lg)] pb-[4px] pr-[4px]">
                   {slots.map((tag, index) => (
                     <TagSlot
                       key={index}

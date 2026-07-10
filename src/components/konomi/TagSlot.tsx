@@ -144,8 +144,8 @@ export function TagSlot({ index, tag, isDragOver, onDragOver, onDragLeave, onDro
         // (sm:hidden below 640px) before, now it's the one and only form
         // at every width, since there's no longer a taller tier with room
         // to spare for it.
-        <span className="pointer-events-none whitespace-nowrap font-mono text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase text-[var(--muted)]">
-          ADD TAG
+        <span className="pointer-events-none whitespace-nowrap font-mono text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] lowercase text-[var(--muted)]">
+          add tag
         </span>
       )}
     </div>
