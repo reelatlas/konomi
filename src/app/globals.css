@@ -618,36 +618,20 @@
 }
 
 /* RollingLabel's own slot-machine roll (MatchSelector/LevelSelector/
-   SortSelect's collapsed forms). Keyframe animations, not a transitioned
-   className toggle. A transition needs the browser to have actually
-   painted a genuine "before" frame before the "after" class lands, which
-   React's own commit timing can only approximate (double-rAF), and
-   confirmed live as unreliable: the roll sometimes never played at all.
-   A freshly-applied animation class always starts from its own 0% keyframe
-   regardless of commit/paint timing, so simply having the class present
-   the instant a roll starts is enough, no frame choreography required. */
-@keyframes roll-out-up {
-  from {
-    translate: 0 0%;
-  }
-  to {
-    translate: 0 -100%;
-  }
-}
+   SortSelect's collapsed forms) used to live here as roll-out-up/roll-in-up
+   keyframes — removed once RollingLabel.tsx migrated to Motion
+   (motion/react)'s own AnimatePresence + motion.span initial/animate/exit,
+   which bakes in the identical "always start from a genuine before-state,
+   never depend on the browser having already painted one" guarantee this
+   app's own keyframe convention was hand-built to provide. See
+   RollingLabel.tsx's own comment and DESIGN_SYSTEM.md for the full
+   migration writeup.
 
-@keyframes roll-in-up {
-  from {
-    translate: 0 100%;
-  }
-  to {
-    translate: 0 0%;
-  }
-}
-
-/* ResultCard's enter/exit (RecommendationsBody.tsx's own results carousel):
-   same "keyframe, not transition" reasoning as roll-in-up/roll-out-up
-   above — a freshly-mounted (enter) or about-to-unmount (exit) card has no
-   painted "before" frame a transition could reliably animate from. Enter
+   ResultCard's enter/exit (RecommendationsBody.tsx's own results carousel,
+   just below) still uses the same "keyframe, not transition" reasoning
+   directly, as plain CSS — a freshly-mounted (enter) or about-to-unmount
+   (exit) card has no painted "before" frame a transition could reliably
+   animate from. Enter
    rises INTO place (from below); exit sinks OUT of place (downward) while
    fading — a deliberate bookend, requested directly after trying the
    "both rise" version live. Duration/delay/timing-function/

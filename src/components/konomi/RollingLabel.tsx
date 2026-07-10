@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 
 interface RollingLabelProps {
   value: string;
@@ -25,23 +25,33 @@ interface RollingLabelProps {
 // `value` prop changing), nothing about the roll itself is component-
 // specific.
 //
+// Migrated to Motion (motion/react) from a hand-rolled CSS-keyframe +
+// setTimeout state machine — see DESIGN_SYSTEM.md for the full writeup of
+// what was removed and why (step 1 of the planned Motion migration,
+// /Users/sean/.claude/plans/deep-meandering-comet.md). AnimatePresence's
+// own key-based mount/unmount replaces the old outgoing/rollId state pair
+// and its cleanup setTimeout.
+//
 // IMPORTANT for any future caller that also shows a hover/focus-driven hint
 // next to this label (as MatchSelector/LevelSelector both do): this
-// component swaps its own child DOM on every roll (the idle span unmounts,
-// a two-span rolling pair mounts in its place, then unmounts back to a
-// fresh idle span ROLL_DURATION_MS later) — directly under wherever a tap
-// just landed, since the surrounding button doesn't move. Swapping a child
-// out from under an active touch point is the same mechanism already
-// confirmed (via real-device Web Inspector logging) to trigger a spurious
-// blur/mouseleave on the ancestor button in ResultCard.tsx's own lock icon
-// (LockClosedIcon <-> LockOpenIcon). If a caller's hint-dismiss logic
-// depends on native onBlur/onMouseLeave without gating them to
-// supportsHover (useSupportsHover.ts), that spurious blur can fire right as
-// a roll starts and hide the hint immediately — the roll itself still
-// plays fine (nothing about it depends on the hint's own state), so the
-// bug reads as "the animation happens but the hint doesn't show," and only
-// intermittently, since it depends on real device paint/compositor timing
-// this app doesn't control (confirmed not reproducible in headless/
+// component still swaps its own child DOM on every roll — AnimatePresence
+// unmounts the old `key={value}` element and mounts a new one, the same
+// underlying mount/unmount mechanism the previous rollId-keyed version
+// used, NOT a persistent node Motion morphs in place. Swapping a child out
+// from under an active touch point is the same mechanism already confirmed
+// (via real-device Web Inspector logging) to trigger a spurious blur/
+// mouseleave on the ancestor button in ResultCard.tsx's own lock icon
+// (LockClosedIcon <-> LockOpenIcon). Migrating this component to Motion
+// does NOT remove that risk — it was checked, not assumed: AnimatePresence
+// keys still cause a genuine mount/unmount, so the same failure mode this
+// codebase already hit remains just as possible here. If a caller's
+// hint-dismiss logic depends on native onBlur/onMouseLeave without gating
+// them to supportsHover (useSupportsHover.ts), that spurious blur can fire
+// right as a roll starts and hide the hint immediately — the roll itself
+// still plays fine (nothing about it depends on the hint's own state), so
+// the bug reads as "the animation happens but the hint doesn't show," and
+// only intermittently, since it depends on real device paint/compositor
+// timing this app doesn't control (confirmed not reproducible in headless/
 // emulated Chromium). Any button pairing this component with a hover/
 // blur-driven hint must gate onBlur/onMouseEnter/onMouseLeave behind
 // supportsHover and rely on something timing-independent (e.g. an outside-
@@ -51,69 +61,23 @@ interface RollingLabelProps {
 //
 // Exported so each caller's own collapsed onClick can gate against firing a
 // second `onChange` before this component's own roll has actually finished
-// (see each caller's own comment on why that gate exists at all). Sharing
-// this one number is what keeps the gate's own duration from silently
-// drifting out of sync with the roll it's protecting.
+// (see each caller's own comment on why that gate exists at all, and why it
+// stays in place — rollBusyRef was NOT removed by this migration; Motion's
+// own interruption handling wasn't assumed sufficient to protect against
+// the real-device WebKit compositor-desync bug rollBusyRef guards against,
+// only confirmed sufficient, or not, by re-running that bug's own original
+// rapid-tap repro — see DESIGN_SYSTEM.md). Sharing this one number is what
+// keeps the gate's own duration from silently drifting out of sync with
+// the roll it's protecting.
 export const ROLL_DURATION_MS = 220;
-// CSS keyframe animations (roll-out-up/roll-in-up, globals.css), not a
-// transitioned className toggle driven by a double-requestAnimationFrame
-// delay. An earlier version of this component used the latter, and it was
-// confirmed live, twice independently, as genuinely unreliable: the roll
-// sometimes simply never played (landing straight on the destination
-// value with no visible motion), and separately, interrupting one roll
-// with another rapid click could leave the transition permanently stuck
-// mid-flight. A CSS transition only animates a property CHANGE the browser
-// has already painted a "before" value for, which is why that version
-// needed React's commit to land, then an actual paint, then only THEN the
-// "after" state, three ordered events a double rAF can only approximate,
-// not guarantee, and evidently not reliably enough on a real device. A
-// freshly-applied `animation` class has no such requirement: its own 0%
-// keyframe IS the before state, baked into the animation itself, so simply
-// having the class present the instant a roll starts is enough regardless
-// of any paint/commit ordering.
-const ANIMATION_STYLE = `${ROLL_DURATION_MS}ms ease-out forwards`;
+const ROLL_DURATION_S = ROLL_DURATION_MS / 1000;
+// Motion's own named easing, not a hand-matched cubic-bezier array — chosen
+// as the closest idiomatic equivalent to the previous CSS animation's plain
+// `ease-out` keyword. Revisit with an explicit bezier only if a direct
+// side-by-side comparison shows a real feel mismatch, not preemptively.
+const ROLL_TRANSITION = { duration: ROLL_DURATION_S, ease: "easeOut" } as const;
 
 export function RollingLabel({ value, sizeToWidestOf, className }: RollingLabelProps) {
-  // The value currently animating OUT, null whenever idle (not mid-roll).
-  const [outgoing, setOutgoing] = useState<string | null>(null);
-  // Tracks the value this component last actually rendered at rest, read
-  // (not state) since it must never itself trigger a re-render. Only
-  // `value` changing does that, via the effect below.
-  const currentRef = useRef(value);
-  // Increments once per roll, used as the animating pair's own `key` below.
-  // Forces React to mount a genuinely fresh element pair every time, rather
-  // than updating an existing one in place. This matters even though each
-  // caller's own onClick already gates against overlapping rolls (see
-  // ROLL_DURATION_MS's own comment): a stable key, reused across two
-  // back-to-back rolls, wouldn't reliably restart a CSS animation the
-  // browser already considers "the same value" as before. A fresh element
-  // always starts its animation from 0%, a reused one might not. Real
-  // state, not a ref: a ref's `.current` can't be read during render (only
-  // in effects/handlers), and this value is read directly in the JSX below
-  // as a `key`.
-  const [rollId, setRollId] = useState(0);
-
-  useEffect(() => {
-    if (value === currentRef.current) return;
-    setOutgoing(currentRef.current);
-    currentRef.current = value;
-    setRollId((id) => id + 1);
-  }, [value]);
-
-  // A plain timer, not `onAnimationEnd`, cleans up once the roll finishes.
-  // Matching the same, already-confirmed-live reasoning `onTransitionEnd`
-  // failed for in this component's earlier, transition-based version (see
-  // ANIMATION_STYLE's own comment): an animation-completion EVENT depends
-  // on the browser actually dispatching it, which proved unreliable here;
-  // a `setTimeout` matching the animation's own declared duration doesn't
-  // depend on that at all, only on the duration this component already
-  // controls directly.
-  useEffect(() => {
-    if (outgoing === null) return;
-    const timeout = setTimeout(() => setOutgoing(null), ROLL_DURATION_MS);
-    return () => clearTimeout(timeout);
-  }, [outgoing]);
-
   // Sizes this box from the WIDEST candidate in sizeToWidestOf, permanently
   // fixed regardless of which value is currently showing, not from
   // whichever of outgoing/value happens to be longer at this exact moment.
@@ -140,7 +104,8 @@ export function RollingLabel({ value, sizeToWidestOf, className }: RollingLabelP
   // length (not a real measured pixel width) is a valid proxy specifically
   // because this whole label is font-mono (IBM Plex Mono, globals.css), a
   // true monospace face where every character occupies the same width, so
-  // the longest string is always the widest one.
+  // the longest string is always the widest one. Unrelated to the Motion
+  // migration — untouched by it.
   const sizingCandidates = sizeToWidestOf ?? [value];
   const sizingText = sizingCandidates.reduce((widest, candidate) => (candidate.length > widest.length ? candidate : widest), value);
 
@@ -164,39 +129,38 @@ export function RollingLabel({ value, sizeToWidestOf, className }: RollingLabelP
       <span aria-hidden className="invisible pointer-events-none">
         {sizingText}
       </span>
-      {/* Idle and mid-roll are two entirely separate elements (not one
-          span reused across both), specifically so the moment a roll
-          finishes and this collapses back down to a single resting span,
-          that span is a fresh mount with no leftover animation state to
-          carry forward. Confirmed live as a real, visible bug in an
-          earlier version that reused one element for both roles: the
-          settled span still carried the mid-roll transition, so resetting
-          its own class back to the resting position triggered a second,
-          unwanted animated "bounce back" right after the intended roll had
-          already finished. */}
-      {outgoing === null ? (
-        <span aria-hidden className="absolute inset-0 pointer-events-none">
+      {/* initial={false}: skips the enter animation on this component's own
+          first mount (matching the old implementation's `outgoing` starting
+          `null` — the very first render just shows `value`, no roll, only
+          a `value` CHANGE ever triggers one). mode is left at its default
+          ("sync"): the outgoing and incoming spans are both absolutely
+          positioned and need to animate concurrently, not sequentially. */}
+      <AnimatePresence initial={false}>
+        {/* key={value}, not a separately-tracked rollId counter — Motion's
+            own AnimatePresence already remounts a fresh element whenever
+            its key changes, the exact same "always start a fresh 0%/100%
+            state, never reuse an in-flight one" guarantee the old rollId
+            existed to provide by hand. pointer-events-none, matching the
+            old implementation: belt-and-suspenders against a real, reported
+            (though never reproduced outside a real device) mobile paint/
+            hit-test desync near this row's collapsed controls — a click
+            always reaches the actual <button> regardless of what's
+            painted on top of it, but this span has no interactive purpose
+            of its own to justify staying hit-testable while an in-flight
+            transform (and whatever compositing layer it promotes onto) is
+            animating. */}
+        <motion.span
+          key={value}
+          aria-hidden
+          className="absolute inset-0 pointer-events-none"
+          initial={{ y: "100%" }}
+          animate={{ y: "0%" }}
+          exit={{ y: "-100%" }}
+          transition={ROLL_TRANSITION}
+        >
           {value}
-        </span>
-      ) : (
-        // pointer-events-none on both animating spans, belt-and-suspenders
-        // against a real, reported (though not yet reproduced outside a
-        // real device) mobile paint/hit-test desync near this row's
-        // collapsed controls. A click always reaches the actual <button>
-        // regardless of which of its own decorative children happens to be
-        // painted on top, but these spans have no interactive purpose of
-        // their own either way, so there's no reason to leave them
-        // hit-testable at all while a translate animation (and whatever
-        // compositing layer promotion it triggers) is actively running.
-        <span key={rollId} aria-hidden>
-          <span className="absolute inset-0 pointer-events-none" style={{ animation: `roll-out-up ${ANIMATION_STYLE}` }}>
-            {outgoing}
-          </span>
-          <span className="absolute inset-0 pointer-events-none" style={{ animation: `roll-in-up ${ANIMATION_STYLE}` }}>
-            {value}
-          </span>
-        </span>
-      )}
+        </motion.span>
+      </AnimatePresence>
     </span>
   );
 }
