@@ -133,7 +133,11 @@ export function LevelSelector({ value, onChange, collapsed }: LevelSelectorProps
           // colors, what this used before). See MatchSelector's own
           // identical comment for the full reasoning, shared verbatim
           // across all three of this row's collapsed controls.
-          className="py-[var(--space-md)] px-[var(--space-lg)] border-0 cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] whitespace-nowrap bg-[var(--surface)] text-[var(--ink)]"
+          //
+          // [outline:none] — see MatchSelector's own identical comment for
+          // the full reasoning (this control's own .focus() call has the
+          // same newly-reliable-focus side effect).
+          className="py-[var(--space-md)] px-[var(--space-lg)] border-0 [outline:none] cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] whitespace-nowrap bg-[var(--surface)] text-[var(--ink)]"
         >
           <RollingLabel value={activeOption.label} sizeToWidestOf={LEVEL_LABELS} />
         </button>

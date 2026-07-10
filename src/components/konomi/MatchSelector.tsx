@@ -135,7 +135,33 @@ export function MatchSelector({ value, onChange, collapsed }: MatchSelectorProps
           // setting." Matching the inactive color instead reads as the
           // latter. RollingLabel (below) is what gives a tap its own
           // feedback now that color no longer visibly changes on click.
-          className="py-[var(--space-md)] px-[var(--space-lg)] border-0 cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] bg-[var(--surface)] text-[var(--ink)]"
+          //
+          // [outline:none]: this button now reliably receives real DOM
+          // focus on every tap (the e.currentTarget.focus() call above),
+          // where before — on touch, where native tap-to-focus on a plain
+          // button is unreliable — it often simply never did. Nothing in
+          // this app suppresses the browser's own default focus outline
+          // anywhere, so whichever outline behavior shows up here has
+          // always been whatever each browser engine's own :focus-visible
+          // heuristic decides for a pointer-originated focus — confirmed
+          // in headless Chromium that heuristic already suppresses it
+          // (outlineStyle: none even while genuinely focused), but mobile
+          // WebKit has its own, less consistent implementation of that
+          // same heuristic. A real, persistent outline that only started
+          // reliably appearing once focus itself became reliable is the
+          // leading candidate for a reported jitter during MixerBar's
+          // panel open/close/drag (this button sits in that panel's own
+          // continuously-reflowing controls row) — ruled out first,
+          // empirically: an A/B render-count comparison (before/after the
+          // commit that added the .focus() call) showed this component
+          // re-renders exactly as often during a drag either way, so the
+          // jitter isn't from any new render frequency. Explicit, not
+          // relying on each engine's own heuristic to agree: this button
+          // already has its own strong, deliberate focus indicator (the
+          // hint span below, and RollingLabel's own roll), so a ring adds
+          // nothing and isn't worth leaving to inconsistent per-engine
+          // default behavior.
+          className="py-[var(--space-md)] px-[var(--space-lg)] border-0 [outline:none] cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] bg-[var(--surface)] text-[var(--ink)]"
         >
           <RollingLabel value={value} />
         </button>
