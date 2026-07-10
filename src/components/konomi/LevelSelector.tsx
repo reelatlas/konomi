@@ -1,3 +1,4 @@
+import type { MouseEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { LEVEL_OPTIONS } from "@/lib/konomi/tagPool";
 import type { LevelKey } from "@/lib/konomi/types";
@@ -71,12 +72,19 @@ export function LevelSelector({ value, onChange, collapsed }: LevelSelectorProps
   // discontinuity in the first place" fix applied to a new instance of the
   // same class of bug.
   const rollBusyRef = useRef(false);
-  function handleCollapsedClick() {
+  function handleCollapsedClick(e: MouseEvent<HTMLButtonElement>) {
     if (rollBusyRef.current) return;
     rollBusyRef.current = true;
     setTimeout(() => {
       rollBusyRef.current = false;
     }, ROLL_DURATION_MS);
+    // e.currentTarget.focus() — see MatchSelector's own identical comment:
+    // without this, onFocus never actually fires on a mobile tap, and
+    // gating onMouseEnter/onMouseLeave to supportsHover then left touch
+    // with no way to show this hint at all (onMouseEnter's own
+    // touch-synthesized firing had been the real, accidental trigger this
+    // whole time).
+    e.currentTarget.focus();
     onChange(nextLevel(value));
   }
 

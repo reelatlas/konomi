@@ -1,3 +1,4 @@
+import type { MouseEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import type { MatchKey } from "@/lib/konomi/types";
 import { ROLL_DURATION_MS, RollingLabel } from "./RollingLabel";
@@ -54,12 +55,23 @@ export function MatchSelector({ value, onChange, collapsed }: MatchSelectorProps
   // matching this app's own already-diagnosed real-device WebKit
   // compositor-desync family of bug).
   const rollBusyRef = useRef(false);
-  function handleCollapsedClick() {
+  function handleCollapsedClick(e: MouseEvent<HTMLButtonElement>) {
     if (rollBusyRef.current) return;
     rollBusyRef.current = true;
     setTimeout(() => {
       rollBusyRef.current = false;
     }, ROLL_DURATION_MS);
+    // e.currentTarget.focus() — mobile Safari/Chrome don't reliably give a
+    // plain, already-mounted <button> real focus from a tap the way a mouse
+    // click does natively (same reasoning as ResultCard.tsx's own lock/swap
+    // buttons). Without this, onFocus below never actually fires on touch,
+    // so once onMouseEnter/onMouseLeave were gated to supportsHover (see
+    // that prop's own comment on the button below), touch lost its only
+    // remaining way to show this hint at all — confirmed live as a real
+    // regression this exact fix introduced, since onMouseEnter's own
+    // touch-synthesized firing had been the hint's actual (accidental)
+    // trigger on mobile the whole time, not onFocus.
+    e.currentTarget.focus();
     onChange(nextMatch(value));
   }
 
