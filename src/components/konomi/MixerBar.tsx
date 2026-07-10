@@ -1322,6 +1322,30 @@ export function MixerBar({
     // scrollHeight dip clamping scrollY — continues for the whole drag, not
     // just its first frame.
     pinScrollToDocumentBottomIfWasAtBottom();
+    // rAF-throttles the actual state commit (setDragHeightPx + the scroll-
+    // restore call below it) to at most once per paint frame — added after
+    // measuring, via Chrome's own Performance.getMetrics (LayoutCount), that
+    // handleMove previously committed a real layout change on every raw
+    // pointermove with no throttle at all: on a device/input that fires
+    // pointermove faster than the display can paint (common on touchscreens
+    // and high-poll-rate mice), that's genuine reflow work spent on frames
+    // that could never even be shown. pendingNext always holds the latest
+    // computed target regardless of how many pointermove events arrive
+    // between two paints; only the most recent one is ever actually
+    // committed. preventDefault stays outside the throttle, on every raw
+    // event, unchanged — it has to run synchronously for the specific event
+    // it's suppressing, deferring it a frame would be too late.
+    let pendingNext: number | null = null;
+    let rafId: number | null = null;
+    function flushPendingMove() {
+      rafId = null;
+      if (pendingNext === null) return;
+      const next = pendingNext;
+      pendingNext = null;
+      liveHeightRef.current = next;
+      setDragHeightPx(next);
+      pinScrollToDocumentBottomIfWasAtBottom();
+    }
     function handleMove(ev: PointerEvent) {
       // Still calling preventDefault, even with capture + touch-action:none
       // both already in place — belt-and-suspenders, matching this app's
@@ -1336,12 +1360,25 @@ export function MixerBar({
       // controls are fixed, so growing the *total* bar can only ever be
       // absorbed by the one flexible region.
       const delta = startY - ev.clientY;
-      const next = clampPoolPanelHeight(startHeight + delta, poolPanelMaxHeight);
-      liveHeightRef.current = next;
-      setDragHeightPx(next);
-      pinScrollToDocumentBottomIfWasAtBottom();
+      pendingNext = clampPoolPanelHeight(startHeight + delta, poolPanelMaxHeight);
+      if (rafId === null) {
+        rafId = requestAnimationFrame(flushPendingMove);
+      }
     }
     function handleEnd() {
+      // Applies whatever arrived after the last committed frame (or a
+      // still-queued frame that hasn't run yet) synchronously, before
+      // reading liveHeightRef below — otherwise the persisted height could
+      // be up to one frame stale relative to the pointer's true final
+      // position, and cancels any queued frame so it can't fire again
+      // after setDragHeightPx(null) below, which would otherwise flicker
+      // the panel back to a mid-drag height for one frame right after
+      // release.
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+      flushPendingMove();
       setPoolPanelHeightPref(liveHeightRef.current);
       setDragHeightPx(null);
       isDraggingRef.current = false;
