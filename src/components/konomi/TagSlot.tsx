@@ -8,6 +8,20 @@ interface TagSlotProps {
   onClick: (index: number) => void;
 }
 
+// Tiered by character count, not a live text-fit measurement. A tag's
+// length is known upfront (no async layout round-trip needed), and the
+// real catalog's longest names top out around 28 characters ("Cute Girls
+// Doing Cute Things"), comfortably covered by four tiers. Whimsical by
+// request: a long tag is meant to visibly shrink and wrap rather than
+// truncate, not stay a fixed size.
+function fontSizeClassFor(name: string): string {
+  const len = name.length;
+  if (len <= 8) return "text-[length:var(--text-sm)]";
+  if (len <= 14) return "text-[length:var(--text-xs)]";
+  if (len <= 20) return "text-[length:var(--text-2xs)]";
+  return "text-[length:var(--text-3xs)]";
+}
+
 export function TagSlot({ index, tag, isDragOver, onDragOver, onDragLeave, onDrop, onClick }: TagSlotProps) {
   const filled = Boolean(tag);
 
@@ -46,13 +60,39 @@ export function TagSlot({ index, tag, isDragOver, onDragOver, onDragLeave, onDro
       title={filled ? (tag as string) : undefined}
       aria-label={filled ? (tag as string) : `Empty slot ${index + 1}, tap to add a tag`}
       className={[
-        // One fixed height now, not three responsive tiers: h-[44.5px]
-        // matches IconButton/ActionButton's own shared md height exactly
-        // (see IconButton.tsx's own SIZE_PX comment). These slots now sit
-        // in the same single row as those buttons (MixerBar.tsx, by
-        // request), so they need to actually match that row's real
-        // rendered height, not just a similar-looking one.
-        "flex-1 min-w-[78px] h-[44.5px] px-[var(--space-sm)]",
+        // Fixed w AND h now, not flex-1/min-w: a plain w-[78px], the same
+        // 78px this box already rendered at every breakpoint even before
+        // this comment, confirmed live (down to empty "ADD TAG" state).
+        // flex-1 here was never actually growing this box past 78px in
+        // practice (subgroup A, the 3-slot wrapper, never receives more
+        // width from its own flex parent than its children's own content
+        // needs, so flex-1's grow factor had nothing real to distribute),
+        // but it silently depended on that coincidence holding, which broke
+        // the instant a slot's own content (a real tag name, wrappable, no
+        // longer truncated) got long enough to want more than 78px on one
+        // line: flex-basis:0% items still contribute their own unwrapped
+        // content width to their flex CONTAINER's own intrinsic sizing
+        // (a documented flexbox quirk, not a bug in this app's code), which
+        // inflated subgroup A itself, and flex-1 then spread that extra
+        // width across all 3 slots, not just the long one, confirmed live
+        // as a real, reported regression (a slot visibly widening the
+        // moment a tag was dropped into ANY of the 3, not just its own).
+        // A literal fixed width sidesteps the whole mechanism: nothing
+        // about a slot's own content can ever influence its width, empty or
+        // filled, at any breakpoint, which is exactly what was expected
+        // here even when flex-1 was still doing the (as it turns out,
+        // unnecessary) work of arriving at that same 78px.
+        //
+        // h-[44.5px]: matches IconButton/ActionButton's own shared md
+        // height exactly (see IconButton.tsx's own SIZE_PX comment), and
+        // stays exactly that regardless of fill state or tag length,
+        // requested directly, not allowed to grow taller with wrapped text
+        // the way an earlier version of this let it. overflow-hidden is
+        // the backstop for fontSizeClassFor's smallest tier at the longest
+        // real tag name, not the primary mechanism: that tier is already
+        // sized to fit the real catalog's longest name (see its own
+        // comment) within this exact height.
+        "w-[78px] h-[44.5px] px-[var(--space-sm)] overflow-hidden",
         "flex items-center justify-center transition-transform duration-75",
         filled ? "cursor-grab" : "cursor-pointer",
         "border-[length:var(--border-base)]",
@@ -81,16 +121,21 @@ export function TagSlot({ index, tag, isDragOver, onDragOver, onDragLeave, onDro
       ].join(" ")}
     >
       {filled ? (
-        // Single truncated line now, not a 2-line-clamp name + "TAP TO
-        // CLEAR" caption stacked beneath it: there's no room left for a
-        // second line or a caption at this box's own new 44.5px height
-        // (matching the row's buttons, see the height comment above).
-        // The full name still reaches assistive tech and hover via this
-        // slot's own title/aria-label above regardless of truncation, and
-        // the click behavior no longer needs its own visible caption to
-        // explain it, same as this row's other compact buttons don't
-        // spell out what a tap does beyond their own label.
-        <span className="pointer-events-none w-full text-center truncate font-body font-black text-[length:var(--text-sm)] leading-none text-[var(--on-primary)]">
+        // Wraps and shrinks instead of truncating: no line-clamp cap for
+        // now (deliberate, see fontSizeClassFor's own comment above). A
+        // long name is meant to actually be readable in full, just smaller
+        // and taller, not cut short with an ellipsis. leading-tight, not
+        // leading-none, since a wrapped multi-line name needs real
+        // line-height to stay legible; single-line short names (the common
+        // case) look identical either way. The full name still reaches
+        // assistive tech and hover via this slot's own title/aria-label
+        // above regardless of how many lines it wraps to.
+        <span
+          className={[
+            "pointer-events-none w-full text-center font-body font-black leading-[var(--leading-tight)] text-[var(--on-primary)]",
+            fontSizeClassFor(tag as string),
+          ].join(" ")}
+        >
           {tag}
         </span>
       ) : (
