@@ -132,7 +132,7 @@ export function TagSlot({ index, tag, isDragOver, onDragOver, onDragLeave, onDro
         // above regardless of how many lines it wraps to.
         <span
           className={[
-            "pointer-events-none w-full text-center font-body font-black leading-[var(--leading-tight)] text-[var(--on-primary)]",
+            "pointer-events-none w-full text-center font-body font-black leading-[var(--leading-tight)] lowercase text-[var(--on-primary)]",
             fontSizeClassFor(tag as string),
           ].join(" ")}
         >

@@ -75,7 +75,7 @@ function ChipRow({
   return (
     <div className="flex flex-wrap gap-[var(--space-md)]">
       {tags.map((tag) => (
-        <TagChip key={tag.name} name={tag.name} active={selectedTags.includes(tag.name)} onToggle={onChipToggle} />
+        <TagChip key={tag.name} name={tag.name} size="small" active={selectedTags.includes(tag.name)} onToggle={onChipToggle} />
       ))}
     </div>
   );
@@ -193,58 +193,33 @@ export function TagPoolBody({ allTags, selectedTags, totalSeriesCount, onChipTog
         tabIndex={0}
       >
         <ScrollFadeArea height={CHIP_AREA_HEIGHT} heightPx={chipAreaHeightPx} scrollStep={92} fadeSize={4} surfaceColor="var(--surface)" restrictTouchAction>
-          {/* pb/pr-[3px]: base-size TagChip carries shadow-[var(--elev-2)]
-              (3px 3px 0, bottom-right, no blur). ScrollFadeArea's vertical
-              viewport sets overflow-y-auto/overflow-x-hidden, so a chip's
-              shadow bleeding past the content's own bottom/right edge gets
-              clipped there — same root cause as the results carousel's
-              shadow-clipping bug. The fix here is deliberately *not* the
-              carousel's pad-then-cancel-with-a-negative-margin pattern,
-              though — canceling the padding turned out to create a
-              different real bug: `scrollHeight` doesn't shrink back down to
-              match a negative margin the way normal `height:auto` layout
-              does, so the canceled version still measured `scrollHeight`
-              a few px taller than `clientHeight`, tripping ScrollFadeArea's
-              `hasOverflow` check and showing a scrollbar/fade/arrows for
-              sections that should render with zero scroll affordance at
-              all (confirmed live). The viewport itself is a fixed height
-              now (see CHIP_AREA_HEIGHT above), so this padding only ever
-              grows the *inner*, independently-scrollable content by 3px —
-              nothing outside this box depends on that inner content's
-              exact footprint, so there's no invariant to protect the way
-              the carousel has, and the simpler, correct fix is to just let
-              it legitimately grow by 3px to fit the shadow, uncanceled.
-              Same approach the older CollapsibleSection-era fix for this
-              exact problem used (a plain last:mb-md, not a cancel trick). */}
-          <div className="pb-[3px] pr-[3px]">
-            {active.section.subsections ? (
-              <div className="flex flex-col gap-[var(--space-lg)]">
-                {active.section.subsections.map((sub) => {
-                  const subTags = sortTags(tagsForCategories(allTags, sub.categories, level, totalSeriesCount), sort);
-                  if (!subTags.length) return null;
-                  return (
-                    <div key={sub.label}>
-                      <span className="block font-mono text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] text-[var(--subtext)] uppercase mb-[var(--space-sm)]">
-                        {sub.label}
-                      </span>
-                      <ChipRow tags={subTags} selectedTags={selectedTags} onChipToggle={onChipToggle} />
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <ChipRow
-                tags={sortTags(
-                  active.section.key === "genres"
-                    ? genreTags(allTags)
-                    : tagsForCategories(allTags, active.section.categories ?? [], level, totalSeriesCount),
-                  sort,
-                )}
-                selectedTags={selectedTags}
-                onChipToggle={onChipToggle}
-              />
-            )}
-          </div>
+          {active.section.subsections ? (
+            <div className="flex flex-col gap-[var(--space-lg)]">
+              {active.section.subsections.map((sub) => {
+                const subTags = sortTags(tagsForCategories(allTags, sub.categories, level, totalSeriesCount), sort);
+                if (!subTags.length) return null;
+                return (
+                  <div key={sub.label}>
+                    <span className="block font-mono text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] text-[var(--subtext)] uppercase mb-[var(--space-sm)]">
+                      {sub.label}
+                    </span>
+                    <ChipRow tags={subTags} selectedTags={selectedTags} onChipToggle={onChipToggle} />
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <ChipRow
+              tags={sortTags(
+                active.section.key === "genres"
+                  ? genreTags(allTags)
+                  : tagsForCategories(allTags, active.section.categories ?? [], level, totalSeriesCount),
+                sort,
+              )}
+              selectedTags={selectedTags}
+              onChipToggle={onChipToggle}
+            />
+          )}
         </ScrollFadeArea>
       </div>
     </div>
