@@ -1986,28 +1986,42 @@ export function MixerBar({
               <GreaterEqualIcon className="text-[var(--ink)]" />
               <MatchSelector value={minMatch} onChange={onSetMatch} collapsed />
             </div>
-            <div className="min-[1071px]:hidden">
-              {/* max-[577px]:hidden, live-bisected: RUNG 6, Random is the
-                  last of the three (Tag Pool, Clear, Random) to go, once
-                  Tag Pool and Clear (both already hidden above this width)
-                  still haven't bought back enough room on their own. Below
-                  this point the final composition is just the 3 slots,
-                  Min Match, and Recommend. Random has no standing alternate
-                  entry point, an accepted tradeoff of the requested
-                  priority order. */}
-              <div className="max-[577px]:hidden">
-                <IconButton
-                  size="md"
-                  border="base"
-                  shadow="elev-2"
-                  backgroundColor="var(--fill)"
-                  title="Random"
-                  aria-label="Random"
-                  onClick={onRandomTags}
-                >
-                  <DiceIcon className="text-[var(--ink)]" />
-                </IconButton>
-              </div>
+            {/* max-[577px]:hidden, live-bisected: RUNG 6, Random is the
+                last of the three (Tag Pool, Clear, Random) to go, once
+                Tag Pool and Clear (both already hidden above this width)
+                still haven't bought back enough room on their own. Below
+                this point the final composition is just the 3 slots,
+                Min Match, and Recommend. Random has no standing alternate
+                entry point, an accepted tradeoff of the requested
+                priority order.
+
+                Both conditions (min-[1071px]:hidden for the icon/text
+                swap, max-[577px]:hidden for hiding entirely) live on this
+                SAME div now, not nested one inside the other the way an
+                earlier version had it. Confirmed live as a real bug:
+                nesting left the OUTER div still "block" (only its own
+                min-1071 condition controls it) once the INNER div hid
+                below 577px, so an empty-but-not-display:none box sat
+                between Min Match and Recommend, still collecting its own
+                gap-lg on both sides, a real, doubled gap, reported live
+                as "too much padding" once Min Match collapsed. Tag Pool/
+                Clear never had this problem: both of their own
+                hide-entirely conditions already live on a single div each,
+                nested only inside ONE shared icon-tier wrapper they both
+                sit in together, not two levels of nested divs the way
+                this one used to be. */}
+            <div className="min-[1071px]:hidden max-[577px]:hidden">
+              <IconButton
+                size="md"
+                border="base"
+                shadow="elev-2"
+                backgroundColor="var(--fill)"
+                title="Random"
+                aria-label="Random"
+                onClick={onRandomTags}
+              >
+                <DiceIcon className="text-[var(--ink)]" />
+              </IconButton>
             </div>
             <div className="hidden min-[1071px]:block">
               <ActionButton variant="filled" onClick={onRandomTags}>

@@ -260,12 +260,22 @@
          falls linearly below that) - this is what makes
          --result-card-cover-height below cancel out to a flat constant
          across most of the range; see its own comment.
-       - floor 63px: TagScrollArea.tsx's own TOP_RESERVE_PX(14) + one
-         ROW_STEP_PX(33) = 47px of actual scrollable content, plus this
-         box's own space-md*2 (16px) padding - enough for one full chip
-         row plus its usual top peek, never less. Hand-derived from those
-         two JS constants, not shared automatically - retune by hand if
-         TagScrollArea.tsx's own ROW_STEP_PX/TOP_RESERVE_PX ever change.
+       - floor 96px: TagScrollArea.tsx's own TOP_RESERVE_PX(14) + TWO
+         ROW_STEP_PX(33 each, 66px total) = 80px of actual scrollable
+         content, plus this box's own space-md*2 (16px) padding - enough
+         for two full chip rows plus the usual top peek of a third
+         (reads as roughly "2.5 rows"), never less. Raised from an
+         original one-row floor (63px total, 47px of that scrollable
+         content, i.e. TOP_RESERVE_PX + ONE ROW_STEP_PX) by explicit
+         request, once live testing confirmed genuinely small-phone
+         heights were routinely landing right at that original floor,
+         not just some rare edge case - one row plus a peek read as too
+         little breathing room in practice. Hand-derived from
+         TagScrollArea.tsx's own two JS constants, not shared
+         automatically - retune by hand if ROW_STEP_PX/TOP_RESERVE_PX
+         ever change, and re-derive this floor the same way (TOP_RESERVE_PX
+         + N*ROW_STEP_PX + this box's own 16px padding) if the row count
+         target ever changes again.
          Below this floor the tag area stops absorbing the shrink and
          --result-card-cover-height starts giving up room instead, which
          is what keeps this from ever going to zero or negative at
@@ -276,11 +286,17 @@
      (border-base * 2) are accounted for. Because the tag area's own ideal
      term above is just result-card-height - 308, this resolves to a flat
      308 - (border-base * 2) for every --result-card-height from 445px
-     down to about 372px (the point where the tag area's floor engages) -
-     the cover genuinely does not shrink across most of the supported
-     range, only in the narrow ~322-372px band at the very bottom (real
-     small-phone heights, per --result-card-height's own comment above)
-     once the tag area has already hit its own floor.
+     down to about 404px (the point where the tag area's own 96px floor
+     engages, raised from 372px when that floor was still 63px - see the
+     tag-area's own floor comment above) - the cover genuinely does not
+     shrink across most of the supported range, only in the ~322-404px
+     band at the bottom (real small-phone heights, per
+     --result-card-height's own comment above) once the tag area has
+     already hit its own floor. That band is wider than it used to be
+     (322-372px): raising the tag area's own floor to protect 2 full rows
+     instead of 1 means the cover now has to start giving up room sooner
+     (at a taller --result-card-height) to make space for it - an accepted,
+     direct consequence of that change, not a separate regression.
 
      --result-card-tag-scroll-height: --result-card-tag-area-height minus
      this box's own space-md*2 vertical padding - the actual height fed to
@@ -293,7 +309,7 @@
      scanner instead (see ScrollFadeArea.tsx's own heightPx comment for the
      same caveat). */
   --result-card-tag-area-height: clamp(
-    63px,
+    96px,
     calc(var(--result-card-height) - 308px),
     137px
   );

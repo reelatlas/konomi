@@ -1166,7 +1166,7 @@ export function ResultCard({
               cover/tag-area boundary is. overflow-y-auto, not
               ScrollFadeArea: up to 7 allow-listed platforms
               (STREAMING_ALLOW_LIST, import-anilist.ts) wrapped inside a
-              zone as short as --result-card-tag-area-height's own 63px
+              zone as short as --result-card-tag-area-height's own 96px
               floor can need more rows than fit, and this doesn't need
               TagScrollArea's own row-snap/peek machinery, there's no grid
               of same-sized rows to snap between, so a plain native scroll
