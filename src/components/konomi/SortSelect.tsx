@@ -1,5 +1,9 @@
+import { useRef } from "react";
 import { SORT_OPTIONS } from "@/lib/konomi/tagPool";
 import type { SortKey } from "@/lib/konomi/types";
+import { ROLL_DURATION_MS, RollingLabel } from "./RollingLabel";
+
+const SORT_LABELS = SORT_OPTIONS.map((o) => o.label);
 
 interface SortSelectProps {
   value: SortKey;
@@ -37,6 +41,23 @@ function nextSort(key: SortKey): SortKey {
 // now-removed note already flagged as the right starting point if a select
 // ever came back.
 export function SortSelect({ value, onChange, collapsed }: SortSelectProps) {
+  // Gates the collapsed button's own onClick against firing a second
+  // onChange before RollingLabel's own roll (triggered by the FIRST click)
+  // has actually finished. See LevelSelector's own identical comment for
+  // the full reasoning (a real, reported mobile bug: rapid taps eventually
+  // stopped registering, then later taps landed on the wrong element,
+  // matching this app's own already-diagnosed real-device WebKit
+  // compositor-desync family of bug).
+  const rollBusyRef = useRef(false);
+  function handleCollapsedClick() {
+    if (rollBusyRef.current) return;
+    rollBusyRef.current = true;
+    setTimeout(() => {
+      rollBusyRef.current = false;
+    }, ROLL_DURATION_MS);
+    onChange(nextSort(value));
+  }
+
   if (collapsed) {
     const activeOption = SORT_OPTIONS.find((o) => o.key === value)!;
     return (
@@ -44,10 +65,15 @@ export function SortSelect({ value, onChange, collapsed }: SortSelectProps) {
         <button
           type="button"
           aria-label={activeOption.label}
-          onClick={() => onChange(nextSort(value))}
-          className="py-[var(--space-md)] px-[var(--space-lg)] border-0 cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] whitespace-nowrap bg-[var(--primary)] text-[var(--surface)]"
+          onClick={handleCollapsedClick}
+          // bg-surface/text-ink, matching the wide form's own native
+          // <select> colors, not bg-primary/text-surface (what this used
+          // before). See MatchSelector's own identical comment for the
+          // full reasoning, shared verbatim across all three of this row's
+          // collapsed controls.
+          className="py-[var(--space-md)] px-[var(--space-lg)] border-0 cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] whitespace-nowrap bg-[var(--surface)] text-[var(--ink)]"
         >
-          {activeOption.label}
+          <RollingLabel value={activeOption.label} sizeToWidestOf={SORT_LABELS} />
         </button>
       </div>
     );

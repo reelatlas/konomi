@@ -86,7 +86,7 @@ export function SortIcon({ className }: IconProps) {
 }
 
 // "≥" — a ">" chevron plus an underline. Paired with TagIcon (separately,
-// not combined into one glyph) in MixerSection's MIN TAG MATCH label:
+// not combined into one glyph) in MixerBar's MIN MATCH label:
 // label text, then TagIcon, then this — reading as "match ≥ N tags".
 export function GreaterEqualIcon({ className }: IconProps) {
   return (

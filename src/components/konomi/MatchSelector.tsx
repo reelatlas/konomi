@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { MatchKey } from "@/lib/konomi/types";
+import { ROLL_DURATION_MS, RollingLabel } from "./RollingLabel";
 
 const OPTIONS: MatchKey[] = ["1", "2", "3"];
 
@@ -43,6 +44,22 @@ export function MatchSelector({ value, onChange, collapsed }: MatchSelectorProps
   // onFocus/onBlur show/dismiss wiring as the lock icon's already-working
   // mobile tap-hint (ResultCard.tsx) — tap shows it, tap elsewhere blurs it.
   const [shown, setShown] = useState(false);
+  // Gates the collapsed button's own onClick against firing a second
+  // onChange before RollingLabel's own roll (triggered by the FIRST click)
+  // has actually finished. See LevelSelector's own identical comment for
+  // the full reasoning (a real, reported mobile bug: rapid taps eventually
+  // stopped registering, then later taps landed on the wrong element,
+  // matching this app's own already-diagnosed real-device WebKit
+  // compositor-desync family of bug).
+  const rollBusyRef = useRef(false);
+  function handleCollapsedClick() {
+    if (rollBusyRef.current) return;
+    rollBusyRef.current = true;
+    setTimeout(() => {
+      rollBusyRef.current = false;
+    }, ROLL_DURATION_MS);
+    onChange(nextMatch(value));
+  }
 
   if (collapsed) {
     return (
@@ -50,14 +67,23 @@ export function MatchSelector({ value, onChange, collapsed }: MatchSelectorProps
         <button
           type="button"
           aria-label={HINTS[value]}
-          onClick={() => onChange(nextMatch(value))}
+          onClick={handleCollapsedClick}
           onMouseEnter={() => setShown(true)}
           onMouseLeave={() => setShown(false)}
           onFocus={() => setShown(true)}
           onBlur={() => setShown(false)}
-          className="py-[var(--space-md)] px-[var(--space-lg)] border-0 cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] bg-[var(--primary)] text-[var(--surface)]"
+          // bg-surface/text-ink, the same colors an INACTIVE segment uses
+          // in the full 3-segment form above, not bg-primary/text-surface
+          // (the active segment's own colors, what this used before).
+          // requested directly: a solid, colored single button read as a
+          // pressed/active call-to-action (like Random or Recommend right
+          // next to it), not as a neutral display of "this is the current
+          // setting." Matching the inactive color instead reads as the
+          // latter. RollingLabel (below) is what gives a tap its own
+          // feedback now that color no longer visibly changes on click.
+          className="py-[var(--space-md)] px-[var(--space-lg)] border-0 cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] bg-[var(--surface)] text-[var(--ink)]"
         >
-          {value}
+          <RollingLabel value={value} />
         </button>
         <span
           aria-hidden={!shown}

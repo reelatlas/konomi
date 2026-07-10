@@ -113,7 +113,7 @@ export function ResultCard({
   const scoreLabel = perfect ? "PERFECT" : `${score}/${filledCount}`;
   const swapDisabled = locked || !canSwap;
   // Same priority order as recommend()'s own error check in useKonomi.ts:
-  // tag count below MIN TAG MATCH is checked (and reported) before "nothing
+  // tag count below MIN MATCH is checked (and reported) before "nothing
   // else qualifies," since that's the more specific, more actionable reason.
   // "card is locked" while locked, not null (an earlier version showed
   // nothing at all here, on the theory that the lock icon's own hint
@@ -143,7 +143,7 @@ export function ResultCard({
   // available to swap in — without asserting anything about whether
   // what's currently on screen matches the current mix.
   // "add tags" specifically at filledCount === 0 (not ERROR_MESSAGE
-  // ["impossible-min"], "lower MIN TAG MATCH") — that copy assumes a mix
+  // ["impossible-min"], "lower MIN MATCH"). That copy assumes a mix
   // already exists and just needs a smaller threshold, which doesn't hold
   // with zero tags selected at all: there's no mix yet to lower a match
   // count against, and the actually-actionable step is adding tags in the
@@ -740,7 +740,7 @@ export function ResultCard({
                   their content's unwrapped width unless min-width is
                   explicitly relaxed, and cards in this grid can be as
                   narrow as 208px — nowhere near enough for the longest hint
-                  ("no series match this mix") on one line. An opaque
+                  ("no swaps available for this mix") on one line. An opaque
                   bordered/shadowed chip (matching the lock/swap IconButtons'
                   own elev-1 treatment), not plain muted text like other hints — this
                   one floats over arbitrary cover art, not a flat surface

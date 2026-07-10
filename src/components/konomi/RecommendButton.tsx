@@ -5,19 +5,23 @@ import { ArrowRightFilledIcon } from "./icons";
 
 const STAR_CLIP = "[clip-path:polygon(50%_0,61%_35%,98%_35%,68%_57%,79%_91%,50%_70%,21%_91%,32%_57%,2%_35%,39%_35%)]";
 
-// Half of (mt-space-xs gap + subtext line height) = (4 + 15) / 2, measured
-// live — shifts the star+button block up by exactly enough that the whole
+// Half of (mt-space-xs gap + subtext height) = (4 + 27) / 2, measured live,
+// shifts the star+button block up by exactly enough that the whole
 // block+subtext group re-centers on the same point the button alone used to
-// occupy, rather than the subtext just growing the block downward.
-const ERROR_SHIFT = "-translate-y-[9.5px]";
+// occupy, rather than the subtext just growing the block downward. Subtext
+// height jumped from a bare 15px text line to 27px once it became a bordered/
+// padded chip (see that span's own comment below). Re-measured, not just
+// reused, since this shift only stays correct for whatever the subtext's
+// current real height actually is.
+const ERROR_SHIFT = "-translate-y-[15.5px]";
 
 // Exported so ResultCard's swap-icon hover hint can reuse the exact same
 // wording for the same two underlying conditions, rather than duplicating
 // these strings — swap and RECOMMEND fail for identical reasons (tag count
-// below MIN TAG MATCH, or nothing left that qualifies).
+// below MIN MATCH, or nothing left that qualifies).
 export const ERROR_MESSAGE: Record<NonNullable<MixerError>, string> = {
-  "impossible-min": "lower MIN TAG MATCH",
-  "no-match": "no series match this mix",
+  "impossible-min": "lower MIN MATCH",
+  "no-match": "no series match",
 };
 
 interface RecommendButtonProps {
@@ -149,15 +153,17 @@ export function RecommendButton({ filledCount, onRecommend, error }: RecommendBu
           <ArrowRightFilledIcon className="min-[1071px]:hidden" />
         </ActionButton>
         {error && (
-          // --primary-deep, not --secondary: a bold, high-contrast variant
-          // of primary (darkened for light-surface themes, lightened for
-          // Tide's dark surface — see its doc comment in types.ts). Chosen
-          // for contrast against arbitrary surfaces, not tied to any other
-          // element's color — this is the only thing --primary-deep backs
-          // today (a "MiniStar" hint feature that once shared this token
-          // was built, tried live, then deliberately removed; see
-          // DESIGN_SYSTEM.md).
-          <span className="absolute top-full mt-[var(--space-xs)] whitespace-nowrap font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xs)] text-[var(--primary-deep)]">
+          // Same opaque bordered/shadowed chip treatment as ResultCard's
+          // own lock/swap icon hints (bg-surface/border-thin/shadow-elev-1),
+          // requested directly so this reads at a glance instead of relying
+          // on plain colored text. That plain-text version (--primary-deep,
+          // a bold, high-contrast variant of primary, see types.ts) worked
+          // well enough against this bar's own flat surface, but the same
+          // approach on ResultCard's arbitrary cover art is what motivated
+          // the chip treatment there in the first place, and this control's
+          // error state deserves the same legibility regardless of what's
+          // behind it.
+          <span className="absolute top-full mt-[var(--space-xs)] whitespace-nowrap bg-[var(--surface)] border-[length:var(--border-thin)] border-[var(--ink)] shadow-[var(--elev-1)] px-[var(--space-sm)] py-[var(--space-xs)] font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xs)] text-[var(--ink)]">
             {ERROR_MESSAGE[error]}
           </span>
         )}

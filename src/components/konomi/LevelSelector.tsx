@@ -1,6 +1,9 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { LEVEL_OPTIONS } from "@/lib/konomi/tagPool";
 import type { LevelKey } from "@/lib/konomi/types";
+import { ROLL_DURATION_MS, RollingLabel } from "./RollingLabel";
+
+const LEVEL_LABELS = LEVEL_OPTIONS.map((o) => o.label);
 
 interface LevelSelectorProps {
   value: LevelKey;
@@ -48,6 +51,32 @@ export function LevelSelector({ value, onChange, collapsed }: LevelSelectorProps
   // already-working mobile tap-hint (ResultCard.tsx) — tap shows it, tap
   // elsewhere blurs it.
   const [shown, setShown] = useState(false);
+  // Gates the collapsed button's own onClick against firing a second
+  // onChange before RollingLabel's own roll (triggered by the FIRST click)
+  // has actually finished. A plain ref, not state, since gating a click
+  // doesn't need to re-render anything itself. Requested directly after a
+  // real, reported bug on mobile: rapidly tapping this same control many
+  // times in a row eventually stopped registering taps at all, then later
+  // taps landed as if hitting a different element entirely, the same
+  // family of real-device WebKit compositor desync this app has already
+  // hit and fixed once before (MixerBar's edit-mode "mashing an empty slot
+  // glitches everything" bug, see DESIGN_SYSTEM.md), whose own root lesson
+  // was: don't hand the compositor a sudden, discontinuous change to
+  // mishandle. Interrupting one roll mid-flight to immediately start
+  // another is exactly that kind of discontinuity. Blocking overlapping
+  // rolls at the source, rather than trying to make RollingLabel itself
+  // handle being interrupted cleanly, is the same "don't cause the
+  // discontinuity in the first place" fix applied to a new instance of the
+  // same class of bug.
+  const rollBusyRef = useRef(false);
+  function handleCollapsedClick() {
+    if (rollBusyRef.current) return;
+    rollBusyRef.current = true;
+    setTimeout(() => {
+      rollBusyRef.current = false;
+    }, ROLL_DURATION_MS);
+    onChange(nextLevel(value));
+  }
 
   if (collapsed) {
     return (
@@ -55,14 +84,19 @@ export function LevelSelector({ value, onChange, collapsed }: LevelSelectorProps
         <button
           type="button"
           aria-label={activeOption.hint}
-          onClick={() => onChange(nextLevel(value))}
+          onClick={handleCollapsedClick}
           onMouseEnter={() => setShown(true)}
           onMouseLeave={() => setShown(false)}
           onFocus={() => setShown(true)}
           onBlur={() => setShown(false)}
-          className="py-[var(--space-md)] px-[var(--space-lg)] border-0 cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] whitespace-nowrap bg-[var(--primary)] text-[var(--surface)]"
+          // bg-surface/text-ink, matching an INACTIVE segment's own colors
+          // above, not bg-primary/text-surface (the active segment's
+          // colors, what this used before). See MatchSelector's own
+          // identical comment for the full reasoning, shared verbatim
+          // across all three of this row's collapsed controls.
+          className="py-[var(--space-md)] px-[var(--space-lg)] border-0 cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] whitespace-nowrap bg-[var(--surface)] text-[var(--ink)]"
         >
-          {activeOption.label}
+          <RollingLabel value={activeOption.label} sizeToWidestOf={LEVEL_LABELS} />
         </button>
         <span
           aria-hidden={!shown}
