@@ -1,8 +1,43 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { ResultEntry, TagInfo } from "@/lib/konomi/types";
+import { CardAnimDebugPanel } from "./CardAnimDebugPanel";
+import { getAnimatingPaceCount, getCardAnimTuning, getEffectiveStaggerMs, getVisibleCardTierCount, useCardAnimTuning } from "./cardAnimTuning";
 import { ResultCard } from "./ResultCard";
 import { ScrollFadeArea } from "./ScrollFadeArea";
 import { useLevel, useSort } from "./tagPoolPrefs";
+
+// Testing-only live-tweak panel for the result-card enter/exit animation
+// constants (cardAnimTuning.ts). Flip to false, or delete this constant,
+// CardAnimDebugPanel.tsx, and the one render call below, to remove it
+// completely for production — nothing else in this file (or
+// cardAnimTuning.ts) needs to change either way.
+const SHOW_CARD_ANIM_DEBUG = true;
+
+// How many cards are visibly "in frame" at the current viewport width, per
+// the same breakpoint tiers ResultCard.tsx's own card-width classes already
+// use (getVisibleCardTierCount, cardAnimTuning.ts) — drives the stagger
+// pace (getAnimatingPaceCount below), requested directly: the stagger is
+// perceived relative to how many cards visibly sweep together at once, not
+// the total result count, which can be scrolled-past and not simultaneously
+// visible at narrower tiers. Defaults to 5 (the grid tier) for SSR/the
+// client's own first hydration render — same reasoning as ResultCard.tsx's
+// own useSupportsHover: an optimistic desktop default until the client-only
+// width check resolves post-hydration, avoiding a hydration mismatch.
+// Unlike useSupportsHover, this DOES need to stay live across the session
+// (a browser window's width changes far more often at runtime than its
+// hover capability does), hence the resize listener.
+function useVisibleCardTierCount(): number {
+  const [count, setCount] = useState(5);
+  useEffect(() => {
+    function sync() {
+      setCount(getVisibleCardTierCount(window.innerWidth));
+    }
+    sync();
+    window.addEventListener("resize", sync);
+    return () => window.removeEventListener("resize", sync);
+  }, []);
+  return count;
+}
 
 // Empty-state ("zero state") headline/payoff pairs — one is picked at
 // random per genuine entry into the empty state (see hasResults' own
@@ -158,6 +193,14 @@ interface RecommendationsBodyProps {
   // generalization of "always scroll back to the first card," not a
   // separate behavior.
   firstNewIndex: number;
+  // Titles freshly picked in the most recent RECOMMEND — see this field's
+  // own comment on KonomiState (useKonomi.ts). Gates the enter animation;
+  // deliberately not derived from `locked`, so a lock/unlock toggle never
+  // replays a card's entrance.
+  newTitles: string[];
+  // Bumped once per Clear ✕ — see this field's own comment on KonomiState.
+  // Drives the exit-animation orchestration below.
+  clearGen: number;
   locked: Record<string, boolean>;
   flipped: Record<string, boolean>;
   canSwap: boolean;
@@ -182,6 +225,8 @@ export function RecommendationsBody({
   minNum,
   recommendGen,
   firstNewIndex,
+  newTitles,
+  clearGen,
   locked,
   flipped,
   canSwap,
@@ -236,6 +281,70 @@ export function RecommendationsBody({
   // position, not title — the whole point is surviving a title change at
   // the same slot, which a title-keyed tracker couldn't do by definition.
   const [justSwappedIndex, setJustSwappedIndex] = useState<number | null>(null);
+  const cardAnimTuning = useCardAnimTuning();
+  const visibleCardTierCount = useVisibleCardTierCount();
+  // Lags one step behind `results` specifically so a Clear ✕ has a window
+  // to play its exit animation before the removed cards actually leave the
+  // DOM — `results` itself updates the instant clearRecs() dispatches
+  // (useKonomi.ts is deliberately DOM/animation-free), so this component
+  // owns the deferral instead. Mirrors `results` exactly except during that
+  // window, where it still includes the cards Clear just removed.
+  const [displayedResults, setDisplayedResults] = useState(results);
+  // Last clearGen this effect has already reacted to — the render-phase
+  // conditional-setState pattern (compare against state, not a ref) this
+  // session's MixerBar.tsx work established to satisfy
+  // react-hooks/set-state-in-effect and react-hooks/refs simultaneously.
+  const [lastClearGen, setLastClearGen] = useState(clearGen);
+  // Titles currently mid-exit-animation. Non-empty only for the brief
+  // window between a Clear ✕ and its exit animation finishing.
+  const [exitingTitles, setExitingTitles] = useState<ReadonlySet<string>>(new Set());
+  if (clearGen !== lastClearGen) {
+    setLastClearGen(clearGen);
+    const stillThere = new Set(results.map((r) => r.series.title));
+    const removed = displayedResults.filter((r) => !stillThere.has(r.series.title));
+    if (removed.length > 0) {
+      setExitingTitles(new Set(removed.map((r) => r.series.title)));
+      // displayedResults intentionally left as-is here — still the full
+      // pre-clear set — so the removed cards keep rendering (and playing
+      // their exit animation) until the effect below finalizes the clear.
+    } else {
+      setDisplayedResults(results);
+    }
+  } else if (results !== displayedResults && exitingTitles.size === 0) {
+    // Any other results change (a fresh RECOMMEND, a single-card swap) —
+    // sync immediately, no exit choreography for those.
+    setDisplayedResults(results);
+  }
+  // Finalizes a Clear ✕ once its exit animation has actually finished —
+  // setTimeout, not animationend/transitionend: this app has confirmed
+  // animation-completion *events* unreliable enough on real devices to
+  // avoid entirely (see RollingLabel.tsx/MixerBar.tsx's own history), a
+  // plain timer matching the declared duration is the established fix.
+  // Only re-fires on a genuine empty->non-empty exitingTitles transition —
+  // not on every render, and not on cardAnimTuning changing mid-exit (a
+  // debug-panel edit while a clear is already animating is not a
+  // real-world case worth chasing).
+  useEffect(() => {
+    if (exitingTitles.size === 0) return;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const tuning = getCardAnimTuning();
+    const paceCount = getAnimatingPaceCount(
+      displayedResults.map((r) => r.series.title),
+      locked,
+      visibleCardTierCount,
+    );
+    const effectiveStaggerMs = getEffectiveStaggerMs(tuning.staggerMs, paceCount);
+    // R->L sweep: index 0 has the largest delay (see ResultCard's own
+    // isExiting delay math below), so it's the last one to finish.
+    const lastExitIndex = displayedResults.length - 1;
+    const totalMs = reduced ? 0 : tuning.durationMs + lastExitIndex * effectiveStaggerMs;
+    const t = setTimeout(() => {
+      setDisplayedResults(results);
+      setExitingTitles(new Set());
+    }, totalMs);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally only re-fires on exitingTitles itself changing, see comment above
+  }, [exitingTitles]);
   // ScrollFadeArea (horizontal orientation) now owns the scroll/fade/arrow
   // mechanics here — the same primitive the Tag Pool's section tab strip
   // uses (SectionTabStrip.tsx) — via getScrollStep/scrollResetKey/arrow*
@@ -257,6 +366,13 @@ export function RecommendationsBody({
     const cardWidth = card?.getBoundingClientRect().width ?? 208;
     return cardWidth + 16; // mirrors --space-xl, the row's own gap-xl
   };
+  // hasResults alone would flip false the instant Clear ✕ dispatches (see
+  // useKonomi.ts), showing the empty-state placeholder *before* the
+  // exiting cards below have finished their own animation. Staying "true"
+  // for the extra beat while exitingTitles is non-empty keeps the grid (and
+  // displayedResults' still-mounted, animating-out cards) on screen for
+  // that whole window instead.
+  const showResultsGrid = hasResults || exitingTitles.size > 0;
 
   return (
     // flow-root (a new block formatting context), not a plain fragment —
@@ -268,8 +384,10 @@ export function RecommendationsBody({
     // padding it was meant to cancel. flow-root stops it at this component's
     // own edge, exactly where the compensation should end.
     <div className="flow-root">
-      {!hasResults && (
-        // !hasResults, not `empty` (!generated) — a RECOMMEND that fails
+      {!showResultsGrid && (
+        // !showResultsGrid (hasResults, extended through any in-flight exit
+        // animation — see its own comment above), not `empty` (!generated)
+        // — a RECOMMEND that fails
         // with an error (impossible-min/no-match) still sets `generated:
         // true` (see recommend() in useKonomi.ts), but leaves `results`
         // untouched. On a first-ever attempt (or right after Clear ✕),
@@ -344,7 +462,7 @@ export function RecommendationsBody({
         </div>
       )}
 
-      {hasResults && (
+      {showResultsGrid && (
         // Grid above 1152px (unchanged); below it, a single-row snap
         // carousel instead of the grid wrapping into multiple rows.
         // 1152px = 5×208px (DEFAULT_RESULT_COUNT × the grid's min column
@@ -575,35 +693,76 @@ export function RecommendationsBody({
                   it) is a legitimate resting position again — confirmed
                   live this keeps scrollLeft at 0 at rest. */}
               <div aria-hidden className="hidden max-[1152px]:block max-[1152px]:w-[6px] flex-none [scroll-snap-align:start]" />
-              {results.map((entry, index) => (
-                <ResultCard
-                  key={entry.series.title}
-                  entry={entry}
-                  selectedTags={selectedTags}
-                  filledCount={filledCount}
-                  minNum={minNum}
-                  locked={Boolean(locked[entry.series.title])}
-                  flipped={Boolean(flipped[entry.series.title])}
-                  canSwap={canSwap}
-                  onFlip={onFlip}
-                  onToggleLock={onToggleLock}
-                  // Notes which grid position initiated the swap (see
-                  // justSwappedIndex's own comment above) before actually
-                  // performing it, so the brand-new instance that mounts
-                  // here already knows to seed its hint on its very first
-                  // render.
-                  onReplace={(title) => {
-                    setJustSwappedIndex(index);
-                    onReplace(title);
-                  }}
-                  startWithSwapHint={justSwappedIndex === index}
-                  onChipToggle={onChipToggle}
-                  tagInfoByName={tagInfoByName}
-                  totalSeriesCount={totalSeriesCount}
-                  level={level}
-                  sort={sort}
-                />
-              ))}
+              {(() => {
+                // Pace count = how many cards are actually sweeping in/out
+                // within the currently-visible breakpoint tier (5/4/3/2/1,
+                // matching ResultCard.tsx's own card-width tiers), minus
+                // whichever of those are locked — requested directly: the
+                // stagger reads relative to how many cards visibly move
+                // together right now, not the total result count (which
+                // can include cards scrolled out of view at narrower
+                // tiers). staggerMs is itself defined at 5 cards (see
+                // getEffectiveStaggerMs's own comment); paceCount is what
+                // scales it down for smaller tiers/more locks. Computed
+                // once here, outside the per-card map below, since it's the
+                // same for every card this render.
+                const paceCount = getAnimatingPaceCount(
+                  displayedResults.map((r) => r.series.title),
+                  locked,
+                  visibleCardTierCount,
+                );
+                const effectiveStaggerMs = getEffectiveStaggerMs(cardAnimTuning.staggerMs, paceCount);
+                return displayedResults.map((entry, index) => {
+                  const isExiting = exitingTitles.has(entry.series.title);
+                  // Gated on newTitles (useKonomi.ts), not `!locked` —
+                  // deliberately decoupled from live lock state so
+                  // locking/unlocking a card never replays its entrance;
+                  // see newTitles' own comment on KonomiState for why.
+                  const isEntering = newTitles.includes(entry.series.title);
+                  // Enter: L->R, index * stagger. Exit: R->L,
+                  // (count-1-index) * stagger, using this card's own index
+                  // in the full displayed row (not a compacted
+                  // exiting-only count) — a locked card that stays put
+                  // doesn't shift the timing of the ones sweeping around
+                  // it, it just sits still while the sweep passes its
+                  // slot.
+                  const animationDelayMs = isExiting
+                    ? (displayedResults.length - 1 - index) * effectiveStaggerMs
+                    : index * effectiveStaggerMs;
+                  return (
+                    <ResultCard
+                      key={entry.series.title}
+                      entry={entry}
+                      selectedTags={selectedTags}
+                      filledCount={filledCount}
+                      minNum={minNum}
+                      locked={Boolean(locked[entry.series.title])}
+                      flipped={Boolean(flipped[entry.series.title])}
+                      canSwap={canSwap}
+                      onFlip={onFlip}
+                      onToggleLock={onToggleLock}
+                      // Notes which grid position initiated the swap (see
+                      // justSwappedIndex's own comment above) before
+                      // actually performing it, so the brand-new instance
+                      // that mounts here already knows to seed its hint on
+                      // its very first render.
+                      onReplace={(title) => {
+                        setJustSwappedIndex(index);
+                        onReplace(title);
+                      }}
+                      startWithSwapHint={justSwappedIndex === index}
+                      onChipToggle={onChipToggle}
+                      tagInfoByName={tagInfoByName}
+                      totalSeriesCount={totalSeriesCount}
+                      level={level}
+                      sort={sort}
+                      isEntering={isEntering}
+                      isExiting={isExiting}
+                      animationDelayMs={animationDelayMs}
+                    />
+                  );
+                });
+              })()}
               {/* Trailing spacer, carousel tier only (hidden — display:none
                   removes it from the grid entirely above 1152px, so it
                   never becomes a 6th grid cell or perturbs that tier's
@@ -666,6 +825,7 @@ export function RecommendationsBody({
           </ScrollFadeArea>
         </div>
       )}
+      {SHOW_CARD_ANIM_DEBUG && <CardAnimDebugPanel />}
     </div>
   );
 }

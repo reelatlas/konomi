@@ -34,6 +34,27 @@ interface KonomiState {
   // lockstep with recommendGen (both set together, only on a successful
   // RECOMMEND), so the carousel always reads them from the same state.
   firstNewIndex: number;
+  // Titles of every entry that was a genuinely fresh pool pick in the most
+  // recent RECOMMEND — used by the result-card enter animation
+  // (RecommendationsBody.tsx) so entrance eligibility is tied purely to
+  // "did this card arrive on the last RECOMMEND," fully decoupled from the
+  // live `locked` map. This matters because `locked` changes independently
+  // of `results` (a user can lock/unlock a card at any time, with no
+  // RECOMMEND in between) — if isEntering were derived from `!locked`
+  // instead, unlocking a card would flip isEntering back to true and
+  // replay its entrance, confirmed live as a real bug. newTitles only
+  // changes here, in recommend()'s own loop, so lock/unlock toggles never
+  // touch it. Reset to [] in clearRecs() for hygiene (state describing a
+  // batch that's no longer current), though nothing currently depends on
+  // that specific reset for correctness — see recommend()'s own comment on
+  // why locked entries are naturally excluded from this set regardless.
+  newTitles: string[];
+  // Bumped once per CLEAR_RECS dispatch, mirroring recommendGen's own
+  // pattern — an explicit "Clear ✕ just ran" signal for the exit
+  // animation, rather than the component having to infer it by diffing
+  // `results` (which a single-card REPLACE_CARD swap also changes, and
+  // would be easy to misread as a partial clear).
+  clearGen: number;
 }
 
 // Lazy initializer for useReducer — the catalog is only known at the time
@@ -55,6 +76,8 @@ function createInitialState(catalog: { series: Series[]; tags: TagInfo[] }): Kon
     error: null,
     recommendGen: 0,
     firstNewIndex: 0,
+    newTitles: [],
+    clearGen: 0,
   };
 }
 
@@ -121,12 +144,18 @@ function recommend(state: KonomiState): KonomiState {
   // rather than accidentally reading as "the first slot is fresh" by an
   // uninitialized default coinciding with a real index.
   let firstNewIndex = -1;
+  // Every title actually pulled from `pool` this call — see newTitles' own
+  // comment on KonomiState. Locked entries are never pushed here (they hit
+  // the `old` branch above), so this set naturally excludes them without
+  // needing any extra check.
+  const newTitles: string[] = [];
   for (let i = 0; i < DEFAULT_RESULT_COUNT; i++) {
     const old = state.results[i];
     if (old && lockedTitles.has(old.series.title)) {
       out.push({ series: old.series });
     } else if (pi < pool.length) {
       out.push(pool[pi]);
+      newTitles.push(pool[pi].series.title);
       pi++;
       if (firstNewIndex === -1) firstNewIndex = out.length - 1;
     }
@@ -144,6 +173,7 @@ function recommend(state: KonomiState): KonomiState {
     error: null,
     recommendGen: state.recommendGen + 1,
     firstNewIndex: firstNewIndex === -1 ? 0 : firstNewIndex,
+    newTitles,
   };
 }
 
@@ -198,8 +228,17 @@ function replaceCard(state: KonomiState, title: string): KonomiState {
 function clearRecs(state: KonomiState): KonomiState {
   const lockedTitles = new Set(Object.keys(state.locked).filter((k) => state.locked[k]));
   const kept = state.results.filter((r) => lockedTitles.has(r.series.title));
+  // clearGen bumps on every call, regardless of which branch below runs —
+  // see its own comment on KonomiState. The result-card exit animation
+  // reads this to know Clear ✕ just fired, distinct from any other action
+  // that also changes `results` (e.g. a single-card swap).
+  const clearGen = state.clearGen + 1;
+  // newTitles reset to [] for hygiene — the batch it described is no
+  // longer the current one either way. See newTitles' own comment on
+  // KonomiState for why nothing currently depends on this specific reset
+  // for correctness (locked entries were never in it to begin with).
   if (!kept.length) {
-    return { ...state, results: [], generated: false, locked: {}, flipped: {}, error: null };
+    return { ...state, results: [], generated: false, locked: {}, flipped: {}, error: null, clearGen, newTitles: [] };
   }
   const locked: Record<string, boolean> = {};
   const flipped: Record<string, boolean> = {};
@@ -207,7 +246,7 @@ function clearRecs(state: KonomiState): KonomiState {
     locked[r.series.title] = true;
     if (state.flipped[r.series.title]) flipped[r.series.title] = true;
   });
-  return { ...state, results: kept, generated: true, locked, flipped, error: null };
+  return { ...state, results: kept, generated: true, locked, flipped, error: null, clearGen, newTitles: [] };
 }
 
 // Generic "clear any slot whose tag isn't in this set" — used when the tag
@@ -435,6 +474,8 @@ export function useKonomi(initialSeries: Series[], initialTags: TagInfo[]) {
     mixerError: state.error,
     recommendGen: state.recommendGen,
     firstNewIndex: state.firstNewIndex,
+    newTitles: state.newTitles,
+    clearGen: state.clearGen,
     ...actions,
   };
 }

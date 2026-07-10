@@ -643,3 +643,63 @@
     translate: 0 0%;
   }
 }
+
+/* ResultCard's enter/exit (RecommendationsBody.tsx's own results carousel):
+   same "keyframe, not transition" reasoning as roll-in-up/roll-out-up
+   above — a freshly-mounted (enter) or about-to-unmount (exit) card has no
+   painted "before" frame a transition could reliably animate from. Enter
+   rises INTO place (from below); exit sinks OUT of place (downward) while
+   fading — a deliberate bookend, requested directly after trying the
+   "both rise" version live. Duration/delay/timing-function/
+   --card-anim-distance are all set via inline style per card, driven by
+   cardAnimTuning.ts's live store, not by these classes — that's what makes
+   the debug panel's edits take effect with no rebuild; only the
+   animation-name/fill-mode are static CSS, since Tailwind's scanner can't
+   see a JS-interpolated class. */
+@keyframes result-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(var(--card-anim-distance, 16px));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes result-card-exit {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(var(--card-anim-distance, 16px));
+  }
+}
+
+.animate-card-enter {
+  animation-name: result-card-enter;
+  animation-fill-mode: both;
+}
+
+.animate-card-exit {
+  /* fill-mode both (not just forwards) matters here specifically: without
+     holding the 0%/from state too, the card would flash at its resting
+     opacity/position for one frame before animation-delay (staggered,
+     R->L) actually starts moving it — both keeps it at the pre-exit
+     resting look until its own delay elapses, then holds the faded-out
+     end state afterward until RecommendationsBody's setTimeout actually
+     drops it from displayedResults. */
+  animation-name: result-card-exit;
+  animation-fill-mode: both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-card-enter,
+  .animate-card-exit {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    transform: none !important;
+  }
+}

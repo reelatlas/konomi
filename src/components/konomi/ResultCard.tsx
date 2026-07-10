@@ -1,7 +1,9 @@
+import type { CSSProperties } from "react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { scoreSeries } from "@/lib/konomi/scoring";
 import { isTagVisibleAtLevel, sortTags } from "@/lib/konomi/tagPool";
 import type { LevelKey, ResultEntry, SortKey, TagInfo } from "@/lib/konomi/types";
+import { useCardAnimTuning } from "./cardAnimTuning";
 import { DiceIcon, LockClosedIcon, LockOpenIcon } from "./icons";
 import { IconButton } from "./IconButton";
 import { RatingBadge } from "./RatingBadge";
@@ -62,6 +64,25 @@ interface ResultCardProps {
   // needs this since toggling it never changes series.title, so the same
   // instance and its state persist across that toggle already.
   startWithSwapHint?: boolean;
+  // True for every card that isn't locked — plays the rise+fade-in
+  // keyframe (animate-card-enter, globals.css). Simply `!locked`, not
+  // scoped to a specific RECOMMEND batch: a card that's just sitting on
+  // screen (unlocked, no new render-worthy change) never has this class
+  // added/removed since the boolean doesn't change, so it doesn't replay;
+  // it only actually (re)plays on a genuine mount/class-change, e.g. a
+  // fresh pick landing in this slot, or this exact card getting unlocked
+  // again after being locked (a minor, accepted quirk — see
+  // RecommendationsBody.tsx's own comment).
+  isEntering?: boolean;
+  // True while this card is mid-exit after a Clear ✕ — plays the
+  // sink+fade-out keyframe (animate-card-exit). RecommendationsBody keeps
+  // an exiting card mounted (via its own lagging displayedResults state)
+  // for exactly as long as this animation needs to finish.
+  isExiting?: boolean;
+  // Per-card stagger delay in ms — index*stagger for entering (L->R),
+  // (count-1-index)*stagger for exiting (R->L). Computed by
+  // RecommendationsBody, since only it knows this card's position/count.
+  animationDelayMs?: number;
 }
 
 export function ResultCard({
@@ -81,11 +102,15 @@ export function ResultCard({
   level,
   sort,
   startWithSwapHint,
+  isEntering,
+  isExiting,
+  animationDelayMs,
 }: ResultCardProps) {
   // Lazy initializer — only runs on this instance's actual first render, so
   // a later re-render with a still-true startWithSwapHint prop (harmless
   // leftover in the parent, see its own comment) can't re-trigger this.
   const [hoveredIcon, setHoveredIcon] = useState<"lock" | "swap" | null>(() => (startWithSwapHint ? "swap" : null));
+  const cardAnimTuning = useCardAnimTuning();
   // Separate from `hasImage` below — that only tells us a URL exists, not
   // that it actually decoded. Set by the shared cover filmstrip's own
   // onError (see that block's own comment) — the one place the cover
@@ -344,8 +369,45 @@ export function ResultCard({
           container below it (unchanged otherwise) still has the same
           positioning root/size it always did — this wrapper is purely an
           extra layer, not a replacement for anything the flip-container
-          itself was doing. */}
-      <div className="relative w-full h-full [perspective:1100px]">
+          itself was doing.
+
+          Enter/exit animation also lands here, one level in from the
+          article — never on the article itself, which is the carousel's
+          actual snap/gesture-participating box (see its own long comment
+          above on why a transform there breaks native touch-scroll-
+          gesture-chaining on real iOS). This wrapper already carries a
+          transform-adjacent property (perspective) safely, and sits
+          outside the flip container's own rotateY, so animating it here
+          doesn't double up with or fight the flip transition.
+          --card-anim-distance/animationDuration/Delay/TimingFunction are
+          all inline style, not Tailwind classes, so cardAnimTuning.ts's
+          live debug-panel edits apply with no rebuild (Tailwind's scanner
+          can't see a JS-interpolated class — see IconButton.tsx/
+          MixerBar.tsx's own precedent for this same constraint).
+
+          isExiting checked BEFORE isEntering in both the class and the
+          easing pick below — not the reverse. isEntering is just `!locked`
+          (RecommendationsBody.tsx), true for the entire time a card sits
+          on screen unlocked, so on Clear ✕ it's still true for every
+          non-locked card at the exact same moment isExiting also becomes
+          true for it. Exiting is the one time-boxed, definitively-correct
+          signal here (only ever true during an actual in-flight exit), so
+          it has to win that overlap or the exit would incorrectly play the
+          enter keyframe/easing instead — confirmed live as a real bug
+          before this ordering was fixed. */}
+      <div
+        className={["relative w-full h-full [perspective:1100px]", isExiting ? "animate-card-exit" : isEntering ? "animate-card-enter" : ""].join(" ")}
+        style={
+          isEntering || isExiting
+            ? ({
+                "--card-anim-distance": `${cardAnimTuning.distancePx}px`,
+                animationDuration: `${cardAnimTuning.durationMs}ms`,
+                animationDelay: `${animationDelayMs ?? 0}ms`,
+                animationTimingFunction: isExiting ? cardAnimTuning.easeIn : cardAnimTuning.easeOut,
+              } as CSSProperties)
+            : undefined
+        }
+      >
       <div
         // No rotateY(0deg) at rest — same trap as the perspective move onto
         // the wrapper above (this element's own comment): a non-none
