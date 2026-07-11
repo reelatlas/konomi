@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
+import { useAnimationDebugValues } from "./animationDebugStore";
 
 interface RollingLabelProps {
   value: string;
@@ -69,15 +70,25 @@ interface RollingLabelProps {
 // rapid-tap repro — see DESIGN_SYSTEM.md). Sharing this one number is what
 // keeps the gate's own duration from silently drifting out of sync with
 // the roll it's protecting.
+//
+// Kept as a plain constant (not read from animationDebugStore) — this is
+// the fallback/default every caller's own rollBusyRef gate uses; those
+// callers (MatchSelector.tsx/LevelSelector.tsx/SortSelect.tsx) read the
+// LIVE, possibly-debug-panel-tweaked value directly via
+// getAnimationDebugValues().rollDurationMs instead, at the exact moment
+// their own gate is armed, so the gate's duration can never drift from
+// whatever this component itself is actually about to animate for
+// (below) — this constant only still exists as ANIMATION_DEBUG_DEFAULTS'
+// own source of truth (animationDebugStore.ts) and for any caller that
+// doesn't care about live-tweaking.
 export const ROLL_DURATION_MS = 220;
-const ROLL_DURATION_S = ROLL_DURATION_MS / 1000;
-// Motion's own named easing, not a hand-matched cubic-bezier array — chosen
-// as the closest idiomatic equivalent to the previous CSS animation's plain
-// `ease-out` keyword. Revisit with an explicit bezier only if a direct
-// side-by-side comparison shows a real feel mismatch, not preemptively.
-const ROLL_TRANSITION = { duration: ROLL_DURATION_S, ease: "easeOut" } as const;
 
 export function RollingLabel({ value, sizeToWidestOf, className }: RollingLabelProps) {
+  // Live-tweakable via AnimationDebugPanel.tsx — see animationDebugStore.ts's
+  // own top-of-file comment for why (a temporary tuning aid, remove once
+  // settled). Defaults to this file's own original 220ms/easeOut.
+  const { rollDurationMs, rollEase } = useAnimationDebugValues();
+  const rollTransition = { duration: rollDurationMs / 1000, ease: rollEase };
   // Sizes this box from the WIDEST candidate in sizeToWidestOf, permanently
   // fixed regardless of which value is currently showing, not from
   // whichever of outgoing/value happens to be longer at this exact moment.
@@ -156,7 +167,7 @@ export function RollingLabel({ value, sizeToWidestOf, className }: RollingLabelP
           initial={{ y: "100%" }}
           animate={{ y: "0%" }}
           exit={{ y: "-100%" }}
-          transition={ROLL_TRANSITION}
+          transition={rollTransition}
         >
           {value}
         </motion.span>

@@ -1,7 +1,8 @@
 import { useRef } from "react";
 import { SORT_OPTIONS } from "@/lib/konomi/tagPool";
 import type { SortKey } from "@/lib/konomi/types";
-import { ROLL_DURATION_MS, RollingLabel } from "./RollingLabel";
+import { getAnimationDebugValues } from "./animationDebugStore";
+import { RollingLabel } from "./RollingLabel";
 
 const SORT_LABELS = SORT_OPTIONS.map((o) => o.label);
 
@@ -52,9 +53,12 @@ export function SortSelect({ value, onChange, collapsed }: SortSelectProps) {
   function handleCollapsedClick() {
     if (rollBusyRef.current) return;
     rollBusyRef.current = true;
+    // Live value, not the static import — see RollingLabel.tsx's own
+    // comment on ROLL_DURATION_MS for why this reads the debug-panel-
+    // tweakable duration instead.
     setTimeout(() => {
       rollBusyRef.current = false;
-    }, ROLL_DURATION_MS);
+    }, getAnimationDebugValues().rollDurationMs);
     onChange(nextSort(value));
   }
 

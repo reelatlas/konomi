@@ -1,7 +1,8 @@
 import { AnimatePresence } from "motion/react";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { ResultEntry, TagInfo } from "@/lib/konomi/types";
-import { CARD_ANIM_STAGGER_MS, getAnimatingPaceCount, getEffectiveStaggerMs, getVisibleCardTierCount } from "./cardAnimTuning";
+import { useAnimationDebugValues } from "./animationDebugStore";
+import { getAnimatingPaceCount, getEffectiveStaggerMs, getVisibleCardTierCount } from "./cardAnimTuning";
 import { IsBatchClearActiveContext, ResultCard } from "./ResultCard";
 import { ScrollFadeArea } from "./ScrollFadeArea";
 import { useLevel, useSort } from "./tagPoolPrefs";
@@ -232,6 +233,10 @@ export function RecommendationsBody({
 }: RecommendationsBodyProps) {
   const level = useLevel();
   const sort = useSort();
+  // Live-tweakable via AnimationDebugPanel.tsx — read at the top level (not
+  // inside the IIFE below) since hooks can't be called from a nested
+  // function, even one invoked synchronously during this same render.
+  const { cardStaggerMs } = useAnimationDebugValues();
   // Hydration-safe: 0 on every server render and the client's own first
   // (hydration) render, then automatically resolves to the real random
   // pick right after — see getEmptyStateIndexServerSnapshot's own comment
@@ -739,7 +744,7 @@ export function RecommendationsBody({
                     locked,
                     visibleCardTierCount,
                   );
-                  const effectiveStaggerMs = getEffectiveStaggerMs(CARD_ANIM_STAGGER_MS, paceCount);
+                  const effectiveStaggerMs = getEffectiveStaggerMs(cardStaggerMs, paceCount);
                   return results.map((entry, index) => {
                     // Gated on newTitles (useKonomi.ts), not `!locked` —
                     // deliberately decoupled from live lock state so

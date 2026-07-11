@@ -1,7 +1,8 @@
 import type { MouseEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import type { MatchKey } from "@/lib/konomi/types";
-import { ROLL_DURATION_MS, RollingLabel } from "./RollingLabel";
+import { getAnimationDebugValues } from "./animationDebugStore";
+import { RollingLabel } from "./RollingLabel";
 import { useSupportsHover } from "./useSupportsHover";
 
 const OPTIONS: MatchKey[] = ["1", "2", "3"];
@@ -58,9 +59,12 @@ export function MatchSelector({ value, onChange, collapsed }: MatchSelectorProps
   function handleCollapsedClick(e: MouseEvent<HTMLButtonElement>) {
     if (rollBusyRef.current) return;
     rollBusyRef.current = true;
+    // Live value, not the static import — see RollingLabel.tsx's own
+    // comment on ROLL_DURATION_MS for why this reads the debug-panel-
+    // tweakable duration instead.
     setTimeout(() => {
       rollBusyRef.current = false;
-    }, ROLL_DURATION_MS);
+    }, getAnimationDebugValues().rollDurationMs);
     // e.currentTarget.focus() — mobile Safari/Chrome don't reliably give a
     // plain, already-mounted <button> real focus from a tap the way a mouse
     // click does natively (same reasoning as ResultCard.tsx's own lock/swap

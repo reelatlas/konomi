@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState
 import { scoreSeries } from "@/lib/konomi/scoring";
 import { isTagVisibleAtLevel, sortTags } from "@/lib/konomi/tagPool";
 import type { LevelKey, ResultEntry, SortKey, TagInfo } from "@/lib/konomi/types";
-import { CARD_ANIM_DISTANCE_PX, CARD_ANIM_DURATION_MS, CARD_ANIM_EASE_IN, CARD_ANIM_EASE_OUT } from "./cardAnimTuning";
+import { useAnimationDebugValues } from "./animationDebugStore";
 import { DiceIcon, LockClosedIcon, LockOpenIcon } from "./icons";
 import { IconButton } from "./IconButton";
 import { RatingBadge } from "./RatingBadge";
@@ -114,6 +114,10 @@ export function ResultCard({
   enterDelayMs,
   exitDelayMs,
 }: ResultCardProps) {
+  // Live-tweakable via AnimationDebugPanel.tsx — see animationDebugStore.ts's
+  // own top-of-file comment for why (a temporary tuning aid, remove once
+  // settled). Defaults to cardAnimTuning.ts's own original values.
+  const animationDebug = useAnimationDebugValues();
   // Lazy initializer — only runs on this instance's actual first render, so
   // a later re-render with a still-true startWithSwapHint prop (harmless
   // leftover in the parent, see its own comment) can't re-trigger this.
@@ -351,18 +355,18 @@ export function ResultCard({
   // (instant removal, duration 0) despite neither being knowable at the
   // time of this card's own last render.
   const cardVariants: Variants = {
-    hidden: { opacity: 0, y: CARD_ANIM_DISTANCE_PX },
+    hidden: { opacity: 0, y: animationDebug.cardDistancePx },
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: CARD_ANIM_DURATION_MS / 1000, ease: CARD_ANIM_EASE_OUT, delay: (enterDelayMs ?? 0) / 1000 },
+      transition: { duration: animationDebug.cardDurationMs / 1000, ease: animationDebug.cardEaseOut, delay: (enterDelayMs ?? 0) / 1000 },
     },
     exit: (shouldAnimate: boolean) =>
       shouldAnimate
         ? {
             opacity: 0,
-            y: CARD_ANIM_DISTANCE_PX,
-            transition: { duration: CARD_ANIM_DURATION_MS / 1000, ease: CARD_ANIM_EASE_IN, delay: (exitDelayMs ?? 0) / 1000 },
+            y: animationDebug.cardDistancePx,
+            transition: { duration: animationDebug.cardDurationMs / 1000, ease: animationDebug.cardEaseIn, delay: (exitDelayMs ?? 0) / 1000 },
           }
         : { opacity: 1, y: 0, transition: { duration: 0 } },
   };

@@ -5,6 +5,7 @@ import { visiblePoolTagNames } from "@/lib/konomi/tagPool";
 import { isThemeKey, THEME_STORAGE_KEY } from "@/lib/konomi/themes";
 import type { LevelKey, Series, TagInfo } from "@/lib/konomi/types";
 import { useKonomi } from "@/lib/konomi/useKonomi";
+import { AnimationDebugPanel } from "./AnimationDebugPanel";
 import { Masthead } from "./Masthead";
 import { MixerBar } from "./MixerBar";
 import { RecommendationsBody } from "./RecommendationsBody";
@@ -158,6 +159,12 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
       // depends on this div's own height at all.
       className="overflow-x-clip px-[var(--space-2xl)] pt-[var(--space-2xl)] pb-[var(--space-2xl)] font-body text-[var(--ink)]"
     >
+      {/* Temporary tuning aid — see AnimationDebugPanel.tsx's own top
+          comment. Rendered here (this root) rather than nested inside any
+          specific control, so it's reachable regardless of which one is
+          being tuned; `fixed` positioning means where it sits in the tree
+          doesn't affect layout either way. */}
+      <AnimationDebugPanel />
 
       <div className="relative z-[var(--z-raised)] max-w-[1280px] mx-auto">
         <Masthead theme={k.theme} onThemeChange={k.setTheme} />
