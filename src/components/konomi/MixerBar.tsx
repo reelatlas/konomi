@@ -416,6 +416,24 @@ export function MixerBar({
     pinScrollToDocumentBottomIfWasAtBottom();
   }, [editMode]);
 
+  // Locks the page's own scroll for exactly as long as the edit panel is
+  // open — see html.mixbar-panel-scroll-locked's own comment (globals.css)
+  // for the full reasoning (blockScrollThrough, below, only ever protected
+  // gestures starting on the bar itself; this closes the wider gap —
+  // reported live as the page and panel visibly scrolling together as one
+  // unit, real-device-only). A plain class toggle, not conditional JSX —
+  // matches hide-scrollbar-while-blocked's own identical toggle-a-class-
+  // on-documentElement shape a few lines below (blockScrollThrough's own
+  // effect), and needs no cleanup-on-every-render logic beyond the
+  // standard effect-cleanup-removes-what-it-added pattern.
+  useEffect(() => {
+    if (!editMode) return;
+    document.documentElement.classList.add("mixbar-panel-scroll-locked");
+    return () => {
+      document.documentElement.classList.remove("mixbar-panel-scroll-locked");
+    };
+  }, [editMode]);
+
   // The negative-margin technique that lets cardRef grow upward (edit
   // mode's extra content pushes its own top edge up) without ever moving
   // its own bottom edge (where slots/controls sit): cardRef's natural,
