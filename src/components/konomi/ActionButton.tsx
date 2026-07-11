@@ -27,9 +27,26 @@ interface ActionButtonProps {
 }
 
 const SIZE_CLASSES: Record<ActionButtonSize, string> = {
-  // The common case — Random ×3, Clear ✕ (mixer), and RECOMMEND all share
-  // this padding.
-  md: "px-[var(--space-xl)] py-[var(--space-lg)]",
+  // The common case — Random ×3, Clear ✕ (mixer), Tag Pool/Done ✓, and
+  // RECOMMEND all share this size. Fixed h-[44.5px] + flex centering, not
+  // py-based (this used to be px-xl/py-lg only, no explicit height) —
+  // confirmed live as a real bug: two buttons with byte-identical classes
+  // still rendered 0.5px apart (44.5px vs 45px) purely because their own
+  // text content differs ("RECOMMEND ▸"/"Done ✓" vs "Clear ✕"/"Random ×3")
+  // — different glyphs (✕/×) have slightly different font-metric ascent/
+  // descent in this app's mono font, which nudges the line box's own
+  // height when the button's total height is derived from
+  // padding+line-height instead of an explicit value. A fixed height
+  // sidesteps the whole mechanism, the same fix `sm` below already needed
+  // for the identical reason (see that size's own comment) — matches
+  // TagSlot/IconButton's own shared 44.5px exactly, requested directly so
+  // every control in MixerBar's Row 2 (Tag Pool, Clear, the tag slots,
+  // Random, Recommend) lines up pixel-for-pixel regardless of which of
+  // them happens to be showing text vs. an icon in either browse or edit
+  // mode. inline-flex baked in here (unlike sm) since no current `md`
+  // caller needs to externally toggle its own display value the way
+  // ResultsHeader.tsx's sm-sized Clear button does.
+  md: "inline-flex h-[44.5px] items-center justify-center px-[var(--space-xl)]",
   // Only Clear ✕ (Recommendations tab) uses this smaller size — confirmed
   // against the original markup, not a guess. Fixed h-[30px] + flex
   // centering, not py-based like md above: requested directly, so this

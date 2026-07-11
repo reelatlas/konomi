@@ -134,7 +134,14 @@ export function TagIcon({ className }: IconProps) {
 // match for "open the pool" than any tag-shaped glyph did.
 export function TagPoolIcon({ className }: IconProps) {
   return (
-    <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    // 17×17, not the 16×16 this originally shipped at — matches Check/
+    // Eraser/Dice (this row's other three icon-button glyphs) exactly,
+    // requested directly: MixerBar's Tag Pool/Clear/Random/Recommend all
+    // switch to icon-only forms at the same breakpoint (see MixerBar.tsx's
+    // own Row 2 comment), and a 1px-smaller glyph among otherwise-identical
+    // 44.5px boxes read as visibly off. Same viewBox, so this is a pure
+    // proportional scale-up, no path changes needed.
+    <svg className={className} width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
       <path d="M4 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -4" />
       <path d="M14 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -4" />
       <path d="M4 15a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -4" />
@@ -303,7 +310,13 @@ export function FilterIcon({ className }: IconProps) {
 // weaker than the bold triangle it's standing in for.
 export function ArrowRightFilledIcon({ className }: IconProps) {
   return (
-    <svg className={className} width="15" height="15" viewBox="0 0 24 24">
+    // 17×17, not the 15×15 this originally shipped at — matches Check/
+    // Eraser/Dice/TagPool (see TagPoolIcon's own identical comment): this
+    // is RECOMMEND's own collapsed-icon form, one of the same five controls
+    // that switch to icon-only together, so its glyph needs to read at the
+    // same size as the other four, not smaller. Same viewBox, pure
+    // proportional scale-up.
+    <svg className={className} width="17" height="17" viewBox="0 0 24 24">
       <path d="M7 4v16l14-8Z" fill="currentColor" />
     </svg>
   );
