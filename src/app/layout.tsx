@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { MotionConfig } from "motion/react";
 import { Anton, IBM_Plex_Mono, Zen_Kaku_Gothic_New } from "next/font/google";
 import { SHOW_HALFTONE } from "@/lib/konomi/config";
 import { THEME_KEYS, THEME_STORAGE_KEY } from "@/lib/konomi/themes";
@@ -122,7 +123,29 @@ export default function RootLayout({
             comment above), so there's no external font request left to
             preconnect for. */}
       </head>
-      <body className="h-full">{children}</body>
+      <body className="h-full">
+        {/* reducedMotion="user": every motion.* component in this app
+            (ResultCard.tsx/RollingLabel.tsx, MixerBar.tsx once migrated —
+            see DESIGN_SYSTEM.md) now defers to this ONE app-wide switch
+            instead of each component running its own
+            matchMedia("(prefers-reduced-motion: reduce)") check. "user"
+            (not "always") tracks the OS/browser's live prefers-reduced-motion
+            setting — Motion's own documented default split for this mode:
+            transform/layout animations are disabled outright, while
+            opacity/backgroundColor keep animating — which is exactly the
+            "instant OR simple fade, no motion" reduced-motion behavior this
+            app's card-animation feature was already built to (and
+            previously hand-implemented per component, e.g. the old
+            result-card-enter/-exit keyframes' own prefers-reduced-motion
+            override in globals.css, removed alongside this). Placed here
+            (RootLayout), not KonomiApp.tsx's own root div, so it wraps
+            every motion.* component in the tree with zero risk of a future
+            addition landing outside it. MotionConfig is itself a client
+            component (motion/react) — safe to render straight out of this
+            server component the normal Next.js way; nothing here needs
+            "use client" of its own. */}
+        <MotionConfig reducedMotion="user">{children}</MotionConfig>
+      </body>
     </html>
   );
 }

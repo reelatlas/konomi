@@ -1,4 +1,5 @@
-import type { CSSProperties } from "react";
+import type { Variants } from "motion/react";
+import { motion } from "motion/react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { scoreSeries } from "@/lib/konomi/scoring";
 import { isTagVisibleAtLevel, sortTags } from "@/lib/konomi/tagPool";
@@ -47,25 +48,37 @@ interface ResultCardProps {
   // needs this since toggling it never changes series.title, so the same
   // instance and its state persist across that toggle already.
   startWithSwapHint?: boolean;
-  // True for every card that isn't locked — plays the rise+fade-in
-  // keyframe (animate-card-enter, globals.css). Simply `!locked`, not
-  // scoped to a specific RECOMMEND batch: a card that's just sitting on
-  // screen (unlocked, no new render-worthy change) never has this class
-  // added/removed since the boolean doesn't change, so it doesn't replay;
-  // it only actually (re)plays on a genuine mount/class-change, e.g. a
-  // fresh pick landing in this slot, or this exact card getting unlocked
-  // again after being locked (a minor, accepted quirk — see
-  // RecommendationsBody.tsx's own comment).
+  // Gates whether this instance's mount plays the rise+fade-in transition
+  // at all (Motion's `initial` prop, see the motion.div below) — still
+  // exactly `newTitles.includes(title) || isEnteringFromSwap`, computed by
+  // RecommendationsBody, unchanged by the Motion migration (see
+  // DESIGN_SYSTEM.md): a card that's just sitting on screen (unlocked, no
+  // new render-worthy change) never has this flip since the boolean
+  // doesn't change on an already-mounted instance and Motion's `initial`
+  // only ever applies at genuine mount time regardless; it only actually
+  // (re)plays on a genuine mount, e.g. a fresh pick landing in this slot,
+  // or a swap.
   isEntering?: boolean;
-  // True while this card is mid-exit after a Clear ✕ — plays the
-  // sink+fade-out keyframe (animate-card-exit). RecommendationsBody keeps
-  // an exiting card mounted (via its own lagging displayedResults state)
-  // for exactly as long as this animation needs to finish.
-  isExiting?: boolean;
-  // Per-card stagger delay in ms — index*stagger for entering (L->R),
-  // (count-1-index)*stagger for exiting (R->L). Computed by
-  // RecommendationsBody, since only it knows this card's position/count.
-  animationDelayMs?: number;
+  // Enter stagger delay in ms — index*stagger, L->R (0 for a swap-driven
+  // single-card entrance, see RecommendationsBody's own justSwappedIndex
+  // comment). Only matters while isEntering is true and only actually
+  // takes effect at this instance's genuine first mount (Motion's
+  // `transition.delay` on an already-settled `animate` target has nothing
+  // left to delay).
+  enterDelayMs?: number;
+  // Exit stagger delay in ms — (count-1-index)*stagger, R->L, computed
+  // fresh on EVERY render (not just while actually exiting) using this
+  // card's own position/count in the full, still-current `results` array.
+  // This is deliberate, not a leftover: AnimatePresence (motion/react)
+  // freezes whatever props a child had on its own last real render before
+  // React drops it from the mapped array, then uses that frozen value to
+  // drive the exit animation — computing this fresh every render (rather
+  // than only while some "isExiting" flag is true) is what makes that
+  // frozen value automatically the correct pre-removal delay, with no
+  // separate lagging snapshot list required. See RecommendationsBody.tsx's
+  // own comment on isBatchClearActive for why this only actually animates
+  // (rather than an instant removal) when the removal was a Clear ✕.
+  exitDelayMs?: number;
 }
 
 export function ResultCard({
@@ -86,8 +99,8 @@ export function ResultCard({
   sort,
   startWithSwapHint,
   isEntering,
-  isExiting,
-  animationDelayMs,
+  enterDelayMs,
+  exitDelayMs,
 }: ResultCardProps) {
   // Lazy initializer — only runs on this instance's actual first render, so
   // a later re-render with a still-true startWithSwapHint prop (harmless
@@ -252,6 +265,40 @@ export function ResultCard({
   // year/eps come from AniList and can genuinely be null (e.g. unreleased
   // media) — omit whichever part is missing instead of rendering "null".
   const meta = [series.year ?? "TBA", series.eps != null ? `${series.eps} EP` : null].filter(Boolean).join(" · ");
+  // Redefined fresh every render (not memoized) — cheap plain objects, and
+  // `exit` in particular needs to close over THIS render's own
+  // exitDelayMs, since AnimatePresence (motion/react) uses whatever
+  // `variants` a card had on its own last real render before disappearing
+  // from RecommendationsBody's mapped array (see exitDelayMs's own comment
+  // on ResultCardProps). `exit` is a function, not a plain object — a
+  // Motion "dynamic variant" — specifically so it can also react to
+  // AnimatePresence's own `custom` prop (isBatchClearActive,
+  // RecommendationsBody.tsx), which — unlike this card's own frozen
+  // props — DOES keep updating live even after this instance is gone from
+  // the parent's array, because AnimatePresence re-supplies its current
+  // `custom` value to already-exiting children at the moment it evaluates
+  // their exit variant. That split (frozen exitDelayMs via closure, live
+  // shouldAnimate via the function's own argument) is what lets a single
+  // component distinguish "I'm exiting because of a Clear ✕" (real
+  // sink+fade-out) from "I'm exiting because RECOMMEND/swap replaced me"
+  // (instant removal, duration 0) despite neither being knowable at the
+  // time of this card's own last render.
+  const cardVariants: Variants = {
+    hidden: { opacity: 0, y: CARD_ANIM_DISTANCE_PX },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: CARD_ANIM_DURATION_MS / 1000, ease: CARD_ANIM_EASE_OUT, delay: (enterDelayMs ?? 0) / 1000 },
+    },
+    exit: (shouldAnimate: boolean) =>
+      shouldAnimate
+        ? {
+            opacity: 0,
+            y: CARD_ANIM_DISTANCE_PX,
+            transition: { duration: CARD_ANIM_DURATION_MS / 1000, ease: CARD_ANIM_EASE_IN, delay: (exitDelayMs ?? 0) / 1000 },
+          }
+        : { opacity: 1, y: 0, transition: { duration: 0 } },
+  };
 
   return (
     <article
@@ -361,39 +408,40 @@ export function ResultCard({
           transform-adjacent property (perspective) safely, and sits
           outside the flip container's own rotateY, so animating it here
           doesn't double up with or fight the flip transition.
-          --card-anim-distance/animationDuration/TimingFunction are inline
-          style, not Tailwind classes, sourced from cardAnimTuning.ts's
-          plain constants — kept as inline style (not a static Tailwind
-          class) because animationDelay alongside them genuinely is
-          per-card/dynamic (index-based), and Tailwind's scanner can't see
-          a JS-interpolated class regardless (see IconButton.tsx/
-          MixerBar.tsx's own precedent for this same constraint), so
-          keeping all four together in one style object is simpler than
-          splitting the fixed ones out to a class.
 
-          isExiting checked BEFORE isEntering in both the class and the
-          easing pick below — not the reverse. isEntering (newTitles-gated,
-          RecommendationsBody.tsx) stays true for a card that finished
-          entering a while ago and never got locked since, so on Clear ✕
-          it can still be true for a non-locked card at the exact same
-          moment isExiting also becomes true for it. Exiting is the one
-          time-boxed, definitively-correct signal here (only ever true
-          during an actual in-flight exit), so it has to win that overlap
-          or the exit would incorrectly play the enter keyframe/easing
-          instead — confirmed live as a real bug before this ordering was
-          fixed. */}
-      <div
-        className={["relative w-full h-full [perspective:1100px]", isExiting ? "animate-card-exit" : isEntering ? "animate-card-enter" : ""].join(" ")}
-        style={
-          isEntering || isExiting
-            ? ({
-                "--card-anim-distance": `${CARD_ANIM_DISTANCE_PX}px`,
-                animationDuration: `${CARD_ANIM_DURATION_MS}ms`,
-                animationDelay: `${animationDelayMs ?? 0}ms`,
-                animationTimingFunction: isExiting ? CARD_ANIM_EASE_IN : CARD_ANIM_EASE_OUT,
-              } as CSSProperties)
-            : undefined
-        }
+          motion.div (motion/react), not the CSS-keyframe classes this
+          replaced (animate-card-enter/-exit, removed from globals.css —
+          see DESIGN_SYSTEM.md for the migration writeup). RecommendationsBody
+          wraps this card's parent map in AnimatePresence, which is what
+          actually drives isEntering/exitDelayMs's real effect now:
+          - initial only applies at this exact instance's genuine first
+            mount (Motion's own guarantee, not something this file has to
+            arrange) — false skips it entirely for a card that mounted
+            already at rest, "hidden" plays the rise+fade-in for a card
+            gated on isEntering (still newTitles/isEnteringFromSwap,
+            RecommendationsBody.tsx, unchanged by this migration).
+          - exit is a dynamic variant (a function, not a plain object) so
+            it can react to AnimatePresence's own `custom` prop
+            (isBatchClearActive, RecommendationsBody.tsx) even though this
+            component has already been dropped from the parent's mapped
+            array by the time it actually exits — that custom flag is what
+            keeps a RECOMMEND/swap replacement's departing card an INSTANT
+            removal (duration 0, matching this app's existing, deliberate
+            asymmetry: today only Clear ✕ ever exit-animates a departing
+            card) while a genuine Clear ✕ gets the real sink+fade-out.
+            exitDelayMs itself is still whatever this instance's own LAST
+            render (while still part of `results`) computed — see that
+            prop's own comment in this file's interface for why computing
+            it unconditionally, every render, is what makes AnimatePresence's
+            own "freeze last render's props" behavior land on the correct
+            pre-removal stagger position with no separate lagging snapshot
+            list. */}
+      <motion.div
+        className="relative w-full h-full [perspective:1100px]"
+        variants={cardVariants}
+        initial={isEntering ? "hidden" : false}
+        animate="visible"
+        exit="exit"
       >
       <div
         // No rotateY(0deg) at rest — same trap as the perspective move onto
@@ -1312,7 +1360,7 @@ export function ResultCard({
           </div>
         </div>
       </div>
-      </div>
+      </motion.div>
     </article>
   );
 }

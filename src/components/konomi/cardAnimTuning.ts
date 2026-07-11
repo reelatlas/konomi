@@ -12,8 +12,14 @@ import { DEFAULT_RESULT_COUNT } from "@/lib/konomi/config";
 export const CARD_ANIM_DURATION_MS = 300;
 export const CARD_ANIM_STAGGER_MS = 50;
 export const CARD_ANIM_DISTANCE_PX = 8;
-export const CARD_ANIM_EASE_IN = "cubic-bezier(0,0,.2,1)";
-export const CARD_ANIM_EASE_OUT = "cubic-bezier(0,0,.2,1)";
+// Cubic-bezier control points, not a CSS `cubic-bezier(...)` string —
+// ResultCard.tsx feeds these straight to Motion's `ease` (motion/react),
+// which takes the same four numbers a CSS cubic-bezier() would, just as a
+// plain tuple rather than CSS function syntax. Value unchanged from the
+// pre-Motion CSS keyframes this replaced (see DESIGN_SYSTEM.md for that
+// migration): cubic-bezier(0,0,.2,1) === [0, 0, 0.2, 1].
+export const CARD_ANIM_EASE_IN: [number, number, number, number] = [0, 0, 0.2, 1];
+export const CARD_ANIM_EASE_OUT: [number, number, number, number] = [0, 0, 0.2, 1];
 
 // CARD_ANIM_STAGGER_MS is the value AT DEFAULT_RESULT_COUNT (5) cards — as
 // fewer cards are actually sweeping (a narrower carousel tier, some locked
