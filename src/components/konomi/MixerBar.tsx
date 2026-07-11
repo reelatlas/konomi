@@ -1300,13 +1300,15 @@ export function MixerBar({
     }
   }
 
-  // The actual visual FLIP overlay — a compositor-only transform (cardRef)
-  // and clip-path (dialogRef), imperatively driven by Motion (motion/react)
+  // The actual visual FLIP overlay — a compositor-only transform
+  // (growableRef, NOT cardRef — see this effect's own comment below for a
+  // confirmed-live bug from getting this wrong the first time) and
+  // clip-path (dialogRef), imperatively driven by Motion (motion/react)
   // rather than a CSS `transition` on marginTop/height directly (the
   // pre-migration version of this file — see DESIGN_SYSTEM.md for the
   // full writeup, including the measured layout-pass count this replaces).
   // Targets the plain DOM refs directly (Motion's animate() works on any
-  // element, not just motion.* components) — cardRef/dialogRef stay
+  // element, not just motion.* components) — growableRef/dialogRef stay
   // ordinary divs, nothing about their own structure changes.
   //
   // Keyed on transitionGen, not on isEditModeTransitioning || isSnapTransitioning:
@@ -1336,9 +1338,21 @@ export function MixerBar({
     // transition start — skip the effect's very first run (mount), where
     // there is nothing to animate between yet.
     if (transitionGen === 0) return;
-    const card = cardRef.current;
+    // growableRef, not cardRef — see this effect's own DESIGN_SYSTEM.md
+    // entry for the confirmed-live bug this fixes: cardRef is the ancestor
+    // of BOTH the pool panel (growableRef) AND the fixed slots/controls row
+    // ("Row 2"), so a transform applied to cardRef itself visually drags
+    // the whole box — slots/controls included — even though marginTop's
+    // real, already-committed value never moves them at all. growableRef
+    // wraps only the pool panel (see its own comment near its
+    // declaration), so animating a compensating transform there instead
+    // shifts exactly the part of this box whose on-screen position
+    // actually changes, and leaves the fixed rows completely untouched,
+    // matching the "slots/controls never move" invariant this whole file
+    // is built around.
+    const growable = growableRef.current;
     const dialog = dialogRef.current;
-    if (!card || !dialog) return;
+    if (!growable || !dialog) return;
     const durationS = EDIT_PANEL_TRANSITION_MS / 1000;
     const startMarginTop = transitionStartMarginTop;
     const endMarginTop = transitionEndMarginTop;
@@ -1362,7 +1376,7 @@ export function MixerBar({
     // Return values (AnimationPlaybackControls) deliberately not kept —
     // see the settleTimeout/cleanup below for why cancellation goes
     // through the native getAnimations().cancel() instead of these.
-    animate(card, { transform: [`translateY(${fromOffsetPx}px)`, `translateY(${toOffsetPx}px)`] }, { duration: durationS, ease: "easeInOut" });
+    animate(growable, { transform: [`translateY(${fromOffsetPx}px)`, `translateY(${toOffsetPx}px)`] }, { duration: durationS, ease: "easeInOut" });
     animate(
       dialog,
       { clipPath: [`inset(0px 0px ${fromClipPx}px 0px)`, `inset(0px 0px ${toClipPx}px 0px)`] },
@@ -1394,14 +1408,14 @@ export function MixerBar({
     // of its current playState, letting the plain inline style (set right
     // after) actually show through immediately either way.
     const settleTimeout = setTimeout(() => {
-      card.getAnimations().forEach((a) => a.cancel());
+      growable.getAnimations().forEach((a) => a.cancel());
       dialog.getAnimations().forEach((a) => a.cancel());
-      card.style.transform = "";
+      growable.style.transform = "";
       dialog.style.clipPath = "";
     }, EDIT_PANEL_TRANSITION_MS);
     return () => {
       clearTimeout(settleTimeout);
-      card.getAnimations().forEach((a) => a.cancel());
+      growable.getAnimations().forEach((a) => a.cancel());
       dialog.getAnimations().forEach((a) => a.cancel());
       // Reset to identity on cleanup too — matters specifically for an
       // INTERRUPTED transition (this effect re-firing before the previous
@@ -1411,7 +1425,7 @@ export function MixerBar({
       // applied between this stop() and the new animate() call (both
       // synchronous, so this window is only a single frame at most) is not
       // worth relying on implicitly.
-      card.style.transform = "";
+      growable.style.transform = "";
       dialog.style.clipPath = "";
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally keyed on transitionGen alone, see this effect's own top comment (isEditModeTransitioning/isSnapTransitioning is a level that can stay true across two back-to-back transitions; transitionDirection/committed*/target* are all read fresh at the instant this fires, not stale)
