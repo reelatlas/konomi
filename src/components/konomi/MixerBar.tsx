@@ -373,35 +373,9 @@ export function MixerBar({
   // the trigger (editMode settling, or the drag actually ending).
   const pinFramesLeftRef = useRef(0);
   const pinLoopRunningRef = useRef(false);
-  // frames defaults to 6 — the drag call sites (handleResizeStart/
-  // handleMove/handleEnd, below) need the repeat: a live drag genuinely
-  // recommits a new real height every frame for as long as it continues,
-  // so the pin has to keep re-correcting alongside it. The editMode-toggle
-  // call site (the effect right below) passes 1 instead: a discrete
-  // toggle's real geometry (marginTop/height) is already fully committed,
-  // final, and unchanging from this effect's very first frame onward —
-  // Motion's layout="position" (cardRef/Row 2) is only ever faking a
-  // VISUAL transition on top of that already-final geometry, so there's
-  // no real, ongoing scrollHeight change for frames 2-6 to be correcting
-  // FOR. Confirmed live as a real, freshly-introduced bug leaving this at
-  // 6 unconditionally: cardRef is position:sticky, whose own measured
-  // rect is directly a function of scrollY — repeatedly calling
-  // window.scrollTo across 6 frames while Motion is ALSO independently
-  // animating a transform on that same sticky element (reopening directly
-  // to a large persisted pool height, from a page scrolled to its true
-  // bottom) measurably dragged scrollY and cardRef's own rect through a
-  // multi-frame detour neither system intended, which then visibly
-  // desynced Row 2's own layout="position" tracking from cardRef's (Row 2
-  // maxDelta 393-606px, live-measured) — two independent animation
-  // systems (Motion's transform, this scroll-pin loop), both legitimately
-  // touching the same sticky element's effective position, is exactly the
-  // "two things that must stay in perfect sync, don't" class of bug this
-  // file has hit before, just one layer removed from Motion itself this
-  // time. A single, immediate correction is sufficient for a toggle since
-  // nothing legitimately changes after it.
-  function pinScrollToDocumentBottomIfWasAtBottom(frames = 6) {
+  function pinScrollToDocumentBottomIfWasAtBottom() {
     if (!wasAtDocumentBottomRef.current) return;
-    pinFramesLeftRef.current = frames;
+    pinFramesLeftRef.current = 6;
     if (pinLoopRunningRef.current) return;
     pinLoopRunningRef.current = true;
     function tick() {
@@ -415,34 +389,32 @@ export function MixerBar({
     }
     requestAnimationFrame(tick);
   }
-  // Deferred by EDIT_PANEL_TRANSITION_MS, not called immediately — confirmed
-  // live as a real, freshly-introduced bug calling this synchronously as
-  // editMode flips true: cardRef is position:sticky, whose own measured
-  // rect getBoundingClientRect() (what cardRef's `layout="position"`, above,
-  // reads every render to compute its FLIP transform) is directly a
-  // function of the CURRENT scroll offset. window.scrollTo, called WHILE
-  // Motion is mid-transition on that same sticky element, visibly knocked
-  // cardRef's own measured position off by exactly the scrolled amount —
-  // live-measured: cardTop plateaued at 313px (706.17 start minus the
-  // pin's own 393px scrollTo jump, almost exactly) for ~170ms before
-  // continuing to its real 100px target, rather than interpolating
-  // smoothly the whole way. Confirmed via a getBoundingClientRect() frame
-  // sampler with Row 2's own layout="position" tracking removed entirely
-  // (isolating this to cardRef alone, not a Row-2-vs-cardRef desync) that
-  // cardRef itself does this with no other element involved — the pin
-  // loop's OWN scrollTo call is what's disturbing Motion's measurement,
-  // not anything downstream of it. The page's real scrollHeight is already
-  // at its final value from this same commit (dialogRef's height snaps
-  // instantly, unchanged by any of this), so there's no urgency to correct
-  // scroll position before Motion's own ~280ms illusion finishes — doing it
-  // right after, once cardRef's own transform has settled back to
-  // identity, gets the same "stay pinned near the bottom" result without
-  // fighting Motion for the same element's measured rect mid-flight.
-  useEffect(() => {
+  // Reverted back to synchronous/immediate (useLayoutEffect, default 6
+  // frames) — a same-session detour deferred this by EDIT_PANEL_TRANSITION_MS
+  // instead, reasoning that window.scrollTo fighting Motion's own
+  // measurement of this sticky element mid-transition was the cause of a
+  // real, live-measured cardRef/Row 2 desync on a large-persisted-height
+  // reopen (see git history/DESIGN_SYSTEM.md for that bug's own writeup —
+  // not wrong, but the wrong trade). Reported directly afterward: the
+  // scroll-through-to-the-page bug this whole mechanism was layered on top
+  // of (touch-action/blockScrollThrough, above) came back on mobile —
+  // pointing at this exact area's own prior, working history. Deferring
+  // the correction leaves the page sitting at a stale, uncorrected scroll
+  // position for the whole ~280ms transition whenever wasAtDocumentBottomRef
+  // is true, which is precisely the kind of sudden, late scroll
+  // discontinuity this file's own DESIGN_SYSTEM.md already documents as a
+  // trigger for real WebKit compositor desync (see "the real mechanism
+  // behind mashing an empty slot" entry) — a much more consequential
+  // regression, on real mobile hardware, than the narrower cardRef/Row 2
+  // desync it was traded for (a rarer scenario: reopening at a large,
+  // *persisted* height, from a page scrolled to its exact true bottom).
+  // Restored the original, long-working timing; the desync it reopens is
+  // called out explicitly in DESIGN_SYSTEM.md as an accepted, narrower
+  // trade rather than silently reintroduced.
+  useLayoutEffect(() => {
     if (!editMode) return;
-    const timeout = setTimeout(() => pinScrollToDocumentBottomIfWasAtBottom(1), EDIT_PANEL_TRANSITION_MS);
-    return () => clearTimeout(timeout);
-  }, [editMode, EDIT_PANEL_TRANSITION_MS]);
+    pinScrollToDocumentBottomIfWasAtBottom();
+  }, [editMode]);
 
   // The negative-margin technique that lets cardRef grow upward (edit
   // mode's extra content pushes its own top edge up) without ever moving
