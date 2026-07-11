@@ -38,6 +38,13 @@ interface TagPoolBodyProps {
   // elsewhere. Optional only so this component doesn't require a caller
   // that has no use for it — MixerBar always passes one today.
   trailingControls?: React.ReactNode;
+  // Threaded straight through to the chip area's own ScrollFadeArea, below
+  // — see that prop's own comment (ScrollFadeArea.tsx) for the real,
+  // measured performance issue this exists to avoid. True for exactly as
+  // long as MixerBar's own resize-drag is live (dragHeightPx !== null),
+  // which is also exactly when poolPanelHeightPx (and therefore
+  // chipAreaHeightPx, below) is changing on every RAF-throttled tick.
+  isPoolPanelResizing?: boolean;
 }
 
 const STRIP_GAP = 12; // --space-lg
@@ -108,7 +115,16 @@ function ChipRow({
 // collapsible sections — see DESIGN_SYSTEM.md for why that replaced the
 // old sticky-header/mask machinery entirely rather than keeping it around
 // in reduced form.
-export function TagPoolBody({ allTags, selectedTags, totalSeriesCount, onChipToggle, poolPanelHeightPx, editMode, trailingControls }: TagPoolBodyProps) {
+export function TagPoolBody({
+  allTags,
+  selectedTags,
+  totalSeriesCount,
+  onChipToggle,
+  poolPanelHeightPx,
+  editMode,
+  trailingControls,
+  isPoolPanelResizing,
+}: TagPoolBodyProps) {
   const level = useLevel();
   const sort = useSort();
   // Plain component state, not localStorage-backed — TagPoolBody itself
@@ -213,7 +229,15 @@ export function TagPoolBody({ allTags, selectedTags, totalSeriesCount, onChipTog
         aria-labelledby={`tagpool-tab-${active.section.key}`}
         tabIndex={0}
       >
-        <ScrollFadeArea height={CHIP_AREA_HEIGHT} heightPx={chipAreaHeightPx} scrollStep={92} fadeSize={4} surfaceColor="var(--surface)" restrictTouchAction>
+        <ScrollFadeArea
+          height={CHIP_AREA_HEIGHT}
+          heightPx={chipAreaHeightPx}
+          scrollStep={92}
+          fadeSize={4}
+          surfaceColor="var(--surface)"
+          restrictTouchAction
+          pauseMeasurementWhileResizing={isPoolPanelResizing}
+        >
           {active.section.subsections ? (
             <div className="flex flex-col gap-[var(--space-lg)]">
               {active.section.subsections.map((sub) => {

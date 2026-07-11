@@ -225,6 +225,26 @@ interface ScrollFadeAreaProps {
   // TagScrollArea leaves this unset (no mask-image at all, not even a
   // trivial no-op one, so there's zero behavior change for them).
   edgeMaskSize?: number;
+  // Opt-in: skips this component's own ResizeObserver-driven
+  // hasOverflow/atStart/atEnd recompute while true, catching up once with
+  // a single fresh measurement the instant it goes back to false. Added
+  // specifically for MixerBar's own chip area during a live resize-drag —
+  // see MixerBar.tsx's own call site for the full reasoning (a real,
+  // measured performance issue, not a guess): heightPx changes on every
+  // RAF-throttled drag tick, and this component's own ResizeObserver
+  // (watching that same viewport for exactly this "heightPx changes at
+  // runtime" case, see this effect's own comment below) fires its
+  // callback on every one of those ticks too, each one reading
+  // scrollWidth/clientHeight/scrollTop off the DOM (a forced synchronous
+  // layout read) and calling three setState updates. CDP CPU-throttling
+  // (6x, matching typical mobile-simulation testing) during a slow drag
+  // measured over a third of sampled frames missing their ~16.6ms budget
+  // (worst observed: 66ms) with this unthrottled — a real, physical-
+  // device-only "jitter" report traced directly to this cost. Every other
+  // caller leaves this unset/false — none of them have a viewport whose
+  // own height changes at drag-tick frequency, so there's no equivalent
+  // cost for them to pay in the first place.
+  pauseMeasurementWhileResizing?: boolean;
   children: React.ReactNode;
 }
 
@@ -281,6 +301,7 @@ export function ScrollFadeArea({
   restrictTouchAction = false,
   fitContent = false,
   edgeMaskSize,
+  pauseMeasurementWhileResizing = false,
   children,
 }: ScrollFadeAreaProps) {
   const horizontal = orientation === "horizontal";
@@ -325,12 +346,25 @@ export function ScrollFadeArea({
     }
   };
 
+  // Mirrors pauseMeasurementWhileResizing for the ResizeObserver callback
+  // below, which is created once per [horizontal]-keyed effect run, not
+  // once per render — a ref, kept current via the plain effect right
+  // after it, is what lets that stable callback see this render's actual
+  // value instead of whatever it was when the observer was constructed.
+  const pauseMeasurementRef = useRef(pauseMeasurementWhileResizing);
+  useEffect(() => {
+    pauseMeasurementRef.current = pauseMeasurementWhileResizing;
+  });
+
   useEffect(() => {
     updateScrollState();
     const el = scrollRef.current;
     const content = contentRef.current;
     if (!el || !content) return;
-    const observer = new ResizeObserver(updateScrollState);
+    const observer = new ResizeObserver(() => {
+      if (pauseMeasurementRef.current) return;
+      updateScrollState();
+    });
     // Observes both the content div (its usual job — content growing/
     // shrinking for reasons the viewport can't see itself, e.g. a level
     // change hiding/showing tags) AND the viewport (`el`) itself now too —
@@ -345,11 +379,41 @@ export function ScrollFadeArea({
     // content that no longer scrolled, until something unrelated (a
     // remount, e.g. switching tabs and back) forced a fresh
     // `updateScrollState()` call via this same effect's mount-time one.
+    //
+    // The pauseMeasurementRef guard above is what pauseMeasurementWhileResizing
+    // (this component's own prop, see its own comment) actually gates —
+    // this observer keeps firing regardless (disconnecting/reconnecting it
+    // per drag tick would be its own real cost), it just skips the
+    // expensive part (updateScrollState's own forced layout reads plus
+    // three setState calls) while paused. See the catch-up effect below
+    // for what re-syncs this once resizing actually stops.
     observer.observe(el);
     observer.observe(content);
     return () => observer.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [horizontal]);
+
+  // Catches up with a single fresh measurement the instant
+  // pauseMeasurementWhileResizing goes back to false — without this, the
+  // very last resize tick (still paused, since MixerBar only flips this
+  // back once the drag has already ended) would leave hasOverflow/atStart/
+  // atEnd stale at whatever they were the last time the observer's own
+  // callback actually ran, same failure mode the ResizeObserver's own
+  // comment above already documents for a different trigger. Skips its own
+  // first run (the `if (pauseMeasurementWhileResizing) return` above
+  // already covers mount-while-paused; this effect firing an *additional*,
+  // redundant measurement on mount-while-NOT-paused would just duplicate
+  // the other effect's own mount-time call for zero benefit).
+  const isFirstPauseEffectRun = useRef(true);
+  useEffect(() => {
+    if (isFirstPauseEffectRun.current) {
+      isFirstPauseEffectRun.current = false;
+      return;
+    }
+    if (pauseMeasurementWhileResizing) return;
+    updateScrollState();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pauseMeasurementWhileResizing]);
 
   // Scrolls to scrollResetIndex's own unit (0, the start edge, by default)
   // whenever the caller's reset key changes (also fires harmlessly on

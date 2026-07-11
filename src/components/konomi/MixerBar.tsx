@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { motion, useMotionValue, useTransform } from "motion/react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { MatchKey, MixerError, Slot, TagInfo } from "@/lib/konomi/types";
 import { ActionButton } from "./ActionButton";
@@ -157,6 +157,34 @@ interface MixerBarProps {
 //
 // Esc, click-outside, and the resize handle all work at every breakpoint —
 // none of the three is gated to desktop/pointer specifically.
+
+// Maps the AnimationDebugPanel's NamedEase options onto real CSS
+// cubic-bezier() curves — needed because the open/close/snap geometry
+// (targetMarginTop/targetHeight/targetMarginBottomPx, below) now animates
+// via a genuine CSS `transition`, not Motion's `animate()`, which accepts
+// these names natively. linear/easeIn/easeOut/easeInOut map exactly (the
+// CSS Easing Functions spec defines them with these same curves — no
+// approximation for the default, "editPanelEase" is "easeInOut" out of the
+// box). back{In,Out,InOut} are also exact — Motion's own "back" eases are
+// themselves cubic-bezier curves with control points outside [0,1]
+// (standard, published values, e.g. easings.net's "easeOutBack"), the same
+// mechanism CSS cubic-bezier() supports directly. circ{In,Out,InOut} are
+// the one approximation here: true circular easing isn't a cubic curve at
+// all, so these are the closest well-known cubic-bezier stand-ins, not a
+// pixel-exact match to Motion's own formula — acceptable since this is a
+// debug-panel-only option, never the shipped default.
+const NAMED_EASE_TO_CUBIC_BEZIER: Record<string, string> = {
+  linear: "linear",
+  easeIn: "cubic-bezier(0.42, 0, 1, 1)",
+  easeOut: "cubic-bezier(0, 0, 0.58, 1)",
+  easeInOut: "cubic-bezier(0.42, 0, 0.58, 1)",
+  circIn: "cubic-bezier(0.55, 0, 1, 0.45)",
+  circOut: "cubic-bezier(0, 0.55, 0.45, 1)",
+  circInOut: "cubic-bezier(0.85, 0, 0.15, 1)",
+  backIn: "cubic-bezier(0.36, 0, 0.66, -0.56)",
+  backOut: "cubic-bezier(0.34, 1.56, 0.64, 1)",
+  backInOut: "cubic-bezier(0.68, -0.6, 0.32, 1.6)",
+};
 
 export function MixerBar({
   slots,
@@ -726,6 +754,91 @@ export function MixerBar({
   // release, not on every mousemove.
   const persistedHeightPx = usePoolPanelHeight();
   const [dragHeightPx, setDragHeightPx] = useState<number | null>(null);
+  // Drive the live-drag visual entirely through Motion values (motion/react)
+  // instead of dragHeightPx itself — see handleResizeStart/handleMove's own
+  // comments below for the full reasoning (a real, measured performance
+  // issue: CDP's LayoutCount showed 60 real layout passes for 60 drag
+  // ticks, zero amortization — the drag never got the compositor-only
+  // treatment the discrete open/close/snap transitions already have from
+  // Motion's own `layout` prop, since `layout` can't track a per-frame
+  // gesture — confirmed live earlier this same migration). `.set()` on a
+  // motion value updates the DOM directly, outside React's render cycle —
+  // no re-render, no reconciliation of Row 2's own subtree — and both of
+  // these specifically drive compositor-only properties (a transform, a
+  // clip-path), never a real layout property, so neither one costs a
+  // reflow no matter how often they're set. Declared further down (after
+  // poolPanelMaxHeight, which dragClipPath's own useTransform callback
+  // reads directly — poolPanelMaxHeight is already frozen for a drag's
+  // entire duration via isDraggingRef, same as every other value derived
+  // from it, so there's no need for a separate frozen copy of its own).
+  // A CONSTANT for the whole drag, not a per-tick value — set once in
+  // handleResizeStart, never touched again until handleEnd resets it. Two
+  // wrong versions were tried and caught live before this one, both worth
+  // recording since the failure modes are easy to reintroduce by accident.
+  //
+  // Wrong version 1 (the original design here): recomputed every tick as
+  // -(poolPanelMaxHeight - next), tracking the live drag target — the
+  // intuitive choice, since the panel visually needs to track the pointer.
+  // Reported live, directly, as cardRef's own box (border/background/
+  // shadow) sliding as a rigid whole, in the WRONG direction, as the drag
+  // proceeded — "it completely moves the entire card and contents." Traced
+  // to what this formula is actually for: growableRef/dialogRef's real
+  // height pins to poolPanelMaxHeight once, at drag start (see growableRef's
+  // own comment), while the outer wrapper's real marginTop stays frozen at
+  // whatever it was for startHeight (deliberately — see
+  // effectiveHeightPx's own comment on why re-computing it live during a
+  // drag was tried and reverted). That mismatch makes cardRef's real,
+  // untransformed box CONSTANT throughout the drag but WRONG by a fixed
+  // amount, (poolPanelMaxHeight - startHeight) — not by anything that
+  // depends on `next`. A per-tick formula fixes a fixed error with a moving
+  // target: correct only at the one instant they happen to agree (t=0,
+  // where next==startHeight), and increasingly wrong as next moves away
+  // from startHeight — measured directly, cardBottom swept a full 150px for
+  // a 150px drag, the exact "whole card slides" symptom reported.
+  //
+  // Wrong version 2: kept the per-tick formula on cardRef, and instead gave
+  // Row 2 (see its own comment, below — since removed) a SEPARATE per-tick
+  // compensator to cancel out cardRef's own live delta. This did make Row 2
+  // itself measure as perfectly stationary (confirmed live, 0.0px drift) —
+  // but only Row 2. cardRef's own box was still sliding underneath it,
+  // since nothing was correcting cardRef itself, just papering over its
+  // effect on one specific descendant. Caught before shipping, once the
+  // same cardBottom measurement was taken directly on cardRef rather than
+  // on Row 2 alone.
+  //
+  // The actual fix: since the error is a fixed amount, not something that
+  // tracks `next`, the correction has to be a fixed amount too —
+  // -(poolPanelMaxHeight - startHeight), computed once. This makes cardRef's
+  // own box (and therefore Row 2, and anything else riding inside it)
+  // PERFECTLY STATIONARY for the drag's entire duration — no separate Row 2
+  // compensator needed at all anymore, it was only ever working around
+  // cardRef's own formula being wrong. The tradeoff, now the ONLY thing
+  // actually animating during a live drag: cardRef's own box is sized and
+  // positioned for its full poolPanelMaxHeight extent from the very first
+  // frame (see growableRef's own comment on why that height is pinned) and
+  // stays there, unmoving, the whole time — only the CONTENT inside
+  // (growableRef's clip-path reveal, driven by dragRevealHeight below)
+  // visibly grows with the pointer. Verified this doesn't cause the
+  // revealed content to run past Row 2 at the top end of the range either:
+  // cardRef's box is anchored so that a FULLY revealed panel
+  // (dragRevealHeight == poolPanelMaxHeight) lands exactly where the real,
+  // non-drag geometry would put it — the reveal only ever grows toward
+  // that point, never past it, for any reachable value of `next`.
+  const dragCardTranslateY = useMotionValue(0);
+  // Number.POSITIVE_INFINITY, not 0 — see dragClipPath's own useTransform
+  // (near poolPanelMaxHeight, below) for the formula this feeds:
+  // `inset(0 0 max(0, poolPanelMaxHeight - revealPx)px 0)`. A revealPx of
+  // Infinity makes that inset amount 0 (no clipping) regardless of
+  // whatever poolPanelMaxHeight's own current value is — deliberately not
+  // dependent on knowing that value at this exact point, since
+  // poolPanelMaxHeight isn't declared until further down this same
+  // function. Matters beyond just tidiness: growableRef's own style prop
+  // (below) now includes clipPath unconditionally (see that element's own
+  // comment for why), so THIS value is what the clip-path resolves to on
+  // every render where a drag isn't active, including the very first one,
+  // before any drag has ever happened — 0 would clip the whole box away
+  // from initial mount.
+  const dragRevealHeight = useMotionValue(Number.POSITIVE_INFINITY);
   // First-ever open (before the user has ever dragged) lands at
   // POOL_HEIGHT_MIN — the same floor a drag could take it to — so the
   // sheet reads as "already at minimum, expand if you want more" rather
@@ -1075,6 +1188,15 @@ export function MixerBar({
   // same hydration-safety reason described in usePoolPanelMaxHeight's own
   // comment in tagPoolPrefs.ts.
   const poolPanelMaxHeight = usePoolPanelMaxHeight(fixedOverheadPx ?? EDIT_MODE_FIXED_ROWS_HEIGHT);
+  // dragRevealHeight (declared with dragCardTranslateY, above) mapped to a
+  // clip-path string — growableRef's own style reads this directly (see
+  // that ref's own comment). poolPanelMaxHeight itself is safe to read
+  // directly in this callback, not a frozen copy of its own: it's already
+  // stable for a live drag's entire duration (isDraggingRef gates its own
+  // upstream measurement, same as every other value derived from it), and
+  // this callback re-closes over whatever the current render's value is on
+  // every render the same way any other hook callback does.
+  const dragClipPath = useTransform(dragRevealHeight, (revealPx) => `inset(0 0 ${Math.max(0, poolPanelMaxHeight - revealPx)}px 0)`);
   // Whether the resize-specific controls (drag grip + 50%/100%/reset
   // shortcuts) within the resize-handle row are worth showing at all —
   // hidden once poolPanelMaxHeight itself can't clear POOL_HEIGHT_MIN,
@@ -1241,21 +1363,36 @@ export function MixerBar({
   const targetMarginTop = editMode ? -(effectiveGrowableFixedOverheadPx + effectiveHeightPx) : 0;
   const targetHeight = editMode ? effectiveHeightPx : 0;
   const targetMarginBottomPx = editMode ? DIALOG_MARGIN_BOTTOM_PX : 0;
-  // The layout animation's own transition — instant (duration 0) whenever
-  // nothing is actually transitioning (idle, or every live-drag tick,
-  // since drag never sets isEditModeTransitioning/isSnapTransitioning at
-  // all — see handleResizeStart's own comment), EDIT_PANEL_TRANSITION_MS
-  // otherwise. A stable-shaped object, not recreated with new semantics
-  // per call site — this is the ONE place that decides "should this
-  // change be animated at all," reused identically by both growableRef
-  // and dialogRef below so their two layout animations can never drift
-  // out of sync with each other the way this file's very first (pre-
-  // Motion) version once did (see that section's own "margin-bottom is
-  // animated too" entry above).
-  const layoutTransition = {
-    duration: isEditModeTransitioning || isSnapTransitioning ? EDIT_PANEL_TRANSITION_MS / 1000 : 0,
-    ease: animationDebug.editPanelEase,
-  };
+  // The geometry transition — instant (duration 0) whenever nothing is
+  // actually transitioning (idle, or every live-drag tick, since drag never
+  // sets isEditModeTransitioning/isSnapTransitioning at all — see
+  // handleResizeStart's own comment), EDIT_PANEL_TRANSITION_MS otherwise.
+  // Reused identically by the outer wrapper's marginTop and dialogRef's
+  // height/marginBottom (below) so the three can never drift out of sync
+  // with each other — the same reason this was a single shared object even
+  // back when it fed Motion's `transition` prop instead of a CSS one (see
+  // DESIGN_SYSTEM.md for the "Round 4" writeup on why this moved off
+  // Motion's `layout="position"` — the short version: that mode measures
+  // a rect delta and fakes it with a translate, snapping the real SIZE
+  // instantly, which is exactly what produced the "appears instantly, then
+  // the mixbar swings into place" bug. A genuine CSS transition on the real
+  // height/marginTop values has no size-vs-position gap to fake in the
+  // first place — nothing to swing, because nothing is ever wrong).
+  //
+  // A CSS transition, not Motion's `animate()` — deliberately, so this and
+  // the drag-time motion-value writes elsewhere in this file can never
+  // race each other: a CSS transition is resolved entirely by the browser
+  // off the main thread's own commit timing (starts the instant the new
+  // style value paints), while `animate()` starts from a `useEffect`,
+  // which runs one tick after commit — a gap this file's own history says
+  // is exactly wide enough to cause visible desync (see
+  // effectiveGrowableFixedOverheadPx's own comment, above, on the
+  // discarded-intermediate-value bug `layout="position"` hit for the
+  // identical reason). Two CSS transitions, both keyed off the same style
+  // commit, can't drift apart the way a CSS transition and a JS-effect-
+  // triggered animation could.
+  const geometryTransitionMs = isEditModeTransitioning || isSnapTransitioning ? EDIT_PANEL_TRANSITION_MS : 0;
+  const geometryTransitionTiming = `${geometryTransitionMs}ms ${NAMED_EASE_TO_CUBIC_BEZIER[animationDebug.editPanelEase] ?? "ease-in-out"}`;
 
   // Measures growableFixedOverheadPx — see that state's own comment
   // (near its declaration) for why this is deliberately NOT the fast-
@@ -1285,6 +1422,24 @@ export function MixerBar({
       // unfrozen mid-transition read wouldn't just be imprecise, it would
       // be a flat wrong 0 for nearly the whole animation.
       if (isTransitioningRef.current) return;
+      // Also skips every call while a live drag is active — added once
+      // growableRef itself started pinning its own real height to
+      // poolPanelMaxHeight for a drag's duration (see that ref's own
+      // comment): this ResizeObserver still fires on that jump (and on
+      // every other resize event that happens to land during a drag),
+      // and without this guard it was measuring that artificially-maxed
+      // height as if it were real, computing a wildly inflated overhead
+      // that fed straight into targetMarginTop — confirmed live as a real
+      // bug: cardRef's own visual position jumped ~600px off-screen the
+      // instant a drag started. fixedOverheadPx's own measure() already
+      // had this exact guard (isDraggingRef.current); this one needed it
+      // too once growableRef started changing size for reasons other than
+      // genuine breakpoint/content shifts. Nothing is lost by skipping —
+      // growableFixedOverheadPx doesn't need to track anything mid-drag
+      // (see this effect's own top comment: it only actually changes at
+      // real breakpoints), and handleEnd's own catch-up call already
+      // re-measures the instant the drag ends.
+      if (isDraggingRef.current) return;
       // See editModeRef's own comment near its declaration — a late,
       // async callback from an instance whose editMode has since flipped
       // back to false would otherwise measure growable's collapsed
@@ -1438,29 +1593,68 @@ export function MixerBar({
     // pointerdown already bubbles up to on its own — nothing extra needed
     // here for that half.
     isDraggingRef.current = true;
+    // growableRef/dialogRef's own real height pins to poolPanelMaxHeight
+    // for the whole drag once dragHeightPx below goes non-null (see
+    // growableRef's own comment for the full reasoning) — already stable
+    // for the drag's entire duration, nothing extra to seed for that part.
+    // dragCardTranslateY is seeded here to the exact value that cancels
+    // that same jump for cardRef (see that motion value's own comment) —
+    // written synchronously, in the same commit as setDragHeightPx below,
+    // for the identical "avoid a 1-frame race between the real snap and
+    // the compensating visual" reason this file's own history already
+    // established for the original hand-built FLIP (see DESIGN_SYSTEM.md).
+    dragCardTranslateY.set(-(poolPanelMaxHeight - startHeight));
+    dragRevealHeight.set(startHeight);
+    // Sets dragHeightPx (React state) here, synchronously, at press —
+    // not deferred to the first pointermove tick the way it used to be.
+    // growableRef/dialogRef/cardRef's own styles all key off
+    // `dragHeightPx !== null` to switch into their drag-pinned mode (see
+    // each one's own comment); the motion values seeded just above are
+    // only correct once that switch has actually happened, so both need
+    // to land in the same commit — React flushes a synchronous event
+    // handler's own setState calls before the next paint, same guarantee
+    // the motion values above rely on.
+    setDragHeightPx(startHeight);
     // Same bottom-scroll-restore the editMode-open effect above uses (see
     // its own comment for the full mechanism/reasoning) — reported live as
-    // a second trigger for the identical symptom: dragging this grip grows
-    // this same marginTop-overlaid box the same way opening edit mode's
-    // content does, and at the document's true bottom it hit the same
-    // clamp. Armed here (drag start) and on every move below, not just
-    // once, since the growth — and therefore the risk of a transient
-    // scrollHeight dip clamping scrollY — continues for the whole drag, not
-    // just its first frame.
+    // Armed once, here, at drag start — not on every move below anymore.
+    // Used to be re-armed on every tick because growth (and therefore the
+    // risk of a transient scrollHeight dip clamping scrollY) used to
+    // continue for the whole drag; now that growableRef/dialogRef's own
+    // real height is pinned at poolPanelMaxHeight for the drag's entire
+    // duration (see growableRef's own comment) rather than growing on
+    // every tick, the page's own real scrollHeight only actually changes
+    // once — right here, at the moment that pin takes effect — so there's
+    // nothing left for a per-tick call to catch that this one doesn't
+    // already cover.
     pinScrollToDocumentBottomIfWasAtBottom();
-    // rAF-throttles the actual state commit (setDragHeightPx + the scroll-
-    // restore call below it) to at most once per paint frame — added after
-    // measuring, via Chrome's own Performance.getMetrics (LayoutCount), that
-    // handleMove previously committed a real layout change on every raw
-    // pointermove with no throttle at all: on a device/input that fires
+    // rAF-throttles the live-drag visual to at most once per paint frame —
+    // added after measuring, via Chrome's own Performance.getMetrics
+    // (LayoutCount), that handleMove previously committed a change on every
+    // raw pointermove with no throttle at all: on a device/input that fires
     // pointermove faster than the display can paint (common on touchscreens
-    // and high-poll-rate mice), that's genuine reflow work spent on frames
-    // that could never even be shown. pendingNext always holds the latest
-    // computed target regardless of how many pointermove events arrive
-    // between two paints; only the most recent one is ever actually
-    // committed. preventDefault stays outside the throttle, on every raw
-    // event, unchanged — it has to run synchronously for the specific event
-    // it's suppressing, deferring it a frame would be too late.
+    // and high-poll-rate mice), that's work spent on frames that could
+    // never even be shown. pendingNext always holds the latest computed
+    // target regardless of how many pointermove events arrive between two
+    // paints; only the most recent one is ever actually applied.
+    // preventDefault stays outside the throttle, on every raw event,
+    // unchanged — it has to run synchronously for the specific event it's
+    // suppressing, deferring it a frame would be too late.
+    //
+    // flushPendingMove no longer calls setDragHeightPx (a real React
+    // state update, previously forcing a full re-render — and, via
+    // targetHeight/targetMarginTop, a real layout property write — on
+    // every single tick) — see dragCardTranslateY/dragRevealHeight's own
+    // comments (near dragHeightPx, above) for the full mechanism this
+    // replaces it with. `.set()` on a motion value updates the DOM
+    // directly, synchronously, without going through React's render cycle
+    // at all — no re-render of Row 2's own subtree, and since both values
+    // only ever drive a transform/clip-path (never a real layout
+    // property), neither write costs a reflow no matter how often it
+    // happens. React state (dragHeightPx) is only touched twice per drag
+    // now — once at handleResizeStart, once at handleEnd — matching
+    // "real geometry commits once" for the whole gesture, not once per
+    // tick.
     let pendingNext: number | null = null;
     let rafId: number | null = null;
     function flushPendingMove() {
@@ -1469,8 +1663,10 @@ export function MixerBar({
       const next = pendingNext;
       pendingNext = null;
       liveHeightRef.current = next;
-      setDragHeightPx(next);
-      pinScrollToDocumentBottomIfWasAtBottom();
+      // dragCardTranslateY is NOT updated here — see its own declaration
+      // (near dragHeightPx, above) for why it's a constant for the whole
+      // drag, set once in handleResizeStart, not a per-tick value.
+      dragRevealHeight.set(next);
     }
     function handleMove(ev: PointerEvent) {
       // Still calling preventDefault, even with capture + touch-action:none
@@ -1506,6 +1702,34 @@ export function MixerBar({
       }
       flushPendingMove();
       setPoolPanelHeightPref(liveHeightRef.current);
+      // Resets both motion values back to their own idle/identity state —
+      // cardRef's style.y is unconditional (always reads the motion value,
+      // every render, drag or not — see its own comment), so a stale
+      // non-zero value left over from the drag's last tick would otherwise
+      // still visually apply for a frame even after dragHeightPx itself
+      // goes back to null below. Set here, synchronously, in the same call
+      // as setDragHeightPx(null) just below — same "avoid a 1-frame race"
+      // reasoning as seeding it in handleResizeStart.
+      //
+      // dragRevealHeight resets to Number.POSITIVE_INFINITY, not 0 — a
+      // real, confirmed-live bug otherwise: growableRef's own clipPath is
+      // now ALSO unconditional (see that element's own comment for why —
+      // the short version, React doesn't clean up a motion-value-bound
+      // style property just because a later render's style object stops
+      // mentioning the key, unlike a plain value), so whatever this
+      // resolves to is what clips growableRef for the rest of idle time,
+      // not just for one leftover frame. 0 fed the `max(0,
+      // poolPanelMaxHeight - revealPx)` formula a huge positive inset —
+      // clipping the entire box away permanently after every drag, which
+      // silently broke the panel's own visible content AND, since a
+      // clip-path-hidden region drops out of hit-testing too, made
+      // everything inside it (Close, the tabs, every chip) unclickable
+      // until the next full page reload. Infinity makes that same formula
+      // resolve to exactly 0 (no clipping) instead, matching
+      // dragRevealHeight's own initial value (see its declaration, near
+      // dragHeightPx, for why the same sentinel is used there too).
+      dragCardTranslateY.set(0);
+      dragRevealHeight.set(Number.POSITIVE_INFINITY);
       setDragHeightPx(null);
       isDraggingRef.current = false;
       // Catches up on anything that changed while frozen (e.g. a mobile
@@ -1829,17 +2053,60 @@ export function MixerBar({
     // simply present at their real, final layout from the first frame,
     // riding along with cardRef's slide rather than separately animating.
     //
-    // layout={dragHeightPx === null ? "position" : false} — disabled
-    // outright during a live drag, for the identical reason growableRef's
-    // old `layout` prop was (see that reasoning, preserved below on
-    // growableRef's own comment even though it no longer carries the
-    // prop itself): Motion's layout-measurement/projection cycle can't
-    // keep up with a real gesture committing a new value every animation
-    // frame, confirmed live on the OTHER element this exact conditional
-    // already guarded. transition={layoutTransition}: the same shared
-    // transition object dialogRef's own height/margin-bottom used to
-    // read (see that constant's own declaration) — still the one place
-    // that decides whether this change animates at all.
+    // Round 4 (current): `layout="position"` removed from cardRef and
+    // Row 2 both. Round 3 (above) was already a real improvement — no
+    // scale, no vibration — but reported live, precisely: "the mixbar
+    // pushes down as the panel goes up, and the panel appears instantly
+    // then fills, instead of smoothly expanding from a fixed base."
+    // Traced to what "position, letting any size change snap instantly"
+    // actually means mechanically: cardRef's real height commits to its
+    // FULL final value in the same React commit editMode/drag toggles it
+    // (nothing here ever animated real height), so `layout="position"`
+    // is handed an already-full-size box and a rect delta (old top-left
+    // vs. new top-left) to fake smoothness with — a translate that starts
+    // the box at the OLD rect's position and eases toward the NEW one.
+    // Measured directly (getComputedStyle sampling every ~8ms through a
+    // real open transition): cardHeight snapped 80.5→256.5px in a single
+    // frame while transformY eased 169.9→0 over the remaining ~250ms —
+    // meaning the box's BOTTOM edge swept through that same ~170px range
+    // before settling, even though Row 2 (riding inside it, with its own
+    // independent `layout="position"` — see Row 2's own comment, below,
+    // for how that nested-layout counter-tracking works) stayed
+    // measurably fixed throughout. The border/background visibly
+    // overshot past the stable controls and slid back — that's the
+    // "pushes down" and "appears instantly" reports, precisely.
+    //
+    // The fix isn't a better transform — it's not faking a reveal at all.
+    // The outer wrapper's `marginTop` and dialogRef's `height`/
+    // `margin-bottom` (both below) now animate via a genuine CSS
+    // `transition` (geometryTransitionTiming, declared near
+    // targetMarginBottomPx above) instead of committing instantly and
+    // relying on `layout="position"` to paper over the gap. Real geometry
+    // moving smoothly means there's no size-vs-position mismatch for any
+    // translate to compensate for in the first place — cardRef's own
+    // bottom edge (and Row 2's real position) is correct at every single
+    // frame, not just the two endpoints, by the same marginTop-cancels-
+    // height algebra this file already relies on for the instant case
+    // (see growableFixedOverheadPx's own comment, far above) — provably
+    // so, not just observed: since both properties share the exact same
+    // transition-duration and transition-timing-function, and their sum
+    // already cancels to a constant at both endpoints, linear
+    // interpolation guarantees the sum stays constant at every point in
+    // between too, regardless of how curved the shared easing is. See
+    // DESIGN_SYSTEM.md for the full writeup, including why this is CSS-
+    // transition-driven rather than Motion's `animate()` (timing-sync
+    // risk between a browser-native transition and a JS-effect-triggered
+    // one), and why the outer wrapper deliberately stays untouched by
+    // this — still no Motion involvement on it at all, exactly as Round 3
+    // left it, for the sticky+transform WebKit reason below.
+    //
+    // Live drag is unaffected by any of this — handleResizeStart/
+    // handleMove/handleEnd (below) never set isEditModeTransitioning or
+    // isSnapTransitioning, so geometryTransitionMs is already 0 for the
+    // whole gesture regardless; dragCardTranslateY (style.y, below) remains
+    // the only mechanism driving the live-drag visual, unchanged by this
+    // round except for becoming a per-drag constant rather than a per-tick
+    // value — see its own declaration for why.
     // Outer wrapper, new this round — carries `sticky`/z-index/`touch-none`
     // and the REAL, instant `marginTop` (targetMarginTop), with NO border/
     // padding/background of its own and NO Motion involvement whatsoever.
@@ -1868,11 +2135,25 @@ export function MixerBar({
     // the leading hypothesis, not a guess at a different root cause —
     // needs on-device confirmation, the same as this codebase's other
     // real-device-only WebKit fixes (see DESIGN_SYSTEM.md).
-    <div className="sticky bottom-[var(--space-2xl)] z-[var(--z-overlay)] max-w-[1280px] mx-auto touch-none" style={{ marginTop: targetMarginTop }}>
+    <div
+      className="sticky bottom-[var(--space-2xl)] z-[var(--z-overlay)] max-w-[1280px] mx-auto touch-none"
+      style={{ marginTop: targetMarginTop, transition: `margin-top ${geometryTransitionTiming}` }}
+    >
       <motion.div
         ref={cardRef}
-        layout={dragHeightPx === null ? "position" : false}
-        transition={layoutTransition}
+        // No `layout` prop anymore — see DESIGN_SYSTEM.md's "Round 4"
+        // entry and geometryTransitionTiming's own comment (above) for why:
+        // the outer wrapper's marginTop and dialogRef's height/margin-
+        // bottom now animate via a real CSS transition instead, so this
+        // box's own real geometry is always correct, every frame, with
+        // nothing left for a faked position transform to paper over.
+        // style.y (a Motion value, dragCardTranslateY, declared near
+        // dragHeightPx above) is still needed for the one case a CSS
+        // transition can't cover either: a continuous, per-frame drag
+        // gesture (see that motion value's own comment for the full
+        // mechanism). Stays at its default (0, identity) whenever a drag
+        // isn't actively driving it.
+        style={{ y: dragCardTranslateY }}
         // z-index/touch-none/sticky/marginTop all moved to the new outer
         // wrapper above — see its own comment for why. This element keeps
         // only what it visually needs to paint the card (border/padding/
@@ -1911,16 +2192,60 @@ export function MixerBar({
           box's own boundary, so its measured height always matches its
           true footprint.
 
-          Plain div, no layout/motion of any kind — carried `layout` itself
-          in this migration's previous two rounds (first alone, then
+          No layout/motion for the open/close/snap case — carried `layout`
+          itself in this migration's previous two rounds (first alone, then
           alongside dialogRef), but not anymore: cardRef (above, this
           box's own direct parent) now carries `layout="position"` instead,
           animating the whole card's position as one rigid unit rather than
           faking a size change here. See cardRef's own comment for the full
           round-by-round history of why. This div still exists purely for
           measurement (growableFixedOverheadPx, above) — flow-root (below)
-          is still load-bearing for that even with no animation of its own. */}
-      <div ref={growableRef} className="flow-root">
+          is still load-bearing for that even with no animation of its own.
+
+          motion.div now (was a plain div) purely for the live-drag case —
+          see dragRevealHeight/dragClipPath's own comments (near
+          dragHeightPx/poolPanelMaxHeight, above) and handleResizeStart/
+          handleMove below for the full mechanism. While a drag is active,
+          this element's own real height is pinned to poolPanelMaxHeight
+          (set once at drag start, not per tick) with overflow:hidden and a
+          clip-path Motion value revealing exactly the current drag target
+          — a real height change, but exactly ONE per drag (the jump to
+          poolPanelMaxHeight at start, reverted once at end), not one per
+          tick. clip-path itself is compositor-only, so every value in
+          between costs nothing layout-wise regardless of how often
+          dragRevealHeight.set() runs. Confirmed live via CDP's
+          Performance.getMetrics: a 60-tick drag that cost 60 real layout
+          passes before this (zero amortization — the same cost this
+          file's own original pre-FLIP CSS-transition version measured,
+          see DESIGN_SYSTEM.md) drops to 2 with it. */}
+      <motion.div
+        ref={growableRef}
+        className="flow-root"
+        // clipPath stays unconditional (unlike height/overflow, gated below)
+        // — confirmed live as a real bug otherwise: React's own style
+        // reconciliation correctly removes plain values (height/overflow)
+        // when the style object stops including them at all, but a motion-
+        // value-bound property doesn't get the same treatment. Motion
+        // keeps directly writing dragClipPath's current value to the DOM
+        // for as long as it's subscribed, regardless of whether a LATER
+        // render's own style object still mentions the key — toggling the
+        // key's presence (the ternary this used to wrap the whole object
+        // in) orphaned whatever inset() value dragRevealHeight last held at
+        // drag end, permanently clipping this box's real content away even
+        // once every other drag-only style had correctly reverted. Same
+        // fix shape as cardRef's/Row 2's own style.y bindings, both of
+        // which were already unconditional for this exact reason — the key
+        // itself must never disappear, only the value changes. See
+        // dragRevealHeight's own declaration and its reset in handleEnd
+        // (both near dragHeightPx, above) for the other half: both now use
+        // Number.POSITIVE_INFINITY, not 0, so this formula always computes
+        // an explicit zero-inset (no clip) whenever a drag isn't active,
+        // rather than an inset large enough to hide the whole box.
+        style={{
+          clipPath: dragClipPath,
+          ...(dragHeightPx !== null ? { height: poolPanelMaxHeight, overflow: "hidden" } : null),
+        }}
+      >
 
       {/* Row 1 (formerly Row 2 — Row 1 was the title/badge/filters
           header, now removed entirely; see this file's own top comment):
@@ -2039,11 +2364,26 @@ export function MixerBar({
         // `layout` measurement (its rect already reflects both, since it's
         // flow-root-wrapping dialogRef alone) capture them as one coherent
         // animation, with nothing for this file to keep in sync by hand.
+        // height matches growableRef's own drag-pinned poolPanelMaxHeight
+        // during a live drag rather than the live targetHeight — dialogRef's
+        // real box needs to be AT LEAST as tall as whatever growableRef's
+        // own clip-path is currently revealing, or the reveal would show
+        // past dialogRef's own real bottom edge. targetHeight itself is
+        // safe to keep reading the rest of the time (open/close/snap, or
+        // once a drag ends) since dragHeightPx only ever changes twice per
+        // drag now (start, end) — see handleResizeStart/handleMove/
+        // handleEnd below.
         style={{
-          height: targetHeight,
+          height: dragHeightPx !== null ? poolPanelMaxHeight : targetHeight,
           marginBottom: targetMarginBottomPx,
+          // 0ms whenever dragHeightPx !== null (see geometryTransitionMs's
+          // own comment — drag never sets isEditModeTransitioning/
+          // isSnapTransitioning, so this already evaluates to an instant,
+          // no-op transition then, matching the pin-to-poolPanelMaxHeight
+          // jump needing to land in one commit, not animate into place).
+          transition: `height ${geometryTransitionTiming}, margin-bottom ${geometryTransitionTiming}`,
         }}
-        className="flex flex-col outline-none overflow-hidden"
+        className="flex flex-col outline-none overflow-hidden [contain:layout]"
       >
         <TagPoolBody
           allTags={allTags}
@@ -2053,9 +2393,10 @@ export function MixerBar({
           poolPanelHeightPx={effectiveHeightPx}
           editMode={editMode}
           trailingControls={trailingControls}
+          isPoolPanelResizing={dragHeightPx !== null}
         />
       </div>
-      </div>
+      </motion.div>
 
         {/* Row 2 (combined): the 3 tag slots and every control that used to
             be Row 3 now share ONE row, requested directly, not a bug fix.
@@ -2180,29 +2521,47 @@ export function MixerBar({
             to which others are already hidden or changed at that width,
             not a value that stands alone.
 
-            Plain div, no layout/motion of its own, and — unlike the
-            previous two rounds of this file's own history — none needed:
-            a second round briefly gave this row its own `layout` prop,
-            purely as Motion's documented counter-correction for cardRef's
-            own (then full, scale-capable) `layout`-driven transform, and
-            that pairing of two separately-computed Motion animations
-            trying to cancel out exactly, every frame, showed up live as
-            visible vibration/pulsing in this row's own content (slot
-            borders, control icons). cardRef now carries
-            `layout="position"` instead of full `layout` (see that ref's
-            own comment for the full history) — position-only mode never
-            scales anything, so this row needs no counter-animation of any
-            kind to stay undistorted: it simply inherits cardRef's one
-            translateY for free via ordinary CSS transform inheritance,
-            the same as any other plain descendant would, and slides
-            together with the panel's own border as one rigid, undistorted
-            unit rather than staying pixel-frozen while everything above
-            it animates. See DESIGN_SYSTEM.md for the full writeup. */}
-        <motion.div
-          layout={dragHeightPx === null ? "position" : false}
-          transition={layoutTransition}
-          className="flex flex-nowrap items-center gap-x-[var(--space-lg)]"
-        >
+            No `layout` prop anymore (Round 4 — see cardRef's own comment,
+            above, for the full writeup of what changed and why). Earlier
+            rounds needed this row to carry its own `layout="position"`
+            specifically to counter-track cardRef's ambient transform,
+            which changed the story twice: a full, scale-capable `layout`
+            here (countering cardRef's then-also-full `layout`) caused
+            visible vibration, since two separately-computed Motion SCALE
+            animations were trying to cancel out exactly, every frame;
+            switching cardRef to position-only `layout="position"` fixed
+            that (no scale, nothing to vibrate), and this row's own
+            `layout="position"` kept measuring its own real rect and
+            correctly, automatically counter-tracking cardRef's ambient
+            translate — confirmed directly, sampling both elements'
+            computed transforms in lockstep through an open transition
+            (e.g. cardRef +25.45 / this row -25.45 at the same instant,
+            every instant, canceling to zero). That worked. But cardRef's
+            OWN box still visibly swung, because nothing was correcting
+            IT — only its content stayed put. Round 4 fixes cardRef
+            directly (real geometry now animates smoothly, no faked
+            transform at all — see its own comment), which means this row
+            has no ambient transform left to counter in the first place:
+            it just sits at its own always-correct real position, the
+            same way it would if cardRef had never carried any transform
+            at all.
+
+            No style.y of its own either, for the live-drag case — this row
+            went through its own dedicated compensator for exactly that
+            case at one point (a motion value canceling however much
+            cardRef's transform had moved since drag start), because
+            cardRef's own dragCardTranslateY used to be a per-tick value
+            tracking the live drag target. That's gone now too: cardRef's
+            own comment (near dragHeightPx, above) has the full story, but
+            the short version is that dragCardTranslateY is a CONSTANT for
+            a drag's entire duration, not a per-tick one, which makes
+            cardRef's own box (and everything riding inside it, this row
+            included) simply stationary for the whole gesture — nothing
+            left for a per-row compensator to cancel, the same way this
+            row needed nothing of its own once cardRef stopped faking a
+            position for the open/close/snap case either. See
+            DESIGN_SYSTEM.md for the full writeup. */}
+        <motion.div className="flex flex-nowrap items-center gap-x-[var(--space-lg)]">
           {/* LEFT group. min-w-0: lets this flex item (and, more directly,
               its own min-w-0 slots sub-group below) actually shrink below
               its natural content width once the row runs out of room —
