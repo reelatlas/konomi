@@ -1721,55 +1721,30 @@ export function MixerBar({
     // transition below (same constant, so the two can't drift out of
     // sync) — see that constant's own comment for why this is an inline
     // style, not a Tailwind duration-[Npx] class.
-    <motion.div
+    <div
       ref={cardRef}
-      layout={dragHeightPx === null}
-      transition={layoutTransition}
-      // targetMarginTop applied directly as real, instant style — same as
-      // ever (see growableFixedOverheadPx's own comment for what this
-      // number is). What makes it LOOK smooth is cardRef's own `layout`
-      // prop (Motion, motion/react): Motion measures this element's
-      // rendered rect before/after every commit and animates the
-      // difference — cardRef's own top edge (its border, this app's most
-      // visually prominent cue for "is the panel growing") is what
-      // actually needs to visibly rise/fall smoothly, so cardRef itself
-      // needs the animation, not just its growableRef child.
-      //
-      // A first version put `layout` ONLY on growableRef (reasoning:
-      // cardRef is the ancestor of both growableRef and the fixed "Row 2"
-      // slots/controls row, so a transform on cardRef itself would drag
-      // Row 2 along with it — exactly the bug documented at length below,
-      // "the FLIP overlay's transform was applied to cardRef itself").
-      // That was correct as far as it went, but incomplete: it kept Row 2
-      // motionless, but also meant cardRef's own border/frame never
-      // visibly animated at all — only growableRef's own inner content
-      // area did (a subtle scale, easy to miss) — reported live as "the
-      // panel itself is not seemingly animated, just appears... only the
-      // manual resize animates appropriately" (drag reads as smooth purely
-      // because it updates marginTop directly, every frame, matching the
-      // pointer — not because anything is actually animating).
-      //
-      // Fixed by giving `layout` to cardRef too, AND to the "Row 2"
-      // wrapper (below) — this is Motion's own documented fix for exactly
-      // this shape of problem ("children require their own layout prop...
-      // Motion will calculate counter-scales them so they appear
-      // undistorted"), just applied to POSITION rather than the size/
-      // image-distortion case the docs illustrate: Row 2's own `layout`
-      // prop measures ITS OWN true (pre-transform) rect, which never
-      // actually changes, and counter-corrects whatever transform cardRef
-      // applies to itself — so cardRef's own border can now visibly,
-      // smoothly rise and fall while Row 2 still never moves, verified
-      // directly (not assumed) via the same getBoundingClientRect()
-      // sampler used throughout this migration. See DESIGN_SYSTEM.md for
-      // the full writeup.
-      //
-      // layout={dragHeightPx === null} — same reasoning as growableRef's
-      // own identical prop: disabled outright (not just given a duration-0
-      // transition) for the span of a live drag, confirmed live as
-      // necessary — Motion's own layout-measurement cycle, even at
-      // duration 0, couldn't keep up with a real gesture committing a new
-      // value on every animation frame, visibly lagging far behind the
-      // pointer. Drag needs untouched, direct 1:1 tracking.
+      // Plain div, no layout/motion of any kind — deliberately reverted
+      // from a second version that gave this element `layout` too (making
+      // its own border/shadow visibly rise and fall, matching growableRef's
+      // own reveal). That version was reported live as a real regression
+      // of its own: the "Row 2" wrapper's own required counter-correction
+      // (layout on Row 2, canceling cardRef's own transform so it stays
+      // visually stationary — see that div's own comment/git history) is
+      // TWO SEPARATE, independently-computed Motion layout animations
+      // trying to cancel each other out exactly, every frame — reported as
+      // visible vibration/pulsing in Row 2's own content (slot borders,
+      // control icons) and the outer border/shadow itself "animating a
+      // lot" rather than moving as one clean unit. Requested directly:
+      // this app's own "base mixbar" (this card's own border/shadow, and
+      // every control in Row 2) must never carry ANY animation of its own
+      // unless it's a specifically-designed effect — only the pool panel
+      // itself (growableRef, below) should visibly animate on open/close/
+      // resize. targetMarginTop is applied here exactly as it always has
+      // been pre-Motion: a plain, instant, real style value, every render,
+      // with cardRef's own border snapping directly to its correct final
+      // position — no animation, no counter-correction needed anywhere
+      // else in this box as a result. See DESIGN_SYSTEM.md for the full
+      // writeup of what was tried and reverted, and why.
       style={{ marginTop: targetMarginTop }}
       // z-[var(--z-overlay)] — confirmed live as a real bug without a
       // z-index here: ResultCard's own front face (ResultCard.tsx) is
@@ -2152,24 +2127,23 @@ export function MixerBar({
             to which others are already hidden or changed at that width,
             not a value that stands alone.
 
-            layout={dragHeightPx === null} (Motion, motion/react) — NOT
-            because this row's own content ever needs to visibly animate
-            (it never resizes/repositions on its own — this is the fixed
-            "never moves" row the rest of this file is built around). This
-            is purely Motion's own counter-correction mechanism: cardRef
-            (this row's direct parent — see that ref's own comment) now
-            gets its own `layout`-driven transform so its border can
-            visibly, smoothly rise/fall, and that transform would
-            otherwise cascade to every descendant including this row.
-            Giving this row `layout` too makes Motion measure its OWN true
-            (pre-transform) rect — which never actually changes — and
-            apply the exact inverse of cardRef's own transform, keeping it
-            visually stationary throughout. Verified directly via a
-            getBoundingClientRect() sampler, not assumed: 0.00px drift
-            across every transition, drag included. See DESIGN_SYSTEM.md
-            for the full writeup, and cardRef's own comment for why this
-            was needed at all. */}
-        <motion.div layout={dragHeightPx === null} transition={layoutTransition} className="flex flex-nowrap items-center gap-x-[var(--space-lg)]">
+            Plain div, no layout/motion of any kind — this row must NEVER
+            carry any animation of its own (it never resizes/repositions
+            on its own; this is the fixed "never moves" row the rest of
+            this file is built around). A second version briefly gave this
+            row `layout` too, purely as Motion's own counter-correction for
+            cardRef's own `layout`-driven transform (see cardRef's own
+            comment/git history) — reverted alongside cardRef itself: two
+            separate, independently-computed Motion layout animations
+            trying to cancel out exactly, every frame, showed up live as
+            visible vibration/pulsing in this row's own content (slot
+            borders, control icons), not the clean stationary result the
+            counter-correction was meant to produce. With cardRef back to
+            a plain, unanimated div, this row needs no correction of any
+            kind either — its own real position was always instant and
+            unaffected regardless. See DESIGN_SYSTEM.md for the full
+            writeup. */}
+        <div className="flex flex-nowrap items-center gap-x-[var(--space-lg)]">
           {/* LEFT group. min-w-0: lets this flex item (and, more directly,
               its own min-w-0 slots sub-group below) actually shrink below
               its natural content width once the row runs out of room —
@@ -2425,7 +2399,7 @@ export function MixerBar({
             <div className="hidden min-[1071px]:block ml-[3px] w-[length:var(--border-thin)] h-[32px] bg-[var(--ink)]" />
             <RecommendButton filledCount={filledCount} onRecommend={onRecommend} error={error} />
           </div>
-        </motion.div>
-    </motion.div>
+        </div>
+    </div>
   );
 }
