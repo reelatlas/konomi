@@ -1,5 +1,6 @@
 "use client";
 
+import { animate } from "motion/react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { MatchKey, MixerError, Slot, TagInfo } from "@/lib/konomi/types";
 import { ActionButton } from "./ActionButton";
@@ -288,6 +289,18 @@ export function MixerBar({
   // state in the (currently unreachable, but not worth relying on) case
   // they ever overlapped.
   const [isSnapTransitioning, setIsSnapTransitioning] = useState(false);
+  // Which direction the CURRENTLY in-flight transition (editMode toggle or
+  // a resize-shortcut snap) is moving — null whenever idle or mid-drag.
+  // Declared here (not alongside the rest of the FLIP-migration geometry
+  // state further below, near effectiveHeightPx) specifically so
+  // isEditModeTransitioning's own clearing effect (just below) can
+  // reference its setter — that effect has to stay this early in the file
+  // (it's tightly coupled to isTransitioningRef/measureFixedOverheadRef,
+  // both declared nearby), and a plain `const` can't be referenced before
+  // its own declaration textually, even from inside a callback that only
+  // actually runs later. See DESIGN_SYSTEM.md for the full FLIP-migration
+  // writeup this state is part of.
+  const [transitionDirection, setTransitionDirection] = useState<"grow" | "shrink" | null>(null);
 
   // Continuously tracks whether the page is currently scrolled to its own
   // true bottom — read once below, right as editMode flips true, to know
@@ -874,6 +887,20 @@ export function MixerBar({
     const timeout = setTimeout(() => {
       isTransitioningRef.current = false;
       setIsEditModeTransitioning(false);
+      // Clears transitionDirection back to null — for a SHRINK, this is
+      // also the exact instant committedMarginTop/committedHeight/
+      // committedMarginBottomPx catch up to target (see isDeferringCommit's
+      // own declaration): once transitionDirection is no longer "shrink",
+      // isDeferringCommit goes false on the next render, and the
+      // unconditional sync block commits the final geometry in one atomic
+      // step — landing exactly when the visual transform/clip-path overlay
+      // (the animate() effect, above) has also finished playing, so
+      // there's nothing left to visually reconcile.
+      setTransitionDirection(null);
+      // The overlay's own transform/clip-path reset is owned entirely by
+      // the animate() effect's own settleTimeout (below, keyed on
+      // transitionGen) — not duplicated here. Both timeouts share the same
+      // EDIT_PANEL_TRANSITION_MS duration, so they land together regardless.
       measureFixedOverheadRef.current();
       measureGrowableFixedOverheadRef.current();
     }, EDIT_PANEL_TRANSITION_MS);
@@ -1130,6 +1157,265 @@ export function MixerBar({
   useLayoutEffect(() => {
     effectiveHeightPxRef.current = effectiveHeightPx;
   });
+  // Same ref-mirroring pattern as effectiveHeightPxRef above, for
+  // growableFixedOverheadPx — needed so the deferred-shrink-commit effect
+  // below (transitionGen's own comment) can recompute the final target
+  // geometry from inside a setTimeout without depending on a stale render's
+  // closure.
+  const growableFixedOverheadPxRef = useRef(growableFixedOverheadPx);
+  useLayoutEffect(() => {
+    growableFixedOverheadPxRef.current = growableFixedOverheadPx;
+  });
+
+  // --- FLIP migration (Motion) ---
+  //
+  // targetMarginTop/targetHeight/targetMarginBottomPx are the CORRECT,
+  // already-computed-from-plain-JS-numbers geometry for cardRef/dialogRef —
+  // unchanged in what they compute from the pre-Motion version of this
+  // file, which CSS-transitioned these same numbers directly (confirmed via
+  // Chrome's own Performance.getMetrics to cost 29-35 real layout passes
+  // per open/close/resize interaction — see this file's own DESIGN_SYSTEM.md
+  // entry). committedMarginTop/committedHeight/committedMarginBottomPx are
+  // what's ACTUALLY applied to the DOM as layout-affecting inline style —
+  // normally identical to target* (every render, including every live-drag
+  // tick), except for the deliberate one-transition-long lag described
+  // below. The gap between committed (real) and target/visual (perceived)
+  // is what the transform/clip-path overlay (the animate() effect further
+  // below) bridges, entirely on the compositor, with zero further layout
+  // passes once the one, single, synchronous commit lands.
+  const targetMarginTop = editMode ? -(growableFixedOverheadPx + effectiveHeightPx) : 0;
+  const targetHeight = editMode ? effectiveHeightPx : 0;
+  const targetMarginBottomPx = editMode ? DIALOG_MARGIN_BOTTOM_PX : 0;
+  const [committedMarginTop, setCommittedMarginTop] = useState(targetMarginTop);
+  const [committedHeight, setCommittedHeight] = useState(targetHeight);
+  const [committedMarginBottomPx, setCommittedMarginBottomPx] = useState(targetMarginBottomPx);
+  // Which direction the CURRENTLY in-flight transition (editMode toggle or
+  // a resize-shortcut snap) is moving — null whenever idle or mid-drag
+  // (drag never sets isEditModeTransitioning/isSnapTransitioning at all,
+  // see handleResizeStart's own comment; it's still a real number
+  // recomputed every drag tick, just never routed through this animated-
+  // transition machinery). Decided once, at the exact instant a transition
+  // starts (see the three call sites below), by comparing the NEW target
+  // height against whichever height is currently actually COMMITTED (the
+  // real, authoritative "what does the DOM currently show" answer,
+  // regardless of any in-flight visual overlay) — not against `target`
+  // itself, which could already equal the new value by the time this
+  // runs. A plain "grow commits its real value immediately; shrink defers
+  // it" split, not a single shared code path: see committedMarginTop's own
+  // comment above for why the two need different commit TIMING even
+  // though they share one visual formula. (transitionDirection itself is
+  // declared much earlier in this file, near isSnapTransitioning — see
+  // that declaration's own comment for why.)
+  // The exact marginTop/height pair a transition is animating BETWEEN —
+  // captured once, at each of the three transition-start call sites,
+  // before anything about committed*/target* changes for that transition.
+  // State, not refs — one of the three call sites (the editMode toggle) is
+  // a render-phase branch, and this project's own lint config (matching
+  // this file's own established "ref writes belong in effects/handlers,
+  // not render" rule, see editModeRef/effectiveHeightPxRef's own comments)
+  // flags a ref write during render; only read by the animate() effect
+  // below (keyed on transitionGen, not on these), so the extra re-render
+  // each setter schedules is harmless — it's already happening anyway,
+  // driven by transitionDirection/transitionGen's own setters right next
+  // to these at every call site.
+  const [transitionStartMarginTop, setTransitionStartMarginTop] = useState(0);
+  const [transitionEndMarginTop, setTransitionEndMarginTop] = useState(0);
+  const [transitionStartHeight, setTransitionStartHeight] = useState(0);
+  const [transitionEndHeight, setTransitionEndHeight] = useState(0);
+  // Bumped at each of the three transition-start call sites (the editMode
+  // render-phase block, handleSnapPoolHeight, handleResetPoolHeight) —
+  // NOT the same thing as isEditModeTransitioning || isSnapTransitioning
+  // (a level, not an edge): that boolean can stay continuously true across
+  // two back-to-back transitions (e.g. clicking 50% then 100% again before
+  // the first snap's own 280ms elapses), which would never re-fire an
+  // effect keyed on it alone, leaving the visual overlay animating toward
+  // the FIRST click's target forever. This counter increments on every
+  // genuinely new transition regardless of whether a previous one is still
+  // in flight, so the animate() effect below (keyed on this, not on the
+  // level) always restarts against the latest real target.
+  const [transitionGen, setTransitionGen] = useState(0);
+  // Duplicate of the "editMode just changed" check near
+  // prevEditModeForTransition's own declaration (isEditModeTransitioning's
+  // neighborhood, above) — re-evaluated here rather than folded into that
+  // one, purely because of JS's temporal-dead-zone rules: that block runs
+  // (and must run, to pre-seed growableFixedOverheadPx) before
+  // effectiveHeightPx itself is even computed, long before
+  // committedHeight/transitionDirection/transitionGen exist yet. Safe to
+  // check the same condition twice — prevEditModeForTransition (the plain
+  // value returned by useState, not the state cell itself) stays fixed for
+  // this entire render pass no matter how many times
+  // setPrevEditModeForTransition already ran above; React re-invokes this
+  // whole function from the top whenever a render-phase setState changes
+  // something (the same mechanism that already makes the first block's own
+  // re-render-triggering setState calls work), so by the time a render
+  // actually commits, both blocks agree.
+  //
+  // Handled as its own branch, not folded into the generic sync block
+  // below, for a subtle but real reason: on THIS exact render (the one
+  // where the toggle is first detected), isEditModeTransitioning/
+  // transitionDirection still read their OLD, pre-update values (calling a
+  // setter during render doesn't change what an already-destructured
+  // useState value reads for the REST of this same execution — same
+  // reason this whole check has to be duplicated at all). Deciding
+  // grow/shrink HERE, against committedHeight before anything has synced
+  // it, and committing a grow's geometry immediately IN THIS BRANCH,
+  // sidesteps that staleness entirely rather than depending on the generic
+  // isDeferringCommit check to somehow already know a direction that
+  // hasn't been decided yet this render.
+  if (editMode !== prevEditModeForTransition) {
+    const growing = targetHeight > committedHeight;
+    setTransitionStartMarginTop(committedMarginTop);
+    setTransitionEndMarginTop(targetMarginTop);
+    setTransitionStartHeight(committedHeight);
+    setTransitionEndHeight(targetHeight);
+    setTransitionDirection(growing ? "grow" : "shrink");
+    setTransitionGen((g) => g + 1);
+    if (growing) {
+      setCommittedMarginTop(targetMarginTop);
+      setCommittedHeight(targetHeight);
+      setCommittedMarginBottomPx(targetMarginBottomPx);
+    }
+    // shrink: leave committed* exactly as it is — the deferred-commit
+    // timeout (isEditModeTransitioning's own clearing effect) catches it
+    // up once the visual animation finishes.
+  } else {
+    // Not a fresh editMode toggle this render — the ordinary case (idle,
+    // mid-drag, or any later render during an already-decided transition).
+    // isEditModeTransitioning/isSnapTransitioning/transitionDirection are
+    // all genuinely current here (no same-render staleness: either this
+    // is a later render of an editMode transition already decided above
+    // in a PREVIOUS render, or it's driven by a snap-shortcut event
+    // handler, which sets its own state before this render ever runs —
+    // see handleSnapPoolHeight's own comment).
+    //
+    // Whether committed* is currently intentionally lagging behind
+    // target* — true for exactly the span of an active SHRINK's own
+    // visual animation. Growing, idle, and dragging never defer:
+    // committed syncs to target the same render the target changed.
+    const isDeferringCommit = (isEditModeTransitioning || isSnapTransitioning) && transitionDirection === "shrink";
+    if (!isDeferringCommit) {
+      if (committedMarginTop !== targetMarginTop) setCommittedMarginTop(targetMarginTop);
+      if (committedHeight !== targetHeight) setCommittedHeight(targetHeight);
+      if (committedMarginBottomPx !== targetMarginBottomPx) setCommittedMarginBottomPx(targetMarginBottomPx);
+    }
+  }
+
+  // The actual visual FLIP overlay — a compositor-only transform (cardRef)
+  // and clip-path (dialogRef), imperatively driven by Motion (motion/react)
+  // rather than a CSS `transition` on marginTop/height directly (the
+  // pre-migration version of this file — see DESIGN_SYSTEM.md for the
+  // full writeup, including the measured layout-pass count this replaces).
+  // Targets the plain DOM refs directly (Motion's animate() works on any
+  // element, not just motion.* components) — cardRef/dialogRef stay
+  // ordinary divs, nothing about their own structure changes.
+  //
+  // Keyed on transitionGen, not on isEditModeTransitioning || isSnapTransitioning:
+  // that boolean is a LEVEL (can stay continuously true across two
+  // back-to-back transitions, e.g. clicking 50% then 100% again before the
+  // first snap's own 280ms elapses) — an effect keyed on it alone would
+  // never re-fire for the second click, leaving this animating toward the
+  // FIRST click's target forever. transitionGen is bumped on every
+  // genuinely new transition regardless of whether a previous one is still
+  // in flight, so this always restarts against the latest real target;
+  // Motion's own controls.stop() (this effect's cleanup) halts whatever
+  // was still in flight at exactly its current value first.
+  //
+  // The formula — offset = visualTarget(t) − committedNow — is direction-
+  // agnostic: committedMarginTop/committedHeight themselves are what
+  // differ between a grow (jumps to the END value immediately, before this
+  // effect even runs) and a shrink (stays at the START value for this
+  // effect's entire duration, only catching up once
+  // isEditModeTransitioning/isSnapTransitioning's own clearing effect
+  // fires) — see committedMarginTop's own comment for the full derivation.
+  // Plugging in "whichever of start/end committed currently equals" always
+  // produces the correct from/to pair for the transform/clip-path without
+  // this effect itself needing to know or care which direction it's
+  // animating.
+  useLayoutEffect(() => {
+    // transitionGen starts at 0 and only ever increments at a genuine
+    // transition start — skip the effect's very first run (mount), where
+    // there is nothing to animate between yet.
+    if (transitionGen === 0) return;
+    const card = cardRef.current;
+    const dialog = dialogRef.current;
+    if (!card || !dialog) return;
+    const durationS = EDIT_PANEL_TRANSITION_MS / 1000;
+    const startMarginTop = transitionStartMarginTop;
+    const endMarginTop = transitionEndMarginTop;
+    const startHeight = transitionStartHeight;
+    const endHeight = transitionEndHeight;
+    const committedMarginTopNow = transitionDirection === "grow" ? endMarginTop : startMarginTop;
+    const committedHeightNow = transitionDirection === "grow" ? endHeight : startHeight;
+    const fromOffsetPx = startMarginTop - committedMarginTopNow;
+    const toOffsetPx = endMarginTop - committedMarginTopNow;
+    // Clips FROM THE BOTTOM by however much of committedHeightNow's real
+    // (already-rendered) box shouldn't be visible yet at each instant — 0
+    // once the visually-perceived height matches the real committed one.
+    // Always >= 0: the visually-perceived height is always between
+    // startHeight/endHeight, and committedHeightNow is always whichever of
+    // those two bounds is the LARGER one for the direction in play (the
+    // end value for a grow, since it already jumped there; the start value
+    // for a shrink, since it hasn't left yet) — see this effect's own
+    // top comment.
+    const fromClipPx = committedHeightNow - startHeight;
+    const toClipPx = committedHeightNow - endHeight;
+    // Return values (AnimationPlaybackControls) deliberately not kept —
+    // see the settleTimeout/cleanup below for why cancellation goes
+    // through the native getAnimations().cancel() instead of these.
+    animate(card, { transform: [`translateY(${fromOffsetPx}px)`, `translateY(${toOffsetPx}px)`] }, { duration: durationS, ease: "easeInOut" });
+    animate(
+      dialog,
+      { clipPath: [`inset(0px 0px ${fromClipPx}px 0px)`, `inset(0px 0px ${toClipPx}px 0px)`] },
+      { duration: durationS, ease: "easeInOut" },
+    );
+    // Force both back to identity once the animation has actually finished
+    // — NOT left to `animate()`'s own natural completion, which (Motion
+    // uses the Web Animations API under the hood) leaves a "finished, fill
+    // forward" animation applying its last frame indefinitely, outranking
+    // any later, independent inline-style write. Confirmed live as a real
+    // bug without this explicit settle step: getComputedStyle kept
+    // reporting the animation's own final frame (a non-identity transform/
+    // clip-path) indefinitely after the transition visually finished. A
+    // plain setTimeout matching EDIT_PANEL_TRANSITION_MS, not `finished`
+    // (the AnimationPlaybackControls promise) — this file's own established
+    // reliability rule (RollingLabel.tsx's own comment, this file's
+    // isEditModeTransitioning clearing effect) already treats animation-
+    // completion signals as less trustworthy on real devices than a timer
+    // tied to a duration this file already controls.
+    //
+    // getAnimations().cancel() (the native Web Animations API), not
+    // controls.stop() (Motion's own wrapper) — confirmed live as a real,
+    // separate bug: .stop() reliably commits+removes an animation that's
+    // still actively RUNNING, but a no-op (or at least insufficient to
+    // clear the fill-forward effect) once the animation has already
+    // reached its own natural end on its own — which, by the time this
+    // 280ms timeout fires, it always has (both share the same duration).
+    // .cancel() unconditionally removes an animation's effect regardless
+    // of its current playState, letting the plain inline style (set right
+    // after) actually show through immediately either way.
+    const settleTimeout = setTimeout(() => {
+      card.getAnimations().forEach((a) => a.cancel());
+      dialog.getAnimations().forEach((a) => a.cancel());
+      card.style.transform = "";
+      dialog.style.clipPath = "";
+    }, EDIT_PANEL_TRANSITION_MS);
+    return () => {
+      clearTimeout(settleTimeout);
+      card.getAnimations().forEach((a) => a.cancel());
+      dialog.getAnimations().forEach((a) => a.cancel());
+      // Reset to identity on cleanup too — matters specifically for an
+      // INTERRUPTED transition (this effect re-firing before the previous
+      // one's own settleTimeout fired): the next run computes its own
+      // fromOffsetPx/fromClipPx from scratch and immediately overrides
+      // these anyway, but leaving a stale non-identity transform/clip-path
+      // applied between this stop() and the new animate() call (both
+      // synchronous, so this window is only a single frame at most) is not
+      // worth relying on implicitly.
+      card.style.transform = "";
+      dialog.style.clipPath = "";
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally keyed on transitionGen alone, see this effect's own top comment (isEditModeTransitioning/isSnapTransitioning is a level that can stay true across two back-to-back transitions; transitionDirection/committed*/target* are all read fresh at the instant this fires, not stale)
+  }, [transitionGen]);
 
   // Measures growableFixedOverheadPx — see that state's own comment
   // (near its declaration) for why this is deliberately NOT the fast-
@@ -1195,7 +1481,31 @@ export function MixerBar({
     setDragHeightPx(null);
     isTransitioningRef.current = true;
     setIsSnapTransitioning(true);
-    setPoolPanelHeightPref(poolPanelMaxHeight * fraction);
+    const newTargetHeight = poolPanelMaxHeight * fraction;
+    // editMode is already true for the whole span a snap shortcut is even
+    // reachable in (canShowResizeHandleRowDisplay's own gate), so marginTop
+    // only ever needs the "true" branch of its own ternary here.
+    const newTargetMarginTop = -(growableFixedOverheadPx + newTargetHeight);
+    // See transitionDirection's own declaration — decided once, here,
+    // against whichever height is currently actually COMMITTED (not
+    // effectiveHeightPx/target, which may already equal newTargetHeight by
+    // the time some other code reads it).
+    const growing = newTargetHeight > committedHeight;
+    setTransitionStartMarginTop(committedMarginTop);
+    setTransitionEndMarginTop(newTargetMarginTop);
+    setTransitionStartHeight(committedHeight);
+    setTransitionEndHeight(newTargetHeight);
+    setTransitionDirection(growing ? "grow" : "shrink");
+    setTransitionGen((g) => g + 1);
+    if (growing) {
+      // See the editMode-toggle branch's own identical comment — a grow
+      // commits its real geometry immediately; a shrink leaves committed*
+      // untouched here, deferred to isSnapTransitioning's own clearing
+      // effect once the visual animation finishes.
+      setCommittedMarginTop(newTargetMarginTop);
+      setCommittedHeight(newTargetHeight);
+    }
+    setPoolPanelHeightPref(newTargetHeight);
   }
   // The down arrow's own target — POOL_HEIGHT_MIN, not a fraction of
   // poolPanelMaxHeight, so this can't just be another handleSnapPoolHeight
@@ -1205,6 +1515,22 @@ export function MixerBar({
     setDragHeightPx(null);
     isTransitioningRef.current = true;
     setIsSnapTransitioning(true);
+    const newTargetMarginTop = -(growableFixedOverheadPx + POOL_HEIGHT_MIN);
+    // Always a shrink in practice (POOL_HEIGHT_MIN is the floor every
+    // other source clamps to), but compared rather than assumed, for the
+    // same reason handleSnapPoolHeight compares instead of hardcoding
+    // "grow" — see transitionDirection's own declaration.
+    const growing = POOL_HEIGHT_MIN > committedHeight;
+    setTransitionStartMarginTop(committedMarginTop);
+    setTransitionEndMarginTop(newTargetMarginTop);
+    setTransitionStartHeight(committedHeight);
+    setTransitionEndHeight(POOL_HEIGHT_MIN);
+    setTransitionDirection(growing ? "grow" : "shrink");
+    setTransitionGen((g) => g + 1);
+    if (growing) {
+      setCommittedMarginTop(newTargetMarginTop);
+      setCommittedHeight(POOL_HEIGHT_MIN);
+    }
     setPoolPanelHeightPref(POOL_HEIGHT_MIN);
   }
   // Clears the snap-triggered freeze/animation the same way
@@ -1215,6 +1541,11 @@ export function MixerBar({
     const timeout = setTimeout(() => {
       isTransitioningRef.current = false;
       setIsSnapTransitioning(false);
+      // See isEditModeTransitioning's own identical clearing effect for why
+      // this is also where a deferred-shrink's committed geometry catches
+      // up to target. The overlay's own reset is owned by the animate()
+      // effect's own settleTimeout, not duplicated here.
+      setTransitionDirection(null);
       measureFixedOverheadRef.current();
       measureGrowableFixedOverheadRef.current();
     }, EDIT_PANEL_TRANSITION_MS);
@@ -1673,12 +2004,20 @@ export function MixerBar({
     // style, not a Tailwind duration-[Npx] class.
     <div
       ref={cardRef}
-      style={{
-        marginTop: editMode ? -(growableFixedOverheadPx + effectiveHeightPx) : 0,
-        transitionProperty: isEditModeTransitioning || isSnapTransitioning ? "margin-top" : "none",
-        transitionDuration: `${EDIT_PANEL_TRANSITION_MS}ms`,
-        transitionTimingFunction: "ease-in-out",
-      }}
+      // committedMarginTop, not a raw editMode ternary — this is now the
+      // one, single, already-final value for whichever state a transition
+      // is ACTUALLY committing to (see that state's own top-of-file
+      // comment) — no CSS transitionProperty at all anymore: the smooth
+      // grow/shrink motion is now a compositor-only transform, driven
+      // imperatively by Motion (the useLayoutEffect above, keyed on
+      // transitionGen), not a browser-interpolated marginTop. This is the
+      // actual fix for the layout-pass cost this file's own DESIGN_SYSTEM.md
+      // entry measured (29-35 real layout passes per open/close/resize
+      // interaction, via Chrome's own Performance.getMetrics) — marginTop
+      // itself now only ever changes in one atomic, synchronous step per
+      // transition, never smoothly interpolated by the browser frame by
+      // frame.
+      style={{ marginTop: committedMarginTop }}
       // z-[var(--z-overlay)] — confirmed live as a real bug without a
       // z-index here: ResultCard's own front face (ResultCard.tsx) is
       // `position:absolute` with an explicit z-[var(--z-raised)] — per
@@ -1797,17 +2136,24 @@ export function MixerBar({
         aria-modal="true"
         aria-label="Edit tags"
         tabIndex={-1}
-        // height (not max-height)/overflow-hidden/transition* — animates
-        // this panel's own reveal (grows on open, shrinks on close) in
-        // lockstep with cardRef's own marginTop transition above (same
-        // EDIT_PANEL_TRANSITION_MS, same drag-suppression rule — see that
-        // style's own comment for the full reasoning, identical here).
-        // overflow-hidden is now permanent (open and closed alike, not
-        // just while closed) — needed for the height animation itself to
-        // clip correctly mid-transition; confirmed live nothing inside
-        // TagPoolBody currently needs to bleed outside this box once fully
-        // open (its own ScrollFadeArea instances are already self-
-        // contained).
+        // NOTE (Motion migration): the paragraphs below describe the
+        // pre-Motion version of this box, where dialogRef's own height WAS
+        // the thing a CSS `transition` animated directly — that's no
+        // longer true (see committedHeight's own comment further down):
+        // height/marginBottom now change in one atomic step, and the
+        // smooth reveal is dialogRef's own clip-path, animated
+        // imperatively by Motion. Kept because the underlying REASON height
+        // (not max-height) has to be the authoritative, always-fully-
+        // resolved value — not an escape-hatch-prone ceiling content can
+        // slip out from under — still holds unchanged; only the mechanism
+        // that used to animate it changed. See DESIGN_SYSTEM.md for the
+        // full migration writeup.
+        //
+        // overflow-hidden is permanent (open and closed alike, not just
+        // while closed) — needed for clip-path to visibly do anything;
+        // confirmed live nothing inside TagPoolBody currently needs to
+        // bleed outside this box once fully open (its own ScrollFadeArea
+        // instances are already self-contained).
         //
         // height, not max-height — confirmed live as a real bug with
         // max-height specifically for *shrinking* transitions (the 100%→
@@ -1873,15 +2219,20 @@ export function MixerBar({
         // compensation) changing smoothly and only in the ways
         // marginTop's own transition already accounts for.
         //
-        // Same isEditModeTransitioning gate as cardRef's own marginTop
-        // transition above (see that style's own comment for why this
-        // isn't simply `dragHeightPx === null`).
+        // committedHeight/committedMarginBottomPx, not raw editMode
+        // ternaries — see cardRef's own identical comment above for why:
+        // no CSS transitionProperty left at all, the smooth reveal is now
+        // dialogRef's own clip-path, animated imperatively by Motion (same
+        // useLayoutEffect, keyed on transitionGen). committedMarginBottomPx
+        // is a plain number (DIALOG_MARGIN_BOTTOM_PX, 16) rather than the
+        // "var(--space-xl)" string the pre-Motion version used — same
+        // value, see that constant's own comment for why it has to be
+        // tracked as a literal number here regardless (needed for
+        // arithmetic elsewhere in this file), not just a CSS variable
+        // reference.
         style={{
-          height: editMode ? effectiveHeightPx : 0,
-          marginBottom: editMode ? "var(--space-xl)" : 0,
-          transitionProperty: isEditModeTransitioning || isSnapTransitioning ? "height, margin-bottom" : "none",
-          transitionDuration: `${EDIT_PANEL_TRANSITION_MS}ms`,
-          transitionTimingFunction: "ease-in-out",
+          height: committedHeight,
+          marginBottom: committedMarginBottomPx,
         }}
         className="flex flex-col outline-none overflow-hidden"
       >
