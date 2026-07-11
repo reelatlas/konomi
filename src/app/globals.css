@@ -558,47 +558,19 @@
     overflow: hidden;
   }
 
-  /* Toggled by MixerBar (MixerBar.tsx) for exactly as long as its own edit
-     panel is open — dialogRef already carries role="dialog"/aria-modal
-     ="true", but nothing before this actually gave it the background-
-     scroll-lock a modal's own aria-modal semantic implies. Reported live:
-     the page and the panel visibly scrolled together as one unit while the
-     panel was open (on a real device — desktop/emulated mobile never
-     showed it), even though the panel's own size/position never changed —
-     blockScrollThrough (MixerBar.tsx) only ever protected gestures
-     starting *on the bar itself* from leaking to the page; a gesture
-     starting anywhere else on the page (or the page's own native rubber-
-     band/scroll-chaining once a nested ScrollFadeArea inside the panel
-     bottoms out — WebKit's own overscroll-behavior support at the document
-     boundary has a known history of being less reliable than between two
-     merely-nested scroll containers) was never this file's job to stop,
-     and had nothing to stop it once editMode's own dialog visually reads
-     as the page's one interactive surface.
-
-     overflow: hidden — blocks wheel/programmatic document scroll outright,
-     no JS needed for that half (an overflow:hidden element simply cannot
-     be scrolled by a wheel event, full stop). touch-action: none is what
-     closes the touch half, mirroring cardRef's own identical pairing
-     (MixerBar.tsx, "touch-none... a second, CSS-level layer behind
-     blockScrollThrough's own JS preventDefault, not a replacement for it")
-     at the whole-document scope instead of just the bar's own box —
-     compositor-level touch-pan recognition happens before any JS runs, so
-     overflow:hidden alone (a layout/scroll-mechanics property, not a
-     touch-action one) doesn't reliably stop native touch-driven bounce/
-     scroll on its own, the same lesson that original fix already learned.
-     Every ScrollFadeArea instance already carves its own axis back out via
-     touch-pan-x/touch-pan-y directly on itself (see that component's own
-     comment) regardless of how far up the tree a touch-action:none was
-     declared — touch-action's used value resolves from the element a
-     touch actually starts on, not force-inherited from an ancestor — so
-     the panel's own chip grid/tab strip keep scrolling internally exactly
-     as before; only genuinely page-level scroll (and, as a side effect,
-     any other ScrollFadeArea elsewhere on the page that doesn't carry its
-     own explicit pan override) is what this actually locks. */
-  html.mixbar-panel-scroll-locked {
-    overflow: hidden;
-    touch-action: none;
-  }
+  /* html.mixbar-panel-scroll-locked (overflow:hidden + touch-action:none,
+     toggled by MixerBar for as long as its edit panel was open) used to
+     live here. Removed — reported live as itself too broad, blocking page
+     scroll everywhere rather than just where it starts on the panel. Both
+     properties turned out to be genuinely document-wide in effect at this
+     scope (touch-action inherits normally, so :none on html becomes the
+     computed value for anything on the page without its own override, not
+     just the bar), not "locks the panel" the way the name suggested. Full
+     writeup, including what's still in place instead (blockScrollThrough
+     and the outer wrapper's own scoped touch-none, both in MixerBar.tsx)
+     and the open question of whether this reopens the original real-
+     device report, is at that removal's own comment site, MixerBar.tsx,
+     near pinScrollToDocumentBottomIfWasAtBottom's own effect. */
 
   html[data-halftone] {
     /* The dotted texture (SHOW_HALFTONE, config.ts) — was a separate
