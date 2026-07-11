@@ -1,6 +1,6 @@
 "use client";
 
-import { animate } from "motion/react";
+import { motion } from "motion/react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { MatchKey, MixerError, Slot, TagInfo } from "@/lib/konomi/types";
 import { ActionButton } from "./ActionButton";
@@ -289,18 +289,6 @@ export function MixerBar({
   // state in the (currently unreachable, but not worth relying on) case
   // they ever overlapped.
   const [isSnapTransitioning, setIsSnapTransitioning] = useState(false);
-  // Which direction the CURRENTLY in-flight transition (editMode toggle or
-  // a resize-shortcut snap) is moving — null whenever idle or mid-drag.
-  // Declared here (not alongside the rest of the FLIP-migration geometry
-  // state further below, near effectiveHeightPx) specifically so
-  // isEditModeTransitioning's own clearing effect (just below) can
-  // reference its setter — that effect has to stay this early in the file
-  // (it's tightly coupled to isTransitioningRef/measureFixedOverheadRef,
-  // both declared nearby), and a plain `const` can't be referenced before
-  // its own declaration textually, even from inside a callback that only
-  // actually runs later. See DESIGN_SYSTEM.md for the full FLIP-migration
-  // writeup this state is part of.
-  const [transitionDirection, setTransitionDirection] = useState<"grow" | "shrink" | null>(null);
 
   // Continuously tracks whether the page is currently scrolled to its own
   // true bottom — read once below, right as editMode flips true, to know
@@ -887,20 +875,6 @@ export function MixerBar({
     const timeout = setTimeout(() => {
       isTransitioningRef.current = false;
       setIsEditModeTransitioning(false);
-      // Clears transitionDirection back to null — for a SHRINK, this is
-      // also the exact instant renderedMarginTop/renderedHeight/
-      // renderedMarginBottomPx catch up to target* (see
-      // isShowingPreTransitionGeometry's own declaration): once
-      // transitionDirection is no longer "shrink", that computation
-      // resolves to target* directly on the very next render, landing
-      // exactly when the visual transform/clip-path overlay (the
-      // animate() effect, above) has also finished playing, so there's
-      // nothing left to visually reconcile.
-      setTransitionDirection(null);
-      // The overlay's own transform/clip-path reset is owned entirely by
-      // the animate() effect's own settleTimeout (below, keyed on
-      // transitionGen) — not duplicated here. Both timeouts share the same
-      // EDIT_PANEL_TRANSITION_MS duration, so they land together regardless.
       measureFixedOverheadRef.current();
       measureGrowableFixedOverheadRef.current();
     }, EDIT_PANEL_TRANSITION_MS);
@@ -1157,272 +1131,55 @@ export function MixerBar({
   useLayoutEffect(() => {
     effectiveHeightPxRef.current = effectiveHeightPx;
   });
-  // Same ref-mirroring pattern as effectiveHeightPxRef above, for
-  // growableFixedOverheadPx — needed so the deferred-shrink-commit effect
-  // below (transitionGen's own comment) can recompute the final target
-  // geometry from inside a setTimeout without depending on a stale render's
-  // closure.
-  const growableFixedOverheadPxRef = useRef(growableFixedOverheadPx);
-  useLayoutEffect(() => {
-    growableFixedOverheadPxRef.current = growableFixedOverheadPx;
-  });
-
-  // --- FLIP migration (Motion) ---
+  // --- FLIP migration (Motion) — v2, using Motion's own `layout` prop ---
+  //
+  // The original version of this migration hand-built FLIP: a "committed
+  // vs. visual" split, manually-tracked start/end geometry, and an
+  // imperative animate() call driving a transform/clip-path overlay. That
+  // version shipped three separate real bugs across two on-device retest
+  // rounds (a fixed row visibly moving, a render-doubling drag jitter, a
+  // one-frame race between the real commit and the overlay's first paint)
+  // — each fixed in turn, but the pattern itself (hand-tracking exactly
+  // what Motion's `layout` prop already exists to compute automatically)
+  // kept reintroducing new instances of the same underlying class of bug:
+  // manually keeping a real value and a visual value in sync. Replaced
+  // with Motion's own `layout` prop on growableRef/dialogRef below, which
+  // measures each element's own rendered rect before and after a React
+  // commit and animates the difference automatically — the exact FLIP
+  // computation this file was hand-rolling, now done by code this project
+  // doesn't have to maintain or re-debug. See DESIGN_SYSTEM.md for the
+  // full writeup of why layout was reconsidered and adopted.
   //
   // targetMarginTop/targetHeight/targetMarginBottomPx are the CORRECT,
   // already-computed-from-plain-JS-numbers geometry for cardRef/dialogRef —
   // unchanged in what they compute from the pre-Motion version of this
-  // file, which CSS-transitioned these same numbers directly (confirmed via
-  // Chrome's own Performance.getMetrics to cost 29-35 real layout passes
-  // per open/close/resize interaction — see this file's own DESIGN_SYSTEM.md
-  // entry).
+  // file (this measurement pipeline — effectiveHeightPx/
+  // growableFixedOverheadPx/fixedOverheadPx — is completely untouched by
+  // this or any other step of the Motion migration; `layout` only measures
+  // each element's own rendered rect for its OWN animation purposes, it
+  // has no say in what these numbers actually are). Applied directly, on
+  // every render, with no "committed vs. target" distinction and no
+  // deferred-commit timing of any kind: growableRef/dialogRef's `layout`
+  // prop is what makes a discrete jump (grow OR shrink, instantly, in one
+  // step) look smooth, not any hand-timed staging on this file's part.
   const targetMarginTop = editMode ? -(growableFixedOverheadPx + effectiveHeightPx) : 0;
   const targetHeight = editMode ? effectiveHeightPx : 0;
   const targetMarginBottomPx = editMode ? DIALOG_MARGIN_BOTTOM_PX : 0;
-  // Which direction the CURRENTLY in-flight transition (editMode toggle or
-  // a resize-shortcut snap) is moving — null whenever idle or mid-drag
-  // (drag never sets isEditModeTransitioning/isSnapTransitioning at all,
-  // see handleResizeStart's own comment). Decided once, at the exact
-  // instant a transition starts (see the three call sites below), by
-  // comparing the NEW target height against whichever height was actually
-  // on screen a moment ago (transitionStartHeight, captured at that same
-  // instant) — not against `target` itself, which could already equal the
-  // new value by the time this runs. (transitionDirection itself is
-  // declared much earlier in this file, near isSnapTransitioning — see
-  // that declaration's own comment for why.)
-  //
-  // The exact marginTop/height/marginBottom values a transition is
-  // animating BETWEEN — captured once, at each of the three transition-
-  // start call sites, from whatever was genuinely on screen a moment
-  // before the transition began (not from any persisted "committed" state
-  // — see the removed committedMarginTop/committedHeight's own history in
-  // git blame/DESIGN_SYSTEM.md for why that approach was replaced).
-  const [transitionStartMarginTop, setTransitionStartMarginTop] = useState(0);
-  const [transitionEndMarginTop, setTransitionEndMarginTop] = useState(0);
-  const [transitionStartHeight, setTransitionStartHeight] = useState(0);
-  const [transitionEndHeight, setTransitionEndHeight] = useState(0);
-  const [transitionStartMarginBottomPx, setTransitionStartMarginBottomPx] = useState(0);
-  // Bumped at each of the three transition-start call sites (the editMode
-  // render-phase block, handleSnapPoolHeight, handleResetPoolHeight) —
-  // NOT the same thing as isEditModeTransitioning || isSnapTransitioning
-  // (a level, not an edge): that boolean can stay continuously true across
-  // two back-to-back transitions (e.g. clicking 50% then 100% again before
-  // the first snap's own 280ms elapses), which would never re-fire an
-  // effect keyed on it alone, leaving the visual overlay animating toward
-  // the FIRST click's target forever. This counter increments on every
-  // genuinely new transition regardless of whether a previous one is still
-  // in flight, so the animate() effect below (keyed on this, not on the
-  // level) always restarts against the latest real target.
-  const [transitionGen, setTransitionGen] = useState(0);
-  // Duplicate of the "editMode just changed" check near
-  // prevEditModeForTransition's own declaration (isEditModeTransitioning's
-  // neighborhood, above) — re-evaluated here rather than folded into that
-  // one, purely because of JS's temporal-dead-zone rules: that block runs
-  // (and must run, to pre-seed growableFixedOverheadPx) before
-  // effectiveHeightPx itself is even computed, long before
-  // transitionDirection/transitionGen exist yet. Safe to check the same
-  // condition twice — prevEditModeForTransition (the plain value returned
-  // by useState, not the state cell itself) stays fixed for this entire
-  // render pass no matter how many times setPrevEditModeForTransition
-  // already ran above; React re-invokes this whole function from the top
-  // whenever a render-phase setState changes something (the same
-  // mechanism that already makes the first block's own re-render-
-  // triggering setState calls work), so by the time a render actually
-  // commits, both blocks agree.
-  //
-  // prevEditModeForTransition (still the OLD editMode boolean, in THIS
-  // render) is what makes the "old" values computable here even though
-  // targetMarginTop/targetHeight above have already recomputed against the
-  // NEW editMode (a prop, not state — it has no same-render staleness of
-  // its own to exploit the way isEditModeTransitioning does).
-  if (editMode !== prevEditModeForTransition) {
-    const oldTargetMarginTop = prevEditModeForTransition ? -(growableFixedOverheadPx + effectiveHeightPx) : 0;
-    const oldTargetHeight = prevEditModeForTransition ? effectiveHeightPx : 0;
-    const oldTargetMarginBottomPx = prevEditModeForTransition ? DIALOG_MARGIN_BOTTOM_PX : 0;
-    const growing = targetHeight > oldTargetHeight;
-    setTransitionStartMarginTop(oldTargetMarginTop);
-    setTransitionEndMarginTop(targetMarginTop);
-    setTransitionStartHeight(oldTargetHeight);
-    setTransitionEndHeight(targetHeight);
-    setTransitionStartMarginBottomPx(oldTargetMarginBottomPx);
-    setTransitionDirection(growing ? "grow" : "shrink");
-    setTransitionGen((g) => g + 1);
-  }
-  // Whether the geometry actually APPLIED to cardRef/dialogRef below
-  // should keep showing the pre-transition values — true for exactly the
-  // span of an active SHRINK's own visual animation (the deliberate lag
-  // that lets the overlay finish before the real box actually shrinks —
-  // see the animate() effect's own top comment). Pure computation, not
-  // state: growing, idle, and EVERY DRAG TICK all resolve this to false,
-  // meaning `renderedMarginTop`/etc. below are just `target*` directly, on
-  // every render, with no setState call at all involved — deliberately:
-  // an earlier version of this file synced a separate `committed*` STATE
-  // to target via setState during render, unconditionally, every render —
-  // which, during a live drag (effectiveHeightPx/target* changing on every
-  // single pointermove tick), meant every drag tick triggered React's
-  // render-phase-setState-changed-something re-render-immediately
-  // mechanism, silently DOUBLING the render cost of every drag frame.
-  // Reported live as jitter that specifically only affected dragging (open/
-  // close/snap, which change less often, weren't visibly affected the same
-  // way) — this computed-not-stored approach has zero per-render state-
-  // update cost for the drag/idle/grow cases, only ever writing state at
-  // the three real transition-start call sites.
-  const isShowingPreTransitionGeometry = (isEditModeTransitioning || isSnapTransitioning) && transitionDirection === "shrink";
-  const renderedMarginTop = isShowingPreTransitionGeometry ? transitionStartMarginTop : targetMarginTop;
-  const renderedHeight = isShowingPreTransitionGeometry ? transitionStartHeight : targetHeight;
-  const renderedMarginBottomPx = isShowingPreTransitionGeometry ? transitionStartMarginBottomPx : targetMarginBottomPx;
-
-  // The actual visual FLIP overlay — a compositor-only transform
-  // (growableRef, NOT cardRef — see this effect's own comment below for a
-  // confirmed-live bug from getting this wrong the first time) and
-  // clip-path (dialogRef), imperatively driven by Motion (motion/react)
-  // rather than a CSS `transition` on marginTop/height directly (the
-  // pre-migration version of this file — see DESIGN_SYSTEM.md for the
-  // full writeup, including the measured layout-pass count this replaces).
-  // Targets the plain DOM refs directly (Motion's animate() works on any
-  // element, not just motion.* components) — growableRef/dialogRef stay
-  // ordinary divs, nothing about their own structure changes.
-  //
-  // Keyed on transitionGen, not on isEditModeTransitioning || isSnapTransitioning:
-  // that boolean is a LEVEL (can stay continuously true across two
-  // back-to-back transitions, e.g. clicking 50% then 100% again before the
-  // first snap's own 280ms elapses) — an effect keyed on it alone would
-  // never re-fire for the second click, leaving this animating toward the
-  // FIRST click's target forever. transitionGen is bumped on every
-  // genuinely new transition regardless of whether a previous one is still
-  // in flight, so this always restarts against the latest real target;
-  // Motion's own controls.stop() (this effect's cleanup) halts whatever
-  // was still in flight at exactly its current value first.
-  //
-  // The formula — offset = visualTarget(t) − committedNow — is direction-
-  // agnostic: `renderedMarginTop`/`renderedHeight` (what's actually applied
-  // to the DOM, see that computation's own top comment) are what differ
-  // between a grow (already the END value, before this effect even runs)
-  // and a shrink (stays at the START value for this effect's entire
-  // duration, only catching up once isEditModeTransitioning/
-  // isSnapTransitioning's own clearing effect fires and
-  // transitionDirection stops reading "shrink"). Plugging in "whichever of
-  // start/end is currently actually rendered" always produces the correct
-  // produces the correct from/to pair for the transform/clip-path without
-  // this effect itself needing to know or care which direction it's
-  // animating.
-  useLayoutEffect(() => {
-    // transitionGen starts at 0 and only ever increments at a genuine
-    // transition start — skip the effect's very first run (mount), where
-    // there is nothing to animate between yet.
-    if (transitionGen === 0) return;
-    // growableRef, not cardRef — see this effect's own DESIGN_SYSTEM.md
-    // entry for the confirmed-live bug this fixes: cardRef is the ancestor
-    // of BOTH the pool panel (growableRef) AND the fixed slots/controls row
-    // ("Row 2"), so a transform applied to cardRef itself visually drags
-    // the whole box — slots/controls included — even though marginTop's
-    // real, already-committed value never moves them at all. growableRef
-    // wraps only the pool panel (see its own comment near its
-    // declaration), so animating a compensating transform there instead
-    // shifts exactly the part of this box whose on-screen position
-    // actually changes, and leaves the fixed rows completely untouched,
-    // matching the "slots/controls never move" invariant this whole file
-    // is built around.
-    const growable = growableRef.current;
-    const dialog = dialogRef.current;
-    if (!growable || !dialog) return;
-    const durationS = EDIT_PANEL_TRANSITION_MS / 1000;
-    const startMarginTop = transitionStartMarginTop;
-    const endMarginTop = transitionEndMarginTop;
-    const startHeight = transitionStartHeight;
-    const endHeight = transitionEndHeight;
-    const committedMarginTopNow = transitionDirection === "grow" ? endMarginTop : startMarginTop;
-    const committedHeightNow = transitionDirection === "grow" ? endHeight : startHeight;
-    const fromOffsetPx = startMarginTop - committedMarginTopNow;
-    const toOffsetPx = endMarginTop - committedMarginTopNow;
-    // Clips FROM THE BOTTOM by however much of committedHeightNow's real
-    // (already-rendered) box shouldn't be visible yet at each instant — 0
-    // once the visually-perceived height matches the real committed one.
-    // Always >= 0: the visually-perceived height is always between
-    // startHeight/endHeight, and committedHeightNow is always whichever of
-    // those two bounds is the LARGER one for the direction in play (the
-    // end value for a grow, since it already jumped there; the start value
-    // for a shrink, since it hasn't left yet) — see this effect's own
-    // top comment.
-    const fromClipPx = committedHeightNow - startHeight;
-    const toClipPx = committedHeightNow - endHeight;
-    // Explicit synchronous style writes BEFORE calling animate() — confirmed
-    // live as a real, necessary fix, not belt-and-suspenders: a frame-by-
-    // frame sampler (getComputedStyle every requestAnimationFrame) showed a
-    // genuine ~1-frame gap between committed* landing on its real, already-
-    // grown value (this useLayoutEffect's own commit, synchronous, before
-    // paint) and growable/dialog actually PAINTING their overlay's own
-    // "from" keyframe — Motion's animate(), even called synchronously here,
-    // does not guarantee the Web Animations API's underlying animation
-    // paints its first frame in the SAME frame it was created in. For that
-    // one frame, the browser showed the fully-grown real geometry with NO
-    // compensating transform/clip-path at all — a raw, unmasked jump to the
-    // final state — immediately followed by a visible jerk back to the
-    // overlay's own starting offset once it finally caught up a frame
-    // later. Reported live as "opening the panel makes the whole mixbar
-    // jut upward" and "the panel lingers behind longer than it should".
-    // Setting these two properties directly, synchronously, guarantees the
-    // starting frame is correct the instant this commit paints, regardless
-    // of whatever internal scheduling animate() itself uses.
-    growable.style.transform = `translateY(${fromOffsetPx}px)`;
-    dialog.style.clipPath = `inset(0px 0px ${fromClipPx}px 0px)`;
-    // Return values (AnimationPlaybackControls) deliberately not kept —
-    // see the settleTimeout/cleanup below for why cancellation goes
-    // through the native getAnimations().cancel() instead of these.
-    animate(growable, { transform: [`translateY(${fromOffsetPx}px)`, `translateY(${toOffsetPx}px)`] }, { duration: durationS, ease: "easeInOut" });
-    animate(
-      dialog,
-      { clipPath: [`inset(0px 0px ${fromClipPx}px 0px)`, `inset(0px 0px ${toClipPx}px 0px)`] },
-      { duration: durationS, ease: "easeInOut" },
-    );
-    // Force both back to identity once the animation has actually finished
-    // — NOT left to `animate()`'s own natural completion, which (Motion
-    // uses the Web Animations API under the hood) leaves a "finished, fill
-    // forward" animation applying its last frame indefinitely, outranking
-    // any later, independent inline-style write. Confirmed live as a real
-    // bug without this explicit settle step: getComputedStyle kept
-    // reporting the animation's own final frame (a non-identity transform/
-    // clip-path) indefinitely after the transition visually finished. A
-    // plain setTimeout matching EDIT_PANEL_TRANSITION_MS, not `finished`
-    // (the AnimationPlaybackControls promise) — this file's own established
-    // reliability rule (RollingLabel.tsx's own comment, this file's
-    // isEditModeTransitioning clearing effect) already treats animation-
-    // completion signals as less trustworthy on real devices than a timer
-    // tied to a duration this file already controls.
-    //
-    // getAnimations().cancel() (the native Web Animations API), not
-    // controls.stop() (Motion's own wrapper) — confirmed live as a real,
-    // separate bug: .stop() reliably commits+removes an animation that's
-    // still actively RUNNING, but a no-op (or at least insufficient to
-    // clear the fill-forward effect) once the animation has already
-    // reached its own natural end on its own — which, by the time this
-    // 280ms timeout fires, it always has (both share the same duration).
-    // .cancel() unconditionally removes an animation's effect regardless
-    // of its current playState, letting the plain inline style (set right
-    // after) actually show through immediately either way.
-    const settleTimeout = setTimeout(() => {
-      growable.getAnimations().forEach((a) => a.cancel());
-      dialog.getAnimations().forEach((a) => a.cancel());
-      growable.style.transform = "";
-      dialog.style.clipPath = "";
-    }, EDIT_PANEL_TRANSITION_MS);
-    return () => {
-      clearTimeout(settleTimeout);
-      growable.getAnimations().forEach((a) => a.cancel());
-      dialog.getAnimations().forEach((a) => a.cancel());
-      // Reset to identity on cleanup too — matters specifically for an
-      // INTERRUPTED transition (this effect re-firing before the previous
-      // one's own settleTimeout fired): the next run computes its own
-      // fromOffsetPx/fromClipPx from scratch and immediately overrides
-      // these anyway, but leaving a stale non-identity transform/clip-path
-      // applied between this stop() and the new animate() call (both
-      // synchronous, so this window is only a single frame at most) is not
-      // worth relying on implicitly.
-      growable.style.transform = "";
-      dialog.style.clipPath = "";
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally keyed on transitionGen alone, see this effect's own top comment (isEditModeTransitioning/isSnapTransitioning is a level that can stay true across two back-to-back transitions; transitionDirection/committed*/target* are all read fresh at the instant this fires, not stale)
-  }, [transitionGen]);
+  // The layout animation's own transition — instant (duration 0) whenever
+  // nothing is actually transitioning (idle, or every live-drag tick,
+  // since drag never sets isEditModeTransitioning/isSnapTransitioning at
+  // all — see handleResizeStart's own comment), EDIT_PANEL_TRANSITION_MS
+  // otherwise. A stable-shaped object, not recreated with new semantics
+  // per call site — this is the ONE place that decides "should this
+  // change be animated at all," reused identically by both growableRef
+  // and dialogRef below so their two layout animations can never drift
+  // out of sync with each other the way this file's very first (pre-
+  // Motion) version once did (see that section's own "margin-bottom is
+  // animated too" entry above).
+  const layoutTransition = {
+    duration: isEditModeTransitioning || isSnapTransitioning ? EDIT_PANEL_TRANSITION_MS / 1000 : 0,
+    ease: "easeInOut",
+  } as const;
 
   // Measures growableFixedOverheadPx — see that state's own comment
   // (near its declaration) for why this is deliberately NOT the fast-
@@ -1488,24 +1245,7 @@ export function MixerBar({
     setDragHeightPx(null);
     isTransitioningRef.current = true;
     setIsSnapTransitioning(true);
-    const newTargetHeight = poolPanelMaxHeight * fraction;
-    // editMode is already true for the whole span a snap shortcut is even
-    // reachable in (canShowResizeHandleRowDisplay's own gate), so marginTop
-    // only ever needs the "true" branch of its own ternary here.
-    const newTargetMarginTop = -(growableFixedOverheadPx + newTargetHeight);
-    // See transitionDirection's own declaration — decided once, here,
-    // against `targetHeight` (this render's already-settled, authoritative
-    // "what's actually on screen right now" value — editMode isn't
-    // changing, so unlike the render-phase branch above, there's no
-    // same-render staleness to work around here at all).
-    const growing = newTargetHeight > targetHeight;
-    setTransitionStartMarginTop(targetMarginTop);
-    setTransitionEndMarginTop(newTargetMarginTop);
-    setTransitionStartHeight(targetHeight);
-    setTransitionEndHeight(newTargetHeight);
-    setTransitionDirection(growing ? "grow" : "shrink");
-    setTransitionGen((g) => g + 1);
-    setPoolPanelHeightPref(newTargetHeight);
+    setPoolPanelHeightPref(poolPanelMaxHeight * fraction);
   }
   // The down arrow's own target — POOL_HEIGHT_MIN, not a fraction of
   // poolPanelMaxHeight, so this can't just be another handleSnapPoolHeight
@@ -1515,33 +1255,16 @@ export function MixerBar({
     setDragHeightPx(null);
     isTransitioningRef.current = true;
     setIsSnapTransitioning(true);
-    const newTargetMarginTop = -(growableFixedOverheadPx + POOL_HEIGHT_MIN);
-    // Always a shrink in practice (POOL_HEIGHT_MIN is the floor every
-    // other source clamps to), but compared rather than assumed, for the
-    // same reason handleSnapPoolHeight compares instead of hardcoding
-    // "grow" — see transitionDirection's own declaration.
-    const growing = POOL_HEIGHT_MIN > targetHeight;
-    setTransitionStartMarginTop(targetMarginTop);
-    setTransitionEndMarginTop(newTargetMarginTop);
-    setTransitionStartHeight(targetHeight);
-    setTransitionEndHeight(POOL_HEIGHT_MIN);
-    setTransitionDirection(growing ? "grow" : "shrink");
-    setTransitionGen((g) => g + 1);
     setPoolPanelHeightPref(POOL_HEIGHT_MIN);
   }
-  // Clears the snap-triggered freeze/animation the same way
-  // isEditModeTransitioning's own effect clears its — see that effect's
-  // comment for why a setTimeout, not transitionend.
+  // Clears the snap-triggered freeze the same way isEditModeTransitioning's
+  // own effect clears its — see that effect's comment for why a setTimeout,
+  // not transitionend.
   useEffect(() => {
     if (!isSnapTransitioning) return;
     const timeout = setTimeout(() => {
       isTransitioningRef.current = false;
       setIsSnapTransitioning(false);
-      // See isEditModeTransitioning's own identical clearing effect for why
-      // this is also where a deferred-shrink's committed geometry catches
-      // up to target. The overlay's own reset is owned by the animate()
-      // effect's own settleTimeout, not duplicated here.
-      setTransitionDirection(null);
       measureFixedOverheadRef.current();
       measureGrowableFixedOverheadRef.current();
     }, EDIT_PANEL_TRANSITION_MS);
@@ -1998,22 +1721,56 @@ export function MixerBar({
     // transition below (same constant, so the two can't drift out of
     // sync) — see that constant's own comment for why this is an inline
     // style, not a Tailwind duration-[Npx] class.
-    <div
+    <motion.div
       ref={cardRef}
-      // renderedMarginTop, not a raw editMode ternary — either targetMarginTop
-      // directly (idle, dragging, growing) or the pre-transition value held
-      // for a shrink's own deferred-commit window (see that constant's own
-      // top-of-file comment) — no CSS transitionProperty at all anymore:
-      // the smooth grow/shrink motion is now a compositor-only transform on
-      // growableRef, driven imperatively by Motion (the useLayoutEffect
-      // above, keyed on transitionGen), not a browser-interpolated
-      // marginTop. This is the actual fix for the layout-pass cost this
-      // file's own DESIGN_SYSTEM.md entry measured (29-35 real layout
-      // passes per open/close/resize interaction, via Chrome's own
-      // Performance.getMetrics) — marginTop itself now only ever changes in
-      // one atomic, synchronous step per transition, never smoothly
-      // interpolated by the browser frame by frame.
-      style={{ marginTop: renderedMarginTop }}
+      layout={dragHeightPx === null}
+      transition={layoutTransition}
+      // targetMarginTop applied directly as real, instant style — same as
+      // ever (see growableFixedOverheadPx's own comment for what this
+      // number is). What makes it LOOK smooth is cardRef's own `layout`
+      // prop (Motion, motion/react): Motion measures this element's
+      // rendered rect before/after every commit and animates the
+      // difference — cardRef's own top edge (its border, this app's most
+      // visually prominent cue for "is the panel growing") is what
+      // actually needs to visibly rise/fall smoothly, so cardRef itself
+      // needs the animation, not just its growableRef child.
+      //
+      // A first version put `layout` ONLY on growableRef (reasoning:
+      // cardRef is the ancestor of both growableRef and the fixed "Row 2"
+      // slots/controls row, so a transform on cardRef itself would drag
+      // Row 2 along with it — exactly the bug documented at length below,
+      // "the FLIP overlay's transform was applied to cardRef itself").
+      // That was correct as far as it went, but incomplete: it kept Row 2
+      // motionless, but also meant cardRef's own border/frame never
+      // visibly animated at all — only growableRef's own inner content
+      // area did (a subtle scale, easy to miss) — reported live as "the
+      // panel itself is not seemingly animated, just appears... only the
+      // manual resize animates appropriately" (drag reads as smooth purely
+      // because it updates marginTop directly, every frame, matching the
+      // pointer — not because anything is actually animating).
+      //
+      // Fixed by giving `layout` to cardRef too, AND to the "Row 2"
+      // wrapper (below) — this is Motion's own documented fix for exactly
+      // this shape of problem ("children require their own layout prop...
+      // Motion will calculate counter-scales them so they appear
+      // undistorted"), just applied to POSITION rather than the size/
+      // image-distortion case the docs illustrate: Row 2's own `layout`
+      // prop measures ITS OWN true (pre-transform) rect, which never
+      // actually changes, and counter-corrects whatever transform cardRef
+      // applies to itself — so cardRef's own border can now visibly,
+      // smoothly rise and fall while Row 2 still never moves, verified
+      // directly (not assumed) via the same getBoundingClientRect()
+      // sampler used throughout this migration. See DESIGN_SYSTEM.md for
+      // the full writeup.
+      //
+      // layout={dragHeightPx === null} — same reasoning as growableRef's
+      // own identical prop: disabled outright (not just given a duration-0
+      // transition) for the span of a live drag, confirmed live as
+      // necessary — Motion's own layout-measurement cycle, even at
+      // duration 0, couldn't keep up with a real gesture committing a new
+      // value on every animation frame, visibly lagging far behind the
+      // pointer. Drag needs untouched, direct 1:1 tracking.
+      style={{ marginTop: targetMarginTop }}
       // z-[var(--z-overlay)] — confirmed live as a real bug without a
       // z-index here: ResultCard's own front face (ResultCard.tsx) is
       // `position:absolute` with an explicit z-[var(--z-raised)] — per
@@ -2092,8 +1849,53 @@ export function MixerBar({
           fix RecommendationsBody.tsx already uses for an identical
           collapse-through-the-parent case — margins stop escaping this
           box's own boundary, so its measured height always matches its
-          true footprint. */}
-      <div ref={growableRef} className="flow-root">
+          true footprint.
+
+          motion.div + layout (Motion, motion/react) — this is the element
+          Motion actually animates. Its own on-screen rect changes for two
+          combined reasons every transition: cardRef's marginTop shifting
+          it vertically, AND dialogRef's own height growing/shrinking
+          inside it (growableRef wraps dialogRef alone, with no border/
+          padding of its own, so growableRef's rect IS dialogRef's rect —
+          see this div's own flow-root comment above). `layout` measures
+          this element's rendered rect before and after every React
+          commit and animates the difference (a compositor-only
+          translate+scale transform) automatically — this single prop
+          replaces this migration's entire original hand-built FLIP
+          (a manually-tracked committed/visual-overlay split, an
+          imperative animate() call, a settleTimeout) after that version
+          shipped three separate on-device-only bugs across two retest
+          rounds. See DESIGN_SYSTEM.md for the full writeup of why layout
+          was reconsidered and adopted here.
+
+          layout={dragHeightPx === null} — `layout` is fully DISABLED for
+          the duration of a live drag, not just given a duration-0
+          transition. Motion's own docs describe `layout` as "drag-
+          compatible by default," but that's specifically about Motion's
+          OWN `drag` gesture prop — this grip's drag is a plain, manually-
+          tracked pointer gesture (handleMove/handleResizeStart, RAF-
+          throttled to one commit per frame) driving an ordinary style
+          change, not Motion's own drag system, and the two turned out not
+          to behave the same. Confirmed live, empirically: with `layout`
+          left enabled and only `transition={{ duration: 0 }}` during a
+          drag, the REAL underlying value tracked the pointer correctly
+          (the panel always settled at exactly the right height on
+          release), but the PAINTED height visibly lagged far behind the
+          pointer throughout the drag itself (measured: dragging 150px
+          up only visibly grew the panel ~4px until release, then it
+          snapped to the correct ~150px). Motion's own layout-measurement/
+          projection cycle, even with zero animation duration, still runs
+          asynchronously relative to React's render — it couldn't keep up
+          with a real gesture committing a new value on every animation
+          frame. Disabling `layout` outright during a drag routes the
+          style change directly, with zero Motion involvement, exactly
+          like every other un-animated style change in this file — `layout`
+          re-enables itself the instant the drag ends (dragHeightPx back
+          to null), ready for whatever transition (if any) comes next.
+          transition={layoutTransition} still governs the DISCRETE cases
+          (editMode toggle, resize-shortcut snap) — see that constant's
+          own declaration for the idle/dragging-vs-real-transition split. */}
+      <motion.div ref={growableRef} layout={dragHeightPx === null} transition={layoutTransition} className="flow-root">
 
       {/* Row 1 (formerly Row 2 — Row 1 was the title/badge/filters
           header, now removed entirely; see this file's own top comment):
@@ -2132,50 +1934,60 @@ export function MixerBar({
         aria-modal="true"
         aria-label="Edit tags"
         tabIndex={-1}
-        // NOTE (Motion migration): the paragraphs below describe the
-        // pre-Motion version of this box, where dialogRef's own height WAS
-        // the thing a CSS `transition` animated directly — that's no
-        // longer true (see renderedHeight's own comment further down):
-        // height/marginBottom now change in one atomic step, and the
-        // smooth reveal is dialogRef's own clip-path, animated
-        // imperatively by Motion. Kept because the underlying REASON height
-        // (not max-height) has to be the authoritative, always-fully-
-        // resolved value — not an escape-hatch-prone ceiling content can
-        // slip out from under — still holds unchanged; only the mechanism
-        // that used to animate it changed. See DESIGN_SYSTEM.md for the
-        // full migration writeup.
+        // Plain div, deliberately NOT motion.div/layout — a first version
+        // gave this element `layout` too (Motion's documented fix for
+        // child-distortion under a scaling parent: "children require their
+        // own layout prop... Motion will calculate counter-scales them so
+        // they appear undistorted"). Reverted: this element's own topology
+        // doesn't match the case that guidance is written for (a child
+        // whose OWN intrinsic size stays constant, only visually distorted
+        // by an ancestor's scale — Motion's own docs example is an <img>
+        // inside a resizing <section>). Here, growableRef (this element's
+        // direct, zero-padding parent — see that ref's own comment: its
+        // rect IS this element's rect) wraps THIS element alone, and this
+        // element's own `height` is the actual property changing — giving
+        // this element `layout` too meant it was independently re-detecting
+        // and re-FLIP-animating the exact same size delta growableRef was
+        // already animating, rather than cleanly counter-scaling it.
+        // Confirmed live via a getBoundingClientRect() frame sampler: with
+        // `layout` on both, this element's own measured height crept up
+        // gradually frame-by-frame (16px, 21px, 26px...) instead of
+        // reading its real, already-final value immediately — and,
+        // reported directly, the visible result was the panel's own outer
+        // frame snapping into place while the inner content visibly
+        // lagged/caught up afterward, not one coherent motion. Removing
+        // `layout` here fixed both: the sampler now shows this element's
+        // real height at its final value from the very first sampled
+        // frame, and TagPoolBody's own content just rides along with
+        // growableRef's single, outer scale — some transient distortion of
+        // TagPoolBody's own content during the ~280ms transition is a
+        // known, accepted tradeoff for now (not chased further this
+        // round — the ask was specifically "the panel itself" moving
+        // smoothly; the content's own animation is a separate, later
+        // pass). See DESIGN_SYSTEM.md for the full writeup.
         //
-        // overflow-hidden is permanent (open and closed alike, not just
-        // while closed) — needed for clip-path to visibly do anything;
-        // confirmed live nothing inside TagPoolBody currently needs to
-        // bleed outside this box once fully open (its own ScrollFadeArea
-        // instances are already self-contained).
+        // height, not max-height — a real, confirmed-live bug with
+        // max-height specifically for *shrinking* (the 100%→default down
+        // arrow, or any decreasing resize snap): TagPoolBody receives
+        // effectiveHeightPx directly as its own poolPanelHeightPx prop,
+        // always the live, already-final value, with nothing of its own to
+        // stage or delay — so its internal chip-area height is always
+        // already at the new, smaller target. max-height's own "collapse to
+        // content the moment content is smaller" escape hatch would make
+        // dialogRef's own box immediately match that already-shrunk content
+        // regardless of what height value this style declares, defeating
+        // the point of a stable, authoritative height for Motion to measure
+        // in the first place. A hard `height`, always exactly `targetHeight`,
+        // is what keeps growableRef's own measured rect (which Motion's
+        // `layout` prop on that element reads before/after every commit)
+        // honest and predictable in every direction, not just growing ones.
         //
-        // height, not max-height — confirmed live as a real bug with
-        // max-height specifically for *shrinking* transitions (the 100%→
-        // default down-arrow, or any decreasing resize snap): TagPoolBody
-        // receives effectiveHeightPx directly as its own poolPanelHeightPx
-        // prop, with no transition of its own, so its internal chip-area
-        // height snaps to the new, smaller target the instant React
-        // commits — before dialogRef's own CSS transition has had any
-        // chance to visually shrink. With max-height, once that
-        // now-already-shrunk content becomes smaller than the
-        // still-transitioning (still large) max-height ceiling, this
-        // element's own rendered size collapses to match content
-        // immediately — the max-height transition becomes irrelevant the
-        // moment content stops being the larger of the two, and growing
-        // transitions never hit this because content is always *already*
-        // at its full new (larger) size from the first frame, so the
-        // ceiling stays the binding constraint throughout. A hard
-        // `height` doesn't have this escape hatch: the box is always
-        // exactly the CSS-interpolated value, whether content is smaller
-        // (leaving it clipped-but-not-yet-caught-up, invisible under
-        // overflow-hidden) or larger, so growableRef's own true rendered
-        // height — and therefore cardRef's required marginTop
-        // compensation — now changes smoothly and predictably in every
-        // direction, not just growing ones. Confirmed live: the
-        // slots/controls row previously visibly jumped when the down
-        // arrow reset the panel; it no longer moves.
+        // overflow-hidden is permanent (open and closed alike) — nothing
+        // inside TagPoolBody currently needs to bleed outside this box once
+        // fully open (its own ScrollFadeArea instances are already self-
+        // contained), and it keeps this box visually clean during Motion's
+        // own brief scale-based transition too.
+        //
         // mb-xl (16px), not mb-lg (12px) like this row's other internal
         // gaps: this is specifically the gap the chip area's down arrow
         // sits flush against (bottom:0, no inset of its own — see
@@ -2186,49 +1998,22 @@ export function MixerBar({
         // own inset instead left it floating oddly off the edge it's meant
         // to sit against.
         //
-        // marginBottom stays in the inline style (editMode-conditional,
-        // not baked into the className unconditionally) — kept from
-        // leaking into browse mode: growableRef's own flow-root (see that
-        // ref's comment) means dialogRef's bottom margin counts toward
+        // marginBottom stays in the inline style (editMode-conditional, not
+        // baked into the className unconditionally) — kept from leaking
+        // into browse mode: growableRef's own flow-root (see that ref's
+        // comment) means dialogRef's bottom margin counts toward
         // growableRef's own measured height whenever it's present, so an
         // unconditional margin here would add 16px of unwanted dead space
-        // below the (fully collapsed, max-height:0) bar in browse mode,
-        // where marginTop is unconditionally 0 and can't compensate for
-        // it — confirmed by reasoning through growableFixedOverheadPx's
-        // own flow-root comment, not assumed.
-        //
-        // margin-bottom is animated too, not just max-height — confirmed
-        // live as a real bug otherwise: an earlier version toggled it
-        // instantly (no transition) while max-height animated smoothly,
-        // so growableRef's own true rendered height (max-height +
-        // margin-bottom) took a sudden +16px/-16px step the instant
-        // editMode flipped, on top of the smooth max-height change —
-        // cardRef's own marginTop transition has no matching step (it
-        // transitions smoothly toward its final target from the start),
-        // so the two drifted out of sync for the transition's own
-        // duration, reading as the slots/controls row briefly shifting
-        // position (confirmed live via getBoundingClientRect: ~4px)
-        // before settling back to its correct, unmoved spot at the end —
-        // the exact "slots/controls never move" invariant this whole
-        // mechanism exists to guarantee. Animating both together keeps
-        // growableRef's real height (and therefore cardRef's required
-        // compensation) changing smoothly and only in the ways
-        // marginTop's own transition already accounts for.
-        //
-        // renderedHeight/renderedMarginBottomPx, not raw editMode ternaries
-        // — see cardRef's own identical comment above for why: no CSS
-        // transitionProperty left at all, the smooth reveal is now
-        // dialogRef's own clip-path, animated imperatively by Motion (same
-        // useLayoutEffect, keyed on transitionGen). renderedMarginBottomPx
-        // is a plain number (DIALOG_MARGIN_BOTTOM_PX, 16) rather than the
-        // "var(--space-xl)" string the pre-Motion version used — same
-        // value, see that constant's own comment for why it has to be
-        // tracked as a literal number here regardless (needed for
-        // arithmetic elsewhere in this file), not just a CSS variable
-        // reference.
+        // below the (fully collapsed, height:0) bar in browse mode, where
+        // marginTop is unconditionally 0 and can't compensate for it.
+        // Height and marginBottom both changing together, in the same
+        // render, is also exactly what makes growableRef's own single
+        // `layout` measurement (its rect already reflects both, since it's
+        // flow-root-wrapping dialogRef alone) capture them as one coherent
+        // animation, with nothing for this file to keep in sync by hand.
         style={{
-          height: renderedHeight,
-          marginBottom: renderedMarginBottomPx,
+          height: targetHeight,
+          marginBottom: targetMarginBottomPx,
         }}
         className="flex flex-col outline-none overflow-hidden"
       >
@@ -2242,7 +2027,7 @@ export function MixerBar({
           trailingControls={trailingControls}
         />
       </div>
-      </div>
+      </motion.div>
 
         {/* Row 2 (combined): the 3 tag slots and every control that used to
             be Row 3 now share ONE row, requested directly, not a bug fix.
@@ -2365,8 +2150,26 @@ export function MixerBar({
             the WHOLE chain from that point down (not just the one new
             number): every threshold above is only correct in reference
             to which others are already hidden or changed at that width,
-            not a value that stands alone. */}
-        <div className="flex flex-nowrap items-center gap-x-[var(--space-lg)]">
+            not a value that stands alone.
+
+            layout={dragHeightPx === null} (Motion, motion/react) — NOT
+            because this row's own content ever needs to visibly animate
+            (it never resizes/repositions on its own — this is the fixed
+            "never moves" row the rest of this file is built around). This
+            is purely Motion's own counter-correction mechanism: cardRef
+            (this row's direct parent — see that ref's own comment) now
+            gets its own `layout`-driven transform so its border can
+            visibly, smoothly rise/fall, and that transform would
+            otherwise cascade to every descendant including this row.
+            Giving this row `layout` too makes Motion measure its OWN true
+            (pre-transform) rect — which never actually changes — and
+            apply the exact inverse of cardRef's own transform, keeping it
+            visually stationary throughout. Verified directly via a
+            getBoundingClientRect() sampler, not assumed: 0.00px drift
+            across every transition, drag included. See DESIGN_SYSTEM.md
+            for the full writeup, and cardRef's own comment for why this
+            was needed at all. */}
+        <motion.div layout={dragHeightPx === null} transition={layoutTransition} className="flex flex-nowrap items-center gap-x-[var(--space-lg)]">
           {/* LEFT group. min-w-0: lets this flex item (and, more directly,
               its own min-w-0 slots sub-group below) actually shrink below
               its natural content width once the row runs out of room —
@@ -2622,7 +2425,7 @@ export function MixerBar({
             <div className="hidden min-[1071px]:block ml-[3px] w-[length:var(--border-thin)] h-[32px] bg-[var(--ink)]" />
             <RecommendButton filledCount={filledCount} onRecommend={onRecommend} error={error} />
           </div>
-        </div>
-    </div>
+        </motion.div>
+    </motion.div>
   );
 }
