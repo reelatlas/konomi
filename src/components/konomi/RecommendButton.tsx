@@ -141,13 +141,34 @@ export function RecommendButton({ filledCount, onRecommend, error }: RecommendBu
             just below the breakpoint) since a CSS breakpoint can't toggle
             an ARIA attribute at runtime, one static label covers both
             visual forms. */}
+        {/* max-[1070px]:w-[44.5px]/px-0 — the icon-only form (below) should
+            sit in the exact same 44.5×44.5 square, with the same centered-
+            no-padding treatment, as Tag Pool/Clear/Random's own IconButton
+            siblings — requested directly. This stays one ActionButton
+            (unlike those three, which are two full sibling instances) since
+            RECOMMEND's real disabled attribute and its accent color-swap
+            both live on ActionButton's own disabled handling, and
+            IconButton's props deliberately omit `disabled` entirely (see
+            that component's own comment on `visuallyDisabled` — a native
+            `disabled` blocks clicks outright, which this button genuinely
+            needs). Overriding just width/horizontal-padding at the
+            icon-only breakpoint gets the same square box without giving up
+            that native disabled behavior. Safe against Tailwind's own
+            "unprefixed utilities aren't ordered by source position" trap
+            (see IconButton.tsx's `display` prop comment for the general
+            rule) specifically because these are max-width-*variant*
+            utilities, not two bare unprefixed ones — variants are always
+            layered after their bare counterparts in Tailwind's generated
+            CSS regardless of source order, so max-[1070px]:px-0 reliably
+            wins over SIZE_CLASSES.md's own unconditional px-[space-xl]
+            once the media query is active. */}
         <ActionButton
           variant="accent"
           accentColor={accent}
           disabled={!enabled}
           onClick={onRecommend}
           aria-label="Recommend"
-          className="relative z-[var(--z-raised)]"
+          className="relative z-[var(--z-raised)] max-[1070px]:w-[44.5px] max-[1070px]:px-0"
         >
           <span className="hidden min-[1071px]:inline">RECOMMEND ▸</span>
           <ArrowRightFilledIcon className="min-[1071px]:hidden" />
