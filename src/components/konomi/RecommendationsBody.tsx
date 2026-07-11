@@ -2,7 +2,7 @@ import { AnimatePresence } from "motion/react";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { ResultEntry, TagInfo } from "@/lib/konomi/types";
 import { CARD_ANIM_STAGGER_MS, getAnimatingPaceCount, getEffectiveStaggerMs, getVisibleCardTierCount } from "./cardAnimTuning";
-import { ResultCard } from "./ResultCard";
+import { IsBatchClearActiveContext, ResultCard } from "./ResultCard";
 import { ScrollFadeArea } from "./ScrollFadeArea";
 import { useLevel, useSort } from "./tagPoolPrefs";
 
@@ -614,7 +614,17 @@ export function RecommendationsBody({
                 real interactive content back in regardless. */}
             <div
               ref={rowRef}
-              className="grid grid-cols-[repeat(auto-fill,minmax(208px,1fr))] gap-[var(--space-xl)] pt-[40px] pr-[5px] pb-[40px] max-[1152px]:flex max-[1152px]:flex-nowrap pointer-events-none"
+              // relative: gives ResultCard.tsx's own "pop a departing
+              // RECOMMEND/swap card out of flow" fix (see that file's
+              // useLayoutEffect) an actual containing block to compute its
+              // absolute top/left against — without this, position:absolute
+              // on a card's <article> would resolve against whatever
+              // ancestor further up the tree happens to be positioned
+              // instead, landing in the wrong place. z-index:auto stays
+              // unset here (no z-index alongside relative), so this
+              // deliberately does NOT create a new stacking context —
+              // doesn't touch this app's existing z-index layering.
+              className="relative grid grid-cols-[repeat(auto-fill,minmax(208px,1fr))] gap-[var(--space-xl)] pt-[40px] pr-[5px] pb-[40px] max-[1152px]:flex max-[1152px]:flex-nowrap pointer-events-none"
             >
               {/* Leading spacer, carousel tier only (hidden above 1152px,
                   same reasoning as the trailing one below: display:none
@@ -697,6 +707,19 @@ export function RecommendationsBody({
                   through to the empty-state placeholder for a full clear
                   (nothing locked); a no-op for a partial clear, where
                   hasResults was already true throughout. */}
+              {/* IsBatchClearActiveContext.Provider — mirrors the same
+                  isBatchClearActive value already fed to AnimatePresence's
+                  own `custom` prop above, but via Context: a card mid-exit
+                  is no longer part of this render's results.map() output,
+                  so it can't receive a fresh isBatchClearActive PROP the
+                  normal way (there's no new element for it in the array to
+                  supply one), but it's still a genuinely mounted descendant
+                  of this Provider (AnimatePresence keeps it mounted, not
+                  frozen), so it still re-renders and receives updates via
+                  Context regardless. See ResultCard.tsx's own comment on
+                  what this specifically drives (popping a RECOMMEND/swap
+                  departure out of flow, but not a Clear ✕ one). */}
+              <IsBatchClearActiveContext.Provider value={isBatchClearActive}>
               <AnimatePresence custom={isBatchClearActive} onExitComplete={() => setIsBatchClearActive(false)}>
                 {(() => {
                   // Pace count = how many cards are actually sweeping in/out
@@ -790,6 +813,7 @@ export function RecommendationsBody({
                   });
                 })()}
               </AnimatePresence>
+              </IsBatchClearActiveContext.Provider>
               {/* Trailing spacer, carousel tier only (hidden — display:none
                   removes it from the grid entirely above 1152px, so it
                   never becomes a 6th grid cell or perturbs that tier's

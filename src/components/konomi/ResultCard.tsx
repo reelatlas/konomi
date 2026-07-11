@@ -1,6 +1,6 @@
 import type { Variants } from "motion/react";
-import { motion } from "motion/react";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { motion, useIsPresent } from "motion/react";
+import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { scoreSeries } from "@/lib/konomi/scoring";
 import { isTagVisibleAtLevel, sortTags } from "@/lib/konomi/tagPool";
 import type { LevelKey, ResultEntry, SortKey, TagInfo } from "@/lib/konomi/types";
@@ -23,6 +23,18 @@ import { useSupportsHover } from "./useSupportsHover";
 const BACK_FILL_BLUR_PX = 10;
 const BACK_FILL_OPACITY = 0.9;
 const BACK_FILL_SCALE_DOWN = 4;
+
+// Provided by RecommendationsBody, wrapping its AnimatePresence block —
+// mirrors isBatchClearActive (that file's own comment) but reaches this
+// component via Context, not a normal prop, specifically because a card
+// mid-exit is no longer present in RecommendationsBody's own `results.map()`
+// output, so there's no fresh element for it to receive updated PROPS from
+// at all — Context is the one channel that still reaches an
+// AnimatePresence-held, still-mounted-but-no-longer-in-the-data component,
+// since it subscribes directly to the nearest Provider rather than
+// depending on a parent re-supplying props. See the useLayoutEffect below
+// (and DESIGN_SYSTEM.md) for what this actually drives.
+export const IsBatchClearActiveContext = createContext(false);
 
 interface ResultCardProps {
   entry: ResultEntry;
@@ -106,6 +118,61 @@ export function ResultCard({
   // a later re-render with a still-true startWithSwapHint prop (harmless
   // leftover in the parent, see its own comment) can't re-trigger this.
   const [hoveredIcon, setHoveredIcon] = useState<"lock" | "swap" | null>(() => (startWithSwapHint ? "swap" : null));
+  // isPresent flips false the instant this card leaves RecommendationsBody's
+  // own `results` array (AnimatePresence, motion/react) — true for every
+  // normal render, including this instance's very first one. isBatchClearActive
+  // (Context, see this file's own top-of-file comment) distinguishes WHY:
+  // a genuine Clear ✕ (in which case this card should keep occupying its
+  // flex/grid slot throughout its sink+fade — the already-verified,
+  // preserved partial-clear behavior) versus a RECOMMEND/swap replacement
+  // (which should stop occupying that slot immediately).
+  const isPresent = useIsPresent();
+  const isBatchClearActive = useContext(IsBatchClearActiveContext);
+  const articleRef = useRef<HTMLElement>(null);
+  // Pops this card's own <article> (the actual flex/grid-participating box
+  // — never given a transform/motion treatment itself, see that element's
+  // own comment on iOS gesture-chaining) out of document flow the moment
+  // it starts exiting for a reason OTHER than Clear ✕. Confirmed live (a
+  // MutationObserver on the row) that without this, a RECOMMEND/swap
+  // replacement's departing card lingers as a genuine EXTRA sibling —
+  // article count briefly reads 6, not 5 — for one tick before Motion
+  // actually finishes its own (duration 0) exit and removes it, since even
+  // an "instant" AnimatePresence exit isn't literally synchronous with the
+  // state update that triggered it. That extra sibling, however briefly
+  // present, perturbs this row's own scroll-snap/scroll-anchoring (this
+  // app has already hit and fixed the same *class* of bug once, for the
+  // page's own vertical scroll — see globals.css's `overflow-anchor: none`
+  // and DESIGN_SYSTEM.md's "already covers scroll-anchoring, but not this"
+  // — the horizontal carousel viewport was never covered by that fix,
+  // since until this migration nothing in it ever produced a transient
+  // extra sibling for the browser to react to). Plain CSS position, not a
+  // Motion prop: this deliberately does NOT touch the article's own
+  // transform/compositing behavior, only its box-model participation in
+  // the row's layout, which is an unrelated mechanism from whatever broke
+  // gesture-chaining previously.
+  useLayoutEffect(() => {
+    const el = articleRef.current;
+    if (!el) return;
+    if (isPresent || isBatchClearActive) {
+      el.style.position = "";
+      el.style.top = "";
+      el.style.left = "";
+      el.style.width = "";
+      el.style.height = "";
+      el.style.pointerEvents = "";
+      return;
+    }
+    const parent = el.parentElement;
+    if (!parent) return;
+    const rect = el.getBoundingClientRect();
+    const parentRect = parent.getBoundingClientRect();
+    el.style.position = "absolute";
+    el.style.top = `${rect.top - parentRect.top}px`;
+    el.style.left = `${rect.left - parentRect.left}px`;
+    el.style.width = `${rect.width}px`;
+    el.style.height = `${rect.height}px`;
+    el.style.pointerEvents = "none";
+  }, [isPresent, isBatchClearActive]);
   // Separate from `hasImage` below — that only tells us a URL exists, not
   // that it actually decoded. Set by the shared cover filmstrip's own
   // onError (see that block's own comment) — the one place the cover
@@ -302,6 +369,7 @@ export function ResultCard({
 
   return (
     <article
+      ref={articleRef}
       data-title={series.title}
       // data-result-card: lets MixerBar's click-outside-closes-edit-mode
       // listener allowlist this whole card (body, the lock/dice icon
