@@ -1850,62 +1850,48 @@ export function MixerBar({
     // transition object dialogRef's own height/margin-bottom used to
     // read (see that constant's own declaration) — still the one place
     // that decides whether this change animates at all.
-    <motion.div
-      ref={cardRef}
-      layout={dragHeightPx === null ? "position" : false}
-      transition={layoutTransition}
-      style={{ marginTop: targetMarginTop }}
-      // z-[var(--z-overlay)] — confirmed live as a real bug without a
-      // z-index here: ResultCard's own front face (ResultCard.tsx) is
-      // `position:absolute` with an explicit z-[var(--z-raised)] — per
-      // the CSS painting order, any positioned element with an explicit
-      // z-index always paints above a plain static (non-positioned)
-      // element, *regardless of DOM order*, so every result card was
-      // painting on top of this box whenever its own (upward-growing)
-      // content visually reached into that space, interleaving pool-panel
-      // chips with card art showing through. The earlier two-box design
-      // didn't have this problem because the old overlay div carried
-      // z-[var(--z-overlay)] itself; consolidating into one box dropped
-      // that along with the rest of its styling. z-overlay (not z-raised)
-      // — needs to outrank ResultCard's own z-raised front face, the same
-      // token this bar's own fixed-position era already used for the same
-      // "sits on top of everything" requirement. `sticky` (className,
-      // below) satisfies the same "must be positioned, not static"
-      // requirement `relative` used to — confirmed live this stacking
-      // still resolves correctly under sticky (a hit-test at the overlap
-      // point still landed on this box, not whatever's behind it).
-      //
-      // touch-none (touch-action: none) — a second, CSS-level layer behind
-      // blockScrollThrough's own JS preventDefault below, not a replacement
-      // for it (this bar already leans on exactly this same belt-and-
-      // suspenders pairing for the resize grip's own touch-action:none,
-      // see handleMove's comment). Confirmed live as a real gap
-      // preventDefault alone didn't close: touching non-scrollable dialog
-      // chrome (padding, borders, the tab strip when it has nothing to
-      // scroll) still visibly engaged the *page's* native touch-scroll —
-      // the page's content stopped moving once blockScrollThrough's JS fix
-      // landed, but the gesture was still being recognized as a page-pan by
-      // the browser first, at the compositor level, before JS ever got a
-      // chance to preventDefault it. touch-action is evaluated before any
-      // JS runs, so it closes that gap directly rather than racing it.
-      // Applied here, at the bar's own root, as one blanket default rather
-      // than hunting down every individual non-scrollable spot inside it
-      // (borders, padding, a tab row with nothing to scroll) — the same
-      // "the exemption was for two specific elements, not their whole
-      // container" lesson blockScrollThrough's own fix just re-learned
-      // (see that effect's comment) argues for the opposite shape here:
-      // default to blocking, then carve out only the specific elements that
-      // truly need to pan. Each ScrollFadeArea viewport (the chip area, the
-      // section tab strip) carves its own axis back out
-      // via touch-pan-x/touch-pan-y directly on itself (see that
-      // component's own comment) — confirmed live this still works even
-      // nested inside this `touch-none` ancestor: touch-action's "used
-      // value" for a touch is resolved against the element the touch
-      // actually starts on, not force-inherited from `none` ancestors, so a
-      // descendant's own explicit pan-x/pan-y value governs gestures that
-      // start on it regardless of what a `none` ancestor says.
-      className="sticky bottom-[var(--space-2xl)] z-[var(--z-overlay)] max-w-[1280px] mx-auto px-[var(--space-2xl)] py-[var(--space-xl)] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-4)] touch-none"
-    >
+    // Outer wrapper, new this round — carries `sticky`/z-index/`touch-none`
+    // and the REAL, instant `marginTop` (targetMarginTop), with NO border/
+    // padding/background of its own and NO Motion involvement whatsoever.
+    // Added specifically to stop `position: sticky` and Motion's own
+    // `layout="position"`-driven `transform` from ever being declared on
+    // the SAME element — reported live as a regression of a much older
+    // fix ("we have patch notes for this somewhere way before we started
+    // the migration... to motion animation"): scrolling a gesture that
+    // starts on the panel leaks through to scroll the whole page behind
+    // it again, on mobile specifically (not reproducible here — every
+    // wheel/mouse/CDP-synthetic-touch repro attempted in headless
+    // Chromium still blocks correctly; see DESIGN_SYSTEM.md for the full
+    // list tried). `position: sticky` combined with an active CSS
+    // `transform` on the *same* element is a known category of WebKit
+    // quirk (their interaction with the compositor's own scroll/gesture
+    // recognition is documented as inconsistent across iOS versions) —
+    // this bar started acquiring an actual, non-identity `transform` on
+    // this exact element only once cardRef itself picked up
+    // `layout="position"` this round (previously only growableRef, a
+    // plain non-sticky descendant, ever carried one). Splitting the two
+    // concerns onto two different elements — this outer one stays sticky
+    // and transform-free always; the inner motion.div below gets the
+    // transform and is never itself positioned — sidesteps the whole
+    // category rather than chasing the specific mechanism, since it can't
+    // be directly confirmed without a real device. A defensive fix for
+    // the leading hypothesis, not a guess at a different root cause —
+    // needs on-device confirmation, the same as this codebase's other
+    // real-device-only WebKit fixes (see DESIGN_SYSTEM.md).
+    <div className="sticky bottom-[var(--space-2xl)] z-[var(--z-overlay)] max-w-[1280px] mx-auto touch-none" style={{ marginTop: targetMarginTop }}>
+      <motion.div
+        ref={cardRef}
+        layout={dragHeightPx === null ? "position" : false}
+        transition={layoutTransition}
+        // z-index/touch-none/sticky/marginTop all moved to the new outer
+        // wrapper above — see its own comment for why. This element keeps
+        // only what it visually needs to paint the card (border/padding/
+        // background/shadow) plus the Motion `layout` prop that fakes its
+        // smooth position transition; it carries no positioning of its own
+        // at all (a plain in-flow block, filling its sticky parent's full
+        // box).
+        className="px-[var(--space-2xl)] py-[var(--space-xl)] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-4)]"
+      >
       {/* growableRef wraps dialogRef alone now — no separate resize-handle
           row sibling anymore (see this file's own top comment for why that
           row is gone entirely rather than patched). Still exists purely
@@ -2483,6 +2469,7 @@ export function MixerBar({
             <RecommendButton filledCount={filledCount} onRecommend={onRecommend} error={error} />
           </div>
         </motion.div>
-    </motion.div>
+      </motion.div>
+    </div>
   );
 }
