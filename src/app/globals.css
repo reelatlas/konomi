@@ -662,9 +662,19 @@
 [data-icon-fx="2"] .mixbar-controls-row.is-animating svg {
   color: color-mix(in srgb, var(--ink) 50%, transparent);
 }
-/* 3 — SOFT GLOW: a soft accent bloom behind each control box, settles */
-[data-icon-fx="3"] .mixbar-controls-row.is-animating button {
-  box-shadow: 0 0 9px 1px color-mix(in srgb, var(--secondary) 65%, transparent);
+/* 3 — PRESS (eased, hold-to-confirm feel): same shrink as slot 1 but EASED in and
+       out — a smooth "pushed in with resistance" ramp, like Motion's hold-to-
+       confirm example (which is just scale [1, 0.85] on easeOut under the hood),
+       instead of snapping on. The two transitions here override the shared
+       instant-on (.is-animating) and the shared 60ms revert. Trade-off: an eased
+       ramp covers the frame-0 promote blip LESS than instant-on slot 1 (scale
+       starts at 1), so compare which reads better on-device. */
+[data-icon-fx="3"] .mixbar-controls-row {
+  transition: transform 260ms ease-out; /* eased release */
+}
+[data-icon-fx="3"] .mixbar-controls-row.is-animating {
+  transform: scale(0.5) translateZ(0);
+  transition: transform 220ms ease-out; /* eased press-in */
 }
 /* 4 — HARD RING: a flat on-brand accent ring snaps on each control box, settles
        (matches Konomi's hard-edged shadow language rather than a soft glow) */
