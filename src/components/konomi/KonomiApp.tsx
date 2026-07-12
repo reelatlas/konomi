@@ -150,31 +150,48 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
     // transition fires, rather than requiring a fresh touchstart — lets one
     // continuous drag stay responsive if the user keeps moving (e.g.
     // overshoots and reverses) instead of needing to lift and re-touch.
+    let touchStartX: number | null = null;
     let touchStartY: number | null = null;
     let touchExempt = false;
+    let touchAxis: "horizontal" | "vertical" | null = null;
     function handleTouchStart(e: TouchEvent) {
       touchExempt = scrollFadeOrientationAt(e.target) === "vertical";
+      touchStartX = e.touches[0].clientX;
       touchStartY = e.touches[0].clientY;
+      touchAxis = null;
     }
     function handleTouchMove(e: TouchEvent) {
-      if (touchExempt || touchStartY === null) return;
-      // preventDefault unconditionally here, not only once a threshold is
-      // crossed — confirmed live (Chrome's own console) that a touch
-      // gesture's scrollability is decided by the browser on its FIRST
-      // touchmove, not re-evaluated per event: leaving early, sub-
-      // threshold touchmoves un-prevented lets the browser commit to a
-      // native scroll for the rest of that gesture, after which further
-      // preventDefault() calls are silently ignored ("cancelable=false...
-      // scrolling is in progress and cannot be interrupted") — so the
-      // eventual threshold-crossing event's own preventDefault was too
-      // late to matter, and the gesture silently fell through to native
-      // scroll (a no-op, since this region has no real overflow by
-      // design) instead of triggering collapse/expand. Wheel doesn't need
-      // this — confirmed working with a late, conditional preventDefault
-      // — because wheel-driven scrolling has no equivalent "commit on
-      // first event" handoff to the compositor.
-      e.preventDefault();
+      if (touchExempt || touchStartX === null || touchStartY === null) return;
+      const x = e.touches[0].clientX;
       const y = e.touches[0].clientY;
+      // Lock the gesture's axis on its FIRST touchmove and never re-decide
+      // (a diagonal start would otherwise flip mid-swipe). This must happen
+      // on the very first move, not after a pixel threshold: a touch
+      // gesture's scrollability is decided by the browser on that first
+      // touchmove — confirmed live (Chrome's own console) that preventing
+      // even one sub-threshold move commits the WHOLE gesture away from
+      // native scroll (it can't be handed back mid-gesture; further
+      // preventDefault() calls, or the lack of them, are silently ignored
+      // once "scrolling is in progress"). So a horizontal gesture has to go
+      // un-prevented from move one or the results carousel can't pan at all.
+      if (touchAxis === null) {
+        touchAxis = Math.abs(x - touchStartX) > Math.abs(y - touchStartY) ? "horizontal" : "vertical";
+      }
+      // Horizontal gesture: leave it entirely to the browser so the results
+      // carousel (a horizontal ScrollFadeArea) scrolls natively. This is the
+      // fix for a horizontal swipe over a card's COVER (or any non-vertical-
+      // scroll-fade area) doing nothing — the old unconditional preventDefault
+      // below blocked the carousel's own native pan. Over a card's TAG area
+      // this already worked: that's a vertical ScrollFadeArea, so touchExempt
+      // bailed out above before ever reaching preventDefault.
+      if (touchAxis === "horizontal") return;
+      // Vertical gesture: the masthead collapse/expand direction — claim it
+      // (preventDefault, same "prevent from move one" reasoning as the axis
+      // lock above, now scoped to the vertical axis only) and drive the
+      // transition off dy. Wheel doesn't need any of this — confirmed working
+      // with a late, conditional preventDefault — because wheel scrolling has
+      // no equivalent "commit on first event" handoff to the compositor.
+      e.preventDefault();
       const dy = touchStartY - y; // positive = finger moved up = collapse direction
       if (!mastheadCollapsed && dy > COLLAPSE_THRESHOLD_PX) {
         setMastheadCollapsed(true);
