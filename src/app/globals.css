@@ -633,7 +633,7 @@
    lifecycle is fuzzier — that's what the A/B panel is for). None distort the
    glyphs (no scale — that reintroduces the blur we rejected). */
 [data-icon-fx] .mixbar-controls-row {
-  transition: transform 160ms ease-out, background-color 240ms ease-out;
+  transition: transform 60ms ease-out, background-color 240ms ease-out;
 }
 [data-icon-fx] .mixbar-controls-row svg {
   transition: color 240ms ease-out, opacity 240ms ease-out;
