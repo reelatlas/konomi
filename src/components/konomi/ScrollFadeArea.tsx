@@ -43,6 +43,19 @@ interface ScrollFadeAreaProps {
   // CHIP_AREA_HEIGHT comment documents for the same reason). An inline
   // style has no such constraint.
   heightPx?: number;
+  // Vertical-only: instead of a fixed height/heightPx, make the scroll
+  // viewport flex-fill its parent — the viewport takes `flex-1 min-h-0`
+  // inside a flex-column root and derives its height entirely from CSS
+  // (the bounded parent's height minus its siblings), with no pixel value
+  // passed in at all. Added for MixerBar's live drag-resize: the pool
+  // panel's real height is driven by a Motion value with no React re-render
+  // per frame, so the chip area can no longer receive a recomputed
+  // `heightPx` prop each tick — it has to grow/shrink purely via flexbox as
+  // its motion-value-sized ancestor (dialogRef) resizes. Overrides
+  // height/heightPx when set; the viewport's own ResizeObserver (below)
+  // already watches the viewport box itself, so overflow detection keeps
+  // working when the fill height changes. See MixerBar.tsx / TagPoolBody.tsx.
+  fill?: boolean;
   orientation?: Orientation;
   // The amount a single (non-held) arrow click moves, in px. Most callers
   // pass a fixed number; getScrollStep (below) exists for the one caller
@@ -287,6 +300,7 @@ const DEFAULT_CONTINUOUS_SCROLL_SPEED = 6;
 export function ScrollFadeArea({
   height,
   heightPx,
+  fill = false,
   groupName = "reveal",
   orientation = "vertical",
   scrollStep = DEFAULT_SCROLL_STEP,
@@ -564,7 +578,18 @@ export function ScrollFadeArea({
   const showEndGradient = hasOverflow && !atEnd;
 
   return (
-    <div className={[GROUP_CLASSES[groupName], disableWrapperPointerEvents ? "pointer-events-none" : ""].join(" ")}>
+    <div
+      className={[
+        GROUP_CLASSES[groupName],
+        // fill: the root becomes a flex column so the (only in-flow child)
+        // scroll viewport below can flex-1 fill it; the gradient overlays
+        // and arrow buttons are all absolute, so they stay out of this
+        // flow and are unaffected. flex-1 min-h-0 lets this root itself
+        // fill its own flex-column parent (TagPoolBody's tabpanel).
+        fill ? "flex flex-col flex-1 min-h-0" : "",
+        disableWrapperPointerEvents ? "pointer-events-none" : "",
+      ].join(" ")}
+    >
       {/* No onWheel handler here, deliberately — an earlier horizontal-only
           version summed e.deltaX + e.deltaY into scrollLeft, specifically
           so a plain vertical mouse wheel (no native horizontal capability)
@@ -606,7 +631,7 @@ export function ScrollFadeArea({
               ? { scrollPaddingLeft: scrollPaddingStart }
               : { scrollPaddingTop: scrollPaddingStart }
             : undefined),
-          ...(!horizontal && heightPx !== undefined ? { height: heightPx } : undefined),
+          ...(!horizontal && !fill && heightPx !== undefined ? { height: heightPx } : undefined),
           // edgeMaskSize: a plain opacity fade on this viewport's own
           // content, via mask-image, not another colored overlay — see
           // that prop's own comment for why it's kept separate from
@@ -628,7 +653,9 @@ export function ScrollFadeArea({
             : undefined),
         }}
         className={[
-          horizontal ? "w-full overflow-x-auto overflow-y-hidden" : `${heightPx !== undefined ? "" : height} overflow-y-auto overflow-x-hidden`,
+          horizontal
+            ? "w-full overflow-x-auto overflow-y-hidden"
+            : `${fill ? "flex-1 min-h-0" : heightPx !== undefined ? "" : height} overflow-y-auto overflow-x-hidden`,
           "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
           // touch-pan-x/touch-pan-y (touch-action) — opt-in via
           // restrictTouchAction now, not unconditional (see that prop's own
