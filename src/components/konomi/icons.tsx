@@ -44,8 +44,8 @@ export function DiceIcon({ className }: IconProps) {
   return (
     <svg
       className={className}
-      width="17"
-      height="17"
+      width="16"
+      height="16"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -92,8 +92,13 @@ export function GreaterEqualIcon({ className }: IconProps) {
   return (
     <svg
       className={className}
-      width="13"
-      height="17"
+      // 12×16 — even/whole (was 13×17) so its centered offset lands on the
+      // device-pixel grid (AGENTS.md whole-pixel-geometry) and its 16px height
+      // matches the neighbouring TagIcon. viewBox is 14×20 (non-square), so
+      // 12×16 is the nearest even box; the tiny aspect change (0.75 vs 0.70)
+      // is smaller than the squash it already had at 13×17 (0.76).
+      width="12"
+      height="16"
       viewBox="0 0 14 20"
       fill="none"
       stroke="currentColor"
@@ -112,8 +117,8 @@ export function TagIcon({ className }: IconProps) {
   return (
     <svg
       className={className}
-      width="15"
-      height="15"
+      width="16"
+      height="16"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -134,14 +139,12 @@ export function TagIcon({ className }: IconProps) {
 // match for "open the pool" than any tag-shaped glyph did.
 export function TagPoolIcon({ className }: IconProps) {
   return (
-    // 17×17, not the 16×16 this originally shipped at — matches Check/
-    // Eraser/Dice (this row's other three icon-button glyphs) exactly,
-    // requested directly: MixerBar's Tag Pool/Clear/Random/Recommend all
-    // switch to icon-only forms at the same breakpoint (see MixerBar.tsx's
-    // own Row 2 comment), and a 1px-smaller glyph among otherwise-identical
-    // 44.5px boxes read as visibly off. Same viewBox, so this is a pure
-    // proportional scale-up, no path changes needed.
-    <svg className={className} width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    // 16×16 — even/whole so the centered glyph's offset lands on the device-
+    // pixel grid (AGENTS.md whole-pixel-geometry). Kept identical to Check/
+    // Eraser/Dice and the Recommend play, this row's other icon-only glyphs, so
+    // none reads a pixel off among the shared --control-h-md boxes. Same
+    // viewBox — pure proportional scale, no path changes.
+    <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
       <path d="M4 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -4" />
       <path d="M14 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -4" />
       <path d="M4 15a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -4" />
@@ -220,8 +223,8 @@ export function EraserIcon({ className }: IconProps) {
   return (
     <svg
       className={className}
-      width="17"
-      height="17"
+      width="16"
+      height="16"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -241,8 +244,8 @@ export function CheckIcon({ className }: IconProps) {
   return (
     <svg
       className={className}
-      width="17"
-      height="17"
+      width="16"
+      height="16"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -316,7 +319,7 @@ export function ArrowRightFilledIcon({ className }: IconProps) {
     // that switch to icon-only together, so its glyph needs to read at the
     // same size as the other four, not smaller. Same viewBox, pure
     // proportional scale-up.
-    <svg className={className} width="17" height="17" viewBox="0 0 24 24">
+    <svg className={className} width="16" height="16" viewBox="0 0 24 24">
       <path d="M7 4v16l14-8Z" fill="currentColor" />
     </svg>
   );

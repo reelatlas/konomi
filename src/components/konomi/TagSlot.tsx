@@ -92,7 +92,7 @@ export function TagSlot({ index, tag, isDragOver, onDragOver, onDragLeave, onDro
         // real tag name, not the primary mechanism: that tier is already
         // sized to fit the real catalog's longest name (see its own
         // comment) within this exact height.
-        "w-[78px] h-[44.5px] px-[var(--space-sm)] overflow-hidden",
+        "w-[78px] h-[var(--control-h-md)] px-[var(--space-sm)] overflow-hidden",
         "flex items-center justify-center transition-transform duration-75",
         filled ? "cursor-grab" : "cursor-pointer",
         "border-[length:var(--border-base)]",

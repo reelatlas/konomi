@@ -32,8 +32,11 @@ const REVEAL_CLASSES: Record<RevealGroup, string> = {
 // in MixerBar); 30px is ResultCard's own lock/swap buttons' pre-existing
 // size, unchanged by this scale's introduction — sm exists to *name* that
 // value, not to move it.
-const SIZE_PX: Record<ActionButtonSize, number> = {
-  md: 44.5,
+// md references the shared --control-h-md token (globals.css) so this box, the
+// text-button md box (ActionButton), TagSlot, and RecommendButton's icon-only
+// form all resolve to one whole/even value — see AGENTS.md whole-pixel-geometry.
+const SIZE_PX: Record<ActionButtonSize, number | string> = {
+  md: "var(--control-h-md)",
   sm: 30,
 };
 

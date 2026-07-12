@@ -72,6 +72,14 @@
   --space-huge: 48px;
   --space-page: 60px;
 
+  /* Shared height of the md control cluster — Tag Pool / Clear / Random /
+     Recommend / MIN MATCH / the md icon buttons and TagSlot all line up on
+     this one value. Whole + even (was 44.5px) so a centered icon's
+     (box - icon)/2 offset is a whole number and lands on the device-pixel
+     grid — see AGENTS.md whole-pixel-geometry. Single source: never re-author
+     the literal in a component. */
+  --control-h-md: 44px;
+
   /* z-index scale — introduced once the tag-pool/recommendations tab panel
      started keeping both bodies permanently mounted (one hidden via
      `display:none`, not unmounted, so scroll position survives a tab

@@ -1464,11 +1464,16 @@ export function MixerBar({
   // at startHeight's own value for the duration regardless, exactly as it
   // did before any of this file's drag-specific rounds existed. This one
   // formula is genuinely only for the settled/open/close/snap case now.
-  // snapToGrid is a no-op unless the pixel-snap debug toggle is on. Applied to
-  // both DOM-driving values so the whole moving/anchoring geometry lands on the
-  // device-pixel grid each drag tick (which re-renders), not fractional px.
-  const targetMarginTop = editMode ? snapToGrid(-(effectiveGrowableFixedOverheadPx + effectiveHeightPx)) : 0;
-  const targetHeight = editMode ? snapToGrid(effectiveHeightPx) : 0;
+  // snapToGrid is a no-op unless the pixel-snap debug toggle is on. Snap the
+  // height ONCE, then DERIVE marginTop from that snapped value — not an
+  // independent snap of the marginTop formula. That keeps the bottom-anchor
+  // cancellation exact frame-to-frame (growableRef.height and marginTop both
+  // move by the same snapped delta), so the anchored controls row stays exactly
+  // stationary instead of drifting a sub-pixel between frames. See AGENTS.md
+  // whole-pixel-geometry ("derive dependent values from the snapped one").
+  const snappedHeightPx = snapToGrid(effectiveHeightPx);
+  const targetMarginTop = editMode ? -(effectiveGrowableFixedOverheadPx + snappedHeightPx) : 0;
+  const targetHeight = editMode ? snappedHeightPx : 0;
   const targetMarginBottomPx = editMode ? DIALOG_MARGIN_BOTTOM_PX : 0;
   // The geometry transition — instant (duration 0) whenever nothing is
   // actually transitioning (idle, or every live-drag tick, since drag never
@@ -2647,8 +2652,8 @@ export function MixerBar({
 
         {/* Row 2 (combined): the 3 tag slots and every control that used to
             be Row 3 now share ONE row, requested directly, not a bug fix.
-            TagSlot itself dropped to a single, fixed height (44.5px,
-            matching IconButton/ActionButton's own shared md height, see
+            TagSlot itself dropped to a single, fixed height (--control-h-md,
+            44px, matching IconButton/ActionButton's own shared md height, see
             TagSlot.tsx's own comment) specifically so it could sit in the
             same line as these buttons at all, not just visually near them.
 

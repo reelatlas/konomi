@@ -152,9 +152,9 @@ export function RecommendButton({ filledCount, onRecommend, error }: RecommendBu
             just below the breakpoint) since a CSS breakpoint can't toggle
             an ARIA attribute at runtime, one static label covers both
             visual forms. */}
-        {/* max-[1070px]:w-[44.5px]/px-0 — the icon-only form (below) should
-            sit in the exact same 44.5×44.5 square, with the same centered-
-            no-padding treatment, as Tag Pool/Clear/Random's own IconButton
+        {/* max-[1070px]:w-[var(--control-h-md)]/px-0 — the icon-only form
+            (below) sits in the exact same square (--control-h-md, 44px), with
+            the same centered-no-padding treatment, as Tag Pool/Clear/Random's
             siblings — requested directly. This stays one ActionButton
             (unlike those three, which are two full sibling instances) since
             RECOMMEND's real disabled attribute and its accent color-swap
@@ -179,7 +179,7 @@ export function RecommendButton({ filledCount, onRecommend, error }: RecommendBu
           disabled={!enabled}
           onClick={onRecommend}
           aria-label="Recommend"
-          className="relative z-[var(--z-raised)] max-[1070px]:w-[44.5px] max-[1070px]:px-0"
+          className="relative z-[var(--z-raised)] max-[1070px]:w-[var(--control-h-md)] max-[1070px]:px-0"
         >
           <span className="hidden min-[1071px]:inline">RECOMMEND ▸</span>
           <ArrowRightFilledIcon className="min-[1071px]:hidden" />
