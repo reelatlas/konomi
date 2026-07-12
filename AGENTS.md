@@ -27,6 +27,16 @@ never re-rastered mid-animation. This is why MixerBar's RecommendButton (in its
 own composited subtree) never shimmered. This lets us keep stroked icons AND
 real per-frame layout animation on every engine.
 
+**Scope the promotion to WHILE the container is animating — do NOT leave it on
+permanently.** A permanent standalone compositor layer rattles during unrelated
+layout changes (e.g. a plain window resize): the compositor repositions the
+stand-alone layer a frame out of step with the main-thread relayout of the rest
+of the bar, on both engines, in every mode. The shimmer only happens while the
+row is being moved by the animation, so toggle the promotion class on only for
+the open/close/snap/drag animation (MixerBar's `.is-animating` on
+`.mixbar-controls-row`) and off at rest, where a normal in-flow element can't
+rattle.
+
 ## Supporting hygiene (NOT the shimmer cure — do not treat as load-bearing)
 Whole-pixel geometry keeps icons sharp and centered **at rest**; it is good
 product-wide policy but was not what fixed the shimmer. Apply it with normal

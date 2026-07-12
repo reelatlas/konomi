@@ -1470,6 +1470,17 @@ export function MixerBar({
   const marginTopTransition = geometryTransitionMs === 0 ? "none" : `margin-top ${geometryTransitionTiming}`;
   const dialogTransition = geometryTransitionMs === 0 ? "none" : `height ${geometryTransitionTiming}, margin-bottom ${geometryTransitionTiming}`;
 
+  // Controls-row compositor-layer promotion (`.is-animating` -> translateZ(0) in
+  // globals.css) — the WebKit stroke-shimmer fix, but scoped to EXACTLY the
+  // moments the panel's geometry is actually animating (open/close/snap, or a
+  // live drag), not permanent. The shimmer only occurs while the row is being
+  // moved by that animation; a permanent standalone layer instead made the whole
+  // bar rattle on any plain window resize (the compositor repositions it a frame
+  // out of step with the main-thread relayout, both engines, in browse mode too).
+  // Off at rest and during a window resize -> the row is a normal in-flow element
+  // with no floating layer to rattle. See globals.css for the full writeup.
+  const isBarGeometryAnimating = isEditModeTransitioning || isSnapTransitioning || dragHeightPx !== null;
+
   // Measures growableFixedOverheadPx — see that state's own comment
   // (near its declaration) for why this is deliberately NOT the fast-
   // changing path: growableRef.height - effectiveHeightPx is the part of
@@ -2729,7 +2740,7 @@ export function MixerBar({
             own wrap point — those wrap points are just measured against this
             container now, not the screen. */}
         <div className="@container">
-        <div className="mixbar-controls-row flex flex-nowrap items-center gap-x-[var(--space-lg)]">
+        <div className={`mixbar-controls-row${isBarGeometryAnimating ? " is-animating" : ""} flex flex-nowrap items-center gap-x-[var(--space-lg)]`}>
           {/* LEFT group. min-w-0: lets this flex item (and, more directly,
               its own min-w-0 slots sub-group below) actually shrink below
               its natural content width once the row runs out of room —

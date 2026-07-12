@@ -586,17 +586,27 @@
   }
 }
 
-/* MixerBar controls row is promoted to its own compositor layer. THE fix for
-   the Safari/WebKit resize shimmer: as the panel animates (real height/margin-
-   top) WebKit re-rasterizes descendant thin SVG strokes and snaps them to the
-   device-pixel grid every frame — the controls stroked icons (Tag Pool, Clear,
-   Random, MIN MATCH >=/tag, check) hopped +/-1px while filled shapes (Recommend
-   play) and text rode along cleanly. Caching the WHOLE row as one composited
-   layer means it is TRANSLATED, not re-rasterized, so the strokes never re-snap.
-   Confirmed on-device. Promoting individual icons instead desyncs them (each
-   becomes its own layer that snaps) — it has to be the whole row as one unit.
-   The whole-pixel geometry (AGENTS.md) pairs with this as resting-state hygiene. */
-.mixbar-controls-row {
+/* MixerBar controls row is promoted to its own compositor layer WHILE THE PANEL
+   ANIMATES. THE fix for the Safari/WebKit resize shimmer: as the panel animates
+   (real height/margin-top) WebKit re-rasterizes descendant thin SVG strokes and
+   snaps them to the device-pixel grid every frame — the controls stroked icons
+   (Tag Pool, Clear, Random, MIN MATCH >=/tag, check) hopped +/-1px while filled
+   shapes (Recommend play) and text rode along cleanly. Caching the WHOLE row as
+   one composited layer means it is TRANSLATED, not re-rasterized, so the strokes
+   never re-snap. Confirmed on-device. Promoting individual icons instead desyncs
+   them (each becomes its own layer that snaps) — it has to be the whole row as
+   one unit. The whole-pixel geometry (AGENTS.md) pairs with this as resting-state
+   hygiene.
+
+   SCOPED to the .is-animating class (toggled by MixerBar for the open/close/snap
+   /drag animation only), NOT permanent. A permanent standalone layer here made
+   the ENTIRE bar rattle during a plain window resize — the compositor repositions
+   a stand-alone layer a frame out of step with the main-thread relayout of the
+   rest of the bar, on both engines, in every mode (browse or edit, small panel or
+   large). The shimmer only ever happens while the panel is animating, so the layer
+   is only needed then; at rest and during a window resize the row is a normal
+   in-flow element again, with nothing to rattle. */
+.mixbar-controls-row.is-animating {
   transform: translateZ(0);
 }
 
