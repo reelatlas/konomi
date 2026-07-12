@@ -117,141 +117,41 @@
      Tailwind arbitrary-value classes (h-[…] / min-h-[…]) can share one
      real value with zero duplication — Tailwind's class scanner needs the
      complete class as static text, so this is what var(--…) is for. */
-  /* One-viewport-fit (mobile/small screens): card height is now this
-     clamp, not a flat constant — the variable being solved for so
-     header row + one card row + the mixer bar fit one viewport with no
-     vertical scroll, baseline-bisected live at 375×667 (iPhone SE).
-     clamp(floor, preferred, ceiling):
-       - floor 322px = 180 (minimum legible cover — still reads as a real
-         cover crop, not a sliver; a design judgment, not a hard
-         constraint) + 138 (tag-wrapper's own fixed cost: 8px+8px padding,
-         space-md, plus its 121px of tags — always protected, never
-         crushed) + 4 (front face's own 2px top + 2px bottom border).
-         Only engages below the 375×667 baseline (very short/landscape
-         edge cases) — at baseline itself the calc() below already lands
-         at ~382px, well above this floor.
-       - preferred: 100svh minus everything else already on the page at
-         this size. This used to omit the masthead entirely — a real bug,
-         not a simplification: without --masthead-height/its own gap/the
-         page's own top+bottom padding in this budget, the formula was
-         solving for "card fits below the header, ignoring everything
-         above it," so the *card* always looked correctly sized in
-         isolation while the *page* silently ran ~247px too tall at every
-         width — confirmed live (DESIGN_SYSTEM.md has the full breakpoint
-         audit). Now subtracts, in page order: --masthead-height (below),
-         the masthead's own bottom margin (--space-3xl, Masthead.tsx's own
-         mb-[var(--space-3xl)]), this root's own
-         pt/pb-[var(--space-2xl)] (KonomiApp.tsx), header row height and
-         the mixer bar's own height (both their own tokens, each already
-         varying at the breakpoints those elements' *own* markup uses — no
-         new breakpoint ladder for either), and two more gaps of
-         space-2xl/24px each (header→card and card→mixer, kept equal on
-         purpose for visual consistency — see ResultsHeader.tsx's own
-         mb-[var(--space-2xl)] for the first one, and MixerBar.tsx's own
-         matching top margin for the second, now that the mixer is a
-         normal-flow element too, not a fixed overlay — see MixerBar.tsx's
-         own comment on its un-pinning for why). Four total space-2xl
-         instances (page-top, page-bottom, header→card, card→mixer),
-         expressed as calc(var(--space-2xl) * 4) rather than a flat 96px —
-         same value, but tied to the actual token so it can't silently
-         drift out of sync with it.
-       - Even corrected, this floor still engages at real phone heights
-         (confirmed live: 375×667 pins to the 322px floor and the page
-         still overflows by ~135px past the viewport) — one-viewport-fit
-         was never actually achievable at phone-scale heights once the
-         masthead is honestly counted; see DESIGN_SYSTEM.md for the
-         accepted degradation threshold below which this stops trying and
-         the group scrolls normally instead.
-       - ceiling 445px = today's original, unchanged card height — the
-         card never grows past its current, already-designed size on
-         taller phones/tablets; extra room beyond what 445px needs just
-         becomes breathing space above the mixer bar.
-     100svh, not 100dvh: dvh continuously tracks the browser's *current*
-     chrome state, so a formula built on it recomputes — and visibly
-     resizes the card — on every scroll-triggered chrome show/hide.
-     Confirmed live as a real bug: cards were resizing mid-scroll on a
-     real device. svh is fixed at the chrome-fully-expanded (smallest)
-     viewport and never changes after load, so the clamp behaves the same
-     way on mobile as it already does on desktop (where viewport height
-     simply doesn't change during scroll, so this distinction is moot
-     there) — stable input, same formula, no separate mobile-only logic.
-     Trade-off, accepted: the card won't grow to use extra space on the
-     rare frame chrome is fully hidden, since svh doesn't track that —
-     correct here, since never needing to scroll matters more than
-     briefly using a few extra px.
-     Scope: this guarantee (fits one viewport, no scroll) is bisected
-     against and only claimed for width ≥375px — narrower devices are a
-     known, explicitly out-of-scope edge case (see DESIGN_SYSTEM.md if a
-     fuller writeup exists, or this file's own git history for the
-     bisection). */
-  --result-card-height: clamp(
-    322px,
-    calc(
-      100svh - var(--masthead-height) - var(--space-3xl) - calc(var(--space-2xl) * 4) - var(--header-row-height) - var(--mixer-bar-height)
-    ),
-    445px
-  );
-  /* Masthead.tsx's own rendered height — live-measured, not guessed, and
-     genuinely NOT flat across widths: it holds a plateau around 167-169px
-     across most in-scope widths (≥375px), but actually gets *shorter*
-     (down to ~128px) in the 460-1024px range once the wordmark/JP-
-     subtitle/ThemeSwitcher row has enough room to sit fully on one line
-     without the extra wrapping that pads it out at narrower widths, then
-     grows again past ~1024px as the wordmark's own clamp(44px, 8vw, 78px)
-     keeps scaling with viewport width. 170px is the measured max across
-     the whole ≥375px range (169.66px at ≥1200px), used as a single flat
-     conservative constant rather than a per-width ladder — this errs
-     toward slightly under-sizing the card in the 460-1024px range (where
-     the real masthead is shorter than this budget assumes) in exchange
-     for never re-introducing the overflow this token exists to close.
-     Retune by hand if Masthead.tsx's own content changes. Below 375px
-     (out of this feature's stated scope — see this token's own comment
-     above) the top row can wrap further and this undercounts badly (up to
-     ~265px measured at 280px width) — an accepted gap, not a hidden one. */
-  --masthead-height: 170px;
-  /* ResultsHeader's own header row — a single flat value now, not a
-     per-breakpoint ladder: that row no longer wraps at any width (see
-     ResultsHeader.tsx's own top comment — the old min-[417px]:flex-row
-     col/row switch is gone entirely, replaced by always-flex-row with the
-     JP companion span dropping out at narrow widths instead of the row
-     wrapping), so its rendered height is now constant everywhere.
-     30px is that row's own live-measured min-h (Clear ✕'s and the Filter
-     button's shared rendered height, taller than the title's own
-     line-height — see ResultsHeader.tsx's own comment on why that's
-     pinned via min-h rather than left to whichever child is tallest at a
-     given moment). Was 36.5px — retuned when Clear ✕ dropped to match
-     IconButton's own size="sm" box (30px) for visual consistency with the
-     Filter button beside it; see ActionButton.tsx's own comment on its sm
-     size. */
-  --header-row-height: 30px;
-  /* MixerBar's own collapsed (browse-mode) height — used to be a 4-tier
-     width breakpoint ladder (<351px 203.5px, 351–639px 148.5px, 640–992px
-     168.5px, 993–1023px 169px, ≥1024px 185px), live-measured against
-     MixerBar's own real content breakpoints (640px/993px are RECOMMEND's
-     and Row 3's own text-collapse thresholds). Flattened to a single
-     conservative constant instead — this is only ever an *estimate* fed
-     into --result-card-height's own clamp above (nothing applies this
-     value as a real height/min-height on MixerBar itself anywhere;
-     MixerBar already just sizes to its own natural content), and a
-     classic scrollbar's ~15-17px width change could step across one of
-     those four breakpoints, flipping this value, which could flip
-     whether --result-card-height's own clamp caused the page to overflow
-     — a real, confirmed reflow loop (scrollbar toggles → width changes →
-     this steps a tier → total height changes → scrollbar toggles again).
-     185px is the true max across every *in-scope* tier (≥375px — the
-     <351px tier predates that scope and is already excluded, same as
-     --masthead-height's own note above), already confirmed flat/stable
-     for the entire open-ended ≥1024px range on its own. Same trade-off as
-     --masthead-height: at narrower in-scope widths the real mixer is
-     shorter than 185px, so the card computes a little smaller than the
-     theoretical optimum there (unclaimed blank space above the mixer, not
-     a functional bug) — acceptable now that one-viewport-fit is a
-     best-effort target, not an enforced guarantee (see
-     DESIGN_SYSTEM.md/this file's own git history), in exchange for
-     removing the width-dependency that caused the loop, entirely, with no
-     JS/ResizeObserver/hysteresis needed. Retune by hand if MixerBar's own
-     browse-mode content changes enough to raise this ceiling. */
-  --mixer-bar-height: 185px;
+  /* App-shell rewrite (superseding the one-viewport-fit clamp this token
+     used to hold — see git history for that formula if a past width's
+     exact math is ever needed again): KonomiApp's root is now a fixed
+     100svh flex column (Masthead, then the results section at flex:1,
+     then MixerBar), not a normally-scrolling page — so there's no longer
+     a "does everything fit in one viewport" question to solve for at all.
+     The results section's own available height is simply whatever
+     flexbox leaves it, automatically, every time the viewport changes —
+     nothing here needs to know the masthead's or MixerBar's own height to
+     compute that, the way the old clamp formula did.
+     100cqh reads that resolved height back in as a length: RecommendationsBody's
+     own root (RecommendationsBody.tsx) is a [container-type:size] query
+     container sized via flex-1 within the results section — its own
+     height is externally determined (by flex, not by its own content), so
+     querying it back from inside its own descendants isn't circular the
+     way an intrinsically-sized query container would be. This is why
+     ResultCard.tsx and the empty-state placeholder below need zero
+     changes of their own: both already read var(--result-card-height),
+     and that token still resolves to a real px value, it just gets it
+     from the results container's own live flex size instead of a viewport
+     calc() now.
+     clamp(322px, 100cqh, 445px) keeps both original design bounds: 322px
+     is still the minimum legible cover crop (see the old formula's own
+     floor derivation in git history if the exact 180+138+4 breakdown is
+     ever needed again), 445px is still today's original, unchanged
+     ceiling — the card never grows past its current design even on a very
+     tall viewport; unused space beyond that just becomes breathing room
+     around the row instead of the card growing into it. */
+  --result-card-height: clamp(322px, 100cqh, 445px);
+  /* --masthead-height/--header-row-height/--mixer-bar-height are gone —
+     they only ever existed to feed the old viewport-wide clamp() above.
+     Confirmed via grep before removal that neither had any other live CSS
+     consumer, only prose comments referencing them for context. See git
+     history for their old values/derivations if a past width's exact
+     math is ever needed again. */
   /* ResultCard's own internal split: which of its two areas (cover image,
      tag pool) actually shrinks once --result-card-height above hits its
      clamp and gets shorter. The cover used to be the one that shrank (see
@@ -452,6 +352,20 @@
   html,
   body {
     height: 100%;
+    /* App-shell rewrite: html/body are no longer the page's real scroll
+       root — KonomiApp's own root div is now a fixed 100svh flex column
+       (Masthead, results at flex:1, MixerBar), and only the results
+       section's own carousel scrolls (horizontally) inside it. Nothing
+       above or below that div needs to scroll at all anymore, so this
+       stops any scroll here from ever happening rather than relying on
+       content simply never exceeding 100%. overscroll-behavior-y/
+       overflow-anchor below are harmless, not stale, once this is set —
+       both only ever had an effect if this element actually scrolled;
+       left in place as an inert safety net rather than removed, the same
+       way MixerBar.tsx's own pinScrollToDocumentBottomIfWasAtBottom was
+       left in place (see that file) rather than deleted on the assumption
+       it's now provably dead. */
+    overflow: hidden;
     /* contain, not none — this app's own ScrollFadeArea.tsx already
        documents why the unsuffixed/more-aggressive form of
        overscroll-behavior is the wrong default here: an earlier, unscoped

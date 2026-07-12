@@ -368,7 +368,34 @@ export function RecommendationsBody({
     // external mb-3xl in the parent instead of staying contained to the
     // padding it was meant to cancel. flow-root stops it at this component's
     // own edge, exactly where the compensation should end.
-    <div className="flow-root">
+    //
+    // flex-1 min-h-0 (app-shell rewrite): this component's own root now
+    // takes exactly whatever height is left in the results section after
+    // ResultsHeader's own natural height, the same flex-item pattern
+    // KonomiApp.tsx's shell already uses one level up — see that file's
+    // own top comment for why min-h-0 specifically is required, not
+    // optional.
+    //
+    // [container-type:size]: establishes this element as a CSS container
+    // query context for BOTH axes, so --result-card-height (globals.css)
+    // can read this element's own resolved height back in as 100cqh from
+    // deep inside ResultCard.tsx/the empty-state placeholder below,
+    // regardless of how many plain (non-flex, auto-height) wrapper divs
+    // sit in between — ScrollFadeArea's own horizontal-orientation
+    // viewport, its shadow-clipping wrapper below, etc. A plain percentage
+    // height (height:100%) can't cross those, since every element in a
+    // percentage chain needs its own definite height for the next one to
+    // resolve against, and ScrollFadeArea's horizontal viewport is
+    // deliberately content-sized (auto), by design, for every one of its
+    // other callers (the carousel is the only one that ever needed a
+    // container-supplied height at all) — a container query resolves
+    // directly against the nearest [container-type] ancestor instead,
+    // sidestepping that chain entirely without needing to touch
+    // ScrollFadeArea.tsx's own shared, multi-caller internals. Not
+    // circular: this element's own size comes from flex-1 above (external
+    // to its own content), not from anything that would need to query it
+    // first to know its size.
+    <div className="flow-root flex-1 min-h-0 [container-type:size]">
       {!showResultsGrid && (
         // !showResultsGrid (hasResults, extended through any in-flight exit
         // animation — see its own comment above), not `empty` (!generated)

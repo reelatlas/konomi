@@ -5,7 +5,6 @@ import { visiblePoolTagNames } from "@/lib/konomi/tagPool";
 import { isThemeKey, THEME_STORAGE_KEY } from "@/lib/konomi/themes";
 import type { LevelKey, Series, TagInfo } from "@/lib/konomi/types";
 import { useKonomi } from "@/lib/konomi/useKonomi";
-import { AnimationDebugPanel } from "./AnimationDebugPanel";
 import { Masthead } from "./Masthead";
 import { MixerBar } from "./MixerBar";
 import { RecommendationsBody } from "./RecommendationsBody";
@@ -96,16 +95,27 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
   }
 
   return (
-    // pt-[space-2xl] above the masthead and pb-[space-2xl] below the mixer
-    // are the same token deliberately — the uniform outer-frame principle
-    // for the header+card+mixer group (see globals.css's
-    // --result-card-height comment): whatever gap the mixer used to keep
-    // from the viewport bottom on its own (back when it was position:fixed
-    // with its own px/pb-[space-2xl]) is now this root's job instead, once
-    // MixerBar moved into normal flow as the max-w-[1280px] column's own
-    // last child, below. A flat pb-2xl, not a calc tied to the mixer's own
-    // height (the old MIXER_BAR_SPACER, removed) — nothing to "clear"
-    // underneath a normal-flow element the way a fixed one needed.
+    // App-shell rewrite: this root is now a fixed 100svh flex column, not
+    // a normally-scrolling page. html/body (globals.css) stop being the
+    // real scroll root — nothing above or below this div needs to scroll
+    // at all anymore, only the results section's own carousel (inside it,
+    // horizontally) does. See DESIGN_SYSTEM.md for the full reasoning
+    // (traced the MixerBar animation machinery back to "the page itself
+    // scrolls" being the root condition forcing it, and removed that
+    // condition instead of patching further on top of it).
+    //
+    // pb-[space-2xl] here is still the same uniform-frame gap this app has
+    // always used below the mixer — unchanged in value, just now padding
+    // on a flex container instead of a plain block div, which flexbox
+    // already accounts for automatically when handing out the remaining
+    // 100svh to this row's children.
+    //
+    // pt is conditional on k.hasResults, not the same flat pt-2xl in both
+    // states: the landing masthead keeps its 24px breathing room (reads as
+    // a proper banner), but the active/collapsed masthead sits flush
+    // against the true top edge with zero gap — matching the old
+    // scroll-triggered condensed bar's own top-0 flush positioning (see
+    // Masthead.tsx's own top comment), not the landing state's framing.
     <div
       // No data-theme here (removed) — this div used to carry its own
       // synced copy, but it's React-rendered and re-renders in lockstep
@@ -122,71 +132,64 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
       // now just inherits --bg/--ink/etc. from html like every other
       // descendant, rather than redeclaring a value that can't help but
       // lag behind on first load.
-      // overflow-x-clip, not overflow-x-hidden: hidden on one axis with no
-      // overflow-y set triggers a real, legacy CSS spec rule — the other
-      // axis's *used* value becomes auto instead of staying visible — which
-      // silently turned this div into its own accidental nested vertical
-      // scroll container (confirmed live: a real wheel scroll moved THIS
-      // div's own scrollTop, not window.scrollY), independent of and in
-      // addition to html/body's own document-level scrolling. clip doesn't
-      // pair with that legacy rule, so overflow-y correctly stays visible
-      // here and html/body go back to being the one real scroll root.
       //
-      // No background, no scrollbar-gutter, no relative here anymore —
-      // all three moved to html (globals.css). This div's own
-      // scrollHeight briefly matched its content, but once overflow-y is
-      // visible (immediately above) it's not an actual scroll container at
-      // all, so a background confined to its own box could fall short of
-      // the *real* scroll root's full extent (confirmed live: a gap of
-      // page-background-colored nothing at the bottom once content grew
-      // past one viewport), and scrollbar-gutter here would be a silent
-      // no-op — that property only does anything on an element that's
-      // actually a scroll container, which this one no longer is. relative
-      // was only ever the containing block for the halftone overlay
-      // (removed below, folded into html's own background-image instead).
+      // overflow-hidden (new): this div is now exactly h-[100svh] — its
+      // own content (masthead + results + mixbar) must never exceed that,
+      // by construction (results is the one flexible region, flex-1
+      // min-h-0 below), so this is a hard backstop against ever silently
+      // overflowing into a second, accidental scroll root, not something
+      // expected to actually clip real content in normal use.
       //
-      // No min-h-screen either, not anymore — confirmed live as a real
-      // bug: whenever natural content (masthead+gaps+card+mixer) was
-      // shorter than one viewport, forcing this div to at least 100vh
-      // left the leftover space stranded *after* the mixer (block flow
-      // puts unused min-height at the end, not distributed), stacking
-      // with pb-2xl to make the bottom gap read as much bigger than the
-      // top's plain pt-2xl — measured 42.6px vs 24px at one test size,
-      // dropping to exactly 24px (matching pt-2xl) with min-height
-      // removed. Safe to drop now for the same reason removing it doesn't
-      // risk a short-looking page: the background/halftone moved to html
-      // (see above) specifically so full-viewport coverage no longer
-      // depends on this div's own height at all.
-      className="overflow-x-clip px-[var(--space-2xl)] pt-[var(--space-2xl)] pb-[var(--space-2xl)] font-body text-[var(--ink)]"
+      // No background, no scrollbar-gutter, no relative here — all three
+      // live on html (globals.css); unaffected by this rewrite, since
+      // html was always the real place a full-viewport background needed
+      // to live regardless of whether it also happened to be the scroll
+      // root.
+      className={`h-[100svh] flex flex-col overflow-hidden overflow-x-clip px-[var(--space-2xl)] pb-[var(--space-2xl)] font-body text-[var(--ink)] ${k.hasResults ? "" : "pt-[var(--space-2xl)]"}`}
     >
-      {/* Temporary tuning aid — see AnimationDebugPanel.tsx's own top
-          comment. Rendered here (this root) rather than nested inside any
-          specific control, so it's reachable regardless of which one is
-          being tuned; `fixed` positioning means where it sits in the tree
-          doesn't affect layout either way. */}
-      <AnimationDebugPanel />
+      {/* AnimationDebugPanel removed for now, not deleted — see
+          AnimationDebugPanel.tsx/animationDebugStore.ts, both left intact.
+          Re-add `<AnimationDebugPanel />` here if it's needed again. */}
 
-      <div className="relative z-[var(--z-raised)] max-w-[1280px] mx-auto">
-        <Masthead theme={k.theme} onThemeChange={k.setTheme} />
+      {/* flex-1 min-h-0: this column, not the root div above, is what
+          fills 100svh minus this root's own pt/pb padding — a single flex
+          child of a flex-col parent naturally takes 100% of the remaining
+          main-axis space once given flex-1, no separate height calc
+          needed. min-h-0 overrides this flex item's own default
+          min-height:auto, which would otherwise refuse to shrink below
+          its content's intrinsic height — exactly the thing that would
+          silently break "results only ever takes what's left" the moment
+          results' own content ever wanted to be taller than that. w-full:
+          a flex item's own width doesn't automatically stretch to fill a
+          flex-col parent's cross axis the way max-w-[1280px] mx-auto
+          alone would have on a plain block div — needed to keep mx-auto's
+          own centering working the same as before. */}
+      <div className="relative z-[var(--z-raised)] flex flex-col flex-1 min-h-0 max-w-[1280px] mx-auto w-full">
+        <Masthead theme={k.theme} onThemeChange={k.setTheme} active={k.hasResults} />
 
-        {/* Results is now the persistent main surface, not a tab — always
-            rendered, no hidden-toggle wrapper needed since there's nothing
-            left to toggle against.
+        {/* Results is the one flexible region of the shell — flex-1
+            min-h-0 (same reasoning as the column above) makes this section
+            exactly as tall as whatever's left after Masthead's and
+            MixerBar's own natural heights, automatically, every time the
+            viewport changes. No vertical scroll here by design (see
+            RecommendationsBody.tsx's own top comment): results are always
+            a single row at every breakpoint (DEFAULT_RESULT_COUNT is a
+            hard 5, and the grid/carousel breakpoint is calibrated to be
+            exactly where 5 cards stop fitting one row), so there was never
+            a second row this section would need to scroll past.
 
-            mb-[var(--space-2xl)], not the space-3xl this used before: this
-            margin is what actually produces the card→mixer gap now that
-            MixerBar is this section's very next normal-flow sibling (Step
-            1's version of this fix instead subtracted the old 32px value
-            out of a separate spacer calc, deliberately leaving this margin
-            itself untouched — out of scope for that narrower change, but
-            Step 2's uniform-frame principle makes the gaps themselves the
-            point: header→cards and cards→mixer read as the same 24px, not
-            independently sized). Adjacent block margins between this
-            section and MixerBar's own root div would otherwise collapse to
-            whichever is larger, not add — so leaving this at space-3xl
-            while relying on some margin on MixerBar's side to shrink the
-            gap wouldn't have worked; this is the one that has to change. */}
-        <section className="mb-[var(--space-2xl)]">
+            mb-[var(--space-2xl)]: still the card→mixer gap, unchanged in
+            value or reasoning — the uniform-frame group (header→cards,
+            cards→mixer, page top/bottom) all still read as the same 24px,
+            adjacent block margins between this section and MixerBar's own
+            root div would otherwise collapse to whichever is larger, not
+            add, so this is still the one that has to carry it. flex
+            flex-col: this section's own two children (ResultsHeader,
+            RecommendationsBody) need the same "fixed row, then the
+            remainder" split this outer column already uses for Masthead/
+            results/MixerBar — RecommendationsBody's own root carries the
+            matching flex-1 min-h-0 (see that file's own top comment). */}
+        <section className="mb-[var(--space-2xl)] flex-1 min-h-0 flex flex-col">
           <ResultsHeader hasResults={k.hasResults} onClearRecs={k.clearRecs} onLevelChange={handleLevelChange} />
 
           <RecommendationsBody
@@ -220,7 +223,13 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
             viewport (see MixerBar.tsx's own top comment for how this was
             confirmed not to shift any of its internal @container
             breakpoints). Last child — bottom of the group, in document
-            order matching its visual position. */}
+            order matching its visual position. Unchanged by the app-shell
+            rewrite (Phase 1 of it) — still exactly the same component,
+            still sticky/marginTop/pin+clip-path internally; it just now
+            sits in a flex column instead of plain block flow, and its own
+            sticky positioning has nothing to stick to anymore since this
+            whole shell never scrolls (a no-op, not a bug — see
+            DESIGN_SYSTEM.md). */}
         <MixerBar
           slots={k.slots}
           dragOverIndex={k.dragOverIndex}
