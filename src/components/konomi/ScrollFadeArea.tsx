@@ -186,6 +186,13 @@ interface ScrollFadeAreaProps {
   // exact scenario worked — bisected live, on a real device, back to the
   // commit that first introduced the unconditional class. Default false:
   // only MixerBar's three own callers pass this true.
+  //
+  // Also now gated on hasOverflow internally (see the className that
+  // actually applies touch-pan-x/touch-pan-y, below): passing this true
+  // no longer means the axis class is unconditionally present, only that
+  // it's allowed to apply when this instance actually has something to
+  // scroll on its own axis. See that gate's own comment for the real,
+  // on-device bug this closes.
   restrictTouchAction?: boolean;
   // Horizontal-only. Makes the content wrapper's own width track its
   // child's true intrinsic (max-content) width instead of the default —
@@ -646,7 +653,28 @@ export function ScrollFadeArea({
           // carousel and TagScrollArea have no such ancestor to escape —
           // they don't pass this, and stay on plain touch-action: auto,
           // the same as before this prop existed at all.
-          restrictTouchAction ? (horizontal ? "touch-pan-x" : "touch-pan-y") : "",
+          //
+          // Also gated on hasOverflow now, not restrictTouchAction alone.
+          // Found live, on a real device (node-picker on the Tag Pool's
+          // genre panel): touch-pan-y on a viewport with nothing to
+          // actually scroll (few enough chips that scrollHeight <=
+          // clientHeight) still let the compositor commit to a native
+          // vertical pan the instant a touch started there, and that pan
+          // chained straight through to the page behind it. overscroll-
+          // y-contain (below) only contains a scroll that's actually
+          // consumed something first; an element that was never
+          // scrollable to begin with never reaches the "hit the boundary"
+          // state that property acts on. touch-pan-x/touch-pan-y is only
+          // useful when there's real range to carve out in the first
+          // place, so it's now suppressed exactly when hasOverflow is
+          // false, falling back to inheriting the ancestor's touch-none
+          // and correctly blocking the gesture instead of letting a
+          // doomed pan start. hasOverflow is already this component's own
+          // live, ResizeObserver-driven measurement (see updateScrollState
+          // above, the same value the fade/arrows already gate on), so
+          // this reacts correctly as content or viewport size changes
+          // without any new measurement of its own.
+          restrictTouchAction && hasOverflow ? (horizontal ? "touch-pan-x" : "touch-pan-y") : "",
           snap ? (horizontal ? "snap-x snap-mandatory" : "snap-y snap-mandatory") : "",
           // scroll-smooth (scroll-behavior: smooth), snap-only: with no
           // explicit scroll-behavior at all, the browser's own re-snap
