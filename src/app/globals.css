@@ -617,6 +617,66 @@
   transform: translateZ(0);
 }
 
+/* ============================================================================
+   ICON-ENGAGEMENT TREATMENTS (debug / A-B) — camouflage the one-time promote/
+   demote AA re-raster blip with a deliberate, on-brand emphasis over the EXACT
+   SAME window (.is-animating = the promote gate). The eye tracks the intentional
+   change and the ~1px blip disappears under it. Selected live via
+   html[data-icon-fx="N"] (IconFxDebugPanel); absent = off (nothing applies).
+
+   TIMING TRICK (covers both blips): instant-ON at promote so the emphasis is
+   already full the frame the layer is created, then eased-OUT after demote so
+   it's still full the frame the layer is destroyed and only then settles.
+   Implemented by putting the transition on the REST state and `transition:none`
+   on `.is-animating`. Paint-tier treatments (color/shadow/background) do this
+   cleanly; the transform "lift" is included to eyeball on-device (its layer
+   lifecycle is fuzzier — that's what the A/B panel is for). None distort the
+   glyphs (no scale — that reintroduces the blur we rejected). */
+[data-icon-fx] .mixbar-controls-row {
+  transition: transform 240ms ease-out, background-color 240ms ease-out;
+}
+[data-icon-fx] .mixbar-controls-row svg {
+  transition: color 240ms ease-out, opacity 240ms ease-out;
+}
+[data-icon-fx] .mixbar-controls-row button {
+  transition: box-shadow 240ms ease-out;
+}
+/* instant-ON at promote (no fade-in, so the create-frame is already covered) */
+[data-icon-fx] .mixbar-controls-row.is-animating,
+[data-icon-fx] .mixbar-controls-row.is-animating svg,
+[data-icon-fx] .mixbar-controls-row.is-animating button {
+  transition: none;
+}
+
+/* 1 — LIFT: whole row rises 2px (composited translate, no scale/blur), settles */
+[data-icon-fx="1"] .mixbar-controls-row.is-animating {
+  transform: translateY(-2px) translateZ(0);
+}
+/* 2 — ACCENT TINT: stroked icons shift to the bright accent, settle to ink */
+[data-icon-fx="2"] .mixbar-controls-row.is-animating svg {
+  color: var(--secondary);
+}
+/* 3 — SOFT GLOW: a soft accent bloom behind each control box, settles */
+[data-icon-fx="3"] .mixbar-controls-row.is-animating button {
+  box-shadow: 0 0 9px 1px color-mix(in srgb, var(--secondary) 65%, transparent);
+}
+/* 4 — HARD RING: a flat on-brand accent ring snaps on each control box, settles
+       (matches Konomi's hard-edged shadow language rather than a soft glow) */
+[data-icon-fx="4"] .mixbar-controls-row.is-animating button {
+  box-shadow: 0 0 0 2px var(--secondary);
+}
+/* 5 — ROW WASH: a brief accent tint washes across the whole controls row */
+[data-icon-fx="5"] .mixbar-controls-row.is-animating {
+  background-color: color-mix(in srgb, var(--secondary) 16%, transparent);
+}
+/* 6 — LIFT + TINT: the 2px rise and the accent tint together (fuller "engaged") */
+[data-icon-fx="6"] .mixbar-controls-row.is-animating {
+  transform: translateY(-2px) translateZ(0);
+}
+[data-icon-fx="6"] .mixbar-controls-row.is-animating svg {
+  color: var(--secondary);
+}
+
 /* RollingLabel's own slot-machine roll (MatchSelector/LevelSelector/
    SortSelect's collapsed forms) used to live here as roll-out-up/roll-in-up
    keyframes — removed once RollingLabel.tsx migrated to Motion
