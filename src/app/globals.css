@@ -633,7 +633,7 @@
    lifecycle is fuzzier — that's what the A/B panel is for). None distort the
    glyphs (no scale — that reintroduces the blur we rejected). */
 [data-icon-fx] .mixbar-controls-row {
-  transition: transform 240ms ease-out, background-color 240ms ease-out;
+  transition: transform 160ms ease-out, background-color 240ms ease-out;
 }
 [data-icon-fx] .mixbar-controls-row svg {
   transition: color 240ms ease-out, opacity 240ms ease-out;
@@ -655,7 +655,7 @@
        does NOT re-rasterize the strokes per frame the way the old growing-card
        resize-scale did, so it can't bring back the shimmer. */
 [data-icon-fx="1"] .mixbar-controls-row.is-animating {
-  transform: scale(0.99) translateZ(0);
+  transform: scale(0.98) translateZ(0);
 }
 /* 2 — OBSCURE: stroked icons fade to the SAME ink at 50% (color, not opacity, so
        no extra stacking layer) — a slight obscure, then back to full. */
@@ -680,7 +680,7 @@
        rather than shrinking evenly in place — fits this bottom-anchored bar.
        Same cached-layer scale as treatment 1, so no re-raster/shimmer. */
 [data-icon-fx="6"] .mixbar-controls-row.is-animating {
-  transform: scale(0.99) translateZ(0);
+  transform: scale(0.98) translateZ(0);
   transform-origin: center bottom;
 }
 
