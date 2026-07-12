@@ -56,6 +56,10 @@ const DEBUG_TOGGLES: { attr: string; label: string }[] = [
   { attr: "data-debug-no-tag-scroll", label: "no card tag scroll" },
   { attr: "data-debug-no-desc-scroll", label: "no card desc scroll" },
   { attr: "data-debug-contain-cards", label: "contain cards (content-visibility)" },
+  // Suppress the drag-time card-fx stripping (star pause + reflection hide) so
+  // cards render fully while comparing the resize prototypes. Read in JS by
+  // MixerBar's handleResizeStart, not via a CSS rule.
+  { attr: "data-debug-keep-card-fx", label: "keep card fx during drag" },
 ];
 
 export function AnimationDebugPanel() {

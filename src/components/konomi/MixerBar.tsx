@@ -1699,12 +1699,15 @@ export function MixerBar({
     const resizeMode =
       (document.documentElement.getAttribute("data-resize-mode") as "real" | "ghost" | "scale" | null) ??
       (isIOSWebKitTouchDevice() ? "scale" : "real");
-    // Pause RecommendButton's two always-on rotating clip-path star layers
-    // for the drag's duration — they re-composite every frame regardless of
-    // the drag and pile onto its per-frame composite budget on a real phone.
-    // Imperative attribute (no React re-render); CSS rule + full rationale in
-    // globals.css (html[data-mixbar-resizing] .kono-star). Removed in handleEnd.
-    document.documentElement.setAttribute("data-mixbar-resizing", "true");
+    // Pause RecommendButton's star spin + hide the card reflections for the
+    // drag's duration — composite optimizations for the "real" path. They dim
+    // the cards mid-drag, which is a distraction while comparing the
+    // compositor-only prototypes, so the debug panel's "keep card fx during
+    // drag" toggle (data-debug-keep-card-fx) suppresses them. Imperative
+    // attribute (no re-render); CSS in globals.css. Removed in handleEnd.
+    if (!document.documentElement.hasAttribute("data-debug-keep-card-fx")) {
+      document.documentElement.setAttribute("data-mixbar-resizing", "true");
+    }
     // "real": dragHeightPx IS the live height — set here at press (so
     // effectiveHeightPx / targetHeight / targetMarginTop switch into their
     // live-tracking values in this same commit) then updated every rAF tick.
