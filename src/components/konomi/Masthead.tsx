@@ -60,7 +60,19 @@ export function Masthead({ theme, onThemeChange, collapsed, onToggleCollapsed }:
   return (
     <motion.header
       layout
-      transition={{ duration: 0.28, ease: [0, 0, 0.2, 1] }}
+      // Spring, not a fixed-duration tween — Motion's own documented
+      // recommendation for a transition that follows a gesture (a scroll/
+      // pull, here, via KonomiApp.tsx's own listeners) rather than a
+      // simple click: a spring can be interrupted and re-targeted
+      // smoothly mid-flight, which matters here specifically since a fast
+      // scroll-then-pull-back (or the reverse) can flip `collapsed` again
+      // before the previous transition finishes — a fixed-duration tween
+      // would either cut hard to the new target or restart from scratch,
+      // where a spring's own physics carries the existing velocity into
+      // the new target instead. Low bounce (0.2, not the default ~0.25-
+      // 0.3) on request for "smooth and clean" — enough spring feel to
+      // read as physical, not so much it overshoots and settles visibly.
+      transition={{ type: "spring", duration: 0.4, bounce: 0.2 }}
       className={[
         "bg-[var(--surface)] px-[var(--space-2xl)] pb-0 mb-[var(--space-3xl)]",
         collapsed

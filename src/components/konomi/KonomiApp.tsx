@@ -36,49 +36,165 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
   // else — the only way back to expanded is the manual toggle (Masthead's
   // own onToggleCollapse, below).
   const [mastheadCollapsed, setMastheadCollapsed] = useState(false);
-  // The shell root itself (below) — only needed so the effect right after
-  // this can listen for scroll directly on it; nothing else reads this ref.
-  const shellRef = useRef<HTMLDivElement>(null);
-  // Requested directly: while expanded, a small scroll should collapse the
-  // masthead instead of actually scrolling — "scroll a little" reads as
-  // "I'm done with the banner, show me more," the same intent a
-  // traditional collapsing-header pattern captures, just triggered instead
-  // of continuously scroll-linked (this app's shell only has two discrete
+  // Wraps Masthead + the results section specifically, NOT MixerBar (see
+  // the JSX below) — this is the actual scroll container now (moved off
+  // the outer shell root), and the two effects right after this both key
+  // off it. Scoping the wrapper itself to exclude MixerBar, rather than
+  // adding a runtime "is this event's target inside MixerBar" check to
+  // the gesture effect below, means a gesture that starts on MixerBar
+  // structurally never reaches either listener at all (it isn't a
+  // descendant of this ref), with no need to touch MixerBar.tsx (kept
+  // fully out of scope this phase) to make that guarantee hold.
+  const scrollableRef = useRef<HTMLDivElement>(null);
+  // Drives both masthead transitions: a downward gesture while expanded
+  // collapses it ("I'm done with the banner, show me more"), an upward-
+  // finger/pull-down gesture while collapsed and at the top re-expands it
+  // — a traditional collapsing-header pattern, triggered rather than
+  // continuously scroll-linked (this app's shell only has two discrete
   // masthead sizes, not a smooth scroll-scrubbed range between them).
-  // Gated on !mastheadCollapsed so this never attaches at all once
-  // collapsed — nothing to listen for anyway, since collapsed mode's own
-  // overflow-hidden (KonomiApp's own root className, below) means the
-  // shell can't scroll in the first place there.
   //
-  // A plain reactive `scroll` listener (passive), not wheel/touchmove
-  // interception the way MixerBar's own blockScrollThrough works — that
-  // pattern exists there specifically to stop a gesture from ever reaching
-  // the page at all, which matters when something else is listening for
-  // that leak; here, the "cost" of letting a couple px of real scroll
-  // happen before reacting is just a same-frame snap back to 0, masked by
-  // the collapse transition itself (280ms, Masthead.tsx's own `layout`
-  // animation) starting immediately after. Simpler and lower-risk than
-  // hooking wheel/touch directly, given this file's own history of real
-  // bugs in exactly that territory — only worth reaching for that if this
-  // ever visibly flashes on a real device, not preemptively.
+  // A real, live-caught bug shaped this into a gesture-delta listener
+  // instead of the `scroll`-event/scrollTop-position approach an earlier
+  // pass used: this app's whole point is that content fits exactly, by
+  // construction, in ordinary use — meaning there is usually NO overflow
+  // to genuinely scroll into at all, at a normal viewport height. A
+  // `scroll`-event listener has nothing to ever fire from in that case —
+  // confirmed live, at a perfectly ordinary 1280×900 viewport, landing
+  // content's own scrollHeight exactly equals clientHeight, so a wheel
+  // scroll simply can't move scrollTop even a single px, and the collapse
+  // never triggers. Reading the gesture directly (wheel deltaY, touch
+  // move distance) instead of its scroll *result* works regardless of
+  // whether there's anything to actually scroll — the same reason the
+  // collapsed→expanded direction already had to work this way from the
+  // start (that direction never has overflow to react to positionally,
+  // even in principle, since collapsed content is designed to always fit).
   //
-  // THRESHOLD_PX (4): a small dead-zone, not scrollTop > 0 — absorbs
-  // sub-pixel/rubber-band scroll noise (iOS's own overscroll bounce can
-  // report a few px of scrollTop with no real user scroll intent behind
-  // it) without meaningfully delaying a genuine scroll's own reaction.
+  // COLLAPSE_THRESHOLD_PX/EXPAND_THRESHOLD_PX: 20 each — down from 60,
+  // which read as too reluctant to trigger in practice; still enough to
+  // clear real gesture noise (sub-pixel jitter, a light accidental brush)
+  // without needing much deliberate intent.
+  //
+  // AT_TOP_PX gates the expand direction only, not collapse: pulling to
+  // re-expand only makes sense once genuinely back at the top (requested
+  // directly — "make sure it scrolls all the way to the top to open"),
+  // matching a native pull-to-refresh's own "past the boundary" gate.
+  // Collapsing has no equivalent requirement — the intent ("show me more
+  // content") is the same whether the gesture starts at the top of
+  // whatever's currently scrolled or partway through it.
+  //
+  // scrollFadeOrientationAt mirrors MixerBar.tsx's own helper of the same
+  // name/shape (see that file's blockScrollThrough for the original) —
+  // duplicated rather than imported, since this is a small, self-
+  // contained check and the two call sites have no other reason to share
+  // a module. Matching-axis only, not "exempt from any ScrollFadeArea
+  // whatsoever" — an earlier version of this effect used the blunter
+  // check and broke on a second real, live-caught bug: the results
+  // carousel's own ScrollFadeArea (horizontal) wraps the ENTIRE card row
+  // as its scroll viewport, so a blanket "inside any ScrollFadeArea"
+  // check treated nearly every point in the whole results area as
+  // exempt, including a card's own cover image, which has nothing to do
+  // with any scrolling. Only a *vertical* ScrollFadeArea ancestor (a
+  // card's own tag-scroll area, TagPoolBody's chip area) actually
+  // conflicts with this vertical gesture — a horizontal one (the
+  // carousel, SectionTabStrip) doesn't care about vertical movement and
+  // shouldn't block it.
   useEffect(() => {
-    if (mastheadCollapsed) return;
-    const shell = shellRef.current;
-    if (!shell) return;
-    const THRESHOLD_PX = 4;
-    function handleScroll() {
-      if (shell && shell.scrollTop > THRESHOLD_PX) {
+    const scrollable = scrollableRef.current;
+    if (!scrollable) return;
+    const COLLAPSE_THRESHOLD_PX = 20;
+    const EXPAND_THRESHOLD_PX = 20;
+    const AT_TOP_PX = 2; // sub-pixel tolerance, not a strict === 0
+
+    function scrollFadeOrientationAt(target: EventTarget | null): "horizontal" | "vertical" | null {
+      const el = target instanceof Element ? target : null;
+      const value = el?.closest("[data-scroll-fade-orientation]")?.getAttribute("data-scroll-fade-orientation");
+      return value === "horizontal" || value === "vertical" ? value : null;
+    }
+
+    // Accumulated, not read off a single event's own deltaY — a real
+    // trackpad sends many small wheel events per gesture (low single/
+    // double digits each), not one big one the way a notched mouse wheel
+    // can; checking each event independently against a 20px threshold
+    // meant no single trackpad tick ever crossed it, so a real, deliberate
+    // scroll gesture composed of many small ticks could never trigger at
+    // all (confirmed live: two dispatched 10px/15px events, clearly
+    // totaling past threshold, individually did nothing). wheelResetTimer
+    // approximates "the gesture ended" the same way this class of problem
+    // usually has to on the web (no native wheel-gesture-end event) — a
+    // short pause with no further wheel events resets the accumulator, so
+    // a later, unrelated scroll doesn't inherit stale leftover delta from
+    // a much earlier one.
+    let wheelAccum = 0;
+    let wheelResetTimer: number | null = null;
+    function handleWheel(e: WheelEvent) {
+      if (scrollFadeOrientationAt(e.target) === "vertical") return;
+      wheelAccum += e.deltaY;
+      if (wheelResetTimer !== null) window.clearTimeout(wheelResetTimer);
+      wheelResetTimer = window.setTimeout(() => {
+        wheelAccum = 0;
+        wheelResetTimer = null;
+      }, 150);
+      if (!mastheadCollapsed && wheelAccum > COLLAPSE_THRESHOLD_PX) {
+        e.preventDefault();
         setMastheadCollapsed(true);
-        shell.scrollTop = 0;
+        if (scrollable) scrollable.scrollTop = 0;
+        wheelAccum = 0;
+      } else if (mastheadCollapsed && scrollable && scrollable.scrollTop <= AT_TOP_PX && wheelAccum < -EXPAND_THRESHOLD_PX) {
+        e.preventDefault();
+        setMastheadCollapsed(false);
+        wheelAccum = 0;
       }
     }
-    shell.addEventListener("scroll", handleScroll, { passive: true });
-    return () => shell.removeEventListener("scroll", handleScroll);
+
+    // touchStartY resets to the CURRENT finger position (not null) once a
+    // transition fires, rather than requiring a fresh touchstart — lets one
+    // continuous drag stay responsive if the user keeps moving (e.g.
+    // overshoots and reverses) instead of needing to lift and re-touch.
+    let touchStartY: number | null = null;
+    let touchExempt = false;
+    function handleTouchStart(e: TouchEvent) {
+      touchExempt = scrollFadeOrientationAt(e.target) === "vertical";
+      touchStartY = e.touches[0].clientY;
+    }
+    function handleTouchMove(e: TouchEvent) {
+      if (touchExempt || touchStartY === null) return;
+      // preventDefault unconditionally here, not only once a threshold is
+      // crossed — confirmed live (Chrome's own console) that a touch
+      // gesture's scrollability is decided by the browser on its FIRST
+      // touchmove, not re-evaluated per event: leaving early, sub-
+      // threshold touchmoves un-prevented lets the browser commit to a
+      // native scroll for the rest of that gesture, after which further
+      // preventDefault() calls are silently ignored ("cancelable=false...
+      // scrolling is in progress and cannot be interrupted") — so the
+      // eventual threshold-crossing event's own preventDefault was too
+      // late to matter, and the gesture silently fell through to native
+      // scroll (a no-op, since this region has no real overflow by
+      // design) instead of triggering collapse/expand. Wheel doesn't need
+      // this — confirmed working with a late, conditional preventDefault
+      // — because wheel-driven scrolling has no equivalent "commit on
+      // first event" handoff to the compositor.
+      e.preventDefault();
+      const y = e.touches[0].clientY;
+      const dy = touchStartY - y; // positive = finger moved up = collapse direction
+      if (!mastheadCollapsed && dy > COLLAPSE_THRESHOLD_PX) {
+        setMastheadCollapsed(true);
+        if (scrollable) scrollable.scrollTop = 0;
+        touchStartY = y;
+      } else if (mastheadCollapsed && scrollable && scrollable.scrollTop <= AT_TOP_PX && -dy > EXPAND_THRESHOLD_PX) {
+        setMastheadCollapsed(false);
+        touchStartY = y;
+      }
+    }
+
+    scrollable.addEventListener("wheel", handleWheel, { passive: false });
+    scrollable.addEventListener("touchstart", handleTouchStart, { passive: true });
+    scrollable.addEventListener("touchmove", handleTouchMove, { passive: false });
+    return () => {
+      scrollable.removeEventListener("wheel", handleWheel);
+      scrollable.removeEventListener("touchstart", handleTouchStart);
+      scrollable.removeEventListener("touchmove", handleTouchMove);
+      if (wheelResetTimer !== null) window.clearTimeout(wheelResetTimer);
+    };
   }, [mastheadCollapsed]);
 
   // Restores the persisted theme into React state on mount, then keeps
@@ -153,32 +269,21 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
     // App-shell rewrite: this root is now a fixed 100svh flex column, not
     // a normally-scrolling page. html/body (globals.css) stop being the
     // real scroll root — nothing above or below this div needs to scroll
-    // at all anymore, only the results section's own carousel (inside it,
-    // horizontally) does. See DESIGN_SYSTEM.md for the full reasoning
-    // (traced the MixerBar animation machinery back to "the page itself
-    // scrolls" being the root condition forcing it, and removed that
-    // condition instead of patching further on top of it).
+    // at all anymore. See DESIGN_SYSTEM.md for the full reasoning (traced
+    // the MixerBar animation machinery back to "the page itself scrolls"
+    // being the root condition forcing it, and removed that condition
+    // instead of patching further on top of it).
     //
-    // pb-[space-2xl] here is still the same uniform-frame gap this app has
-    // always used below the mixer — unchanged in value, just now padding
-    // on a flex container instead of a plain block div, which flexbox
-    // already accounts for automatically when handing out the remaining
-    // 100svh to this row's children.
-    //
-    // pt is conditional on mastheadCollapsed, not the same flat pt-2xl in
-    // both states: the expanded masthead keeps its 24px breathing room
-    // (reads as a proper banner), but the collapsed masthead sits flush
-    // against the true top edge with zero gap — matching the old
-    // scroll-triggered condensed bar's own top-0 flush positioning (see
-    // Masthead.tsx's own top comment), not the expanded state's framing.
-    //
-    // overflow is ALSO conditional on mastheadCollapsed now, not always
-    // hidden — see this div's own style comment below for why: expanding
-    // the masthead back open (the manual toggle) while results are still
-    // present shrinks the results section's own flex-1 share, and once
-    // ResultCard's own clamp() floor (322px) is reached, it can't shrink
-    // any further — something has to give, and here that's letting this
-    // shell scroll instead of forcing cards below their legible floor.
+    // Unconditional overflow-hidden now, not the mastheadCollapsed-keyed
+    // toggle an earlier pass had here — the actual scroll container moved
+    // one level in, to the new wrapper around Masthead + results
+    // specifically (below), once "scroll a bit collapses the masthead"/
+    // "pull down while collapsed re-expands it" needed a scrollable
+    // region that explicitly excludes MixerBar. This root is now just a
+    // fixed-size flex shell holding that wrapper and MixerBar as two
+    // siblings — MixerBar is no longer inside anything that scrolls at
+    // all, in either masthead state, so its own position:sticky is a
+    // permanent no-op now rather than only a collapsed-mode one.
     <div
       // No data-theme here (removed) — this div used to carry its own
       // synced copy, but it's React-rendered and re-renders in lockstep
@@ -196,30 +301,12 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
       // descendant, rather than redeclaring a value that can't help but
       // lag behind on first load.
       //
-      // overflow-hidden while collapsed: this div is exactly h-[100svh],
-      // and collapsed-mode content (slim masthead + results + mixbar) must
-      // never exceed that, by construction (results is the one flexible
-      // region, flex-1 min-h-0 below) — a hard backstop against ever
-      // silently overflowing into a second, accidental scroll root, not
-      // something expected to actually clip real content in normal use.
-      // Only relaxed to overflow-y-auto while expanded (see this element's
-      // own top comment) — h-[100svh] stays fixed either way (not
-      // min-h-[100svh]); auto just lets genuine excess content scroll
-      // *within* that fixed box instead of forcing something else to
-      // shrink past its own floor. Deliberately NOT unconditional
-      // overflow-y-auto: collapsed is the default, most-common state, and
-      // MixerBar's own touch-handling was verified against a hard
-      // overflow:hidden here — keeping that exact guarantee for the common
-      // case rather than leaving even a should-be-inert auto-with-nothing-
-      // to-scroll in place for it.
-      //
       // No background, no scrollbar-gutter, no relative here — all three
       // live on html (globals.css); unaffected by this rewrite, since
       // html was always the real place a full-viewport background needed
       // to live regardless of whether it also happened to be the scroll
       // root.
-      className={`h-[100svh] flex flex-col overflow-x-clip px-[var(--space-2xl)] pb-[var(--space-2xl)] font-body text-[var(--ink)] ${mastheadCollapsed ? "overflow-hidden" : "overflow-y-auto pt-[var(--space-2xl)]"}`}
-      ref={shellRef}
+      className="h-[100svh] flex flex-col overflow-hidden overflow-x-clip px-[var(--space-2xl)] pb-[var(--space-2xl)] font-body text-[var(--ink)]"
     >
       {/* AnimationDebugPanel removed for now, not deleted — see
           AnimationDebugPanel.tsx/animationDebugStore.ts, both left intact.
@@ -239,76 +326,108 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
           alone would have on a plain block div — needed to keep mx-auto's
           own centering working the same as before. */}
       <div className="relative z-[var(--z-raised)] flex flex-col flex-1 min-h-0 max-w-[1280px] mx-auto w-full">
-        <Masthead
-          theme={k.theme}
-          onThemeChange={k.setTheme}
-          collapsed={mastheadCollapsed}
-          onToggleCollapsed={() => setMastheadCollapsed((c) => !c)}
-        />
-
-        {/* Results is the one flexible region of the shell — flex-1
-            min-h-0 (same reasoning as the column above) makes this section
-            exactly as tall as whatever's left after Masthead's and
-            MixerBar's own natural heights, automatically, every time the
-            viewport changes. No vertical scroll here by design (see
-            RecommendationsBody.tsx's own top comment): results are always
-            a single row at every breakpoint (DEFAULT_RESULT_COUNT is a
-            hard 5, and the grid/carousel breakpoint is calibrated to be
-            exactly where 5 cards stop fitting one row), so there was never
-            a second row this section would need to scroll past.
-
-            mb-[var(--space-2xl)]: still the card→mixer gap, unchanged in
-            value or reasoning — the uniform-frame group (header→cards,
-            cards→mixer, page top/bottom) all still read as the same 24px,
-            adjacent block margins between this section and MixerBar's own
-            root div would otherwise collapse to whichever is larger, not
-            add, so this is still the one that has to carry it. flex
-            flex-col: this section's own two children (ResultsHeader,
-            RecommendationsBody) need the same "fixed row, then the
-            remainder" split this outer column already uses for Masthead/
-            results/MixerBar — RecommendationsBody's own root carries the
-            matching flex-1 min-h-0 (see that file's own top comment). */}
-        <section className="mb-[var(--space-2xl)] flex-1 min-h-0 flex flex-col">
-          <ResultsHeader hasResults={k.hasResults} onClearRecs={k.clearRecs} onLevelChange={handleLevelChange} />
-
-          <RecommendationsBody
-            results={k.results}
-            hasResults={k.hasResults}
-            selectedTags={k.selectedTags}
-            filledCount={k.filledCount}
-            minNum={k.minNum}
-            recommendGen={k.recommendGen}
-            firstNewIndex={k.firstNewIndex}
-            newTitles={k.newTitles}
-            clearGen={k.clearGen}
-            locked={k.locked}
-            flipped={k.flipped}
-            canSwap={k.canSwap}
-            onFlip={k.toggleFlip}
-            onToggleLock={k.toggleLock}
-            onReplace={k.replaceCard}
-            onChipToggle={k.toggleTag}
-            tagInfoByName={k.tagInfoByName}
-            totalSeriesCount={k.totalSeriesCount}
+        {/* Wraps Masthead + results only — MixerBar (below, outside this
+            div) is deliberately not part of it. This is now the actual
+            scroll container: overflow-y-auto UNCONDITIONALLY now, in both
+            states, not the collapsed-is-hidden/expanded-is-auto toggle an
+            earlier pass had here. That toggle existed to keep MixerBar's
+            own touch-handling verified against a hard overflow:hidden —
+            moot now that MixerBar is a sibling of this div, not a
+            descendant of it (see this div's own parent comment): a
+            gesture on MixerBar can't reach anything in here at all
+            regardless of this div's own overflow value, so there's no
+            remaining reason to special-case collapsed mode. auto with
+            nothing to scroll (collapsed mode's own content, by
+            construction, always fits exactly) shows no scrollbar and
+            behaves identically to hidden — this also closes a real,
+            narrow gap the old hidden-while-collapsed version had (an
+            extreme-enough short viewport could clip a couple px even in
+            "always fits" mode; auto lets that same case scroll instead).
+            pt-[space-2xl] stays conditional on mastheadCollapsed, a
+            separate concern from overflow: the expanded masthead keeps
+            its 24px breathing room, the collapsed one sits flush at the
+            true top edge — matching the old scroll-triggered condensed
+            bar's own top-0 positioning. scrollableRef is what the
+            wheel/touch gesture effect above listens on (a real `scroll`
+            event has nothing to fire from in the common case — see that
+            effect's own comment for why it doesn't rely on one). */}
+        <div
+          ref={scrollableRef}
+          className={`flex flex-col flex-1 min-h-0 overflow-y-auto ${mastheadCollapsed ? "" : "pt-[var(--space-2xl)]"}`}
+        >
+          <Masthead
+            theme={k.theme}
+            onThemeChange={k.setTheme}
+            collapsed={mastheadCollapsed}
+            onToggleCollapsed={() => setMastheadCollapsed((c) => !c)}
           />
-        </section>
+
+          {/* Results is the one flexible region of the shell — flex-1
+              min-h-0 (same reasoning as the column above) makes this section
+              exactly as tall as whatever's left after Masthead's and
+              MixerBar's own natural heights, automatically, every time the
+              viewport changes. No vertical scroll here by design (see
+              RecommendationsBody.tsx's own top comment): results are always
+              a single row at every breakpoint (DEFAULT_RESULT_COUNT is a
+              hard 5, and the grid/carousel breakpoint is calibrated to be
+              exactly where 5 cards stop fitting one row), so there was never
+              a second row this section would need to scroll past.
+
+              mb-[var(--space-2xl)]: still the card→mixer gap, unchanged in
+              value or reasoning — the uniform-frame group (header→cards,
+              cards→mixer, page top/bottom) all still read as the same 24px,
+              adjacent block margins between this section and MixerBar's own
+              root div would otherwise collapse to whichever is larger, not
+              add, so this is still the one that has to carry it. flex
+              flex-col: this section's own two children (ResultsHeader,
+              RecommendationsBody) need the same "fixed row, then the
+              remainder" split this outer column already uses for Masthead/
+              results/MixerBar — RecommendationsBody's own root carries the
+              matching flex-1 min-h-0 (see that file's own top comment). */}
+          <section className="mb-[var(--space-2xl)] flex-1 min-h-0 flex flex-col">
+            <ResultsHeader hasResults={k.hasResults} onClearRecs={k.clearRecs} onLevelChange={handleLevelChange} />
+
+            <RecommendationsBody
+              results={k.results}
+              hasResults={k.hasResults}
+              selectedTags={k.selectedTags}
+              filledCount={k.filledCount}
+              minNum={k.minNum}
+              recommendGen={k.recommendGen}
+              firstNewIndex={k.firstNewIndex}
+              newTitles={k.newTitles}
+              clearGen={k.clearGen}
+              locked={k.locked}
+              flipped={k.flipped}
+              canSwap={k.canSwap}
+              onFlip={k.toggleFlip}
+              onToggleLock={k.toggleLock}
+              onReplace={k.replaceCard}
+              onChipToggle={k.toggleTag}
+              tagInfoByName={k.tagInfoByName}
+              totalSeriesCount={k.totalSeriesCount}
+            />
+          </section>
+        </div>
 
         {/* Nested inside the same max-w-[1280px] z-raised column as
-            Masthead/the results section above, not a page-level sibling —
-            now that MixerBar is normal flow, not position:fixed, it needs
-            the same shared content column (left/right framing) the header
-            and cards already use, or its edges would drift from theirs the
+            Masthead/the results section above (a sibling of the new
+            scrollable wrapper, not inside it — see that wrapper's own
+            comment for why), not a page-level sibling either — now that
+            MixerBar is normal flow, not position:fixed, it needs the same
+            shared content column (left/right framing) the header and
+            cards already use, or its edges would drift from theirs the
             moment the page's own centered max-w box stops filling the
             viewport (see MixerBar.tsx's own top comment for how this was
             confirmed not to shift any of its internal @container
             breakpoints). Last child — bottom of the group, in document
             order matching its visual position. Unchanged by the app-shell
-            rewrite (Phase 1 of it) — still exactly the same component,
-            still sticky/marginTop/pin+clip-path internally; it just now
-            sits in a flex column instead of plain block flow, and its own
-            sticky positioning has nothing to stick to anymore since this
-            whole shell never scrolls (a no-op, not a bug — see
-            DESIGN_SYSTEM.md). */}
+            rewrite — still exactly the same component, still sticky/
+            marginTop/pin+clip-path internally; it just now sits in a flex
+            column instead of plain block flow, and its own sticky
+            positioning has nothing to stick to anymore since it's no
+            longer inside anything that scrolls, in either masthead state
+            (a no-op, not a bug — see DESIGN_SYSTEM.md). */}
         <MixerBar
           slots={k.slots}
           dragOverIndex={k.dragOverIndex}
