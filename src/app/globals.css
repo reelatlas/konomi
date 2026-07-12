@@ -146,6 +146,10 @@
      tall viewport; unused space beyond that just becomes breathing room
      around the row instead of the card growing into it. */
   --result-card-height: clamp(322px, 100cqh, 445px);
+  /* NOTE: below the 1152px carousel breakpoint this 445px ceiling is dropped
+     (see the @media block right after this :root) so cards fill the compact-
+     mode height and the card→mixbar gutter resolves to a clean 24px. The
+     clamp here is the DESKTOP-grid form; mobile/carousel is max(322px, 100cqh). */
   /* --masthead-height/--header-row-height/--mixer-bar-height are gone —
      they only ever existed to feed the old viewport-wide clamp() above.
      Confirmed via grep before removal that neither had any other live CSS
@@ -229,6 +233,35 @@
     var(--result-card-height) - var(--result-card-tag-area-height) - (var(--border-base) * 2)
   );
   --result-card-tag-scroll-height: calc(var(--result-card-tag-area-height) - (var(--space-md) * 2));
+}
+
+/* Carousel breakpoint (< 1152px, the same width RecommendationsBody switches
+   the grid to a single-row carousel — see its own comment): drop the 445px
+   ceiling so a result card fills the whole compact-mode height available to
+   it instead of capping and leaving dead space below the row. Two things fall
+   out of this:
+     1. The card→mixbar gutter becomes exactly --space-2xl (24px). A capped
+        card left leftover height below a top-aligned row, so the visible gap
+        read as leftover + the section's 24px margin; a card that fills the
+        container leaves no leftover, so only the 24px margin remains.
+     2. The extra height goes to the COVER art, not the tag area:
+        --result-card-tag-area-height stays clamped at its 137px ceiling for
+        any --result-card-height above 445px, and --result-card-cover-height
+        (the remainder) absorbs the rest. Both derive from --result-card-height
+        via var(), so overriding just this one token cascades to them.
+   Desktop grid (>= 1152px) keeps the clamp()'s 445px cap: a full-height card
+   in a fixed 208px-ish grid column would get tall and skinny. This is the
+   "fill on mobile, cap on desktop" split — deliberately keyed to the same
+   1152px carousel breakpoint so "fills" and "is a carousel" always agree.
+   NOTE (on-device): the card flip's ±40px bleed room (RecommendationsBody's
+   pt/pb-40) was measured against the 445px card. The flip's bulge scales with
+   card WIDTH (unchanged here — cards fill vertically, not horizontally), so
+   40px should still cover it, but confirm on a tall phone; if the flip clips
+   at the taller size, bump that pt/pb-40 and its matching -mt/-mb-40. */
+@media (max-width: 1152px) {
+  :root {
+    --result-card-height: max(322px, 100cqh);
+  }
 }
 
 /* ── color roles, one palette per theme ──────────────────────────────────

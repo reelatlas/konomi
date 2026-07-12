@@ -74,7 +74,13 @@ export function Masthead({ theme, onThemeChange, collapsed, onToggleCollapsed }:
       // read as physical, not so much it overshoots and settles visibly.
       transition={{ type: "spring", duration: 0.4, bounce: 0.2 }}
       className={[
-        "bg-[var(--surface)] px-[var(--space-2xl)] pb-0 mb-[var(--space-3xl)]",
+        // mb-[space-2xl] (was space-3xl): the masthead->recommendations gap
+        // is deliberately the SAME 24px as every other frame gap in the app
+        // (page top->masthead, left/right edge->content, recommendations->
+        // mixbar, page bottom->mixbar), for one uniform gutter everywhere.
+        // --space-2xl is the single reference value for all of them; do not
+        // reintroduce a larger value here without matching the rest.
+        "bg-[var(--surface)] px-[var(--space-2xl)] pb-0 mb-[var(--space-2xl)]",
         collapsed
           ? "border-b-[length:var(--border-base)] border-b-[var(--ink)] shadow-[var(--elev-3)]"
           : "border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-5)] rotate-[-0.5deg] pt-[var(--space-2xl)]",
