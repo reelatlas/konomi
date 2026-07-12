@@ -2140,8 +2140,8 @@ export function MixerBar({
     // here too, and what replaced it.
     // Outer wrapper, new this round — carries `sticky`/z-index/`touch-none`
     // and the REAL, instant `marginTop` (targetMarginTop), with NO border/
-    // padding/background of its own and NO Motion involvement whatsoever.
-    // Added specifically to stop `position: sticky` and Motion's own
+    // padding/background of its own. Added specifically to stop
+    // `position: sticky` and Motion's own
     // `layout="position"`-driven `transform` from ever being declared on
     // the SAME element — reported live as a regression of a much older
     // fix ("we have patch notes for this somewhere way before we started
@@ -2166,8 +2166,26 @@ export function MixerBar({
     // the leading hypothesis, not a guess at a different root cause —
     // needs on-device confirmation, the same as this codebase's other
     // real-device-only WebKit fixes (see DESIGN_SYSTEM.md).
+    //
+    // filter:drop-shadow, not cardRef's own box-shadow — moved here (Round
+    // 6) once cardRef needed a live clip-path (see that element's own
+    // comment): box-shadow is part of an element's own paint output, so
+    // cardRef's clip-path was clipping its shadow away too during a drag,
+    // uniformly, regardless of the shadow's own offset direction. A
+    // filter on an ANCESTOR applies to that ancestor's already-rendered
+    // subtree — cardRef's own clip-path has already been applied by the
+    // time this element's filter runs against it — so drop-shadow here
+    // tracks cardRef's current CLIPPED (correct, live) shape instead of
+    // ignoring it the way box-shadow on cardRef itself couldn't. Verified
+    // directly, not assumed: screenshotted mid-drag, shadow visible and
+    // sized to the currently-revealed card, not the full pinned extent.
+    // No blur radius (matching --elev-4's own 0-blur hard-shadow style),
+    // so this is a cheap offset+composite, not a gaussian blur, every time
+    // it has to re-track cardRef's shape during a drag tick — still worth
+    // a real-device check alongside everything else in this round, same
+    // as any other per-tick paint cost in this file.
     <motion.div
-      className="sticky bottom-[var(--space-2xl)] z-[var(--z-overlay)] max-w-[1280px] mx-auto touch-none"
+      className="sticky bottom-[var(--space-2xl)] z-[var(--z-overlay)] max-w-[1280px] mx-auto touch-none [filter:drop-shadow(5px_5px_0_var(--ink))]"
       // dragMarginTop during a live drag (a Motion value, `.set()` every
       // tick — see its own declaration, near dragHeightPx, for the full
       // Round 5 history), targetMarginTop otherwise — same key, switching
@@ -2196,8 +2214,8 @@ export function MixerBar({
         // outer wrapper's marginTop and dialogRef's height/margin-bottom)
         // makes this box's own real geometry correct on every frame, from
         // the very first one, with nothing left for a transform to fake or
-        // compensate for. The live-drag case is different now (Round 6,
-        // see dragPinnedHeight's own declaration): real geometry is
+        // compensate for. The live-drag case is different (Round 6, see
+        // dragPinnedHeight's own declaration): real geometry is
         // deliberately WRONG (pinned to a ceiling) for the drag's
         // duration, and clipPath below is what makes the painted result
         // correct anyway. Still a motion.div (not a plain div) purely so
@@ -2206,26 +2224,31 @@ export function MixerBar({
         // z-index/touch-none/sticky/marginTop all moved to the new outer
         // wrapper above — see its own comment for why. This element keeps
         // only what it visually needs to paint the card (border/padding/
-        // background/shadow); it carries no positioning of its own at all
-        // (a plain in-flow block, filling its sticky parent's full box).
+        // background); it carries no positioning of its own at all (a
+        // plain in-flow block, filling its sticky parent's full box). No
+        // shadow either now — see the outer wrapper's own comment for
+        // where that moved and why.
         //
         // clipPath: "none" outside a drag, dragClipPath (a Motion value,
         // `.set()` every tick) during one — same conditional-value-under-
         // one-key shape as the outer wrapper's marginTop and dialogRef's
         // own height, see either's own comment for why that shape matters
-        // over a conditionally-present style key. Deliberately on CARDREF,
-        // not growableRef or dialogRef: this is the one element with the
-        // border, and clip-path clips an element's own border/background
-        // along with its content, so this is what makes the painted box
-        // actually track the live drag position — see dragPinnedHeight's
-        // own declaration for the full Round 6 history of why putting it
-        // anywhere else was the exact bug that sank Round 4. One accepted,
-        // not-yet-worked-around cost: clip-path also clips this element's
-        // own box-shadow, so the shadow's soft edge may visibly truncate
-        // at the clip boundary during a live drag specifically — flagged,
-        // not fixed blind, pending a look at whether it's actually
-        // objectionable in practice (the user's attention is on the grip,
-        // at the opposite edge, while this would happen).
+        // over a conditionally-present style key. Has to be on cardRef,
+        // not a descendant: a clip-path on growableRef alone was tried
+        // (this element left un-clipped) on the theory that keeping
+        // cardRef's own box-shadow off the clipped subtree would be
+        // enough — confirmed live, directly, that it isn't: a child's
+        // clip-path cannot shrink its PARENT's own box. cardRef's own
+        // border is drawn against cardRef's own (real, pinned, larger)
+        // geometry regardless of what any descendant clips, so leaving
+        // cardRef itself unclipped reintroduced Round 4's exact bug —
+        // border pinned to full extent for the whole drag, snapping down
+        // only at release. Measured directly: cardRef's own rawTop jumped
+        // ~310px on press and sat frozen there through an entire 150px
+        // drag with growableRef's own clip-path active the whole time.
+        // cardRef has to be the clipped element for its own border to
+        // track the drag at all — the shadow problem this caused (below)
+        // gets solved on its own terms instead, not by moving the clip.
         style={{ clipPath: dragHeightPx !== null ? dragClipPath : "none" }}
         // [contain:layout] — the real fix for the mobile-only open/close/
         // resize jitter, found via on-device Safari Web Inspector (Timeline
@@ -2266,7 +2289,7 @@ export function MixerBar({
         // painting bounds, only isolates internal layout computation from
         // external (ancestor) influence, the one thing actually needed
         // here.
-        className="px-[var(--space-2xl)] py-[var(--space-xl)] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-4)] [contain:layout]"
+        className="px-[var(--space-2xl)] py-[var(--space-xl)] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] [contain:layout]"
       >
       {/* growableRef wraps dialogRef alone now — no separate resize-handle
           row sibling anymore (see this file's own top comment for why that
@@ -2312,14 +2335,21 @@ export function MixerBar({
           comment, below, and DESIGN_SYSTEM.md's "Round 5" entry for why
           that approach was reverted: it made cardRef's own border pin to
           its full maximum extent from the first frame of every drag,
-          completely independent of where the clip boundary actually was,
-          reported live as "the panel fully expands on click, then reverts
-          on release" — a resize handle that doesn't visibly resize while
-          being dragged). This element carries no drag-specific style of
-          any kind now; dialogRef (below) is the one element whose real
-          height actually changes, and growableRef's own height, exactly as
-          in the pre-drag-optimization shape, is simply whatever flow-root
-          measures that content to be. */}
+          completely independent of where the clip boundary actually was.
+          A later attempt (Round 6) tried putting the clip HERE instead of
+          on cardRef, on the theory that keeping cardRef's own box-shadow
+          out of the clipped subtree would be enough — confirmed live that
+          it isn't, for the identical reason as the original revert: a
+          clip-path on this element cannot shrink cardRef's own (parent)
+          box, so cardRef's border pinned to full extent all over again.
+          cardRef is the only element this can correctly live on — see its
+          own comment for the current shape and how the shadow problem
+          that caused this detour actually gets solved). This element
+          carries no drag-specific style of any kind now; dialogRef
+          (below) is the one element whose real height actually changes
+          (or, during a drag, is pinned), and growableRef's own height,
+          exactly as in the pre-drag-optimization shape, is simply
+          whatever flow-root measures that content to be. */}
       <div ref={growableRef} className="flow-root">
 
       {/* Row 1 (formerly Row 2 — Row 1 was the title/badge/filters
@@ -2461,7 +2491,30 @@ export function MixerBar({
           marginBottom: targetMarginBottomPx,
           transition: `height ${geometryTransitionTiming}, margin-bottom ${geometryTransitionTiming}`,
         }}
-        className="flex flex-col outline-none overflow-hidden [contain:layout]"
+        // justify-end, drag-only: TagPoolBody (this element's only child)
+        // is frozen at its drag-start size for the whole drag (see
+        // isPoolPanelResizing below — its own poolPanelHeightPx prop comes
+        // from dragHeightPx, only ever set at press/release, never per
+        // tick, on purpose: re-measuring it every tick was a real, already-
+        // fixed jitter contributor). Default (justify-start, TagPoolBody
+        // anchored to this element's own top) leaves a growing gap between
+        // TagPoolBody's frozen bottom edge and this element's real
+        // (pinned, growing) bottom edge — reported live as "white" (this
+        // element and TagPoolBody are both transparent, so cardRef's own
+        // bare background shows through the gap). growableRef's own
+        // clip-path (see that element's own comment) always reveals this
+        // element's bottom `next` px, anchored at the true bottom — flush-
+        // ending TagPoolBody against that same bottom edge means growing
+        // the drag target never opens a gap (frozen content and the
+        // revealed window share a bottom edge, and the revealed window is
+        // always at least as tall as the frozen content once next >=
+        // startHeight) and shrinking correctly clips TagPoolBody from the
+        // top instead, matching how a smaller panel should read. NOT
+        // applied outside a drag: the CSS-transitioned open/close case
+        // relies on the default top anchor (content taller than the mid-
+        // transition box, revealing top-down as it grows) — this would
+        // change that animation's own direction as a side effect.
+        className={`flex flex-col outline-none overflow-hidden [contain:layout] ${dragHeightPx !== null ? "justify-end" : ""}`}
       >
         <TagPoolBody
           allTags={allTags}
