@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { genreTags, sortTags, TAG_SECTIONS, tagsForCategories, tagsForSection } from "@/lib/konomi/tagPool";
 import type { TagInfo } from "@/lib/konomi/types";
 import { ScrollFadeArea } from "./ScrollFadeArea";
@@ -11,6 +11,16 @@ interface TagPoolBodyProps {
   selectedTags: string[];
   totalSeriesCount: number;
   onChipToggle: (tag: string) => void;
+  // MixerBar's resize-handle-driven height (default 50% of viewport on
+  // first open, or whatever the user has since dragged/persisted) — the
+  // pool panel's *total* height budget, not the chip area alone. This
+  // component reduces it by its own live-measured tabs row height (see
+  // rowHeightPx below) to get the chip area's actual height, rather than
+  // MixerBar guessing that reduction itself — MixerBar has no visibility
+  // into this row's real height. Undefined only pre-hydration/no-JS,
+  // where CHIP_AREA_HEIGHT below is the fallback. See ScrollFadeArea's
+  // heightPx prop for why this can't just be a computed Tailwind class.
+  poolPanelHeightPx?: number;
   // Mirrors MixerBar's own editMode — this component stays mounted the
   // whole time (see this file's own top comment), only visually clipped to
   // zero height via MixerBar's max-h-0 when edit mode is closed. Threaded
@@ -37,15 +47,38 @@ interface TagPoolBodyProps {
   isPoolPanelResizing?: boolean;
 }
 
-// Gap between the tabs row and the chip area, applied as the flex-column
-// gap on this component's root — the chip area (flex-1) fills whatever
-// height is left after the tabs row (shrink-0) and this gap, entirely via
-// flexbox. The chip area no longer receives a computed pixel height: its
-// ancestor dialogRef (in MixerBar) carries the real, motion-value-driven
-// pool-panel height, and this component just flex-fills it, so a live
-// resize reflows the chips with no React re-render per frame (see
-// ScrollFadeArea's `fill` prop and MixerBar's single-source motion value).
 const STRIP_GAP = 12; // --space-lg
+// Bootstrap-only fallback for rowHeightPx (below) before the first real
+// ResizeObserver measurement lands — STRIP_GAP + SectionTabStrip's own
+// ~30px. Only needs to be a reasonable one-frame placeholder, the same
+// role EDIT_MODE_FIXED_ROWS_HEIGHT plays for MixerBar's own
+// fixedOverheadPx.
+const ROW_HEIGHT_BOOTSTRAP = 42;
+// Floor for the chip area specifically, independent of whatever
+// poolPanelHeightPx/rowHeightPx computes to — guards against a negative
+// or unusably tiny chip area if those two ever drift (e.g. a very short
+// viewport where poolPanelHeightPx is already clamped near its own floor).
+const CHIP_AREA_MIN = 60;
+// h-, not max-h- — this area must NOT hug/shrink to fit a short section's
+// content; only MixerBar's drag handle (or the 50%-of-viewport default on
+// first open) may change how tall this is, never which section tab
+// happens to be active. A short section (Genres, Setting, Demographic)
+// leaves visible empty space below its chips rather than collapsing the
+// box down to fit — switching tabs must be visually inert with respect to
+// size. dvh, not vh: this lives inside MixerBar's bottom-anchored bar, and
+// dvh avoids the well-known mobile Safari/Chrome dynamic-toolbar jump
+// plain vh produces (see MixerBar.tsx's own top comment — same reasoning,
+// this is the one place it actually bites). In practice MixerBar always
+// passes a real `poolPanelHeightPx` once mounted, so this class is really
+// only a pre-hydration/no-JS fallback — see ScrollFadeArea's `heightPx`
+// prop, which takes priority whenever present.
+//
+// Literal string, not built via template interpolation — Tailwind's
+// scanner needs the full class as static source text to generate its CSS;
+// a runtime-computed template literal is invisible to it and silently
+// produces no rule at all (confirmed live as a real bug once, before this
+// was a literal).
+const CHIP_AREA_HEIGHT = "h-[50dvh]";
 
 function ChipRow({
   tags,
@@ -87,6 +120,7 @@ export function TagPoolBody({
   selectedTags,
   totalSeriesCount,
   onChipToggle,
+  poolPanelHeightPx,
   editMode,
   trailingControls,
   isPoolPanelResizing,
@@ -100,6 +134,26 @@ export function TagPoolBody({
   // requirement was made for this to survive a full page reload, so it
   // isn't persisted beyond the session.
   const [activeSectionKey, setActiveSectionKey] = useState(TAG_SECTIONS[0].key);
+
+  // Live-measured height of the tabs row below — replaces a flat constant
+  // (the old TABS_HEIGHT) because SectionTabStrip's own rendered height
+  // can vary slightly by content, the same "hardcoded worst-case vs. live
+  // ResizeObserver" tradeoff MixerBar's own fixedOverheadPx already made
+  // for the same reason. Self-measurement only (this row's own height
+  // against itself) — nothing here reads across to another row.
+  const rowRef = useRef<HTMLDivElement>(null);
+  const [rowHeightPx, setRowHeightPx] = useState<number | null>(null);
+  useEffect(() => {
+    const row = rowRef.current;
+    if (!row) return;
+    const observer = new ResizeObserver(([entry]) => {
+      setRowHeightPx(entry.contentRect.height);
+    });
+    observer.observe(row);
+    return () => observer.disconnect();
+  }, []);
+  const chipAreaHeightPx =
+    poolPanelHeightPx !== undefined ? Math.max(CHIP_AREA_MIN, poolPanelHeightPx - (rowHeightPx ?? ROW_HEIGHT_BOOTSTRAP) - STRIP_GAP) : undefined;
 
   // Every section with at least one tag at the current level — hidden
   // entirely (not shown as a disabled tab), matching the old collapsible
@@ -124,10 +178,7 @@ export function TagPoolBody({
   const active = visibleSections.find(({ section }) => section.key === activeSectionKey) ?? visibleSections[0];
 
   return (
-    // flex-1 min-h-0: fill the motion-value-sized dialog (MixerBar's
-    // dialogRef, a flex column) so the chip area below can flex-fill the
-    // height left after the tabs row — no pixel height threaded in.
-    <div className="flex flex-col flex-1 min-h-0" style={{ gap: STRIP_GAP }}>
+    <div className="flex flex-col" style={{ gap: STRIP_GAP }}>
       {/* Tabs row — SectionTabStrip on the left, MixerBar's resize grip/
           shortcuts/close button (trailingControls) fixed to the right.
           Same layout convention MixerBar's own old resize-handle row used
@@ -142,7 +193,7 @@ export function TagPoolBody({
           ResizeObserver (below) measures this whole row, trailingControls
           included, with no extra code needed for that — it already
           measures whatever this row's real rendered height is. */}
-      <div className="flex items-center justify-between gap-x-[var(--space-lg)] shrink-0">
+      <div ref={rowRef} className="flex items-center justify-between gap-x-[var(--space-lg)]">
         <div className="min-w-0 w-fit">
           <SectionTabStrip
             sections={visibleSections.map(({ section, tags }) => ({
@@ -177,12 +228,10 @@ export function TagPoolBody({
         role="tabpanel"
         aria-labelledby={`tagpool-tab-${active.section.key}`}
         tabIndex={0}
-        // flex-1 min-h-0 flex flex-col: fill the height left after the tabs
-        // row and let the ScrollFadeArea (fill) below flex-fill this in turn.
-        className="flex-1 min-h-0 flex flex-col"
       >
         <ScrollFadeArea
-          fill
+          height={CHIP_AREA_HEIGHT}
+          heightPx={chipAreaHeightPx}
           scrollStep={92}
           fadeSize={4}
           surfaceColor="var(--surface)"

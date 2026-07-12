@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useMotionValue, useTransform } from "motion/react";
+import { motion } from "motion/react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { MatchKey, MixerError, Slot, TagInfo } from "@/lib/konomi/types";
 import { ActionButton } from "./ActionButton";
@@ -767,50 +767,7 @@ export function MixerBar({
   // smoothly; the committed value is written to localStorage once on
   // release, not on every mousemove.
   const persistedHeightPx = usePoolPanelHeight();
-  // --- Path C: single-source motion value (no per-frame re-render) ---
-  // The live resize drives ONE useMotionValue (poolHeightMv, the pool
-  // panel's real height) instead of React state per rAF tick. dialogRef's
-  // height binds to it directly and the outer wrapper's marginTop is a
-  // useTransform derived from it, so Motion commits BOTH DOM writes in a
-  // single synchronous render flush every frame — one WebKit layout, not
-  // two split across paints (the confirmed on-device jitter root cause; the
-  // bottom-anchor marginTop and the dialog height are three DOM levels
-  // apart and WebKit was applying them a frame apart even inside one React
-  // commit). No setState per tick means no React re-render during the drag
-  // at all, and the pool content reflows via CSS (TagPoolBody's chip area
-  // now flex-fills this motion-value-driven dialog — see its `fill` prop)
-  // rather than needing a re-render to recompute a pixel height.
-  //
-  // isPoolPanelDragging (state, flipped once at press and once at release,
-  // never per tick) is the "conditional value under one key" switch, the
-  // same shape this file already used for the old drag motion values:
-  // dialogRef.height / wrapper.marginTop read the motion values during a
-  // drag and the plain React targets (targetHeight / targetMarginTop, still
-  // CSS-transitioned) for every discrete case (open/close/50%/100%/reset).
-  // The motion-value path and the CSS-transition path therefore never own
-  // the same property at the same instant and cannot race — the exact
-  // failure mode Rounds 3-6 kept hitting by running two clocks at once.
-  const [isPoolPanelDragging, setIsPoolPanelDragging] = useState(false);
-  // The pool panel's live real height. Seeded at drag press, `.set()` every
-  // rAF tick during the drag, then handed back to React at release (see
-  // handleResizeStart / handleEnd). Only consumed while isPoolPanelDragging;
-  // off-drag it holds a stale value that's re-seeded at the next press.
-  const poolHeightMv = useMotionValue(0);
-  // The non-pool overhead (dialogRef's own bottom margin,
-  // effectiveGrowableFixedOverheadPx) frozen at drag press. Constant for the
-  // whole drag — editMode is always true then and the overhead is frozen by
-  // isDraggingRef — so the transform below can read it from this ref without
-  // needing it to be a motion value; poolHeightMv is the only per-tick input.
-  const dragOverheadRef = useRef(0);
-  // The outer wrapper's marginTop, derived from poolHeightMv so it updates
-  // in the SAME Motion render flush as dialogRef's height — the atomic pair
-  // that eliminates the two-paint split. This is the negative-margin bottom
-  // anchor (the M + G = 0 identity this file has used since long before any
-  // of the resize rounds): it makes the pool overlay the results upward
-  // instead of pushing them down, and CANNOT be dropped. Only read while a
-  // drag is live (editMode guaranteed true); the browse-mode marginTop-0
-  // case is handled by targetMarginTop instead.
-  const wrapperMarginTopMv = useTransform(() => -(dragOverheadRef.current + poolHeightMv.get()));
+  const [dragHeightPx, setDragHeightPx] = useState<number | null>(null);
   // Round 5 (current): live drag drives REAL height/marginTop directly,
   // via Motion values, instead of pinning to a ceiling and faking the
   // reveal with a clip-path. Four earlier rounds are worth recording in
@@ -1381,13 +1338,8 @@ export function MixerBar({
   // freeze (above) covers the same class of mid-drag resize event for the
   // other consumers of poolPanelMaxHeight (canShowResizeHandleRow, the
   // 50%/100% buttons), so this line and that guard are two halves of one fix.
-  // No drag branch anymore: the live drag height lives in poolHeightMv,
-  // which drives the DOM directly with no React re-render, so this is always
-  // the settled/persisted height. During a drag it stays frozen at the
-  // pre-drag value — nothing reads it for the live DOM geometry (the motion
-  // values do), and poolPanelMaxHeight is frozen too (isDraggingRef), so it
-  // can't re-clamp mid-drag.
-  const effectiveHeightPx = clampPoolPanelHeight(persistedHeightPx ?? defaultPoolHeightPx, poolPanelMaxHeight);
+  const effectiveHeightPx =
+    dragHeightPx !== null ? dragHeightPx : clampPoolPanelHeight(persistedHeightPx ?? defaultPoolHeightPx, poolPanelMaxHeight);
 
   // effectiveHeightPxRef mirrors effectiveHeightPx every render without
   // being a dependency of the effect below — same ref-mirroring pattern
@@ -1591,11 +1543,7 @@ export function MixerBar({
   // around — an ordinary setState call in an event handler needs no
   // special-casing).
   function handleSnapPoolHeight(fraction: number) {
-    // Defensively drop out of drag mode so the dialog reads the React target
-    // (which the snap sets below) and CSS-transitions to it — a snap can't
-    // actually fire mid-drag (the grip owns the pointer), so this is normally
-    // a no-op, but it keeps the binding unambiguous.
-    setIsPoolPanelDragging(false);
+    setDragHeightPx(null);
     isTransitioningRef.current = true;
     setIsSnapTransitioning(true);
     setPoolPanelHeightPref(poolPanelMaxHeight * fraction);
@@ -1605,7 +1553,7 @@ export function MixerBar({
   // call. Same transition-triggering as the 50%/100% snaps, requested to
   // match.
   function handleResetPoolHeight() {
-    setIsPoolPanelDragging(false);
+    setDragHeightPx(null);
     isTransitioningRef.current = true;
     setIsSnapTransitioning(true);
     setPoolPanelHeightPref(POOL_HEIGHT_MIN);
@@ -1715,17 +1663,13 @@ export function MixerBar({
     // pointerdown already bubbles up to on its own — nothing extra needed
     // here for that half.
     isDraggingRef.current = true;
-    // Path C: seed the single-source motion value at the current real height
-    // and freeze the marginTop overhead, THEN flip into drag mode (which
-    // swaps dialogRef.height / wrapper.marginTop onto the motion values).
-    // Order matters: poolHeightMv already holds startHeight and the transform
-    // already reads the frozen overhead by the time the binding switches, so
-    // the swap is visually inert (the motion value === the React target it
-    // replaces). From here flushPendingMove drives poolHeightMv every tick
-    // with no further React re-render.
-    dragOverheadRef.current = effectiveGrowableFixedOverheadPx;
-    poolHeightMv.set(startHeight);
-    setIsPoolPanelDragging(true);
+    // Path B: no pinned ceiling and no clip-path seed anymore. dragHeightPx
+    // IS the live height now — set here at press (so effectiveHeightPx /
+    // targetHeight / targetMarginTop switch into their live-tracking values
+    // in this same commit) and then updated on every rAF tick in handleMove
+    // below. The real height tracks the pointer directly; there is nothing
+    // to un-pin or reveal.
+    setDragHeightPx(startHeight);
     // Same bottom-scroll-restore the editMode-open effect above uses (see
     // its own comment for the full mechanism/reasoning). Only armed here
     // now, not re-armed per tick — under Round 6, dialogRef/growableRef/
@@ -1766,15 +1710,11 @@ export function MixerBar({
       const next = pendingNext;
       pendingNext = null;
       liveHeightRef.current = next;
-      // Path C: one motion-value write per tick. dialogRef's height and the
-      // outer wrapper's marginTop (a useTransform of this value) both commit
-      // in Motion's single render flush — atomic, one WebKit layout, and no
-      // per-tick React re-render. The chip area flex-fills the dialog, so it
-      // reflows to the new height with no re-render either.
-      poolHeightMv.set(next);
-      // The document's real height changes every tick (a growing pool grows
-      // the page when pinned to the bottom) — re-arm the bottom pin each tick
-      // (safe; see pinScrollToDocumentBottomIfWasAtBottom's own comment).
+      setDragHeightPx(next);
+      // The document's real height changes every tick now (a growing pool
+      // grows the page when pinned to the bottom), not just twice as under
+      // the pinned-ceiling approach — re-arm the bottom pin each tick (safe;
+      // see pinScrollToDocumentBottomIfWasAtBottom's own comment).
       pinScrollToDocumentBottomIfWasAtBottom();
     }
     function handleMove(ev: PointerEvent) {
@@ -1811,14 +1751,14 @@ export function MixerBar({
       }
       flushPendingMove();
       setPoolPanelHeightPref(liveHeightRef.current);
-      // Path C: hand the height back to React. setPoolPanelHeightPref above
-      // wrote liveHeightRef.current to the persisted pref, so this same
-      // (batched) commit has effectiveHeightPx -> targetHeight === the motion
-      // value's last value: flipping isPoolPanelDragging false swaps
-      // dialogRef.height / wrapper.marginTop back onto the React targets with
-      // no jump, nothing to reconcile. poolHeightMv keeps its final value
-      // (unused off-drag) until the next press re-seeds it.
-      setIsPoolPanelDragging(false);
+      // Path B: nothing to un-pin. dragHeightPx already held the real final
+      // height (liveHeightRef.current) this whole time; clearing it to null
+      // just hands the same value back to the persisted branch
+      // (clampPoolPanelHeight(persistedHeightPx...) === liveHeightRef.current
+      // in this same commit, since setPoolPanelHeightPref above wrote exactly
+      // that), so targetHeight/targetMarginTop land on the identical pixels —
+      // no jump, no reveal, no clip to clear.
+      setDragHeightPx(null);
       isDraggingRef.current = false;
       // Catches up on anything that changed while frozen (e.g. a mobile
       // address-bar resize mid-drag) rather than waiting on the next
@@ -2267,12 +2207,7 @@ export function MixerBar({
       // history already worked through (see below) doesn't apply: nothing
       // here is a `transform`.
       style={{
-        // wrapperMarginTopMv (a useTransform of poolHeightMv) during a live
-        // drag, targetMarginTop otherwise — same key, switching which kind of
-        // value it holds. marginTopTransition is already "none" for the whole
-        // drag (geometryTransitionMs is 0 then), so the motion-value writes
-        // aren't routed through the CSS transition path — the two never mix.
-        marginTop: isPoolPanelDragging ? wrapperMarginTopMv : targetMarginTop,
+        marginTop: targetMarginTop,
         transition: marginTopTransition,
       }}
     >
@@ -2571,12 +2506,7 @@ export function MixerBar({
         // (see that element's own comment for why this shape, rather than
         // a conditionally-present key, matters).
         style={{
-          // poolHeightMv (single-source motion value, `.set()` per tick)
-          // during a live drag, targetHeight otherwise — same conditional-
-          // value-under-one-key shape as the outer wrapper's marginTop above.
-          // dialogTransition is "none" for the whole drag, so Motion's per-
-          // tick writes aren't fought by a CSS transition on `height`.
-          height: isPoolPanelDragging ? poolHeightMv : targetHeight,
+          height: targetHeight,
           marginBottom: targetMarginBottomPx,
           transition: dialogTransition,
         }}
@@ -2610,9 +2540,10 @@ export function MixerBar({
           selectedTags={selectedTags}
           totalSeriesCount={totalSeriesCount}
           onChipToggle={onChipToggle}
+          poolPanelHeightPx={effectiveHeightPx}
           editMode={editMode}
           trailingControls={trailingControls}
-          isPoolPanelResizing={isPoolPanelDragging}
+          isPoolPanelResizing={dragHeightPx !== null}
         />
       </motion.div>
       </div>
