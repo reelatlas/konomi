@@ -1452,6 +1452,17 @@ export function MixerBar({
   // triggered animation could.
   const geometryTransitionMs = isEditModeTransitioning || isSnapTransitioning ? EDIT_PANEL_TRANSITION_MS : 0;
   const geometryTransitionTiming = `${geometryTransitionMs}ms ${NAMED_EASE_TO_CUBIC_BEZIER[animationDebug.editPanelEase] ?? "ease-in-out"}`;
+  // transition:none, not "<prop> 0ms ...", whenever nothing is actually
+  // animating (idle, and — crucially — every live-drag tick). A 0ms
+  // transition still routes the property through WebKit's transition/
+  // compositor path, which on a real iPhone can apply the ancestor's
+  // margin-top and the inner dialog's height a frame apart even though both
+  // land in the same React commit — read as the fixed slots/controls row
+  // jittering up and down during a drag. `none` removes that path so both
+  // apply synchronously in the same paint. Two full property lists so each
+  // element declares only its own animated properties.
+  const marginTopTransition = geometryTransitionMs === 0 ? "none" : `margin-top ${geometryTransitionTiming}`;
+  const dialogTransition = geometryTransitionMs === 0 ? "none" : `height ${geometryTransitionTiming}, margin-bottom ${geometryTransitionTiming}`;
 
   // Measures growableFixedOverheadPx — see that state's own comment
   // (near its declaration) for why this is deliberately NOT the fast-
@@ -2197,7 +2208,7 @@ export function MixerBar({
       // here is a `transform`.
       style={{
         marginTop: targetMarginTop,
-        transition: `margin-top ${geometryTransitionTiming}`,
+        transition: marginTopTransition,
       }}
     >
       <motion.div
@@ -2497,7 +2508,7 @@ export function MixerBar({
         style={{
           height: targetHeight,
           marginBottom: targetMarginBottomPx,
-          transition: `height ${geometryTransitionTiming}, margin-bottom ${geometryTransitionTiming}`,
+          transition: dialogTransition,
         }}
         // justify-end, drag-only: TagPoolBody (this element's only child)
         // is frozen at its drag-start size for the whole drag (see
