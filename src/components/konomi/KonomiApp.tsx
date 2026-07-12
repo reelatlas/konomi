@@ -5,6 +5,7 @@ import { visiblePoolTagNames } from "@/lib/konomi/tagPool";
 import { isThemeKey, THEME_STORAGE_KEY } from "@/lib/konomi/themes";
 import type { LevelKey, Series, TagInfo } from "@/lib/konomi/types";
 import { useKonomi } from "@/lib/konomi/useKonomi";
+import { AnimationDebugPanel } from "./AnimationDebugPanel";
 import { Masthead } from "./Masthead";
 import { MixerBar } from "./MixerBar";
 import { RecommendationsBody } from "./RecommendationsBody";
@@ -325,9 +326,12 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
       // root.
       className="h-[100svh] flex flex-col overflow-hidden overflow-x-clip px-[var(--space-2xl)] pb-[var(--space-2xl)] font-body text-[var(--ink)]"
     >
-      {/* AnimationDebugPanel removed for now, not deleted — see
-          AnimationDebugPanel.tsx/animationDebugStore.ts, both left intact.
-          Re-add `<AnimationDebugPanel />` here if it's needed again. */}
+      {/* AnimationDebugPanel re-enabled to isolate the MixerBar drag jitter
+          live on-device — its "drag jitter diagnostics" toggles flip data-*
+          attributes on <html> that strip one result-card compositor layer at
+          a time (globals.css) with no rebuild/re-render. Remove this line
+          again once the offending layer is identified. */}
+      <AnimationDebugPanel />
 
       {/* flex-1 min-h-0: this column, not the root div above, is what
           fills 100svh minus this root's own pt/pb padding — a single flex

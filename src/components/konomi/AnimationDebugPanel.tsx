@@ -40,6 +40,19 @@ const EASE_FIELDS: { key: keyof AnimationDebugValues; label: string; group: stri
 
 const GROUP_ORDER = ["MixerBar panel (open/close/resize)", "RollingLabel roll (MatchSelector/LevelSelector/SortSelect)", "Result card enter/exit"];
 
+// Live drag-jitter isolation toggles. Each flips a data-* attribute on <html>
+// imperatively (no React re-render, no rebuild); matching CSS in globals.css
+// removes one result-card compositor layer while it's on. Goal: with cards
+// present, drag the MixerBar on-device and flip these one at a time to find
+// which layer(s) kill the jitter. In-memory only, inert when all are off.
+const DEBUG_TOGGLES: { attr: string; label: string }[] = [
+  { attr: "data-debug-no-card-filters", label: "no card filters (blur/contrast)" },
+  { attr: "data-debug-no-card-shadows", label: "no card shadows" },
+  { attr: "data-debug-flat-cards", label: "flat cards (no 3D/perspective)" },
+  { attr: "data-debug-no-back-fill", label: "no back-fill blur" },
+  { attr: "data-debug-hide-cards", label: "hide results (baseline)" },
+];
+
 export function AnimationDebugPanel() {
   const values = useAnimationDebugValues();
   // Starts collapsed to a single toggle button — a fixed panel this dense,
@@ -49,6 +62,19 @@ export function AnimationDebugPanel() {
   // component's own UI state, unrelated to the animation VALUES the store
   // holds.
   const [open, setOpen] = useState(false);
+  // Which live diagnostic toggles are on. Local (in-memory) — mirrors the
+  // data-* attributes set imperatively on <html> below, only so the
+  // checkboxes render their own state; the cards themselves react purely via
+  // CSS, so flipping one never re-renders the results.
+  const [debugFlags, setDebugFlags] = useState<Record<string, boolean>>({});
+  function toggleDebug(attr: string) {
+    setDebugFlags((prev) => {
+      const next = !prev[attr];
+      if (next) document.documentElement.setAttribute(attr, "true");
+      else document.documentElement.removeAttribute(attr);
+      return { ...prev, [attr]: next };
+    });
+  }
 
   if (!open) {
     return (
@@ -118,6 +144,20 @@ export function AnimationDebugPanel() {
             ))}
           </div>
         ))}
+        {/* Live drag-jitter isolation — see DEBUG_TOGGLES. Each checkbox
+            flips a data-* attribute on <html> imperatively; the cards react
+            via CSS only, so toggling is instant and never re-renders them. */}
+        <div className="flex flex-col gap-[var(--space-sm)] border-t-[length:var(--border-thin)] border-[var(--ink)] pt-[var(--space-sm)]">
+          <div className="text-[length:var(--text-3xs)] font-bold uppercase tracking-[var(--tracking-sm)] text-[var(--subtext)]">
+            drag jitter diagnostics (live)
+          </div>
+          {DEBUG_TOGGLES.map((tgl) => (
+            <label key={tgl.attr} className="flex items-center gap-[var(--space-sm)] cursor-pointer">
+              <input type="checkbox" checked={!!debugFlags[tgl.attr]} onChange={() => toggleDebug(tgl.attr)} className="cursor-pointer" />
+              <span>{tgl.label}</span>
+            </label>
+          ))}
+        </div>
         {/* Defaults reference, not another control — lets a reset be judged
             against the exact numbers it's resetting TO without leaving this
             panel. */}

@@ -610,6 +610,34 @@ html[data-mixbar-resizing] .konomi-card-reflection {
   display: none;
 }
 
+/* --- AnimationDebugPanel live diagnostics (drag-jitter isolation) ---
+   Each rule is gated on a data-* attribute the panel toggles on <html>
+   imperatively (no React re-render, no rebuild) so a card layer can be
+   removed live while dragging the MixerBar on-device to find which one
+   removes the jitter. All scoped to result cards / the results region;
+   inert when every toggle is off. Diagnostic only — see AnimationDebugPanel. */
+html[data-debug-no-card-filters] [data-result-card] img {
+  filter: none !important;
+}
+html[data-debug-no-card-shadows] [data-result-card] .result-card-face {
+  box-shadow: none !important;
+}
+html[data-debug-flat-cards] .result-card-persp {
+  perspective: none !important;
+}
+html[data-debug-flat-cards] .result-card-flip {
+  transform-style: flat !important;
+}
+html[data-debug-flat-cards] .result-card-face {
+  backface-visibility: visible !important;
+}
+html[data-debug-no-back-fill] .result-card-back-fill {
+  display: none !important;
+}
+html[data-debug-hide-cards] .results-region {
+  display: none !important;
+}
+
 /* RollingLabel's own slot-machine roll (MatchSelector/LevelSelector/
    SortSelect's collapsed forms) used to live here as roll-out-up/roll-in-up
    keyframes — removed once RollingLabel.tsx migrated to Motion

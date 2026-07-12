@@ -509,7 +509,7 @@ export function ResultCard({
             pre-removal stagger position with no separate lagging snapshot
             list. */}
       <motion.div
-        className="relative w-full h-full [perspective:1100px]"
+        className="result-card-persp relative w-full h-full [perspective:1100px]"
         variants={cardVariants}
         initial={isEntering ? "hidden" : false}
         animate="visible"
@@ -536,13 +536,13 @@ export function ResultCard({
         // and isn't the path a horizontal carousel swipe needs at that
         // moment anyway.
         className={[
-          "relative w-full h-full [transform-style:preserve-3d] transition-transform duration-500 [transition-timing-function:cubic-bezier(.4,.2,.2,1)]",
+          "result-card-flip relative w-full h-full [transform-style:preserve-3d] transition-transform duration-500 [transition-timing-function:cubic-bezier(.4,.2,.2,1)]",
           flipped ? "[transform:rotateY(180deg)]" : "",
         ].join(" ")}
       >
         <div
           className={[
-            "absolute inset-0 [backface-visibility:hidden] border-[length:var(--border-base)] border-[var(--ink)] overflow-hidden flex flex-col transition-opacity duration-200 bg-[var(--surface)] shadow-[var(--elev-4)]",
+            "result-card-face absolute inset-0 [backface-visibility:hidden] border-[length:var(--border-base)] border-[var(--ink)] overflow-hidden flex flex-col transition-opacity duration-200 bg-[var(--surface)] shadow-[var(--elev-4)]",
             flipped ? "opacity-0 pointer-events-none z-[var(--z-base)]" : "opacity-100 pointer-events-auto z-[var(--z-raised)]",
           ].join(" ")}
         >
@@ -1202,7 +1202,7 @@ export function ResultCard({
             harmless to leave permanently interactive either way. */}
         <div
           className={[
-            "absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] border-[length:var(--border-base)] border-[var(--ink)] overflow-hidden flex flex-col transition-opacity duration-200 bg-[var(--fill)] shadow-[var(--elev-4)] pointer-events-auto",
+            "result-card-face absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] border-[length:var(--border-base)] border-[var(--ink)] overflow-hidden flex flex-col transition-opacity duration-200 bg-[var(--fill)] shadow-[var(--elev-4)] pointer-events-auto",
             flipped ? "opacity-100 z-[var(--z-raised)]" : "opacity-0 z-[var(--z-base)]",
           ].join(" ")}
         >
@@ -1210,7 +1210,7 @@ export function ResultCard({
               own comment). Plain inset-0, no offset/translate: fills the
               WHOLE face. */}
           {hasImage && !reflectionBroken && (
-            <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ opacity: BACK_FILL_OPACITY }}>
+            <div aria-hidden="true" className="result-card-back-fill pointer-events-none absolute inset-0" style={{ opacity: BACK_FILL_OPACITY }}>
               <div
                 className="absolute inset-0"
                 style={{

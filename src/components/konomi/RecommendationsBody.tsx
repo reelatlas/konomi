@@ -395,7 +395,7 @@ export function RecommendationsBody({
     // circular: this element's own size comes from flex-1 above (external
     // to its own content), not from anything that would need to query it
     // first to know its size.
-    <div className="flow-root flex-1 min-h-0 [container-type:size]">
+    <div className="results-region flow-root flex-1 min-h-0 [container-type:size]">
       {!showResultsGrid && (
         // !showResultsGrid (hasResults, extended through any in-flight exit
         // animation — see its own comment above), not `empty` (!generated)
