@@ -1031,6 +1031,28 @@ export function MixerBar({
   // the two measurements are independent effects with their own
   // ResizeObservers, not one shared measure() doing both jobs.
   const measureGrowableFixedOverheadRef = useRef<() => void>(() => {});
+  // True for the duration of an ACTIVE window resize (set on every `resize`
+  // event, cleared a debounce after the last one). A third freeze trigger in
+  // the same family as isDraggingRef (a drag) and isTransitioningRef (an open/
+  // close/snap) — read inside both overhead measure() callbacks below so
+  // neither fixedOverheadPx nor growableFixedOverheadPx re-measures mid-resize.
+  //
+  // Why: those two overheads are ResizeObserver-driven (async — they land a
+  // frame or more after the render that changed layout), while the render body
+  // recomputes poolPanelMaxHeight/effectiveHeightPx/marginTop synchronously
+  // from a LIVE window.innerHeight (usePoolPanelMaxHeight subscribes to the same
+  // resize event). On a continuous resize the two clocks desync every frame, so
+  // the bar's bottom-anchoring marginTop lags its own height by a frame and the
+  // whole bar visibly jelly-rattles (worst on Safari, which fires far more
+  // resize events — address bar show/hide — than Chrome). Freezing the async
+  // half during the resize makes marginTop = (stable overhead) + (live, in-the-
+  // same-commit effectiveHeightPx): coherent every frame, so it tracks the
+  // viewport smoothly instead of chasing it. Exactly the standing rule this file
+  // already applies to drags (see fixedOverheadPx's own comment), a third
+  // trigger. The debounced settle below re-measures once, so a resize that
+  // crossed a real breakpoint (row heights genuinely changed) still corrects —
+  // just once, at the end, not rattling the whole way there.
+  const isWindowResizingRef = useRef(false);
   // Flips isEditModeTransitioning on the instant editMode changes — during
   // render itself, via React's own documented "adjust state when a value
   // changes" pattern (a conditional setState call in the render body,
@@ -1216,6 +1238,10 @@ export function MixerBar({
     if (!card || !dialog) return;
     function measure() {
       if (isDraggingRef.current) return;
+      // Frozen for an active window resize, same reasoning as the drag freeze
+      // above — see isWindowResizingRef's own declaration. The debounced settle
+      // there re-runs this via measureFixedOverheadRef once the resize stops.
+      if (isWindowResizingRef.current) return;
       // Skips every call while the open/close transition is in flight —
       // see isTransitioningRef's own declaration for why: dialog's real
       // height is still animating toward its target here, so anything
@@ -1527,6 +1553,9 @@ export function MixerBar({
       // real breakpoints), and handleEnd's own catch-up call already
       // re-measures the instant the drag ends.
       if (isDraggingRef.current) return;
+      // Frozen for an active window resize (measureGrowableFixedOverheadRef
+      // re-runs this at settle) — see isWindowResizingRef's own declaration.
+      if (isWindowResizingRef.current) return;
       // See editModeRef's own comment near its declaration — a late,
       // async callback from an instance whose editMode has since flipped
       // back to false would otherwise measure growable's collapsed
@@ -1540,6 +1569,44 @@ export function MixerBar({
     observer.observe(growable);
     measure();
     return () => observer.disconnect();
+  }, [editMode]);
+
+  // Debounced window-resize freeze — the "settle once it stops" half of the
+  // isWindowResizingRef mechanism (see its own declaration for the full why).
+  // On every resize event: mark a resize active (so both overhead measure()s
+  // above skip, freezing the async half of the marginTop/ceiling math while the
+  // synchronous, innerHeight-driven half keeps tracking the viewport in-commit),
+  // then arm a short timer. Only once RESIZE_SETTLE_MS passes with no further
+  // resize does it clear the flag and force one fresh measurement of both
+  // overheads — so a resize that genuinely changed row heights (a real
+  // breakpoint crossing) corrects exactly once, at the end, instead of the bar
+  // chasing an async value a frame behind it the whole way. Edit-mode only:
+  // outside edit mode there's no pool panel, no negative marginTop, and nothing
+  // that could rattle, so there's no reason to run the timer or freeze anything.
+  useEffect(() => {
+    if (!editMode) return;
+    const RESIZE_SETTLE_MS = 150;
+    let settleTimer: ReturnType<typeof setTimeout> | undefined;
+    function onResize() {
+      isWindowResizingRef.current = true;
+      if (settleTimer) clearTimeout(settleTimer);
+      settleTimer = setTimeout(() => {
+        isWindowResizingRef.current = false;
+        // Re-sync both overheads to the settled layout in one pass — the same
+        // catch-up handleEnd does when a drag releases.
+        measureFixedOverheadRef.current();
+        measureGrowableFixedOverheadRef.current();
+      }, RESIZE_SETTLE_MS);
+    }
+    window.addEventListener("resize", onResize);
+    return () => {
+      window.removeEventListener("resize", onResize);
+      if (settleTimer) clearTimeout(settleTimer);
+      // Never leave the freeze latched if the effect tears down mid-resize
+      // (e.g. edit mode closes) — a stuck-true flag would silently freeze the
+      // next edit session's very first measurement.
+      isWindowResizingRef.current = false;
+    };
   }, [editMode]);
 
   // Quick-resize buttons in the resize-handle row — 50%/100% are both
