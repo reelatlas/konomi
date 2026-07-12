@@ -599,6 +599,7 @@ export function RecommendationsBody({
               the spacer's own declared width.) */}
           <ScrollFadeArea
             orientation="horizontal"
+            viewportClassName="results-carousel"
             snap
             scrollPaddingStart="6%"
             scrollResetKey={recommendGen}

@@ -637,6 +637,26 @@ html[data-debug-no-back-fill] .result-card-back-fill {
 html[data-debug-hide-cards] .results-region {
   display: none !important;
 }
+/* Structural / scroll-layer probes (Cause B): each result-card scroll
+   container is a promoted, specially-managed compositor layer on iOS; many
+   nested ones (carousel + per-card tag scroll + per-card description scroll)
+   are the leading suspect for the jitter that survives stripping all card
+   decoration. overflow:hidden neutralizes a container's scroll (and its layer
+   promotion) without changing layout; content-visibility:auto lets the
+   browser skip off-screen cards entirely. */
+html[data-debug-no-carousel-scroll] .results-carousel {
+  overflow: hidden !important;
+}
+html[data-debug-no-tag-scroll] .result-card-tag-scroll {
+  overflow: hidden !important;
+}
+html[data-debug-no-desc-scroll] .result-card-desc-scroll {
+  overflow: hidden !important;
+}
+html[data-debug-contain-cards] [data-result-card] {
+  content-visibility: auto !important;
+  contain-intrinsic-size: auto var(--result-card-height) !important;
+}
 
 /* RollingLabel's own slot-machine roll (MatchSelector/LevelSelector/
    SortSelect's collapsed forms) used to live here as roll-out-up/roll-in-up

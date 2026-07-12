@@ -1334,7 +1334,7 @@ export function ResultCard({
                     "Round five"). No snap either: this is plain scrolling
                     prose, not a row grid with real snap points to
                     register. */}
-                <ScrollFadeArea height="h-full" groupName="reveal-nested" surfaceColor="var(--surface)">
+                <ScrollFadeArea height="h-full" groupName="reveal-nested" surfaceColor="var(--surface)" viewportClassName="result-card-desc-scroll">
                   <p className="whitespace-pre-line font-body text-[length:var(--text-sm)] text-[var(--ink)] px-[var(--space-md)] py-[var(--space-md)]">
                     {series.description ?? "No description available."}
                   </p>

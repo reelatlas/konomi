@@ -51,6 +51,11 @@ const DEBUG_TOGGLES: { attr: string; label: string }[] = [
   { attr: "data-debug-flat-cards", label: "flat cards (no 3D/perspective)" },
   { attr: "data-debug-no-back-fill", label: "no back-fill blur" },
   { attr: "data-debug-hide-cards", label: "hide results (baseline)" },
+  // Structural / scroll-layer probes (Cause B — decoration already ruled out)
+  { attr: "data-debug-no-carousel-scroll", label: "no carousel scroll" },
+  { attr: "data-debug-no-tag-scroll", label: "no card tag scroll" },
+  { attr: "data-debug-no-desc-scroll", label: "no card desc scroll" },
+  { attr: "data-debug-contain-cards", label: "contain cards (content-visibility)" },
 ];
 
 export function AnimationDebugPanel() {
