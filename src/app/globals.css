@@ -648,13 +648,19 @@
   transition: none;
 }
 
-/* 1 — LIFT: whole row rises 2px (composited translate, no scale/blur), settles */
+/* 1 — PRESS: the whole row shrinks slightly inward, like it got pressed, then
+       reverts. Safe scale here specifically: the row is already ONE promoted
+       raster during .is-animating, so scale() scales that cached bitmap on the
+       compositor (a little interpolation softness that reads AS the press) — it
+       does NOT re-rasterize the strokes per frame the way the old growing-card
+       resize-scale did, so it can't bring back the shimmer. */
 [data-icon-fx="1"] .mixbar-controls-row.is-animating {
-  transform: translateY(-2px) translateZ(0);
+  transform: scale(0.97) translateZ(0);
 }
-/* 2 — ACCENT TINT: stroked icons shift to the bright accent, settle to ink */
+/* 2 — OBSCURE: stroked icons fade to the SAME ink at 50% (color, not opacity, so
+       no extra stacking layer) — a slight obscure, then back to full. */
 [data-icon-fx="2"] .mixbar-controls-row.is-animating svg {
-  color: var(--secondary);
+  color: color-mix(in srgb, var(--ink) 50%, transparent);
 }
 /* 3 — SOFT GLOW: a soft accent bloom behind each control box, settles */
 [data-icon-fx="3"] .mixbar-controls-row.is-animating button {
@@ -669,12 +675,13 @@
 [data-icon-fx="5"] .mixbar-controls-row.is-animating {
   background-color: color-mix(in srgb, var(--secondary) 16%, transparent);
 }
-/* 6 — LIFT + TINT: the 2px rise and the accent tint together (fuller "engaged") */
+/* 6 — PRESS (deep): a slightly stronger shrink whose origin is the bar's own
+       BASE (center bottom), so the row reads as pressed DOWN into its footing
+       rather than shrinking evenly in place — fits this bottom-anchored bar.
+       Same cached-layer scale as treatment 1, so no re-raster/shimmer. */
 [data-icon-fx="6"] .mixbar-controls-row.is-animating {
-  transform: translateY(-2px) translateZ(0);
-}
-[data-icon-fx="6"] .mixbar-controls-row.is-animating svg {
-  color: var(--secondary);
+  transform: scale(0.96) translateZ(0);
+  transform-origin: center bottom;
 }
 
 /* RollingLabel's own slot-machine roll (MatchSelector/LevelSelector/

@@ -14,12 +14,12 @@ import { useEffect, useState } from "react";
 // Deliberately plain/utilitarian styling so it never gets mistaken for real UI.
 const OPTIONS: { id: string; label: string }[] = [
   { id: "", label: "off" },
-  { id: "1", label: "1 · lift (row rises 2px)" },
-  { id: "2", label: "2 · accent tint (icons)" },
+  { id: "1", label: "1 · press (shrink in)" },
+  { id: "2", label: "2 · obscure (ink 50%)" },
   { id: "3", label: "3 · soft glow" },
   { id: "4", label: "4 · hard ring" },
   { id: "5", label: "5 · row wash" },
-  { id: "6", label: "6 · lift + tint" },
+  { id: "6", label: "6 · press (into base)" },
 ];
 
 export function IconFxDebugPanel() {
