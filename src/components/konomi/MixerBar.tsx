@@ -787,6 +787,25 @@ export function MixerBar({
   // to one compositor layer (.mixbar-controls-row translateZ in globals.css),
   // so the row is translated, not re-rastered. Same `real` path on every engine
   // now; the whole-pixel geometry (AGENTS.md) keeps it sharp at rest.
+  //
+  // FOUR-CORNERS UPDATE (post-shimmer-fix): the "layout jitters" horn of the old
+  // "a live + crisp-bordered + smooth REAL-height resize is impossible on WebKit"
+  // constraint that drove Rounds 1-6 below is NO LONGER load-bearing. That
+  // "jitter" was never fundamental real-height layout cost — it was WebKit re-
+  // rasterizing the thin SVG *strokes* per frame (icons-only shimmer; text/
+  // borders/fills rode along fine), now fixed at the compositor layer above. So
+  // the REAL height/marginTop animation IS viable on every engine for the
+  // continuous case — which is why the current code runs it with no transform
+  // fake, no clip-path overlay, no per-engine ghost/scaleY split. The transform
+  // paths the Rounds below chased stay abandoned on their OWN merits, NOT rescued
+  // by this fix: `layout="position"` still snaps size while easing position
+  // ("swings into place" overshoot); clip-path still decouples the border and
+  // leaks backgrounds. Do NOT re-tread them to escape "layout jitters" — that's
+  // solved at the compositor layer. Only residual is a subtle one-time promote/
+  // demote AA re-raster blip at the layer toggle (accepted; the transform paths
+  // wouldn't have avoided it and had worse artifacts). Full writeup in
+  // DESIGN_SYSTEM.md. The Rounds below are kept as historical failure-mode record.
+  //
   // Round 5 (current): live drag drives REAL height/marginTop directly,
   // via Motion values, instead of pinning to a ceiling and faking the
   // reveal with a clip-path. Four earlier rounds are worth recording in
