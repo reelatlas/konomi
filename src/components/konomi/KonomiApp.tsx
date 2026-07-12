@@ -36,6 +36,50 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
   // else — the only way back to expanded is the manual toggle (Masthead's
   // own onToggleCollapse, below).
   const [mastheadCollapsed, setMastheadCollapsed] = useState(false);
+  // The shell root itself (below) — only needed so the effect right after
+  // this can listen for scroll directly on it; nothing else reads this ref.
+  const shellRef = useRef<HTMLDivElement>(null);
+  // Requested directly: while expanded, a small scroll should collapse the
+  // masthead instead of actually scrolling — "scroll a little" reads as
+  // "I'm done with the banner, show me more," the same intent a
+  // traditional collapsing-header pattern captures, just triggered instead
+  // of continuously scroll-linked (this app's shell only has two discrete
+  // masthead sizes, not a smooth scroll-scrubbed range between them).
+  // Gated on !mastheadCollapsed so this never attaches at all once
+  // collapsed — nothing to listen for anyway, since collapsed mode's own
+  // overflow-hidden (KonomiApp's own root className, below) means the
+  // shell can't scroll in the first place there.
+  //
+  // A plain reactive `scroll` listener (passive), not wheel/touchmove
+  // interception the way MixerBar's own blockScrollThrough works — that
+  // pattern exists there specifically to stop a gesture from ever reaching
+  // the page at all, which matters when something else is listening for
+  // that leak; here, the "cost" of letting a couple px of real scroll
+  // happen before reacting is just a same-frame snap back to 0, masked by
+  // the collapse transition itself (280ms, Masthead.tsx's own `layout`
+  // animation) starting immediately after. Simpler and lower-risk than
+  // hooking wheel/touch directly, given this file's own history of real
+  // bugs in exactly that territory — only worth reaching for that if this
+  // ever visibly flashes on a real device, not preemptively.
+  //
+  // THRESHOLD_PX (4): a small dead-zone, not scrollTop > 0 — absorbs
+  // sub-pixel/rubber-band scroll noise (iOS's own overscroll bounce can
+  // report a few px of scrollTop with no real user scroll intent behind
+  // it) without meaningfully delaying a genuine scroll's own reaction.
+  useEffect(() => {
+    if (mastheadCollapsed) return;
+    const shell = shellRef.current;
+    if (!shell) return;
+    const THRESHOLD_PX = 4;
+    function handleScroll() {
+      if (shell && shell.scrollTop > THRESHOLD_PX) {
+        setMastheadCollapsed(true);
+        shell.scrollTop = 0;
+      }
+    }
+    shell.addEventListener("scroll", handleScroll, { passive: true });
+    return () => shell.removeEventListener("scroll", handleScroll);
+  }, [mastheadCollapsed]);
 
   // Restores the persisted theme into React state on mount, then keeps
   // <html> and localStorage in sync with k.theme on every subsequent
@@ -175,6 +219,7 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
       // to live regardless of whether it also happened to be the scroll
       // root.
       className={`h-[100svh] flex flex-col overflow-x-clip px-[var(--space-2xl)] pb-[var(--space-2xl)] font-body text-[var(--ink)] ${mastheadCollapsed ? "overflow-hidden" : "overflow-y-auto pt-[var(--space-2xl)]"}`}
+      ref={shellRef}
     >
       {/* AnimationDebugPanel removed for now, not deleted — see
           AnimationDebugPanel.tsx/animationDebugStore.ts, both left intact.
