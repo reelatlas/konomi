@@ -59,15 +59,9 @@ percentages, `auto`/flex/grid distribution, `mx-auto`/centering math, viewport
 math, transform interpolation between whole endpoints, shadows, hairline/`.5px`
 symmetric borders, letter-spacing. Per-frame device-pixel snapping of animated
 values is NOT recommended — it causes visible stepping and the layer-promotion
-fix makes it unnecessary.
-
-One exception that IS recommended when promotion is toggled on/off (per the
-scoping rule above): snap the **settled/committed resting geometry** to the
-device-pixel grid (`Math.round(v*dpr)/dpr`) at settle boundaries only, never
-per frame. A layer promoted only while animating rasterizes on the device grid,
-then demotes to exact (possibly fractional) in-flow rendering at rest — if the
-resting geometry is fractional, promoted and demoted positions differ by ~1px
-and the content visibly shifts at the animation's start/end. Snapping only the
-committed endpoints (measured overhead, final target height/margin) makes the
-two positions coincide without stepping any in-flight frame.
+fix makes it unnecessary. Snapping the *settled* geometry to the device grid was
+also tried for the promote/demote boundary shift (below) and did NOT fix it — the
+boundary artifact is an anti-aliasing/re-rasterization mode change at layer
+create/destroy, not a fractional-position problem, so geometry snapping can't
+touch it. Reverted; don't re-add it as a shimmer/boundary fix.
 <!-- END:webkit-icon-shimmer -->

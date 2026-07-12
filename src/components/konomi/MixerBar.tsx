@@ -32,34 +32,6 @@ import {
 import { TagPoolBody } from "./TagPoolBody";
 import { TagSlot } from "./TagSlot";
 
-// Snap a SETTLED (resting, never in-flight) geometry value to the device-pixel
-// grid: Math.round(v * dpr) / dpr. Used only at settle/commit boundaries (the
-// overhead measurements, and effectiveHeightPx's non-drag branch), never per
-// animation frame — see each call site. Why: the controls row is promoted to
-// its own compositor layer only WHILE animating (.is-animating, the shimmer
-// fix) and demoted at rest. A promoted layer is rasterized snapped to the
-// device-pixel grid; a demoted in-flow row renders at its exact (possibly
-// fractional) CSS position. If the settled height/overhead/marginTop land on a
-// fractional device pixel — common on real Safari/Retina, where measured
-// getBoundingClientRect overhead and the innerHeight*ratio ceiling are
-// fractional — the promoted and demoted positions differ by up to ~1px, so the
-// icons visibly "set in" on promote and "return" on demote. Snapping only the
-// committed resting geometry makes the two positions coincide, WITHOUT snapping
-// any in-flight frame (which would cause visible stepping — the reason per-frame
-// snapping was rejected earlier, see AGENTS.md webkit-icon-shimmer).
-//
-// SSR-guarded (returns v untouched server-side; the only values it snaps are
-// edit-mode-only and client-interaction-driven, so this never affects the
-// server/first-paint render). Honors data-mixbar-snap="off" on <html> for live
-// Safari A/B: set it in the Web Inspector, then open/close the bar to re-render
-// and compare snapped vs unsnapped resting positions.
-function snapSettledToDevicePx(v: number): number {
-  if (typeof window === "undefined") return v;
-  if (document.documentElement.dataset.mixbarSnap === "off") return v;
-  const dpr = window.devicePixelRatio || 1;
-  return Math.round(v * dpr) / dpr;
-}
-
 interface MixerBarProps {
   slots: Slot[];
   dragOverIndex: number;
@@ -795,6 +767,19 @@ export function MixerBar({
   // release, not on every mousemove.
   const persistedHeightPx = usePoolPanelHeight();
   const [dragHeightPx, setDragHeightPx] = useState<number | null>(null);
+  // Task C (height-freeze): effectiveHeightPx snapshotted at the START of a
+  // window-resize burst and held for its whole duration, so the panel's own
+  // height stops twitching mid-resize. null = not resizing. isWindowResizingRef
+  // already freezes the async OVERHEAD (the marginTop/ceiling desync); this
+  // freezes the height too. The one that actually matters day-to-day is mobile
+  // Safari's address-bar show/hide storm: every one of those fires a `resize`
+  // that changes window.innerHeight -> poolPanelMaxHeight, and when the panel
+  // sits near that ceiling the clamp re-snaps its height on every event, so the
+  // panel visibly jumps while you're just scrolling. Holding the pre-resize
+  // height for the burst and re-clamping once on settle (see the resize effect
+  // below) turns that storm into at most a single settle at the end. Set only
+  // from that effect's own resize handler; the render body just reads it.
+  const [frozenResizeHeightPx, setFrozenResizeHeightPx] = useState<number | null>(null);
   // The resize drag animates the panel's REAL height/margin-top every frame
   // (see handleResizeStart). On WebKit that per-frame paint re-rasterizes the
   // controls row's thin SVG-stroke icons and snaps them to the pixel grid,
@@ -1286,11 +1271,7 @@ export function MixerBar({
       const cardRect = card!.getBoundingClientRect();
       const dialogHeight = dialog!.getBoundingClientRect().height;
       const surplusBelow = Math.max(0, window.innerHeight - cardRect.bottom);
-      // snapSettledToDevicePx: this measure() only ever runs at rest (frozen
-      // during drag/transition/resize above), so snapping here snaps the
-      // SETTLED overhead only — feeds targetMarginTop on-grid without touching
-      // any in-flight frame. See the helper's own comment.
-      setFixedOverheadPx(snapSettledToDevicePx(Math.max(0, cardRect.height - dialogHeight + surplusBelow)));
+      setFixedOverheadPx(Math.max(0, cardRect.height - dialogHeight + surplusBelow));
     }
     measureFixedOverheadRef.current = measure;
     const observer = new ResizeObserver(measure);
@@ -1402,18 +1383,19 @@ export function MixerBar({
   // freeze (above) covers the same class of mid-drag resize event for the
   // other consumers of poolPanelMaxHeight (canShowResizeHandleRow, the
   // 50%/100% buttons), so this line and that guard are two halves of one fix.
-  // The DRAG branch (dragHeightPx) is deliberately NOT snapped — it drives the
-  // live, in-flight resize and must stay smooth per-frame. The SETTLED branch
-  // is snapped to the device-pixel grid: it covers every resting height source
-  // in one place (persisted after a drag release, a 50%/100%/reset snap target,
-  // the POOL_HEIGHT_MIN default, and the fractional poolPanelMaxHeight ceiling
-  // when the clamp binds), so targetHeight and targetMarginTop below both derive
-  // from an on-grid height and the demoted controls row lands exactly where its
-  // promoted layer rasterized. During an open/close/snap transition this snapped
-  // value is the CSS-transition TARGET, so the animation still interpolates
-  // smoothly toward it — only the endpoint is snapped, never the frames.
+  // Priority: a live drag wins (tracks the pointer); then a frozen resize height
+  // (Task C — held for a resize burst so the panel doesn't twitch, re-clamped
+  // once on settle); otherwise the normal live clamp. frozenResizeHeightPx was
+  // itself the live-clamped value at the instant the resize started, so it's
+  // already a valid height — deliberately NOT re-clamped against the live
+  // ceiling here, since re-clamping every resize event is exactly the twitch
+  // this freezes out (same reasoning as the dragHeightPx branch above).
   const effectiveHeightPx =
-    dragHeightPx !== null ? dragHeightPx : snapSettledToDevicePx(clampPoolPanelHeight(persistedHeightPx ?? defaultPoolHeightPx, poolPanelMaxHeight));
+    dragHeightPx !== null
+      ? dragHeightPx
+      : frozenResizeHeightPx !== null
+        ? frozenResizeHeightPx
+        : clampPoolPanelHeight(persistedHeightPx ?? defaultPoolHeightPx, poolPanelMaxHeight);
 
   // effectiveHeightPxRef mirrors effectiveHeightPx every render without
   // being a dependency of the effect below — same ref-mirroring pattern
@@ -1604,10 +1586,7 @@ export function MixerBar({
       // (resize row unmounted, dialog max-h-0) height and commit a wrong,
       // near-zero overhead.
       if (!editModeRef.current) return;
-      // Snapped for the same reason as fixedOverheadPx above — settled-only
-      // (this measure() is frozen during drag/transition/resize), so the
-      // resting marginTop it feeds lands on the device-pixel grid.
-      setGrowableFixedOverheadPx(snapSettledToDevicePx(Math.max(0, growable!.getBoundingClientRect().height - effectiveHeightPxRef.current)));
+      setGrowableFixedOverheadPx(Math.max(0, growable!.getBoundingClientRect().height - effectiveHeightPxRef.current));
     }
     measureGrowableFixedOverheadRef.current = measure;
     const observer = new ResizeObserver(measure);
@@ -1633,12 +1612,25 @@ export function MixerBar({
     const RESIZE_SETTLE_MS = 150;
     let settleTimer: ReturnType<typeof setTimeout> | undefined;
     function onResize() {
+      // On the FIRST event of a burst only (false -> true), snapshot the current
+      // effectiveHeightPx (Task C) so the panel height is held at its pre-resize
+      // value for the whole burst instead of re-clamping on every event. Reading
+      // the ref here (not state) is deliberate: this is an event handler, and the
+      // ref holds the value from the last committed render, i.e. before this
+      // resize perturbed anything. Never a drag at this point (a drag suppresses
+      // nothing here, but dragHeightPx takes priority in the render body anyway).
+      if (!isWindowResizingRef.current) {
+        setFrozenResizeHeightPx(effectiveHeightPxRef.current);
+      }
       isWindowResizingRef.current = true;
       if (settleTimer) clearTimeout(settleTimer);
       settleTimer = setTimeout(() => {
         isWindowResizingRef.current = false;
-        // Re-sync both overheads to the settled layout in one pass — the same
-        // catch-up handleEnd does when a drag releases.
+        // Release the height freeze -> the render body re-clamps against the
+        // now-settled poolPanelMaxHeight exactly once (shrinking the panel to
+        // fit if the viewport genuinely got shorter), and re-sync both overheads
+        // in the same pass — the same catch-up handleEnd does on drag release.
+        setFrozenResizeHeightPx(null);
         measureFixedOverheadRef.current();
         measureGrowableFixedOverheadRef.current();
       }, RESIZE_SETTLE_MS);
@@ -1647,10 +1639,11 @@ export function MixerBar({
     return () => {
       window.removeEventListener("resize", onResize);
       if (settleTimer) clearTimeout(settleTimer);
-      // Never leave the freeze latched if the effect tears down mid-resize
-      // (e.g. edit mode closes) — a stuck-true flag would silently freeze the
-      // next edit session's very first measurement.
+      // Never leave either freeze latched if the effect tears down mid-resize
+      // (e.g. edit mode closes) — a stuck flag/height would silently freeze the
+      // next edit session's very first measurement or height.
       isWindowResizingRef.current = false;
+      setFrozenResizeHeightPx(null);
     };
   }, [editMode]);
 
