@@ -71,13 +71,12 @@ export function AnimationDebugPanel() {
   // data-* attributes set imperatively on <html> below, only so the
   // checkboxes render their own state; the cards themselves react purely via
   // CSS, so flipping one never re-renders the results.
-  // Resize-mode prototype selector (real / ghost / scale). Sets
-  // data-resize-mode on <html>; MixerBar reads it at drag start. "real" clears
-  // the attribute (default behavior). See MixerBar's handleResizeStart.
-  const [resizeMode, setResizeModeState] = useState<"real" | "ghost" | "scale">("real");
-  function setResizeMode(mode: "real" | "ghost" | "scale") {
+  // Resize-mode prototype selector. "auto" clears data-resize-mode so MixerBar
+  // picks its platform default; the other buttons force a specific path.
+  const [resizeMode, setResizeModeState] = useState<"auto" | "real" | "ghost" | "scale">("auto");
+  function setResizeMode(mode: "auto" | "real" | "ghost" | "scale") {
     setResizeModeState(mode);
-    if (mode === "real") document.documentElement.removeAttribute("data-resize-mode");
+    if (mode === "auto") document.documentElement.removeAttribute("data-resize-mode");
     else document.documentElement.setAttribute("data-resize-mode", mode);
   }
   const [debugFlags, setDebugFlags] = useState<Record<string, boolean>>({});
@@ -166,7 +165,7 @@ export function AnimationDebugPanel() {
             resize mode (prototype)
           </div>
           <div className="flex gap-[var(--space-xs)]">
-            {(["real", "ghost", "scale"] as const).map((mode) => (
+            {(["auto", "real", "ghost", "scale"] as const).map((mode) => (
               <button
                 key={mode}
                 type="button"

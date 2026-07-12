@@ -33,6 +33,17 @@ import {
 import { TagPoolBody } from "./TagPoolBody";
 import { TagSlot } from "./TagSlot";
 
+// Scope the drag fallback to the platform that actually shows the jitter:
+// physical iOS/iPadOS WebKit. Desktop Safari and desktop narrow viewports keep
+// the normal per-frame real-height drag path.
+function isIOSWebKitTouchDevice(): boolean {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent;
+  const platform = navigator.platform;
+  const isIOS = /iPad|iPhone|iPod/.test(ua) || (platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  return isIOS && ua.includes("AppleWebKit");
+}
+
 interface MixerBarProps {
   slots: Slot[];
   dragOverIndex: number;
@@ -769,20 +780,21 @@ export function MixerBar({
   const persistedHeightPx = usePoolPanelHeight();
   const [dragHeightPx, setDragHeightPx] = useState<number | null>(null);
   // --- Resize-mode prototypes (AnimationDebugPanel-switchable, on-device) ---
-  // "real" (default, current): the drag animates the panel's REAL height every
-  // frame (layout-tier) — smooth with no content on screen, but the confirmed
-  // per-frame layout+composite jitter once cards are present. The other two
-  // are compositor-only (transform), so they stay smooth regardless of
-  // on-screen content, each relaxing one thing the real version can't:
+  // "real" (default): the drag animates the panel's REAL height every frame
+  // (layout-tier) — smooth on desktop Safari and desktop narrow viewports, but
+  // the confirmed per-frame layout+composite jitter once cards are present on
+  // physical iOS/iPadOS WebKit. That platform defaults to "scale" instead; the
+  // other paths are compositor-only (transform), so they stay smooth regardless
+  // of on-screen content, each relaxing one thing the real version can't:
   //   "ghost": panel holds still; a guideline follows the finger via transform;
   //            on release the real height animates once to the target. Crisp
   //            border, no live content reveal.
   //   "scale": the card grows live via scaleY(transform, origin bottom) —
   //            keeps the live-growth feel, but the border/content soften
   //            (scaled) mid-drag and snap crisp on release.
-  // Read once at drag start from data-resize-mode on <html> (the panel sets it
-  // imperatively). Prototype scaffolding — collapses back to plain "real" once
-  // a direction is chosen. See AnimationDebugPanel / DESIGN_SYSTEM.md.
+  // Read once at drag start from data-resize-mode on <html> (the debug panel
+  // sets it imperatively), otherwise "scale" only for iOS WebKit and "real"
+  // everywhere else. See AnimationDebugPanel / DESIGN_SYSTEM.md.
   const [showGuideline, setShowGuideline] = useState(false);
   const guidelineRef = useRef<HTMLDivElement>(null);
   // Round 5 (current): live drag drives REAL height/marginTop directly,
@@ -1680,9 +1692,13 @@ export function MixerBar({
     // pointerdown already bubbles up to on its own — nothing extra needed
     // here for that half.
     isDraggingRef.current = true;
-    // Which prototype drives this drag — read once, held for the whole
-    // gesture (see the state declaration near dragHeightPx). Default "real".
-    const resizeMode = (document.documentElement.getAttribute("data-resize-mode") as "real" | "ghost" | "scale" | null) ?? "real";
+    // Which drag path drives this gesture — read once, held for the whole
+    // gesture (see the state declaration near dragHeightPx). The debug panel's
+    // override wins; otherwise only iOS/iPadOS WebKit gets the compositor-only
+    // path, while desktop Safari and every other target keep "real".
+    const resizeMode =
+      (document.documentElement.getAttribute("data-resize-mode") as "real" | "ghost" | "scale" | null) ??
+      (isIOSWebKitTouchDevice() ? "scale" : "real");
     // Pause RecommendButton's two always-on rotating clip-path star layers
     // for the drag's duration — they re-composite every frame regardless of
     // the drag and pile onto its per-frame composite budget on a real phone.
