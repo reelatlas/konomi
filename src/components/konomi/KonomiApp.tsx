@@ -327,33 +327,47 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
           own centering working the same as before. */}
       <div className="relative z-[var(--z-raised)] flex flex-col flex-1 min-h-0 max-w-[1280px] mx-auto w-full">
         {/* Wraps Masthead + results only — MixerBar (below, outside this
-            div) is deliberately not part of it. This is now the actual
-            scroll container: overflow-y-auto UNCONDITIONALLY now, in both
-            states, not the collapsed-is-hidden/expanded-is-auto toggle an
-            earlier pass had here. That toggle existed to keep MixerBar's
-            own touch-handling verified against a hard overflow:hidden —
-            moot now that MixerBar is a sibling of this div, not a
-            descendant of it (see this div's own parent comment): a
-            gesture on MixerBar can't reach anything in here at all
-            regardless of this div's own overflow value, so there's no
-            remaining reason to special-case collapsed mode. auto with
-            nothing to scroll (collapsed mode's own content, by
-            construction, always fits exactly) shows no scrollbar and
-            behaves identically to hidden — this also closes a real,
-            narrow gap the old hidden-while-collapsed version had (an
-            extreme-enough short viewport could clip a couple px even in
-            "always fits" mode; auto lets that same case scroll instead).
-            pt-[space-2xl] stays conditional on mastheadCollapsed, a
-            separate concern from overflow: the expanded masthead keeps
-            its 24px breathing room, the collapsed one sits flush at the
-            true top edge — matching the old scroll-triggered condensed
-            bar's own top-0 positioning. scrollableRef is what the
+            div) is deliberately not part of it. scrollableRef is what the
             wheel/touch gesture effect above listens on (a real `scroll`
             event has nothing to fire from in the common case — see that
-            effect's own comment for why it doesn't rely on one). */}
+            effect's own comment for why it doesn't rely on one; the effect
+            reads deltas, never scrollTop-driven scroll events, so this div
+            does NOT need to be a real overflow scroller for collapse/expand
+            to work).
+
+            overflow is deliberately VISIBLE here (no overflow-y-auto),
+            reverted from a Phase-1 app-shell overflow-y-auto that was
+            confirmed live to clip the results row's own bleed on BOTH axes
+            and reported as three separate regressions: the card flip
+            clipping vertically AND horizontally, the furthest-right card's
+            right shadow cut off, and the carousel scroll arrows cut off.
+            The horizontal half is the exact CSS gotcha this app already
+            documents on the root (see the root div's own overflow-x-clip
+            comment): overflow-y:auto with an otherwise-visible x axis makes
+            overflow-x compute to auto too, so a y-scroller silently clips x
+            as well. The results row intentionally bleeds past its own box —
+            the flip's ±40px vertical bulge (RecommendationsBody's pt/pb-40 +
+            -mt/-mb-40 net-zero pair), the elev-4 right/bottom card shadow,
+            and ScrollFadeArea's edge arrows — none of which can survive a
+            clipping ancestor. A y-scroller can't coexist with a visible x
+            axis, so the scroller had to go, not just its x clip.
+
+            The only thing overflow-y-auto bought was a couple-px scroll on
+            an extreme-short viewport (expanded masthead + very short
+            screen); that case is rare and already recoverable by collapsing
+            the masthead, a strictly better trade than clipping the results
+            bleed on every flip/scroll. min-h-0 + flex-1 still size this div
+            (and RecommendationsBody's 100cqh card height through it)
+            exactly as before — overflow doesn't affect that. The results
+            carousel keeps its OWN overflow-x-auto (ScrollFadeArea), and the
+            root's overflow-x-clip is the backstop against any real
+            horizontal page scroll, so visible here can't leak one.
+            pt-[space-2xl] stays conditional on mastheadCollapsed: the
+            expanded masthead keeps its 24px breathing room, the collapsed
+            one sits flush at the true top edge. */}
         <div
           ref={scrollableRef}
-          className={`flex flex-col flex-1 min-h-0 overflow-y-auto ${mastheadCollapsed ? "" : "pt-[var(--space-2xl)]"}`}
+          className={`flex flex-col flex-1 min-h-0 ${mastheadCollapsed ? "" : "pt-[var(--space-2xl)]"}`}
         >
           <Masthead
             theme={k.theme}
