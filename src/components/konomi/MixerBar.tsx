@@ -2146,7 +2146,47 @@ export function MixerBar({
         // only what it visually needs to paint the card (border/padding/
         // background/shadow); it carries no positioning of its own at all
         // (a plain in-flow block, filling its sticky parent's full box).
-        className="px-[var(--space-2xl)] py-[var(--space-xl)] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-4)]"
+        //
+        // [contain:layout] — the real fix for the mobile-only open/close/
+        // resize jitter, found via on-device Safari Web Inspector (Timeline
+        // + Elements panel, physical iPhone, not reproducible in headless
+        // or emulated-mobile Chromium the way this file's other real-
+        // device bugs haven't been). dialogRef already carries this same
+        // property, but it only isolates dialogRef's OWN descendants —
+        // Row 2 (the controls row) is cardRef's OTHER child, a sibling of
+        // growableRef entirely outside dialogRef's own boundary, and
+        // nothing was isolating IT. Confirmed directly from an on-device
+        // capture: selecting the tag-slots row's own "Scroll right" button
+        // — a descendant of Row 2, nothing to do with the edit panel —
+        // showed it being re-touched every single frame the outer
+        // wrapper's real marginTop changed (visible in the Timeline as
+        // continuous Layout/Paint activity for the whole resize gesture,
+        // sustained 60-80% CPU). Without a containment boundary on cardRef
+        // itself, the browser can't treat its subtree as a sealed,
+        // already-computed unit that simply shifts when an ancestor's
+        // marginTop changes — it has to walk back into everything inside
+        // cardRef, Row 2 included, to confirm nothing there needs to
+        // change, every tick, even though the answer is always "nothing."
+        // A fast machine finishes that unnecessary work well inside a
+        // frame (why this never reproduced in headless testing, on
+        // desktop, or in emulated-mobile viewports); a real phone doesn't
+        // always finish in time, and that's the jitter — not a wrong
+        // answer, a late one.
+        //
+        // This also explains why bisecting the jitter back through this
+        // file's history (as far as commits from long before this
+        // session's Motion migration even started) never found a clean
+        // commit: cardRef (or its equivalent ancestor in every earlier
+        // version) has animated marginTop/height every frame since this
+        // bar was first built, and none of those versions ever put a
+        // containment boundary around it either — the gap predates
+        // everything this session touched, there was simply nothing to
+        // bisect. `layout` alone, not `layout paint` or `strict` — matches
+        // dialogRef's own existing choice, doesn't clip overflow or affect
+        // painting bounds, only isolates internal layout computation from
+        // external (ancestor) influence, the one thing actually needed
+        // here.
+        className="px-[var(--space-2xl)] py-[var(--space-xl)] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-4)] [contain:layout]"
       >
       {/* growableRef wraps dialogRef alone now — no separate resize-handle
           row sibling anymore (see this file's own top comment for why that
