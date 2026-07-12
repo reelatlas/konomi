@@ -178,7 +178,7 @@ export function TagPoolBody({
   const active = visibleSections.find(({ section }) => section.key === activeSectionKey) ?? visibleSections[0];
 
   return (
-    <div className="flex flex-col" style={{ gap: STRIP_GAP }}>
+    <div className="flex flex-col min-w-0" style={{ gap: STRIP_GAP }}>
       {/* Tabs row — SectionTabStrip on the left, MixerBar's resize grip/
           shortcuts/close button (trailingControls) fixed to the right.
           Same layout convention MixerBar's own old resize-handle row used
@@ -193,7 +193,7 @@ export function TagPoolBody({
           ResizeObserver (below) measures this whole row, trailingControls
           included, with no extra code needed for that — it already
           measures whatever this row's real rendered height is. */}
-      <div ref={rowRef} className="flex items-center justify-between gap-x-[var(--space-lg)]">
+      <div ref={rowRef} className="flex items-center justify-between gap-x-[var(--space-lg)] min-w-0">
         <div className="min-w-0 w-fit">
           <SectionTabStrip
             sections={visibleSections.map(({ section, tags }) => ({

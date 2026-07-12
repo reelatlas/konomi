@@ -2198,7 +2198,18 @@ export function MixerBar({
     // so the composite cost stops scaling with the panel's height. Visually
     // identical (same 5px 5px 0 --ink hard shadow). See DESIGN_SYSTEM.md.
     <div
-      className="sticky bottom-0 z-[var(--z-overlay)] max-w-[1280px] mx-auto touch-none"
+      // max-w-full, NOT max-w-[1280px]: this bar is a flex item in KonomiApp's
+      // own already-max-w-[1280px] column (so the 1280 cap is inherited, not
+      // lost). A definite max-width also CAPS this flex item's automatic
+      // minimum size (CSS Flexbox spec) — without it, a wide inner row (the
+      // section-tab strip at Seasoned/Otaku tag density, many tabs) forced the
+      // item's min-content past the viewport and the whole bar overflowed the
+      // page on small screens, since min-width:0 alone does NOT cap a flex
+      // item's auto-minimum, only a definite max-width does. Paired with the
+      // min-w-0 shrink chain down to SectionTabStrip (TagPoolBody), so that row
+      // scrolls instead of overflowing. Casual only ever fit by luck (its tab
+      // strip was narrow enough); this makes every level behave the same.
+      className="sticky bottom-0 z-[var(--z-overlay)] max-w-full mx-auto touch-none"
       // marginTop + transition: the outer wrapper's real, bottom-anchoring
       // negative margin (targetMarginTop) with the open/close/snap CSS
       // transition (instant 0ms during a drag, since a drag never sets the
