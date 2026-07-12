@@ -1957,24 +1957,31 @@ export function MixerBar({
   );
 
   return (
-    // sticky bottom-[space-2xl] — the last section of the page's own
-    // max-w-[1280px] mx-auto column (see KonomiApp.tsx), pinned
-    // space-2xl above the viewport bottom once the page scrolls, settling
-    // back to its own ordinary in-flow position (respecting KonomiApp's own
-    // trailing pb-[space-2xl]) once everything already fits — see this
-    // file's own top comment for why this replaced plain normal flow and
-    // the history behind that choice. No px/pb-[space-2xl] here either,
-    // same reason as before: that framing comes from the shared
-    // max-w-[1280px] ancestor (left/right) and KonomiApp's own root
-    // pb-[space-2xl] (bottom) — this wrapper adding its own would
-    // double-count both, in either position mode.
+    // sticky bottom-0 (was bottom-[space-2xl]) — the last child of the
+    // page's own max-w-[1280px] mx-auto column (see KonomiApp.tsx). The
+    // offset is 0, NOT space-2xl, since the app-shell rewrite: KonomiApp's
+    // root is now a fixed 100svh box with overflow-hidden, which IS a
+    // scrollport per spec, so this sticky resolves against it (not, as an
+    // older overflow-x-clip-only ancestor did, against the true viewport —
+    // that earlier finding no longer holds now that the ancestor is a full
+    // overflow-hidden fixed box). With nothing actually scrolling, the
+    // sticky sits at its own flex-flow position — but a bottom-[space-2xl]
+    // offset then pins the bar's bottom 24px above the scrollport's own
+    // bottom, ON TOP OF KonomiApp's root pb-[space-2xl], so the bar was
+    // pulled up 24px: the recs->mixbar gap collapsed to 0 and the
+    // mixbar->page-bottom gap doubled to 48px (measured live via CDP, both
+    // confirmed). bottom-0 removes that pull — the bar's natural flex
+    // position already sits exactly one root pb-[space-2xl] (24px) above the
+    // page bottom, which is the single uniform gutter every other edge in
+    // the app uses. Sticky itself is kept (not reverted to static): it's now
+    // effectively a no-op for position, but a harmless one, and keeping the
+    // positioned value avoids disturbing the marginTop/z-index invariants
+    // the rest of this file's machinery is built around.
     //
-    // Confirmed live before adopting sticky: KonomiApp's own overflow-x-clip
-    // ancestor does NOT make it (instead of the true viewport) this bar's
-    // sticky containing block, despite overflow-x-clip technically making
-    // that div a "scroll container" per spec — tested with a genuinely tall
-    // page, the bar stuck to the real viewport bottom for the entire scroll
-    // range and returned to normal flow only once the page ran out.
+    // No px/pb-[space-2xl] here either: that framing comes from the shared
+    // max-w-[1280px] ancestor (left/right) and KonomiApp's root
+    // pb-[space-2xl] (bottom) — this wrapper adding its own would
+    // double-count both.
     //
     // Conditionally zeroing marginTop while stuck (an `isStuck` state,
     // detected via remaining-scroll-distance) was tried and reverted:
@@ -2185,7 +2192,7 @@ export function MixerBar({
     // a real-device check alongside everything else in this round, same
     // as any other per-tick paint cost in this file.
     <motion.div
-      className="sticky bottom-[var(--space-2xl)] z-[var(--z-overlay)] max-w-[1280px] mx-auto touch-none [filter:drop-shadow(5px_5px_0_var(--ink))]"
+      className="sticky bottom-0 z-[var(--z-overlay)] max-w-[1280px] mx-auto touch-none [filter:drop-shadow(5px_5px_0_var(--ink))]"
       // dragMarginTop during a live drag (a Motion value, `.set()` every
       // tick — see its own declaration, near dragHeightPx, for the full
       // Round 5 history), targetMarginTop otherwise — same key, switching
