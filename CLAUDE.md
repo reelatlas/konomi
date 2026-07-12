@@ -25,9 +25,10 @@ auditing. Token sources of truth are `src/lib/konomi/tokens.ts`, `themes.ts`, an
 ### Asset / icon creation
 
 Before creating or resizing icons, buttons, or control chrome:
-1. Follow `AGENTS.md` `whole-pixel-geometry` rules
+1. Follow `AGENTS.md` `webkit-icon-shimmer` (supporting-hygiene section) for
+   sizing — whole/even boxes, uniform icon scale, shared tokens
 2. Match conventions in `src/components/konomi/icons.tsx`
-3. Use shared tokens/constants — no one-off fractional structural sizes
+3. Stroked icons are fine — a design choice, not a rule
 4. Read `DESIGN_SYSTEM.md` for visual language when unsure
 
 ### Animation / Motion
@@ -35,9 +36,10 @@ Before creating or resizing icons, buttons, or control chrome:
 Before writing or changing any animation (CSS transitions, keyframes, Motion,
 rAF, layout animation, drag/resize motion):
 1. Read and follow the Motion skill: `~/.claude/skills/motion/SKILL.md`
-2. Structural sizes stay on whole integers; animated values may be fractional
-   in-flight but snap to whole pixels on settle — never per-frame snap (it
-   causes stepping). See `AGENTS.md` `whole-pixel-geometry`.
+2. If stroked icons live inside a container whose layout animates and they
+   shimmer in Safari, the fix is to promote the **whole moving row** to its own
+   compositor layer (`transform: translateZ(0)`), NOT per-frame pixel snapping
+   and NOT promoting individual icons. See `AGENTS.md` `webkit-icon-shimmer`.
 3. For project-specific animation history and lessons, search `DESIGN_SYSTEM.md`
    (MixerBar, RollingLabel, Masthead, card enter/exit, etc.)
 
@@ -46,8 +48,9 @@ Motion skill first.
 
 ### Product-wide geometry
 
-When auditing or building new UI, apply whole-pixel structural geometry across
-the whole product per `AGENTS.md` — not only MixerBar.
+Whole-pixel structural geometry (per `AGENTS.md` `webkit-icon-shimmer`) is
+supporting hygiene for at-rest sharpness/centering — apply it with normal
+judgment when building UI, not as a harsh rule and not as a shimmer fix.
 
 ## Next.js
 

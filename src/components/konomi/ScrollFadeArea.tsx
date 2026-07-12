@@ -43,11 +43,6 @@ interface ScrollFadeAreaProps {
   // CHIP_AREA_HEIGHT comment documents for the same reason). An inline
   // style has no such constraint.
   heightPx?: number;
-  // Extra class applied to the scroll viewport (the overflow element itself).
-  // Added for the AnimationDebugPanel scroll-layer diagnostics — lets a caller
-  // tag its viewport so a debug toggle can neutralize that specific scroll
-  // container. Optional; nothing depends on it in normal rendering.
-  viewportClassName?: string;
   orientation?: Orientation;
   // The amount a single (non-held) arrow click moves, in px. Most callers
   // pass a fixed number; getScrollStep (below) exists for the one caller
@@ -292,7 +287,6 @@ const DEFAULT_CONTINUOUS_SCROLL_SPEED = 6;
 export function ScrollFadeArea({
   height,
   heightPx,
-  viewportClassName,
   groupName = "reveal",
   orientation = "vertical",
   scrollStep = DEFAULT_SCROLL_STEP,
@@ -635,10 +629,6 @@ export function ScrollFadeArea({
         }}
         className={[
           horizontal ? "w-full overflow-x-auto overflow-y-hidden" : `${heightPx !== undefined ? "" : height} overflow-y-auto overflow-x-hidden`,
-          // Optional caller-supplied class on the scroll viewport itself —
-          // used by the AnimationDebugPanel's scroll-layer toggles to neutralize
-          // a specific scroll container during a drag. Harmless when unset.
-          viewportClassName ?? "",
           "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
           // touch-pan-x/touch-pan-y (touch-action) — opt-in via
           // restrictTouchAction now, not unconditional (see that prop's own

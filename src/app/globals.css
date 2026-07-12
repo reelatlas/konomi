@@ -586,108 +586,18 @@
   }
 }
 
-/* MixerBar ghost-mode resize guideline (see MixerBar.tsx). Compositor-only:
-   the panel holds still while these two glowing marks translate up with the
-   finger. The line marks the target height (centered ~30% of the bar); the
-   grip is pinned to the real resize grip's measured X so it rises straight
-   above the control being held. Both glow in the accent and pulse to read as
-   "active"; the grip glows at the pixel level via drop-shadow (follows the SVG
-   dots, not a box). Cheap here — a tiny fixed-size element, no layout. */
-.mixbar-ghost-line {
-  position: absolute; left: 35%; right: 35%; top: 0; height: 3px;
-  background: var(--primary); transform: translateY(-50%);
-  animation: mixbar-ghost-line-glow 1.5s ease-in-out infinite;
-}
-.mixbar-ghost-grip {
-  position: absolute; top: 0; transform: translate(-50%, -50%);
-  color: var(--primary); line-height: 0;
-  animation: mixbar-ghost-grip-glow 1.5s ease-in-out infinite;
-}
-@keyframes mixbar-ghost-line-glow {
-  0%, 100% { box-shadow: 0 0 6px 1px color-mix(in srgb, var(--primary) 70%, transparent), 0 0 13px 2px color-mix(in srgb, var(--primary) 40%, transparent); }
-  50%      { box-shadow: 0 0 9px 2px color-mix(in srgb, var(--primary) 90%, transparent), 0 0 22px 5px color-mix(in srgb, var(--primary) 60%, transparent); }
-}
-@keyframes mixbar-ghost-grip-glow {
-  0%, 100% { filter: drop-shadow(0 0 2px var(--primary)) drop-shadow(0 0 5px color-mix(in srgb, var(--primary) 55%, transparent)); }
-  50%      { filter: drop-shadow(0 0 3px var(--primary)) drop-shadow(0 0 9px color-mix(in srgb, var(--primary) 75%, transparent)); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .mixbar-ghost-line, .mixbar-ghost-grip { animation: none; }
-  .mixbar-ghost-line { box-shadow: 0 0 8px 2px color-mix(in srgb, var(--primary) 70%, transparent); }
-  .mixbar-ghost-grip { filter: drop-shadow(0 0 3px var(--primary)); }
-}
-
-/* --- AnimationDebugPanel live diagnostics (drag-jitter isolation) ---
-   Each rule is gated on a data-* attribute the panel toggles on <html>
-   imperatively (no React re-render, no rebuild) so a card layer can be
-   removed live while dragging the MixerBar on-device to find which one
-   removes the jitter. All scoped to result cards / the results region;
-   inert when every toggle is off. Diagnostic only — see AnimationDebugPanel. */
-html[data-debug-no-card-filters] [data-result-card] img {
-  filter: none !important;
-}
-html[data-debug-no-card-shadows] [data-result-card] .result-card-face {
-  box-shadow: none !important;
-}
-html[data-debug-flat-cards] .result-card-persp {
-  perspective: none !important;
-}
-html[data-debug-flat-cards] .result-card-flip {
-  transform-style: flat !important;
-}
-html[data-debug-flat-cards] .result-card-face {
-  backface-visibility: visible !important;
-}
-html[data-debug-no-back-fill] .result-card-back-fill {
-  display: none !important;
-}
-html[data-debug-hide-cards] .results-region {
-  display: none !important;
-}
-/* Structural / scroll-layer probes (Cause B): each result-card scroll
-   container is a promoted, specially-managed compositor layer on iOS; many
-   nested ones (carousel + per-card tag scroll + per-card description scroll)
-   are the leading suspect for the jitter that survives stripping all card
-   decoration. overflow:hidden neutralizes a container's scroll (and its layer
-   promotion) without changing layout; content-visibility:auto lets the
-   browser skip off-screen cards entirely. */
-html[data-debug-no-carousel-scroll] .results-carousel {
-  overflow: hidden !important;
-}
-html[data-debug-no-tag-scroll] .result-card-tag-scroll {
-  overflow: hidden !important;
-}
-html[data-debug-no-desc-scroll] .result-card-desc-scroll {
-  overflow: hidden !important;
-}
-html[data-debug-contain-cards] [data-result-card] {
-  content-visibility: auto !important;
-  contain-intrinsic-size: auto var(--result-card-height) !important;
-}
-/* Give every mixbar control button an opaque fill (they're transparent /
-   surface-blended today) to test whether removing the per-frame alpha blend
-   reduces the WebKit resize jitter. Overrides active states too (fine for an
-   A/B test). Scoped to the mixbar. */
-html[data-debug-opaque-controls] .mixbar-root button {
-  background-color: var(--surface) !important;
-}
-/* Promote the WHOLE controls row to one compositor layer (not the individual
-   icons, which desync) — tests whether caching the row as a single raster unit
-   stops WebKit re-rasterizing its stroked icons as the card animates. */
-html[data-debug-promote-row] .mixbar-controls-row {
+/* MixerBar controls row is promoted to its own compositor layer. THE fix for
+   the Safari/WebKit resize shimmer: as the panel animates (real height/margin-
+   top) WebKit re-rasterizes descendant thin SVG strokes and snaps them to the
+   device-pixel grid every frame — the controls stroked icons (Tag Pool, Clear,
+   Random, MIN MATCH >=/tag, check) hopped +/-1px while filled shapes (Recommend
+   play) and text rode along cleanly. Caching the WHOLE row as one composited
+   layer means it is TRANSLATED, not re-rasterized, so the strokes never re-snap.
+   Confirmed on-device. Promoting individual icons instead desyncs them (each
+   becomes its own layer that snaps) — it has to be the whole row as one unit.
+   The whole-pixel geometry (AGENTS.md) pairs with this as resting-state hygiene. */
+.mixbar-controls-row {
   transform: translateZ(0);
-}
-/* Swap the control icons between their stroked (default) and filled redraws so
-   they can be A/B'd live. Each control icon renders both a .ki-stroke and a
-   .ki-fill group; this shows one or the other. */
-.ki-fill {
-  display: none;
-}
-html[data-debug-filled-icons] .ki-stroke {
-  display: none;
-}
-html[data-debug-filled-icons] .ki-fill {
-  display: inline;
 }
 
 /* RollingLabel's own slot-machine roll (MatchSelector/LevelSelector/

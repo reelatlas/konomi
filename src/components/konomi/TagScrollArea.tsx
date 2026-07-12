@@ -130,7 +130,6 @@ export function TagScrollArea({ tags, selectedTags, onChipToggle, surfaceColor, 
     // (0.25 → 0.375 → 0.9375 → 1.25 → 1.5).
     <ScrollFadeArea
       height={TAG_AREA_HEIGHT}
-      viewportClassName="result-card-tag-scroll"
       // "reveal-nested", not ScrollFadeArea's own "reveal" default: this
       // instance is nested inside the results carousel's own ScrollFadeArea
       // (RecommendationsBody), which also uses hover-reveal arrows under

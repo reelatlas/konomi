@@ -40,36 +40,6 @@ const EASE_FIELDS: { key: keyof AnimationDebugValues; label: string; group: stri
 
 const GROUP_ORDER = ["MixerBar panel (open/close/resize)", "RollingLabel roll (MatchSelector/LevelSelector/SortSelect)", "Result card enter/exit"];
 
-// Live drag-jitter isolation toggles. Each flips a data-* attribute on <html>
-// imperatively (no React re-render, no rebuild); matching CSS in globals.css
-// removes one result-card compositor layer while it's on. Goal: with cards
-// present, drag the MixerBar on-device and flip these one at a time to find
-// which layer(s) kill the jitter. In-memory only, inert when all are off.
-const DEBUG_TOGGLES: { attr: string; label: string }[] = [
-  { attr: "data-debug-no-card-filters", label: "no card filters (blur/contrast)" },
-  { attr: "data-debug-no-card-shadows", label: "no card shadows" },
-  { attr: "data-debug-flat-cards", label: "flat cards (no 3D/perspective)" },
-  { attr: "data-debug-no-back-fill", label: "no back-fill blur" },
-  { attr: "data-debug-hide-cards", label: "hide results (baseline)" },
-  // Structural / scroll-layer probes (Cause B — decoration already ruled out)
-  { attr: "data-debug-no-carousel-scroll", label: "no carousel scroll" },
-  { attr: "data-debug-no-tag-scroll", label: "no card tag scroll" },
-  { attr: "data-debug-no-desc-scroll", label: "no card desc scroll" },
-  { attr: "data-debug-contain-cards", label: "contain cards (content-visibility)" },
-  // Cause C: snap the live drag's animated height/margin-top to the device-
-  // pixel grid, so the moving rows land on clean boundaries and the inline-SVG
-  // icons stop sub-pixel shimmering on WebKit's real drag. Read in JS by
-  // MixerBar (snapToGrid). Test with mode = real on Safari + cards present.
-  { attr: "data-debug-pixel-snap", label: "pixel-snap resize (device grid)" },
-  // Opaque fill on the (transparent) mixbar control buttons — tests whether
-  // removing the per-frame alpha blend reduces the WebKit resize jitter.
-  { attr: "data-debug-opaque-controls", label: "opaque control bg (test blend)" },
-  // Promote the whole controls row to one compositor layer (row, not icons).
-  { attr: "data-debug-promote-row", label: "promote controls row (1 layer)" },
-  // Swap stroked control icons for their filled redraws (the immunity test).
-  { attr: "data-debug-filled-icons", label: "filled control icons (A/B)" },
-];
-
 export function AnimationDebugPanel() {
   const values = useAnimationDebugValues();
   // Starts collapsed to a single toggle button — a fixed panel this dense,
@@ -79,27 +49,6 @@ export function AnimationDebugPanel() {
   // component's own UI state, unrelated to the animation VALUES the store
   // holds.
   const [open, setOpen] = useState(false);
-  // Which live diagnostic toggles are on. Local (in-memory) — mirrors the
-  // data-* attributes set imperatively on <html> below, only so the
-  // checkboxes render their own state; the cards themselves react purely via
-  // CSS, so flipping one never re-renders the results.
-  // Resize-mode selector. "auto" clears data-resize-mode so MixerBar picks its
-  // engine default (ghost on WebKit/Safari, real elsewhere); real/ghost force it.
-  const [resizeMode, setResizeModeState] = useState<"auto" | "real" | "ghost">("auto");
-  function setResizeMode(mode: "auto" | "real" | "ghost") {
-    setResizeModeState(mode);
-    if (mode === "auto") document.documentElement.removeAttribute("data-resize-mode");
-    else document.documentElement.setAttribute("data-resize-mode", mode);
-  }
-  const [debugFlags, setDebugFlags] = useState<Record<string, boolean>>({});
-  function toggleDebug(attr: string) {
-    setDebugFlags((prev) => {
-      const next = !prev[attr];
-      if (next) document.documentElement.setAttribute(attr, "true");
-      else document.documentElement.removeAttribute(attr);
-      return { ...prev, [attr]: next };
-    });
-  }
 
   if (!open) {
     return (
@@ -114,7 +63,7 @@ export function AnimationDebugPanel() {
   }
 
   return (
-    <div className="fixed top-[var(--space-lg)] right-[var(--space-lg)] z-[var(--z-popover)] max-h-[calc(100dvh-var(--space-2xl))] w-[280px] overflow-y-auto overscroll-contain border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] font-mono text-[length:var(--text-2xs)] text-[var(--ink)] shadow-[var(--elev-4)]">
+    <div className="fixed top-[var(--space-lg)] right-[var(--space-lg)] z-[var(--z-popover)] max-h-[calc(100vh-var(--space-2xl))] w-[280px] overflow-y-auto border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] font-mono text-[length:var(--text-2xs)] text-[var(--ink)] shadow-[var(--elev-4)]">
       <div className="sticky top-0 flex items-center justify-between gap-[var(--space-sm)] border-b-[length:var(--border-thin)] border-[var(--ink)] bg-[var(--surface)] px-[var(--space-md)] py-[var(--space-sm)]">
         <span className="font-bold uppercase tracking-[var(--tracking-sm)]">anim debug</span>
         <div className="flex items-center gap-[var(--space-sm)]">
@@ -169,38 +118,6 @@ export function AnimationDebugPanel() {
             ))}
           </div>
         ))}
-        {/* Live drag-jitter isolation — see DEBUG_TOGGLES. Each checkbox
-            flips a data-* attribute on <html> imperatively; the cards react
-            via CSS only, so toggling is instant and never re-renders them. */}
-        <div className="flex flex-col gap-[var(--space-sm)] border-t-[length:var(--border-thin)] border-[var(--ink)] pt-[var(--space-sm)]">
-          <div className="text-[length:var(--text-3xs)] font-bold uppercase tracking-[var(--tracking-sm)] text-[var(--subtext)]">
-            resize mode (prototype)
-          </div>
-          <div className="flex gap-[var(--space-xs)]">
-            {(["auto", "real", "ghost"] as const).map((mode) => (
-              <button
-                key={mode}
-                type="button"
-                onClick={() => setResizeMode(mode)}
-                className={[
-                  "flex-1 cursor-pointer border-[length:var(--border-thin)] border-[var(--ink)] px-[var(--space-xs)] py-[2px] uppercase tracking-[var(--tracking-sm)]",
-                  resizeMode === mode ? "bg-[var(--ink)] text-[var(--surface)]" : "hover:bg-[var(--fill)]",
-                ].join(" ")}
-              >
-                {mode}
-              </button>
-            ))}
-          </div>
-          <div className="text-[length:var(--text-3xs)] font-bold uppercase tracking-[var(--tracking-sm)] text-[var(--subtext)] pt-[var(--space-xs)]">
-            drag jitter diagnostics (live)
-          </div>
-          {DEBUG_TOGGLES.map((tgl) => (
-            <label key={tgl.attr} className="flex items-center gap-[var(--space-sm)] cursor-pointer">
-              <input type="checkbox" checked={!!debugFlags[tgl.attr]} onChange={() => toggleDebug(tgl.attr)} className="cursor-pointer" />
-              <span>{tgl.label}</span>
-            </label>
-          ))}
-        </div>
         {/* Defaults reference, not another control — lets a reset be judged
             against the exact numbers it's resetting TO without leaving this
             panel. */}

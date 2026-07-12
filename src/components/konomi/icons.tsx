@@ -42,21 +42,13 @@ export function LockOpenIcon({ className }: IconProps) {
 
 export function DiceIcon({ className }: IconProps) {
   return (
-    <svg className={className} width="16" height="16" viewBox="0 0 24 24">
-      <g className="ki-stroke" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinejoin="round">
-        <rect x="3.5" y="3.5" width="17" height="17" rx="3.5" />
-        <circle cx="8.5" cy="8.5" r="1.7" fill="currentColor" stroke="none" />
-        <circle cx="15.5" cy="8.5" r="1.7" fill="currentColor" stroke="none" />
-        <circle cx="12" cy="12" r="1.7" fill="currentColor" stroke="none" />
-        <circle cx="8.5" cy="15.5" r="1.7" fill="currentColor" stroke="none" />
-        <circle cx="15.5" cy="15.5" r="1.7" fill="currentColor" stroke="none" />
-      </g>
-      <g className="ki-fill" fill="currentColor">
-        <path
-          fillRule="evenodd"
-          d="M7 3.5H17A3.5 3.5 0 0 1 20.5 7V17A3.5 3.5 0 0 1 17 20.5H7A3.5 3.5 0 0 1 3.5 17V7A3.5 3.5 0 0 1 7 3.5ZM8.5 6.8A1.7 1.7 0 1 0 8.5 10.2A1.7 1.7 0 1 0 8.5 6.8ZM15.5 6.8A1.7 1.7 0 1 0 15.5 10.2A1.7 1.7 0 1 0 15.5 6.8ZM12 10.3A1.7 1.7 0 1 0 12 13.7A1.7 1.7 0 1 0 12 10.3ZM8.5 13.8A1.7 1.7 0 1 0 8.5 17.2A1.7 1.7 0 1 0 8.5 13.8ZM15.5 13.8A1.7 1.7 0 1 0 15.5 17.2A1.7 1.7 0 1 0 15.5 13.8Z"
-        />
-      </g>
+    <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinejoin="round">
+      <rect x="3.5" y="3.5" width="17" height="17" rx="3.5" />
+      <circle cx="8.5" cy="8.5" r="1.7" fill="currentColor" stroke="none" />
+      <circle cx="15.5" cy="8.5" r="1.7" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="1.7" fill="currentColor" stroke="none" />
+      <circle cx="8.5" cy="15.5" r="1.7" fill="currentColor" stroke="none" />
+      <circle cx="15.5" cy="15.5" r="1.7" fill="currentColor" stroke="none" />
     </svg>
   );
 }
@@ -99,15 +91,14 @@ export function GreaterEqualIcon({ className }: IconProps) {
       width="12"
       height="16"
       viewBox="0 0 14 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
     >
-      <g className="ki-stroke" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M2 3L9 8L2 13" />
-        <path d="M2 17H9" />
-      </g>
-      <g className="ki-fill" fill="currentColor">
-        <path d="M2 2.2 L9.5 8 L2 13.8 L2 10.8 L5.6 8 L2 5.2 Z" />
-        <rect x="1.6" y="15.6" width="7.4" height="2.4" rx="1.2" />
-      </g>
+      <path d="M2 3L9 8L2 13" />
+      <path d="M2 17H9" />
     </svg>
   );
 }
@@ -120,14 +111,14 @@ export function TagIcon({ className }: IconProps) {
       width="16"
       height="16"
       viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
     >
-      <g className="ki-stroke" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M11.5 3.5H5A1.5 1.5 0 0 0 3.5 5v6.5a1.5 1.5 0 0 0 .44 1.06l8.5 8.5a1.5 1.5 0 0 0 2.12 0l6.5-6.5a1.5 1.5 0 0 0 0-2.12l-8.5-8.5a1.5 1.5 0 0 0-1.06-.44Z" />
-        <circle cx="8" cy="8" r="1.3" fill="currentColor" stroke="none" />
-      </g>
-      <g className="ki-fill" fill="currentColor">
-        <path fillRule="evenodd" d="M11.5 3.5H5A1.5 1.5 0 0 0 3.5 5v6.5a1.5 1.5 0 0 0 .44 1.06l8.5 8.5a1.5 1.5 0 0 0 2.12 0l6.5-6.5a1.5 1.5 0 0 0 0-2.12l-8.5-8.5a1.5 1.5 0 0 0-1.06-.44ZM8 5.8A2.2 2.2 0 1 0 8 10.2A2.2 2.2 0 1 0 8 5.8Z" />
-      </g>
+      <path d="M11.5 3.5H5A1.5 1.5 0 0 0 3.5 5v6.5a1.5 1.5 0 0 0 .44 1.06l8.5 8.5a1.5 1.5 0 0 0 2.12 0l6.5-6.5a1.5 1.5 0 0 0 0-2.12l-8.5-8.5a1.5 1.5 0 0 0-1.06-.44Z" />
+      <circle cx="8" cy="8" r="1.3" fill="currentColor" stroke="none" />
     </svg>
   );
 }
@@ -144,20 +135,11 @@ export function TagPoolIcon({ className }: IconProps) {
     // Eraser/Dice and the Recommend play, this row's other icon-only glyphs, so
     // none reads a pixel off among the shared --control-h-md boxes. Same
     // viewBox — pure proportional scale, no path changes.
-    <svg className={className} width="16" height="16" viewBox="0 0 24 24">
-      <g className="ki-stroke" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -4" />
-        <path d="M14 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -4" />
-        <path d="M4 15a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -4" />
-        <path d="M14 17h6m-3 -3v6" />
-      </g>
-      <g className="ki-fill" fill="currentColor">
-        <rect x="4" y="4" width="6" height="6" rx="1.5" />
-        <rect x="14" y="4" width="6" height="6" rx="1.5" />
-        <rect x="4" y="14" width="6" height="6" rx="1.5" />
-        <rect x="14" y="16.2" width="6" height="1.6" rx="0.8" />
-        <rect x="16.2" y="14" width="1.6" height="6" rx="0.8" />
-      </g>
+    <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -4" />
+      <path d="M14 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -4" />
+      <path d="M4 15a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -4" />
+      <path d="M14 17h6m-3 -3v6" />
     </svg>
   );
 }
@@ -235,16 +217,15 @@ export function EraserIcon({ className }: IconProps) {
       width="16"
       height="16"
       viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
     >
-      <g className="ki-stroke" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M9.5 20H20" />
-        <path d="M4.6 15.4 13.8 6.2a2 2 0 0 1 2.83 0l3.17 3.17a2 2 0 0 1 0 2.83L11 21H8Z" />
-        <path d="M16 12.5 10.5 7" />
-      </g>
-      <g className="ki-fill" fill="currentColor">
-        <path d="M4.6 15.4 13.8 6.2a2 2 0 0 1 2.83 0l3.17 3.17a2 2 0 0 1 0 2.83L11 21H8Z" />
-        <rect x="9.5" y="19" width="10.5" height="2" rx="1" />
-      </g>
+      <path d="M9.5 20H20" />
+      <path d="M4.6 15.4 13.8 6.2a2 2 0 0 1 2.83 0l3.17 3.17a2 2 0 0 1 0 2.83L11 21H8Z" />
+      <path d="M16 12.5 10.5 7" />
     </svg>
   );
 }
@@ -257,13 +238,13 @@ export function CheckIcon({ className }: IconProps) {
       width="16"
       height="16"
       viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.4}
+      strokeLinecap="round"
+      strokeLinejoin="round"
     >
-      <g className="ki-stroke" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 12.5 9.5 18 20 6.5" />
-      </g>
-      <g className="ki-fill" fill="currentColor">
-        <path d="M3.5 11.8 L9.4 17.7 L20.3 5.6 L22 7.4 L9.4 21 L1.8 13.2 Z" />
-      </g>
+      <path d="M4 12.5 9.5 18 20 6.5" />
     </svg>
   );
 }

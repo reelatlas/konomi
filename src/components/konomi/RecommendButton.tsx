@@ -96,16 +96,6 @@ export function RecommendButton({ filledCount, onRecommend, error }: RecommendBu
       >
         <div
           className={[
-            // kono-star marker: MixerBar pauses these two continuously-
-            // rotating clipped layers during a live resize drag (sets
-            // data-mixbar-resizing on <html>; the rule lives in globals.css).
-            // Two always-on rotating clip-path layers keep the compositor
-            // re-compositing every frame, which piles onto the drag's own
-            // per-frame composite cost on a real phone — pausing them for the
-            // gesture's duration removes that pile-up. Same
-            // animation-play-state mechanism the error state already uses, so
-            // it freezes at the current angle and resumes cleanly.
-            "kono-star",
             "absolute w-[128px] h-[128px] bg-[var(--ink)] z-[var(--z-base)]",
             STAR_CLIP,
             "animate-[kono-spin_20s_linear_infinite]",
@@ -121,7 +111,6 @@ export function RecommendButton({ filledCount, onRecommend, error }: RecommendBu
         />
         <div
           className={[
-            "kono-star",
             "absolute w-[118px] h-[118px] z-[var(--z-base)]",
             STAR_CLIP,
             "animate-[kono-spin_20s_linear_infinite]",
