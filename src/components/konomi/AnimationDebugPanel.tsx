@@ -64,6 +64,10 @@ const DEBUG_TOGGLES: { attr: string; label: string }[] = [
   // Opaque fill on the (transparent) mixbar control buttons — tests whether
   // removing the per-frame alpha blend reduces the WebKit resize jitter.
   { attr: "data-debug-opaque-controls", label: "opaque control bg (test blend)" },
+  // Promote the whole controls row to one compositor layer (row, not icons).
+  { attr: "data-debug-promote-row", label: "promote controls row (1 layer)" },
+  // Swap stroked control icons for their filled redraws (the immunity test).
+  { attr: "data-debug-filled-icons", label: "filled control icons (A/B)" },
 ];
 
 export function AnimationDebugPanel() {

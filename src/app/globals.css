@@ -671,6 +671,24 @@ html[data-debug-contain-cards] [data-result-card] {
 html[data-debug-opaque-controls] .mixbar-root button {
   background-color: var(--surface) !important;
 }
+/* Promote the WHOLE controls row to one compositor layer (not the individual
+   icons, which desync) — tests whether caching the row as a single raster unit
+   stops WebKit re-rasterizing its stroked icons as the card animates. */
+html[data-debug-promote-row] .mixbar-controls-row {
+  transform: translateZ(0);
+}
+/* Swap the control icons between their stroked (default) and filled redraws so
+   they can be A/B'd live. Each control icon renders both a .ki-stroke and a
+   .ki-fill group; this shows one or the other. */
+.ki-fill {
+  display: none;
+}
+html[data-debug-filled-icons] .ki-stroke {
+  display: none;
+}
+html[data-debug-filled-icons] .ki-fill {
+  display: inline;
+}
 
 /* RollingLabel's own slot-machine roll (MatchSelector/LevelSelector/
    SortSelect's collapsed forms) used to live here as roll-out-up/roll-in-up

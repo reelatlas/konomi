@@ -2845,7 +2845,7 @@ export function MixerBar({
             own wrap point — those wrap points are just measured against this
             container now, not the screen. */}
         <div className="@container">
-        <div className="flex flex-nowrap items-center gap-x-[var(--space-lg)]">
+        <div className="mixbar-controls-row flex flex-nowrap items-center gap-x-[var(--space-lg)]">
           {/* LEFT group. min-w-0: lets this flex item (and, more directly,
               its own min-w-0 slots sub-group below) actually shrink below
               its natural content width once the row runs out of room —
