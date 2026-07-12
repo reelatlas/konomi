@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useMotionValue } from "motion/react";
+import { motion } from "motion/react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { MatchKey, MixerError, Slot, TagInfo } from "@/lib/konomi/types";
 import { ActionButton } from "./ActionButton";
@@ -866,18 +866,38 @@ export function MixerBar({
   // height value, which is what makes pinning to a ceiling larger than
   // the current visual size safe (no jump for Row 2/controls), the exact
   // guarantee Round 3's constant-transform attempt didn't have.
-  const dragPinnedHeight = useMotionValue(0);
-  const dragMarginTop = useMotionValue(0);
-  // Compositor-only visual tracking for the live drag (Round 6, above) —
-  // an `inset(topPx 0 0 0)` clip-path on cardRef, top-only since growth is
-  // always upward and cardRef's bottom edge is the fixed anchor (the same
-  // anchor dragMarginTop's own math is built around). topPx is the
-  // difference between the pinned ceiling and the current drag target
-  // (poolPanelMaxHeight - next): cardRef's own padding/border/Row 2 are
-  // all constant terms that cancel out of that difference algebraically,
-  // so this is correct regardless of cardRef's own box model, not just a
-  // number that happens to work at one specific height.
-  const dragClipPath = useMotionValue("inset(0px 0 0 0)");
+  // --- Path B prototype (real height, single value, no clip-path) ---
+  // The resize/expand now animates the pool panel's REAL height directly,
+  // driven through the existing effectiveHeightPx/targetHeight/targetMarginTop
+  // pipeline (unchanged), just fed LIVE: handleMove below writes dragHeightPx
+  // every rAF tick instead of only at press/release, so effectiveHeightPx —
+  // and therefore targetHeight (dialogRef's real height) and targetMarginTop
+  // (the bottom-anchoring negative margin) — track the pointer every frame,
+  // in one commit, from one source. There is no second "visual" value: no
+  // pinned ceiling, no clip-path, no separately-clocked marginTop. That kills
+  // the whole Round 1-6 class of desync bug by construction:
+  //   - symptom 1 (controls jitter on expand): marginTop and height are both
+  //     derived from the SAME effectiveHeightPx in the SAME render, so they
+  //     cancel exactly every frame instead of drifting across two clocks.
+  //   - symptom 2 (content lags, snaps on release): the pool content is laid
+  //     out at the real, live height every tick, so it reflows continuously
+  //     instead of being pinned at a ceiling and revealed by a clip.
+  //   - symptom 3 (star clipped): the clip-path is gone entirely, so
+  //     RecommendButton's star bleeds outside the card as it always did.
+  // Adapts Motion's Sheet Modal value architecture (one gesture-driven value,
+  // never setState-on-release-only). The one deviation from a canonical
+  // transform-based Motion pattern is that our driven property is `height`
+  // (layout-tier), because the design shows a growing bordered card — that
+  // per-frame layout cost is the single thing being validated on-device
+  // (the clip-path existed only to dodge it). See DESIGN_SYSTEM.md.
+  //
+  // PROTOTYPE NOTE: this drives the frame via React state per tick (the
+  // simplest correct version, reusing every existing binding). If the
+  // on-device MotionScore drag capture shows the per-frame re-render+layout
+  // is too heavy, the optimisation is to move the live value onto a
+  // useMotionValue (no re-render) with the pool content CSS-filling the
+  // motion-value-driven dialog — a bigger change deferred until measurement
+  // says it's needed.
   // First-ever open (before the user has ever dragged) lands at
   // POOL_HEIGHT_MIN — the same floor a drag could take it to — so the
   // sheet reads as "already at minimum, expand if you want more" rather
@@ -1632,30 +1652,12 @@ export function MixerBar({
     // pointerdown already bubbles up to on its own — nothing extra needed
     // here for that half.
     isDraggingRef.current = true;
-    // dragPinnedHeight/dragMarginTop (see their own declaration, near
-    // dragHeightPx above, for the full Round 6 history) pin to
-    // poolPanelMaxHeight for the whole drag, not startHeight — a
-    // deliberate jump in what these two hold, but not a VISUAL jump,
-    // because dragClipPath is seeded in the same commit to hide exactly
-    // the difference between the ceiling and startHeight, so what's
-    // actually painted is byte-identical to targetHeight/targetMarginTop's
-    // own startHeight rendering the instant before. poolPanelMaxHeight
-    // here closes over this render's value, same as handleMove's own use
-    // of it below — frozen for the drag's duration, see fixedOverheadPx's
-    // own effect for why that's already this gesture's established
-    // behavior, not something new to this round.
-    dragPinnedHeight.set(poolPanelMaxHeight);
-    dragMarginTop.set(-(effectiveGrowableFixedOverheadPx + poolPanelMaxHeight));
-    dragClipPath.set(`inset(${poolPanelMaxHeight - startHeight}px 0 0 0)`);
-    // Sets dragHeightPx (React state) here, synchronously, at press —
-    // not deferred to the first pointermove tick the way it used to be.
-    // growableRef/dialogRef/cardRef's own styles all key off
-    // `dragHeightPx !== null` to switch into their drag-pinned mode (see
-    // each one's own comment); the motion values seeded just above are
-    // only correct once that switch has actually happened, so both need
-    // to land in the same commit — React flushes a synchronous event
-    // handler's own setState calls before the next paint, same guarantee
-    // the motion values above rely on.
+    // Path B: no pinned ceiling and no clip-path seed anymore. dragHeightPx
+    // IS the live height now — set here at press (so effectiveHeightPx /
+    // targetHeight / targetMarginTop switch into their live-tracking values
+    // in this same commit) and then updated on every rAF tick in handleMove
+    // below. The real height tracks the pointer directly; there is nothing
+    // to un-pin or reveal.
     setDragHeightPx(startHeight);
     // Same bottom-scroll-restore the editMode-open effect above uses (see
     // its own comment for the full mechanism/reasoning). Only armed here
@@ -1681,18 +1683,14 @@ export function MixerBar({
     // unchanged — it has to run synchronously for the specific event it's
     // suppressing, deferring it a frame would be too late.
     //
-    // flushPendingMove still doesn't call setDragHeightPx (React state) on
-    // every tick — dragClipPath (a Motion value, `.set()`) updates the DOM
-    // directly, outside React's render cycle, and under Round 6 it's the
-    // ONLY thing this function touches per tick: a clip-path change is
-    // compositor-only (no layout, no paint of anything outside the clip
-    // boundary), which is the entire point of pinning dragPinnedHeight/
-    // dragMarginTop once at drag start instead of writing them here too
-    // (see this file's own frame-drop test, re-measured against this
-    // round, for the actual numbers). React state (dragHeightPx) is only
-    // touched twice per drag — once at handleResizeStart, once at
-    // handleEnd — purely to switch every element's style prop into and out
-    // of "drag mode," not to carry the live value itself.
+    // Path B: flushPendingMove now writes dragHeightPx (React state) once per
+    // rAF tick — that's the live height itself, flowing through
+    // effectiveHeightPx -> targetHeight/targetMarginTop -> the real
+    // dialogRef height and the outer wrapper's marginTop, all in one commit.
+    // This is a real per-frame layout (the clip-path existed only to dodge
+    // it); the rAF throttle coalesces multiple pointermoves per paint so at
+    // most one commit lands per frame. The pool content laid out inside the
+    // live height reflows with it, which is the whole point.
     let pendingNext: number | null = null;
     let rafId: number | null = null;
     function flushPendingMove() {
@@ -1701,7 +1699,12 @@ export function MixerBar({
       const next = pendingNext;
       pendingNext = null;
       liveHeightRef.current = next;
-      dragClipPath.set(`inset(${poolPanelMaxHeight - next}px 0 0 0)`);
+      setDragHeightPx(next);
+      // The document's real height changes every tick now (a growing pool
+      // grows the page when pinned to the bottom), not just twice as under
+      // the pinned-ceiling approach — re-arm the bottom pin each tick (safe;
+      // see pinScrollToDocumentBottomIfWasAtBottom's own comment).
+      pinScrollToDocumentBottomIfWasAtBottom();
     }
     function handleMove(ev: PointerEvent) {
       // Still calling preventDefault, even with capture + touch-action:none
@@ -1737,29 +1740,13 @@ export function MixerBar({
       }
       flushPendingMove();
       setPoolPanelHeightPref(liveHeightRef.current);
-      // Un-pins dragPinnedHeight/dragMarginTop from poolPanelMaxHeight back
-      // to the REAL, final settled values, and clears dragClipPath back to
-      // fully-revealed — all three together, synchronously, in the same
-      // commit as setDragHeightPx(null) below. This isn't an arbitrary
-      // reset (dragPinnedHeight doesn't strictly need a "correct" value
-      // once dragHeightPx goes back to null and every style prop's ternary
-      // switches to the plain targetHeight/targetMarginTop branch instead)
-      // — it's provably a no-op VISUALLY: dragMarginTop's own formula keeps
-      // cardRef's rendered bottom edge fixed for any height it's given
-      // (the same M+G=0 identity this file has relied on since long before
-      // Round 6), so going from (poolPanelMaxHeight, clipped down to
-      // liveHeightRef.current) to (liveHeightRef.current, unclipped) lands
-      // on the exact same painted pixels, just via the real, un-pinned
-      // path instead of the pinned-plus-clip one. Also defensive the same
-      // way the pre-Round-6 version of this reset was: growableRef's own
-      // clipPath bug (this file's own earlier history, now removed along
-      // with the mechanism it belonged to) already proved once that a
-      // motion-value-bound style can outlive the render that stopped
-      // referencing it, so landing on the correct real values here means
-      // even a leftover, unexpected read would show the right thing.
-      dragPinnedHeight.set(liveHeightRef.current);
-      dragMarginTop.set(-(effectiveGrowableFixedOverheadPx + liveHeightRef.current));
-      dragClipPath.set("inset(0px 0 0 0)");
+      // Path B: nothing to un-pin. dragHeightPx already held the real final
+      // height (liveHeightRef.current) this whole time; clearing it to null
+      // just hands the same value back to the persisted branch
+      // (clampPoolPanelHeight(persistedHeightPx...) === liveHeightRef.current
+      // in this same commit, since setPoolPanelHeightPref above wrote exactly
+      // that), so targetHeight/targetMarginTop land on the identical pixels —
+      // no jump, no reveal, no clip to clear.
       setDragHeightPx(null);
       isDraggingRef.current = false;
       // Catches up on anything that changed while frozen (e.g. a mobile
@@ -2209,7 +2196,7 @@ export function MixerBar({
       // history already worked through (see below) doesn't apply: nothing
       // here is a `transform`.
       style={{
-        marginTop: dragHeightPx !== null ? dragMarginTop : targetMarginTop,
+        marginTop: targetMarginTop,
         transition: `margin-top ${geometryTransitionTiming}`,
       }}
     >
@@ -2256,7 +2243,10 @@ export function MixerBar({
         // cardRef has to be the clipped element for its own border to
         // track the drag at all — the shadow problem this caused (below)
         // gets solved on its own terms instead, not by moving the clip.
-        style={{ clipPath: dragHeightPx !== null ? dragClipPath : "none" }}
+        // Path B: no clipPath at all anymore. It existed only to fake the
+        // pinned-ceiling reveal during a drag; with the real height tracking
+        // live there's nothing to clip — which is exactly why the
+        // RecommendButton star (and any other bleed) is no longer cut off.
         // [contain:layout] — the real fix for the mobile-only open/close/
         // resize jitter, found via on-device Safari Web Inspector (Timeline
         // + Elements panel, physical iPhone, not reproducible in headless
@@ -2505,7 +2495,7 @@ export function MixerBar({
         // (see that element's own comment for why this shape, rather than
         // a conditionally-present key, matters).
         style={{
-          height: dragHeightPx !== null ? dragPinnedHeight : targetHeight,
+          height: targetHeight,
           marginBottom: targetMarginBottomPx,
           transition: `height ${geometryTransitionTiming}, margin-bottom ${geometryTransitionTiming}`,
         }}
@@ -2532,7 +2522,7 @@ export function MixerBar({
         // relies on the default top anchor (content taller than the mid-
         // transition box, revealing top-down as it grows) — this would
         // change that animation's own direction as a side effect.
-        className={`flex flex-col outline-none overflow-hidden [contain:layout] ${dragHeightPx !== null ? "justify-end" : ""}`}
+        className="flex flex-col outline-none overflow-hidden [contain:layout]"
       >
         <TagPoolBody
           allTags={allTags}
