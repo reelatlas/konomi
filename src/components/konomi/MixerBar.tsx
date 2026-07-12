@@ -45,6 +45,22 @@ function isWebKit(): boolean {
   return typeof navigator !== "undefined" && navigator.vendor === "Apple Computer, Inc.";
 }
 
+// Cause-C experiment: the real-height drag's only visible WebKit jitter is the
+// inline-SVG icons shimmering ~1px vertically while borders/text stay put — the
+// signature of the animated container landing on fractional device pixels each
+// frame (or WebKit snapping the glyph raster to the pixel grid). Snapping the
+// animated height/margin-top to the device-pixel grid keeps the moving rows on
+// clean boundaries. Gated behind the debug panel's data-debug-pixel-snap for
+// live A/B on Safari; if it holds the icons still, it becomes permanent and
+// `real` can stay on every engine (retiring the ghost split). Only the live
+// drag is fully covered — open/close is a CSS transition whose fractional
+// in-between frames the browser invents, not us (a separate follow-up).
+function snapToGrid(v: number): number {
+  if (typeof document === "undefined" || !document.documentElement.hasAttribute("data-debug-pixel-snap")) return v;
+  const dpr = window.devicePixelRatio || 1;
+  return Math.round(v * dpr) / dpr;
+}
+
 interface MixerBarProps {
   slots: Slot[];
   dragOverIndex: number;
@@ -1448,8 +1464,11 @@ export function MixerBar({
   // at startHeight's own value for the duration regardless, exactly as it
   // did before any of this file's drag-specific rounds existed. This one
   // formula is genuinely only for the settled/open/close/snap case now.
-  const targetMarginTop = editMode ? -(effectiveGrowableFixedOverheadPx + effectiveHeightPx) : 0;
-  const targetHeight = editMode ? effectiveHeightPx : 0;
+  // snapToGrid is a no-op unless the pixel-snap debug toggle is on. Applied to
+  // both DOM-driving values so the whole moving/anchoring geometry lands on the
+  // device-pixel grid each drag tick (which re-renders), not fractional px.
+  const targetMarginTop = editMode ? snapToGrid(-(effectiveGrowableFixedOverheadPx + effectiveHeightPx)) : 0;
+  const targetHeight = editMode ? snapToGrid(effectiveHeightPx) : 0;
   const targetMarginBottomPx = editMode ? DIALOG_MARGIN_BOTTOM_PX : 0;
   // The geometry transition — instant (duration 0) whenever nothing is
   // actually transitioning (idle, or every live-drag tick, since drag never

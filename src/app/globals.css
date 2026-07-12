@@ -656,17 +656,6 @@ html[data-debug-contain-cards] [data-result-card] {
   content-visibility: auto !important;
   contain-intrinsic-size: auto var(--result-card-height) !important;
 }
-/* Stabilize mixbar icons (Cause C): on WebKit the real-height drag's only
-   visible jitter is the SVG icons (icon buttons + segment-control labels)
-   rounding a subpixel off per frame while everything around them stays put.
-   will-change: transform promotes each icon to its own composited layer so its
-   content is rasterized once and positioned as a unit, instead of re-rounded
-   every frame. If this holds them still, `real` can stay on Safari too and the
-   ghost split is unnecessary. Scoped to the mixbar; safe for animated icons
-   (will-change is a hint, it doesn't override any existing transform). */
-html[data-debug-stabilize-icons] .mixbar-root svg {
-  will-change: transform;
-}
 
 /* RollingLabel's own slot-machine roll (MatchSelector/LevelSelector/
    SortSelect's collapsed forms) used to live here as roll-out-up/roll-in-up

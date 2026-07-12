@@ -56,10 +56,11 @@ const DEBUG_TOGGLES: { attr: string; label: string }[] = [
   { attr: "data-debug-no-tag-scroll", label: "no card tag scroll" },
   { attr: "data-debug-no-desc-scroll", label: "no card desc scroll" },
   { attr: "data-debug-contain-cards", label: "contain cards (content-visibility)" },
-  // Cause C: layer-promote the mixbar's SVG icons so they stop sub-pixel
-  // jittering on WebKit's real-height drag (see globals.css). Test with mode
-  // = real on Safari + cards present.
-  { attr: "data-debug-stabilize-icons", label: "stabilize icons (layer-promote)" },
+  // Cause C: snap the live drag's animated height/margin-top to the device-
+  // pixel grid, so the moving rows land on clean boundaries and the inline-SVG
+  // icons stop sub-pixel shimmering on WebKit's real drag. Read in JS by
+  // MixerBar (snapToGrid). Test with mode = real on Safari + cards present.
+  { attr: "data-debug-pixel-snap", label: "pixel-snap resize (device grid)" },
 ];
 
 export function AnimationDebugPanel() {
