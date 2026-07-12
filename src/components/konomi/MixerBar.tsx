@@ -1,5 +1,6 @@
 "use client";
 
+import { flushSync } from "react-dom";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { MatchKey, MixerError, Slot, TagInfo } from "@/lib/konomi/types";
 import { ActionButton } from "./ActionButton";
@@ -767,6 +768,23 @@ export function MixerBar({
   // release, not on every mousemove.
   const persistedHeightPx = usePoolPanelHeight();
   const [dragHeightPx, setDragHeightPx] = useState<number | null>(null);
+  // --- Resize-mode prototypes (AnimationDebugPanel-switchable, on-device) ---
+  // "real" (default, current): the drag animates the panel's REAL height every
+  // frame (layout-tier) — smooth with no content on screen, but the confirmed
+  // per-frame layout+composite jitter once cards are present. The other two
+  // are compositor-only (transform), so they stay smooth regardless of
+  // on-screen content, each relaxing one thing the real version can't:
+  //   "ghost": panel holds still; a guideline follows the finger via transform;
+  //            on release the real height animates once to the target. Crisp
+  //            border, no live content reveal.
+  //   "scale": the card grows live via scaleY(transform, origin bottom) —
+  //            keeps the live-growth feel, but the border/content soften
+  //            (scaled) mid-drag and snap crisp on release.
+  // Read once at drag start from data-resize-mode on <html> (the panel sets it
+  // imperatively). Prototype scaffolding — collapses back to plain "real" once
+  // a direction is chosen. See AnimationDebugPanel / DESIGN_SYSTEM.md.
+  const [showGuideline, setShowGuideline] = useState(false);
+  const guidelineRef = useRef<HTMLDivElement>(null);
   // Round 5 (current): live drag drives REAL height/marginTop directly,
   // via Motion values, instead of pinning to a ceiling and faking the
   // reveal with a clip-path. Four earlier rounds are worth recording in
@@ -1662,19 +1680,24 @@ export function MixerBar({
     // pointerdown already bubbles up to on its own — nothing extra needed
     // here for that half.
     isDraggingRef.current = true;
+    // Which prototype drives this drag — read once, held for the whole
+    // gesture (see the state declaration near dragHeightPx). Default "real".
+    const resizeMode = (document.documentElement.getAttribute("data-resize-mode") as "real" | "ghost" | "scale" | null) ?? "real";
     // Pause RecommendButton's two always-on rotating clip-path star layers
     // for the drag's duration — they re-composite every frame regardless of
     // the drag and pile onto its per-frame composite budget on a real phone.
     // Imperative attribute (no React re-render); CSS rule + full rationale in
     // globals.css (html[data-mixbar-resizing] .kono-star). Removed in handleEnd.
     document.documentElement.setAttribute("data-mixbar-resizing", "true");
-    // Path B: no pinned ceiling and no clip-path seed anymore. dragHeightPx
-    // IS the live height now — set here at press (so effectiveHeightPx /
-    // targetHeight / targetMarginTop switch into their live-tracking values
-    // in this same commit) and then updated on every rAF tick in handleMove
-    // below. The real height tracks the pointer directly; there is nothing
-    // to un-pin or reveal.
-    setDragHeightPx(startHeight);
+    // "real": dragHeightPx IS the live height — set here at press (so
+    // effectiveHeightPx / targetHeight / targetMarginTop switch into their
+    // live-tracking values in this same commit) then updated every rAF tick.
+    // "ghost"/"scale": the panel's REAL height stays at startHeight for the
+    // whole drag (the transform-only prototypes fake the visual), so we don't
+    // touch dragHeightPx here; scale reads a pinned real box, ghost shows a
+    // guideline instead.
+    if (resizeMode === "real") setDragHeightPx(startHeight);
+    if (resizeMode === "ghost") setShowGuideline(true);
     // Same bottom-scroll-restore the editMode-open effect above uses (see
     // its own comment for the full mechanism/reasoning). Only armed here
     // now, not re-armed per tick — under Round 6, dialogRef/growableRef/
@@ -1715,12 +1738,26 @@ export function MixerBar({
       const next = pendingNext;
       pendingNext = null;
       liveHeightRef.current = next;
-      setDragHeightPx(next);
-      // The document's real height changes every tick now (a growing pool
-      // grows the page when pinned to the bottom), not just twice as under
-      // the pinned-ceiling approach — re-arm the bottom pin each tick (safe;
-      // see pinScrollToDocumentBottomIfWasAtBottom's own comment).
-      pinScrollToDocumentBottomIfWasAtBottom();
+      if (resizeMode === "real") {
+        // Real height, layout-tier — the one that jitters with cards present.
+        setDragHeightPx(next);
+        // The document's real height changes every tick (a growing pool grows
+        // the page when pinned to the bottom) — re-arm the bottom pin each tick.
+        pinScrollToDocumentBottomIfWasAtBottom();
+      } else if (resizeMode === "ghost") {
+        // Compositor-only: the panel doesn't move; a guideline translates to
+        // where the top edge would land. `next - startHeight` px of upward
+        // growth = that many px up. No React re-render, no layout.
+        if (guidelineRef.current) guidelineRef.current.style.transform = `translateY(${-(next - startHeight)}px)`;
+      } else {
+        // "scale": compositor-only scaleY on the card, origin bottom, so it
+        // grows upward from the fixed anchor. Real height stays startHeight
+        // (no layout); the border/content soften (scaled) until release.
+        if (cardRef.current) {
+          cardRef.current.style.transformOrigin = "bottom";
+          cardRef.current.style.transform = `scaleY(${next / startHeight})`;
+        }
+      }
     }
     function handleMove(ev: PointerEvent) {
       // Still calling preventDefault, even with capture + touch-action:none
@@ -1755,15 +1792,36 @@ export function MixerBar({
         rafId = null;
       }
       flushPendingMove();
-      setPoolPanelHeightPref(liveHeightRef.current);
-      // Path B: nothing to un-pin. dragHeightPx already held the real final
-      // height (liveHeightRef.current) this whole time; clearing it to null
-      // just hands the same value back to the persisted branch
-      // (clampPoolPanelHeight(persistedHeightPx...) === liveHeightRef.current
-      // in this same commit, since setPoolPanelHeightPref above wrote exactly
-      // that), so targetHeight/targetMarginTop land on the identical pixels —
-      // no jump, no reveal, no clip to clear.
-      setDragHeightPx(null);
+      const finalHeight = liveHeightRef.current;
+      setPoolPanelHeightPref(finalHeight);
+      if (resizeMode === "real") {
+        // dragHeightPx already held the real final height the whole time;
+        // clearing it hands the same value to the persisted branch — no jump.
+        setDragHeightPx(null);
+      } else if (resizeMode === "ghost") {
+        // Hide the guideline and settle the REAL height to the target with one
+        // bounded CSS transition (the same isSnapTransitioning path the 50/100%
+        // shortcuts use). The panel sat at startHeight the whole drag, so this
+        // is the single layout animation of the whole interaction.
+        setShowGuideline(false);
+        if (guidelineRef.current) guidelineRef.current.style.transform = "";
+        isTransitioningRef.current = true;
+        setIsSnapTransitioning(true);
+        // persisted was just set to finalHeight above → effectiveHeightPx =
+        // finalHeight; the transition animates from the last-rendered startHeight.
+      } else {
+        // "scale": bake the visual scale into the real height with no flash.
+        // flushSync commits real height = finalHeight to the DOM synchronously
+        // (transform still applied), then we clear the transform in the SAME
+        // task, so the browser paints once at (real finalHeight, scale 1) —
+        // atomic, no snap-down-then-grow. Then settle dragHeightPx back to null.
+        flushSync(() => setDragHeightPx(finalHeight));
+        if (cardRef.current) {
+          cardRef.current.style.transform = "";
+          cardRef.current.style.transformOrigin = "";
+        }
+        setDragHeightPx(null);
+      }
       isDraggingRef.current = false;
       // Resume the star spin (see handleResizeStart's own set). handleEnd runs
       // for pointerup AND pointercancel, so a cancelled gesture un-pauses too.
@@ -2219,6 +2277,18 @@ export function MixerBar({
         transition: marginTopTransition,
       }}
     >
+      {/* Ghost-mode guideline (resize prototype): a thin line pinned to the
+          card's top edge that translateY's up to where the top would land as
+          you drag, while the panel itself holds still. Rendered only during a
+          ghost drag; its transform is written imperatively per rAF tick (no
+          re-render). Absolute against this sticky (positioned) wrapper. */}
+      {showGuideline && (
+        <div
+          ref={guidelineRef}
+          aria-hidden="true"
+          className="pointer-events-none absolute left-0 right-0 top-0 z-[var(--z-raised)] h-[3px] bg-[var(--primary)] shadow-[var(--elev-2)]"
+        />
+      )}
       <div
         ref={cardRef}
         // No `layout` prop and no style.y/transform of any kind — see

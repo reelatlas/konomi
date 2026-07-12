@@ -71,6 +71,15 @@ export function AnimationDebugPanel() {
   // data-* attributes set imperatively on <html> below, only so the
   // checkboxes render their own state; the cards themselves react purely via
   // CSS, so flipping one never re-renders the results.
+  // Resize-mode prototype selector (real / ghost / scale). Sets
+  // data-resize-mode on <html>; MixerBar reads it at drag start. "real" clears
+  // the attribute (default behavior). See MixerBar's handleResizeStart.
+  const [resizeMode, setResizeModeState] = useState<"real" | "ghost" | "scale">("real");
+  function setResizeMode(mode: "real" | "ghost" | "scale") {
+    setResizeModeState(mode);
+    if (mode === "real") document.documentElement.removeAttribute("data-resize-mode");
+    else document.documentElement.setAttribute("data-resize-mode", mode);
+  }
   const [debugFlags, setDebugFlags] = useState<Record<string, boolean>>({});
   function toggleDebug(attr: string) {
     setDebugFlags((prev) => {
@@ -154,6 +163,24 @@ export function AnimationDebugPanel() {
             via CSS only, so toggling is instant and never re-renders them. */}
         <div className="flex flex-col gap-[var(--space-sm)] border-t-[length:var(--border-thin)] border-[var(--ink)] pt-[var(--space-sm)]">
           <div className="text-[length:var(--text-3xs)] font-bold uppercase tracking-[var(--tracking-sm)] text-[var(--subtext)]">
+            resize mode (prototype)
+          </div>
+          <div className="flex gap-[var(--space-xs)]">
+            {(["real", "ghost", "scale"] as const).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => setResizeMode(mode)}
+                className={[
+                  "flex-1 cursor-pointer border-[length:var(--border-thin)] border-[var(--ink)] px-[var(--space-xs)] py-[2px] uppercase tracking-[var(--tracking-sm)]",
+                  resizeMode === mode ? "bg-[var(--ink)] text-[var(--surface)]" : "hover:bg-[var(--fill)]",
+                ].join(" ")}
+              >
+                {mode}
+              </button>
+            ))}
+          </div>
+          <div className="text-[length:var(--text-3xs)] font-bold uppercase tracking-[var(--tracking-sm)] text-[var(--subtext)] pt-[var(--space-xs)]">
             drag jitter diagnostics (live)
           </div>
           {DEBUG_TOGGLES.map((tgl) => (
