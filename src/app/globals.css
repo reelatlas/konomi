@@ -673,7 +673,7 @@
   transition: transform 260ms ease-out; /* eased release */
 }
 [data-icon-fx="3"] .mixbar-controls-row.is-animating {
-  transform: scale(0.5) translateZ(0);
+  transform: scale(0.98) translateZ(0);
   transition: transform 220ms ease-out; /* eased press-in */
 }
 /* 4 — HARD RING: a flat on-brand accent ring snaps on each control box, settles
