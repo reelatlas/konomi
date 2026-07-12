@@ -578,36 +578,35 @@
   }
 }
 
-/* Pause RecommendButton's two continuously-rotating clipped star layers
-   (.kono-star, animate-[kono-spin...]) for the duration of a live MixerBar
-   resize drag. MixerBar sets data-mixbar-resizing on <html> imperatively at
-   drag start and removes it at drag end (no React re-render). Each star is a
-   transform-animated (rotate) clip-path layer the compositor re-composites
-   every frame regardless of the drag; on a real phone that always-on
-   composite piles onto the drag's own per-frame composite budget and helps
-   blow the frame. Pausing freezes each at its current angle (same
-   animation-play-state mechanism the error state uses) and it resumes cleanly
-   on release. Specificity (html + attr + class) beats the element's own
-   Tailwind [animation-play-state:running] utility without !important. */
-html[data-mixbar-resizing] .kono-star {
-  animation-play-state: paused;
+/* MixerBar ghost-mode resize guideline (see MixerBar.tsx). Compositor-only:
+   the panel holds still while these two glowing marks translate up with the
+   finger. The line marks the target height (centered ~30% of the bar); the
+   grip is pinned to the real resize grip's measured X so it rises straight
+   above the control being held. Both glow in the accent and pulse to read as
+   "active"; the grip glows at the pixel level via drop-shadow (follows the SVG
+   dots, not a box). Cheap here — a tiny fixed-size element, no layout. */
+.mixbar-ghost-line {
+  position: absolute; left: 35%; right: 35%; top: 0; height: 3px;
+  background: var(--primary); transform: translateY(-50%);
+  animation: mixbar-ghost-line-glow 1.5s ease-in-out infinite;
 }
-
-/* Drop every visible ResultCard's blurred cover reflection (.konomi-card-
-   reflection — a filter:blur + contrast/saturate layer, rendered per card)
-   for the duration of a live MixerBar resize drag. The drag animates the
-   panel's real height/margin-top (layout properties), which forces a paint +
-   composite pass every frame; that pass re-processes every filter:blur layer
-   in view, so on a real phone the jitter appears ONLY once recommendation
-   cards are on screen and vanishes when results are cleared (confirmed
-   on-device). Each reflection is absolutely positioned, so display:none here
-   reflows nothing (no layout cost) and simply removes the expensive blur
-   layer from the per-frame composite for the gesture's duration. It's a
-   subtle decoration below the cover and the drag is brief, so hiding it while
-   dragging reads as inert. MixerBar toggles data-mixbar-resizing on <html>
-   imperatively at drag start/end (no React re-render). */
-html[data-mixbar-resizing] .konomi-card-reflection {
-  display: none;
+.mixbar-ghost-grip {
+  position: absolute; top: 0; transform: translate(-50%, -50%);
+  color: var(--primary); line-height: 0;
+  animation: mixbar-ghost-grip-glow 1.5s ease-in-out infinite;
+}
+@keyframes mixbar-ghost-line-glow {
+  0%, 100% { box-shadow: 0 0 6px 1px color-mix(in srgb, var(--primary) 70%, transparent), 0 0 13px 2px color-mix(in srgb, var(--primary) 40%, transparent); }
+  50%      { box-shadow: 0 0 9px 2px color-mix(in srgb, var(--primary) 90%, transparent), 0 0 22px 5px color-mix(in srgb, var(--primary) 60%, transparent); }
+}
+@keyframes mixbar-ghost-grip-glow {
+  0%, 100% { filter: drop-shadow(0 0 2px var(--primary)) drop-shadow(0 0 5px color-mix(in srgb, var(--primary) 55%, transparent)); }
+  50%      { filter: drop-shadow(0 0 3px var(--primary)) drop-shadow(0 0 9px color-mix(in srgb, var(--primary) 75%, transparent)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mixbar-ghost-line, .mixbar-ghost-grip { animation: none; }
+  .mixbar-ghost-line { box-shadow: 0 0 8px 2px color-mix(in srgb, var(--primary) 70%, transparent); }
+  .mixbar-ghost-grip { filter: drop-shadow(0 0 3px var(--primary)); }
 }
 
 /* --- AnimationDebugPanel live diagnostics (drag-jitter isolation) ---

@@ -1,6 +1,5 @@
 "use client";
 
-import { flushSync } from "react-dom";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { MatchKey, MixerError, Slot, TagInfo } from "@/lib/konomi/types";
 import { ActionButton } from "./ActionButton";
@@ -33,15 +32,17 @@ import {
 import { TagPoolBody } from "./TagPoolBody";
 import { TagSlot } from "./TagSlot";
 
-// Scope the drag fallback to the platform that actually shows the jitter:
-// physical iOS/iPadOS WebKit. Desktop Safari and desktop narrow viewports keep
-// the normal per-frame real-height drag path.
-function isIOSWebKitTouchDevice(): boolean {
-  if (typeof navigator === "undefined") return false;
-  const ua = navigator.userAgent;
-  const platform = navigator.platform;
-  const isIOS = /iPad|iPhone|iPod/.test(ua) || (platform === "MacIntel" && navigator.maxTouchPoints > 1);
-  return isIOS && ua.includes("AppleWebKit");
+// The real-height (layout-tier) resize drag jitters on WebKit specifically —
+// a WebKit compositor / DPI backing-store cost, confirmed on DESKTOP Safari
+// too, not just iOS (iOS is only its most extreme, weakest-GPU case). Blink
+// (Chrome/Edge) and Gecko (Firefox) render the same per-frame layout+paint
+// path smoothly, so they keep it and its live crisp reveal. The clean, long-
+// stable discriminator is navigator.vendor: Safari/WebKit = "Apple Computer,
+// Inc." (desktop Safari AND every iOS browser, which are all WKWebView),
+// Chrome/Edge = "Google Inc.", Firefox = "". This gates the compositor-only
+// ghost path to exactly the engine that needs it.
+function isWebKit(): boolean {
+  return typeof navigator !== "undefined" && navigator.vendor === "Apple Computer, Inc.";
 }
 
 interface MixerBarProps {
@@ -779,24 +780,23 @@ export function MixerBar({
   // release, not on every mousemove.
   const persistedHeightPx = usePoolPanelHeight();
   const [dragHeightPx, setDragHeightPx] = useState<number | null>(null);
-  // --- Resize-mode prototypes (AnimationDebugPanel-switchable, on-device) ---
-  // "real" (default): the drag animates the panel's REAL height every frame
-  // (layout-tier) — smooth on desktop Safari and desktop narrow viewports, but
-  // the confirmed per-frame layout+composite jitter once cards are present on
-  // physical iOS/iPadOS WebKit. That platform defaults to "scale" instead; the
-  // other paths are compositor-only (transform), so they stay smooth regardless
-  // of on-screen content, each relaxing one thing the real version can't:
-  //   "ghost": panel holds still; a guideline follows the finger via transform;
-  //            on release the real height animates once to the target. Crisp
-  //            border, no live content reveal.
-  //   "scale": the card grows live via scaleY(transform, origin bottom) —
-  //            keeps the live-growth feel, but the border/content soften
-  //            (scaled) mid-drag and snap crisp on release.
-  // Read once at drag start from data-resize-mode on <html> (the debug panel
-  // sets it imperatively), otherwise "scale" only for iOS WebKit and "real"
-  // everywhere else. See AnimationDebugPanel / DESIGN_SYSTEM.md.
+  // --- Resize drag path (WebKit-gated, AnimationDebugPanel-overridable) ---
+  // "real": the drag animates the panel's REAL height every frame (layout-tier)
+  // — the live crisp-bordered reveal, smooth on Blink/Gecko, but the confirmed
+  // WebKit per-frame layout+paint jitter (see isWebKit above). "ghost": the
+  // panel holds still and a compositor-only guideline (a glowing grip pinned to
+  // the real grip's X + a centered glowing line) tracks the finger; on release
+  // the real height settles once to the target. Crisp border, smooth on WebKit,
+  // no live content reveal during the drag. WebKit defaults to ghost, everything
+  // else to real; the panel's data-resize-mode override wins either way.
   const [showGuideline, setShowGuideline] = useState(false);
   const guidelineRef = useRef<HTMLDivElement>(null);
+  // The sticky wrapper (guideline's positioning context) and the measured X of
+  // the real resize grip's center within it, so the ghost grip rises straight
+  // above the control being held. Measured at drag start (grip button rect vs
+  // wrapper rect), so it's exact at every breakpoint.
+  const outerWrapperRef = useRef<HTMLDivElement>(null);
+  const [ghostGripX, setGhostGripX] = useState(0);
   // Round 5 (current): live drag drives REAL height/marginTop directly,
   // via Motion values, instead of pinning to a ceiling and faking the
   // reveal with a clip-path. Four earlier rounds are worth recording in
@@ -1693,30 +1693,27 @@ export function MixerBar({
     // here for that half.
     isDraggingRef.current = true;
     // Which drag path drives this gesture — read once, held for the whole
-    // gesture (see the state declaration near dragHeightPx). The debug panel's
-    // override wins; otherwise only iOS/iPadOS WebKit gets the compositor-only
-    // path, while desktop Safari and every other target keep "real".
+    // gesture. The debug panel's override wins; otherwise WebKit (Safari
+    // desktop + all iOS) gets the compositor-only "ghost" path and everything
+    // else keeps the live-reveal "real" path (see isWebKit above).
     const resizeMode =
-      (document.documentElement.getAttribute("data-resize-mode") as "real" | "ghost" | "scale" | null) ??
-      (isIOSWebKitTouchDevice() ? "scale" : "real");
-    // Pause RecommendButton's star spin + hide the card reflections for the
-    // drag's duration — composite optimizations for the "real" path. They dim
-    // the cards mid-drag, which is a distraction while comparing the
-    // compositor-only prototypes, so the debug panel's "keep card fx during
-    // drag" toggle (data-debug-keep-card-fx) suppresses them. Imperative
-    // attribute (no re-render); CSS in globals.css. Removed in handleEnd.
-    if (!document.documentElement.hasAttribute("data-debug-keep-card-fx")) {
-      document.documentElement.setAttribute("data-mixbar-resizing", "true");
-    }
+      (document.documentElement.getAttribute("data-resize-mode") as "real" | "ghost" | null) ??
+      (isWebKit() ? "ghost" : "real");
     // "real": dragHeightPx IS the live height — set here at press (so
     // effectiveHeightPx / targetHeight / targetMarginTop switch into their
     // live-tracking values in this same commit) then updated every rAF tick.
-    // "ghost"/"scale": the panel's REAL height stays at startHeight for the
-    // whole drag (the transform-only prototypes fake the visual), so we don't
-    // touch dragHeightPx here; scale reads a pinned real box, ghost shows a
-    // guideline instead.
-    if (resizeMode === "real") setDragHeightPx(startHeight);
-    if (resizeMode === "ghost") setShowGuideline(true);
+    // "ghost": the panel's REAL height stays at startHeight for the whole drag
+    // (the guideline fakes the visual), so we don't touch dragHeightPx here —
+    // just measure the real grip's X so the ghost grip rises straight above it,
+    // and show the guideline.
+    if (resizeMode === "real") {
+      setDragHeightPx(startHeight);
+    } else {
+      const gripRect = e.currentTarget.getBoundingClientRect();
+      const wrapRect = outerWrapperRef.current?.getBoundingClientRect();
+      setGhostGripX(wrapRect ? gripRect.left + gripRect.width / 2 - wrapRect.left : gripRect.left + gripRect.width / 2);
+      setShowGuideline(true);
+    }
     // Same bottom-scroll-restore the editMode-open effect above uses (see
     // its own comment for the full mechanism/reasoning). Only armed here
     // now, not re-armed per tick — under Round 6, dialogRef/growableRef/
@@ -1758,24 +1755,17 @@ export function MixerBar({
       pendingNext = null;
       liveHeightRef.current = next;
       if (resizeMode === "real") {
-        // Real height, layout-tier — the one that jitters with cards present.
+        // Real height, layout-tier — the live reveal (Blink/Gecko).
         setDragHeightPx(next);
         // The document's real height changes every tick (a growing pool grows
         // the page when pinned to the bottom) — re-arm the bottom pin each tick.
         pinScrollToDocumentBottomIfWasAtBottom();
-      } else if (resizeMode === "ghost") {
-        // Compositor-only: the panel doesn't move; a guideline translates to
-        // where the top edge would land. `next - startHeight` px of upward
-        // growth = that many px up. No React re-render, no layout.
-        if (guidelineRef.current) guidelineRef.current.style.transform = `translateY(${-(next - startHeight)}px)`;
       } else {
-        // "scale": compositor-only scaleY on the card, origin bottom, so it
-        // grows upward from the fixed anchor. Real height stays startHeight
-        // (no layout); the border/content soften (scaled) until release.
-        if (cardRef.current) {
-          cardRef.current.style.transformOrigin = "bottom";
-          cardRef.current.style.transform = `scaleY(${next / startHeight})`;
-        }
+        // "ghost": compositor-only. The panel doesn't move; the guideline
+        // (glow grip + centered line) translates to where the top edge would
+        // land. `next - startHeight` px of growth = that many px up. No React
+        // re-render, no layout — smooth on WebKit regardless of on-screen cards.
+        if (guidelineRef.current) guidelineRef.current.style.transform = `translateY(${-(next - startHeight)}px)`;
       }
     }
     function handleMove(ev: PointerEvent) {
@@ -1817,34 +1807,20 @@ export function MixerBar({
         // dragHeightPx already held the real final height the whole time;
         // clearing it hands the same value to the persisted branch — no jump.
         setDragHeightPx(null);
-      } else if (resizeMode === "ghost") {
-        // Hide the guideline and settle the REAL height to the target with one
-        // bounded CSS transition (the same isSnapTransitioning path the 50/100%
-        // shortcuts use). The panel sat at startHeight the whole drag, so this
-        // is the single layout animation of the whole interaction.
+      } else {
+        // "ghost": hide the guideline and settle the REAL height to the target
+        // with one bounded CSS transition (the same isSnapTransitioning path the
+        // 50/100% shortcuts use, tunable via the debug panel's editPanelEase for
+        // the "spring" release feel). The panel sat at startHeight the whole
+        // drag, so this is the single layout animation of the interaction.
         setShowGuideline(false);
         if (guidelineRef.current) guidelineRef.current.style.transform = "";
         isTransitioningRef.current = true;
         setIsSnapTransitioning(true);
         // persisted was just set to finalHeight above → effectiveHeightPx =
         // finalHeight; the transition animates from the last-rendered startHeight.
-      } else {
-        // "scale": bake the visual scale into the real height with no flash.
-        // flushSync commits real height = finalHeight to the DOM synchronously
-        // (transform still applied), then we clear the transform in the SAME
-        // task, so the browser paints once at (real finalHeight, scale 1) —
-        // atomic, no snap-down-then-grow. Then settle dragHeightPx back to null.
-        flushSync(() => setDragHeightPx(finalHeight));
-        if (cardRef.current) {
-          cardRef.current.style.transform = "";
-          cardRef.current.style.transformOrigin = "";
-        }
-        setDragHeightPx(null);
       }
       isDraggingRef.current = false;
-      // Resume the star spin (see handleResizeStart's own set). handleEnd runs
-      // for pointerup AND pointercancel, so a cancelled gesture un-pauses too.
-      document.documentElement.removeAttribute("data-mixbar-resizing");
       // Catches up on anything that changed while frozen (e.g. a mobile
       // address-bar resize mid-drag) rather than waiting on the next
       // incidental ResizeObserver/resize event to notice — see this ref's
@@ -2275,6 +2251,7 @@ export function MixerBar({
     // so the composite cost stops scaling with the panel's height. Visually
     // identical (same 5px 5px 0 --ink hard shadow). See DESIGN_SYSTEM.md.
     <div
+      ref={outerWrapperRef}
       className="sticky bottom-0 z-[var(--z-overlay)] max-w-[1280px] mx-auto touch-none"
       // dragMarginTop during a live drag (a Motion value, `.set()` every
       // tick — see its own declaration, near dragHeightPx, for the full
@@ -2296,17 +2273,21 @@ export function MixerBar({
         transition: marginTopTransition,
       }}
     >
-      {/* Ghost-mode guideline (resize prototype): a thin line pinned to the
-          card's top edge that translateY's up to where the top would land as
-          you drag, while the panel itself holds still. Rendered only during a
-          ghost drag; its transform is written imperatively per rAF tick (no
-          re-render). Absolute against this sticky (positioned) wrapper. */}
+      {/* Ghost-mode guideline: pinned to the card's top edge, translateY'd up
+          to where the top would land as you drag (the panel itself holds
+          still). Two marks: a centered glowing line (the target height) and a
+          glowing grip pinned to the real resize grip's measured X (ghostGripX),
+          so it rises straight above the control being held. Rendered only during
+          a ghost drag; the wrapper's transform is written imperatively per rAF
+          tick (no re-render). Absolute against this sticky wrapper. See
+          globals.css .mixbar-ghost-* and DESIGN_SYSTEM.md. */}
       {showGuideline && (
-        <div
-          ref={guidelineRef}
-          aria-hidden="true"
-          className="pointer-events-none absolute left-0 right-0 top-0 z-[var(--z-raised)] h-[3px] bg-[var(--primary)] shadow-[var(--elev-2)]"
-        />
+        <div ref={guidelineRef} aria-hidden="true" className="pointer-events-none absolute left-0 right-0 top-0 z-[var(--z-raised)]">
+          <div className="mixbar-ghost-line" />
+          <div className="mixbar-ghost-grip" style={{ left: ghostGripX }}>
+            <GripIcon />
+          </div>
+        </div>
       )}
       <div
         ref={cardRef}

@@ -56,10 +56,6 @@ const DEBUG_TOGGLES: { attr: string; label: string }[] = [
   { attr: "data-debug-no-tag-scroll", label: "no card tag scroll" },
   { attr: "data-debug-no-desc-scroll", label: "no card desc scroll" },
   { attr: "data-debug-contain-cards", label: "contain cards (content-visibility)" },
-  // Suppress the drag-time card-fx stripping (star pause + reflection hide) so
-  // cards render fully while comparing the resize prototypes. Read in JS by
-  // MixerBar's handleResizeStart, not via a CSS rule.
-  { attr: "data-debug-keep-card-fx", label: "keep card fx during drag" },
 ];
 
 export function AnimationDebugPanel() {
@@ -75,10 +71,10 @@ export function AnimationDebugPanel() {
   // data-* attributes set imperatively on <html> below, only so the
   // checkboxes render their own state; the cards themselves react purely via
   // CSS, so flipping one never re-renders the results.
-  // Resize-mode prototype selector. "auto" clears data-resize-mode so MixerBar
-  // picks its platform default; the other buttons force a specific path.
-  const [resizeMode, setResizeModeState] = useState<"auto" | "real" | "ghost" | "scale">("auto");
-  function setResizeMode(mode: "auto" | "real" | "ghost" | "scale") {
+  // Resize-mode selector. "auto" clears data-resize-mode so MixerBar picks its
+  // engine default (ghost on WebKit/Safari, real elsewhere); real/ghost force it.
+  const [resizeMode, setResizeModeState] = useState<"auto" | "real" | "ghost">("auto");
+  function setResizeMode(mode: "auto" | "real" | "ghost") {
     setResizeModeState(mode);
     if (mode === "auto") document.documentElement.removeAttribute("data-resize-mode");
     else document.documentElement.setAttribute("data-resize-mode", mode);
@@ -169,7 +165,7 @@ export function AnimationDebugPanel() {
             resize mode (prototype)
           </div>
           <div className="flex gap-[var(--space-xs)]">
-            {(["auto", "real", "ghost", "scale"] as const).map((mode) => (
+            {(["auto", "real", "ghost"] as const).map((mode) => (
               <button
                 key={mode}
                 type="button"
