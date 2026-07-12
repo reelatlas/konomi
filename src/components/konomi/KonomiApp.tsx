@@ -26,6 +26,16 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
   // them. Same cross-component-reach reason the retired `activeTab` used
   // to live here.
   const [editMode, setEditMode] = useState(false);
+  // Masthead landing/compact state — deliberately NOT derived from
+  // k.hasResults (that was tried first: `active={k.hasResults}`). A live
+  // derivation re-expands the masthead the instant results are cleared,
+  // reported directly as jarring — the user only ever wants the shrink to
+  // happen once, on the first real RECOMMEND, and never automatically
+  // reverse itself afterward. One-way, not a toggle-by-effect: set true in
+  // handleRecommend below on success, never reset by clearRecs or anything
+  // else — the only way back to expanded is the manual toggle (Masthead's
+  // own onToggleCollapse, below).
+  const [mastheadCollapsed, setMastheadCollapsed] = useState(false);
 
   // Restores the persisted theme into React state on mount, then keeps
   // <html> and localStorage in sync with k.theme on every subsequent
@@ -91,6 +101,7 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
     const error = k.recommend();
     if (!error) {
       setEditMode(false);
+      setMastheadCollapsed(true);
     }
   }
 
@@ -110,12 +121,20 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
     // already accounts for automatically when handing out the remaining
     // 100svh to this row's children.
     //
-    // pt is conditional on k.hasResults, not the same flat pt-2xl in both
-    // states: the landing masthead keeps its 24px breathing room (reads as
-    // a proper banner), but the active/collapsed masthead sits flush
+    // pt is conditional on mastheadCollapsed, not the same flat pt-2xl in
+    // both states: the expanded masthead keeps its 24px breathing room
+    // (reads as a proper banner), but the collapsed masthead sits flush
     // against the true top edge with zero gap — matching the old
     // scroll-triggered condensed bar's own top-0 flush positioning (see
-    // Masthead.tsx's own top comment), not the landing state's framing.
+    // Masthead.tsx's own top comment), not the expanded state's framing.
+    //
+    // overflow is ALSO conditional on mastheadCollapsed now, not always
+    // hidden — see this div's own style comment below for why: expanding
+    // the masthead back open (the manual toggle) while results are still
+    // present shrinks the results section's own flex-1 share, and once
+    // ResultCard's own clamp() floor (322px) is reached, it can't shrink
+    // any further — something has to give, and here that's letting this
+    // shell scroll instead of forcing cards below their legible floor.
     <div
       // No data-theme here (removed) — this div used to carry its own
       // synced copy, but it's React-rendered and re-renders in lockstep
@@ -133,19 +152,29 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
       // descendant, rather than redeclaring a value that can't help but
       // lag behind on first load.
       //
-      // overflow-hidden (new): this div is now exactly h-[100svh] — its
-      // own content (masthead + results + mixbar) must never exceed that,
-      // by construction (results is the one flexible region, flex-1
-      // min-h-0 below), so this is a hard backstop against ever silently
-      // overflowing into a second, accidental scroll root, not something
-      // expected to actually clip real content in normal use.
+      // overflow-hidden while collapsed: this div is exactly h-[100svh],
+      // and collapsed-mode content (slim masthead + results + mixbar) must
+      // never exceed that, by construction (results is the one flexible
+      // region, flex-1 min-h-0 below) — a hard backstop against ever
+      // silently overflowing into a second, accidental scroll root, not
+      // something expected to actually clip real content in normal use.
+      // Only relaxed to overflow-y-auto while expanded (see this element's
+      // own top comment) — h-[100svh] stays fixed either way (not
+      // min-h-[100svh]); auto just lets genuine excess content scroll
+      // *within* that fixed box instead of forcing something else to
+      // shrink past its own floor. Deliberately NOT unconditional
+      // overflow-y-auto: collapsed is the default, most-common state, and
+      // MixerBar's own touch-handling was verified against a hard
+      // overflow:hidden here — keeping that exact guarantee for the common
+      // case rather than leaving even a should-be-inert auto-with-nothing-
+      // to-scroll in place for it.
       //
       // No background, no scrollbar-gutter, no relative here — all three
       // live on html (globals.css); unaffected by this rewrite, since
       // html was always the real place a full-viewport background needed
       // to live regardless of whether it also happened to be the scroll
       // root.
-      className={`h-[100svh] flex flex-col overflow-hidden overflow-x-clip px-[var(--space-2xl)] pb-[var(--space-2xl)] font-body text-[var(--ink)] ${k.hasResults ? "" : "pt-[var(--space-2xl)]"}`}
+      className={`h-[100svh] flex flex-col overflow-x-clip px-[var(--space-2xl)] pb-[var(--space-2xl)] font-body text-[var(--ink)] ${mastheadCollapsed ? "overflow-hidden" : "overflow-y-auto pt-[var(--space-2xl)]"}`}
     >
       {/* AnimationDebugPanel removed for now, not deleted — see
           AnimationDebugPanel.tsx/animationDebugStore.ts, both left intact.
@@ -165,7 +194,12 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
           alone would have on a plain block div — needed to keep mx-auto's
           own centering working the same as before. */}
       <div className="relative z-[var(--z-raised)] flex flex-col flex-1 min-h-0 max-w-[1280px] mx-auto w-full">
-        <Masthead theme={k.theme} onThemeChange={k.setTheme} active={k.hasResults} />
+        <Masthead
+          theme={k.theme}
+          onThemeChange={k.setTheme}
+          collapsed={mastheadCollapsed}
+          onToggleCollapsed={() => setMastheadCollapsed((c) => !c)}
+        />
 
         {/* Results is the one flexible region of the shell — flex-1
             min-h-0 (same reasoning as the column above) makes this section
