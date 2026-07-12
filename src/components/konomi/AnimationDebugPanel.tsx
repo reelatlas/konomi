@@ -61,6 +61,9 @@ const DEBUG_TOGGLES: { attr: string; label: string }[] = [
   // icons stop sub-pixel shimmering on WebKit's real drag. Read in JS by
   // MixerBar (snapToGrid). Test with mode = real on Safari + cards present.
   { attr: "data-debug-pixel-snap", label: "pixel-snap resize (device grid)" },
+  // Opaque fill on the (transparent) mixbar control buttons — tests whether
+  // removing the per-frame alpha blend reduces the WebKit resize jitter.
+  { attr: "data-debug-opaque-controls", label: "opaque control bg (test blend)" },
 ];
 
 export function AnimationDebugPanel() {

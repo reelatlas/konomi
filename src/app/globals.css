@@ -664,6 +664,13 @@ html[data-debug-contain-cards] [data-result-card] {
   content-visibility: auto !important;
   contain-intrinsic-size: auto var(--result-card-height) !important;
 }
+/* Give every mixbar control button an opaque fill (they're transparent /
+   surface-blended today) to test whether removing the per-frame alpha blend
+   reduces the WebKit resize jitter. Overrides active states too (fine for an
+   A/B test). Scoped to the mixbar. */
+html[data-debug-opaque-controls] .mixbar-root button {
+  background-color: var(--surface) !important;
+}
 
 /* RollingLabel's own slot-machine roll (MatchSelector/LevelSelector/
    SortSelect's collapsed forms) used to live here as roll-out-up/roll-in-up
