@@ -578,6 +578,21 @@
   }
 }
 
+/* Pause RecommendButton's two continuously-rotating clipped star layers
+   (.kono-star, animate-[kono-spin...]) for the duration of a live MixerBar
+   resize drag. MixerBar sets data-mixbar-resizing on <html> imperatively at
+   drag start and removes it at drag end (no React re-render). Each star is a
+   transform-animated (rotate) clip-path layer the compositor re-composites
+   every frame regardless of the drag; on a real phone that always-on
+   composite piles onto the drag's own per-frame composite budget and helps
+   blow the frame. Pausing freezes each at its current angle (same
+   animation-play-state mechanism the error state uses) and it resumes cleanly
+   on release. Specificity (html + attr + class) beats the element's own
+   Tailwind [animation-play-state:running] utility without !important. */
+html[data-mixbar-resizing] .kono-star {
+  animation-play-state: paused;
+}
+
 /* RollingLabel's own slot-machine roll (MatchSelector/LevelSelector/
    SortSelect's collapsed forms) used to live here as roll-out-up/roll-in-up
    keyframes — removed once RollingLabel.tsx migrated to Motion

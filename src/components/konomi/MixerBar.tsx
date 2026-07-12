@@ -1662,6 +1662,12 @@ export function MixerBar({
     // pointerdown already bubbles up to on its own — nothing extra needed
     // here for that half.
     isDraggingRef.current = true;
+    // Pause RecommendButton's two always-on rotating clip-path star layers
+    // for the drag's duration — they re-composite every frame regardless of
+    // the drag and pile onto its per-frame composite budget on a real phone.
+    // Imperative attribute (no React re-render); CSS rule + full rationale in
+    // globals.css (html[data-mixbar-resizing] .kono-star). Removed in handleEnd.
+    document.documentElement.setAttribute("data-mixbar-resizing", "true");
     // Path B: no pinned ceiling and no clip-path seed anymore. dragHeightPx
     // IS the live height now — set here at press (so effectiveHeightPx /
     // targetHeight / targetMarginTop switch into their live-tracking values
@@ -1759,6 +1765,9 @@ export function MixerBar({
       // no jump, no reveal, no clip to clear.
       setDragHeightPx(null);
       isDraggingRef.current = false;
+      // Resume the star spin (see handleResizeStart's own set). handleEnd runs
+      // for pointerup AND pointercancel, so a cancelled gesture un-pauses too.
+      document.documentElement.removeAttribute("data-mixbar-resizing");
       // Catches up on anything that changed while frozen (e.g. a mobile
       // address-bar resize mid-drag) rather than waiting on the next
       // incidental ResizeObserver/resize event to notice — see this ref's
