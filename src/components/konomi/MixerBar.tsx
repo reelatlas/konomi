@@ -2289,6 +2289,17 @@ export function MixerBar({
         // painting bounds, only isolates internal layout computation from
         // external (ancestor) influence, the one thing actually needed
         // here.
+        // NOTE: the @container that Row 2's priority-hide ladder queries is
+        // NOT here on cardRef — it's a dedicated, machinery-free wrapper
+        // around Row 2 itself (see rowContainerRef's wrapper below). Putting
+        // container-type: inline-size on cardRef directly collapsed the whole
+        // bar's layout (confirmed live: "everything smushed together"),
+        // because cardRef's own height is driven by the negative-marginTop /
+        // clip-path growth machinery above, and layering size containment
+        // onto that same box interferes with it. The ladder only needs to
+        // query the width the buttons actually lay out in, which a plain
+        // wrapper around Row 2 reports identically (same content box) without
+        // touching any of cardRef's growth/containment concerns.
         className="px-[var(--space-2xl)] py-[var(--space-xl)] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] [contain:layout]"
       >
       {/* growableRef wraps dialogRef alone now — no separate resize-handle
@@ -2563,30 +2574,44 @@ export function MixerBar({
             each rung's own breakpoint was live-bisected to sit exactly
             where the PREVIOUS rung's own fit stops holding. This is what
             keeps the row single-line continuously across the WHOLE span
-            from min-[511px] up through min-[1071px] and beyond, rather
+            from @min-[415px] up through @min-[975px] and beyond, rather
             than the disconnected patchwork of independently-picked
             breakpoints this row used to have (a real, measured dead zone
             between two of this round's own first-draft numbers is what
             proved chaining, not spacing rungs out by feel, is required;
             see each rung's own comment below for where a dead zone was
-            actually found and closed):
+            actually found and closed).
 
-              - min-[1071px]  Full form: every control shows its own text
+            NOTE — these are `@container` thresholds against cardRef's own
+            content box, NOT viewport media queries. Every number below is
+            its old viewport value MINUS 96px: KonomiApp's px-space-2xl root
+            gutter (48px) plus this card's own px-space-2xl padding (48px),
+            the exact difference between the viewport and this bar's real
+            usable width (see cardRef's @container comment above for why the
+            switch was needed at all — the app-shell decoupled the two). So
+            e.g. the old max-[657px] viewport rung is @max-[561px] here. The
+            -96px translation reproduces each rung's previously-bisected
+            PHYSICAL fit width, so it's a faithful starting point rather than
+            a guess — but it still wants one on-device re-bisection pass to
+            confirm, same as any width number in this file (the old ones were
+            themselves live-bisected, not derived):
+
+              - @min-[975px]  Full form: every control shows its own text
                                 label, and the Random/Recommend divider is
                                 visible. This is this row's own pre-existing
                                 ceiling (unchanged), the widest point
                                 anything here needs to change.
-              - max-[1070px]  RUNG 1: the divider disappears. First
+              - @max-[974px]  RUNG 1: the divider disappears. First
                                 casualty, before any other control changes
                                 at all, per explicit priority order. Tied
-                                directly to the 1071px ceiling above, not an
+                                directly to the 975px ceiling above, not an
                                 arbitrary wide value: on its own this rung
                                 never actually achieves single-line fit
                                 anywhere (confirmed live), so there's no
                                 reason for it to start any wider than the
                                 one point where the full form itself stops
                                 fitting.
-              - (same 1071px) RUNG 2: Tag Pool, Clear, Random, and
+              - (same 975px)  RUNG 2: Tag Pool, Clear, Random, and
                                 Recommend all drop their text labels down to
                                 icon-only, together, at the SAME threshold
                                 the divider disappears at, not a separately
@@ -2599,7 +2624,7 @@ export function MixerBar({
                                 the gap by itself. Min Match loses only its
                                 own "MIN MATCH" text label here, keeping
                                 both icons and its full 3-segment control.
-              - max-[750px]   RUNG 3: Min Match itself changes, not just
+              - @max-[654px]  RUNG 3: Min Match itself changes, not just
                                 its label: loses the Tag icon (GreaterEqual
                                 alone still reads as "match count" beside
                                 the value next to it) AND switches from the
@@ -2610,33 +2635,35 @@ export function MixerBar({
                                 of this row used. Placed here specifically
                                 because it must land BEFORE Tag Pool starts
                                 disappearing (rung 4) per the requested
-                                order; anywhere in the (roughly 657-1070px)
+                                order; anywhere in the (roughly 561-974px)
                                 range where rung 2's own fit already holds
                                 comfortably works equally well for that
                                 ordering, this is just a clean value inside
                                 it.
-              - max-[657px]   RUNG 4: Tag Pool hidden entirely, the FIRST
+              - @max-[561px]  RUNG 4: Tag Pool hidden entirely, the FIRST
                                 of the three buttons (Tag Pool, then Clear,
-                                then Random) to go. 657px specifically:
-                                confirmed live as exactly where rung 3's own
-                                fit (Min Match already collapsed, Tag Pool/
-                                Clear/Random all still visible) stops
-                                holding. This round's first attempt had this
-                                at 640px (copied from an unrelated, older
-                                number) instead of re-bisecting against this
-                                exact chain, which left a real, confirmed
-                                dead zone from 640-656px, closed by moving
-                                this rung up to 657px.
-              - max-[621px]   RUNG 5: Clear hidden entirely. The width
+                                then Random) to go. 561px specifically: the
+                                -96px translation of the old, live-bisected
+                                657px viewport rung — confirmed live (in the
+                                pre-app-shell layout) as exactly where rung
+                                3's own fit (Min Match already collapsed, Tag
+                                Pool/Clear/Random all still visible) stops
+                                holding. That original bisection had first
+                                sat at 640px (copied from an unrelated, older
+                                number) and left a real, confirmed dead zone
+                                from 640-656px, closed by moving it to 657px
+                                — the history that makes this the trusted
+                                number to translate from.
+              - @max-[525px]  RUNG 5: Clear hidden entirely. The width
                                 where Tag-Pool-hidden-alone's own fit stops
                                 holding.
-              - max-[577px]   RUNG 6: Random hidden entirely. The width
+              - @max-[481px]  RUNG 6: Random hidden entirely. The width
                                 where Tag-Pool-and-Clear-hidden's own fit
                                 stops holding. Final composition below this
                                 point: 3 slots, Min Match (1 icon, collapsed
                                 control), Recommend (icon only), nothing
                                 left in this chain to hide.
-            Below 511px even that final composition no longer fits on one
+            Below @415px even that final composition no longer fits on one
             line — this is where the 3 slots' own sub-group (below) takes
             over the squeeze instead of the row wrapping: this is the LAST
             rung in the chain, only reachable once every other rung above
@@ -2691,6 +2718,23 @@ export function MixerBar({
             the whole gesture — the same reason it needs nothing of its
             own for the open/close/snap case. See DESIGN_SYSTEM.md for the
             full writeup. */}
+        {/* @container query context for Row 2's priority-hide ladder. A
+            dedicated wrapper, NOT cardRef itself: container-type on cardRef
+            collapsed the bar (see cardRef's own note above). This wrapper has
+            no padding, positioning, or role beyond establishing the query
+            container, so its content box equals the width the buttons
+            actually lay out in — identical to what cardRef's content box
+            would report, but with none of cardRef's growth/clip machinery to
+            interfere. Every @min-/@max- rung below queries THIS box. The
+            width it reports is min(viewport - 96px, 1232px): KonomiApp's
+            px-space-2xl root gutter (48px) + cardRef's own px-space-2xl
+            padding (48px) — the exact gap between viewport and the bar's real
+            usable width, and why viewport media queries (pre-app-shell) fired
+            at the wrong point. The ladder's whole contract is unchanged:
+            stay ONE row at all times, each element giving way exactly at its
+            own wrap point — those wrap points are just measured against this
+            container now, not the screen. */}
+        <div className="@container">
         <motion.div className="flex flex-nowrap items-center gap-x-[var(--space-lg)]">
           {/* LEFT group. min-w-0: lets this flex item (and, more directly,
               its own min-w-0 slots sub-group below) actually shrink below
@@ -2762,17 +2806,18 @@ export function MixerBar({
                 shrink-0 keeps that guarantee explicit rather than
                 incidental. */}
             <div className="flex items-center gap-[var(--space-lg)] shrink-0">
-              <div className="min-[1071px]:hidden flex items-center gap-[var(--space-lg)]">
-                {/* max-[657px]:hidden, live-bisected: Tag Pool is the FIRST
-                    of the three (Tag Pool, then Clear, then Random) to give
-                    up its own space as this row runs out of room, per
+              <div className="@min-[975px]:hidden flex items-center gap-[var(--space-lg)]">
+                {/* @max-[561px]:hidden (the -96px container translation of
+                    the old, live-bisected 657px viewport rung): Tag Pool is
+                    the FIRST of the three (Tag Pool, then Clear, then Random)
+                    to give up its own space as this row runs out of room, per
                     explicit priority order, and the first rung after Min
-                    Match's own collapse above. 657px is exactly where the
-                    prior tier's own fit (icon-only, Min Match already
-                    collapsed, all three of Tag Pool/Clear/Random still
-                    visible) stops holding, confirmed live: a real dead zone
-                    opened up here on this round's own first attempt, which
-                    had this at 640px by analogy with an earlier draft's
+                    Match's own collapse above. The original 657px was exactly
+                    where the prior tier's own fit (icon-only, Min Match
+                    already collapsed, all three of Tag Pool/Clear/Random still
+                    visible) stopped holding, confirmed live: a real dead zone
+                    opened up there on that round's own first attempt, which
+                    had it at 640px by analogy with an earlier draft's
                     numbers rather than re-bisecting against this exact
                     chain. Still reachable by tapping an empty slot directly
                     (handleSlotClick above) whenever one exists, though not
@@ -2780,7 +2825,7 @@ export function MixerBar({
                     below its own, narrower threshold, an accepted gap at
                     this row's tightest widths, requested as the priority
                     order regardless. */}
-                <div className="max-[657px]:hidden">
+                <div className="@max-[561px]:hidden">
                   <IconButton
                     size="md"
                     border="base"
@@ -2793,20 +2838,21 @@ export function MixerBar({
                     {editMode ? <CheckIcon className="text-[var(--ink)]" /> : <TagPoolIcon className="text-[var(--ink)]" />}
                   </IconButton>
                 </div>
-                {/* max-[621px]:hidden, live-bisected: Clear is the SECOND
+                {/* @max-[525px]:hidden (-96px from the old, live-bisected
+                    621px): Clear is the SECOND
                     of the three to go, once Tag Pool alone (already hidden
                     above this width) no longer buys back enough room on its
                     own. Below this point a tag can still be removed from
                     its own slot directly (drag it back out to the pool, or
                     open edit mode via an empty slot and use its per-chip
                     toggle) even without this button. */}
-                <div className="max-[621px]:hidden">
+                <div className="@max-[525px]:hidden">
                   <IconButton size="md" border="base" shadow="elev-2" backgroundColor="transparent" title="Clear" aria-label="Clear" onClick={onClearSlots}>
                     <EraserIcon className="text-[var(--ink)]" />
                   </IconButton>
                 </div>
               </div>
-              <div className="hidden min-[1071px]:flex items-center gap-[var(--space-lg)]">
+              <div className="hidden @min-[975px]:flex items-center gap-[var(--space-lg)]">
                 <ActionButton variant="outline" onClick={editMode ? onCloseEditMode : onOpenEditMode}>
                   {editMode ? (
                     "Done ✓"
@@ -2832,27 +2878,31 @@ export function MixerBar({
               never get compressed or clipped, just individually hidden by
               their own breakpoints as already documented above. */}
           <div className="ml-auto flex items-center gap-[var(--space-lg)] shrink-0">
-            <div className="max-[750px]:hidden flex items-center gap-[var(--space-sm)]">
-              {/* max-[1071px]:hidden: the "Min Match" label is the Min
+            <div className="@max-[654px]:hidden flex items-center gap-[var(--space-sm)]">
+              {/* @max-[975px]:hidden: the "Min Match" label is the Min
                   Match side of RUNG 2, the same shared icon-only switch
                   Tag Pool/Clear/Random/Recommend all drop their own labels
-                  on, at the same 1071px threshold (see this row's own top
+                  on, at the same 975px threshold (see this row's own top
                   comment for the full ladder). This control doesn't lose
                   its whole self there the way those do, just this one
                   label, keeping its 2 icons and 3-segment control intact
-                  through that rung. Replaces the old @min-[480px]
-                  container-query toggle (borrowed from an unrelated row's
-                  own breakpoint) with this row's real, live-bisected
-                  one. */}
-              <span className="max-[1071px]:hidden font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
+                  through that rung. This is now once again a container
+                  query — but this bar's OWN correctly-bisected threshold
+                  (the old @min-[480px] this once carried was borrowed from
+                  an unrelated row and was the very mismatch that later
+                  drove the whole ladder onto viewport px; the app-shell
+                  then made viewport px itself wrong, so the fix is the
+                  bar's own container width all along). */}
+              <span className="@max-[975px]:hidden font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
                 Min Match
               </span>
               <TagIcon className="text-[var(--ink)]" />
               <GreaterEqualIcon className="text-[var(--ink)]" />
               <MatchSelector value={minMatch} onChange={onSetMatch} />
             </div>
-            <div className="hidden max-[750px]:flex items-center gap-[var(--space-sm)]">
-              {/* max-[750px], live-bisected: RUNG 3 of this row's whole
+            <div className="hidden @max-[654px]:flex items-center gap-[var(--space-sm)]">
+              {/* @max-[654px] (-96px from the old, live-bisected 750px):
+                  RUNG 3 of this row's whole
                   ladder (after the divider, then the shared icon-only
                   switch), and the only rung that changes a control itself
                   instead of just losing a label: losing the Tag icon
@@ -2867,7 +2917,8 @@ export function MixerBar({
               <GreaterEqualIcon className="text-[var(--ink)]" />
               <MatchSelector value={minMatch} onChange={onSetMatch} collapsed />
             </div>
-            {/* max-[577px]:hidden, live-bisected: RUNG 6, Random is the
+            {/* @max-[481px]:hidden (-96px from the old, live-bisected
+                577px): RUNG 6, Random is the
                 last of the three (Tag Pool, Clear, Random) to go, once
                 Tag Pool and Clear (both already hidden above this width)
                 still haven't bought back enough room on their own. Below
@@ -2876,13 +2927,13 @@ export function MixerBar({
                 entry point, an accepted tradeoff of the requested
                 priority order.
 
-                Both conditions (min-[1071px]:hidden for the icon/text
-                swap, max-[577px]:hidden for hiding entirely) live on this
+                Both conditions (@min-[975px]:hidden for the icon/text
+                swap, @max-[481px]:hidden for hiding entirely) live on this
                 SAME div now, not nested one inside the other the way an
                 earlier version had it. Confirmed live as a real bug:
                 nesting left the OUTER div still "block" (only its own
-                min-1071 condition controls it) once the INNER div hid
-                below 577px, so an empty-but-not-display:none box sat
+                min-975 condition controls it) once the INNER div hid
+                below 481px, so an empty-but-not-display:none box sat
                 between Min Match and Recommend, still collecting its own
                 gap-lg on both sides, a real, doubled gap, reported live
                 as "too much padding" once Min Match collapsed. Tag Pool/
@@ -2891,7 +2942,7 @@ export function MixerBar({
                 nested only inside ONE shared icon-tier wrapper they both
                 sit in together, not two levels of nested divs the way
                 this one used to be. */}
-            <div className="min-[1071px]:hidden max-[577px]:hidden">
+            <div className="@min-[975px]:hidden @max-[481px]:hidden">
               <IconButton
                 size="md"
                 border="base"
@@ -2904,7 +2955,7 @@ export function MixerBar({
                 <DiceIcon className="text-[var(--ink)]" />
               </IconButton>
             </div>
-            <div className="hidden min-[1071px]:block">
+            <div className="hidden @min-[975px]:block">
               <ActionButton variant="filled" onClick={onRandomTags}>
                 <span className="inline-flex items-center gap-[var(--space-sm)]">
                   Random
@@ -2931,23 +2982,25 @@ export function MixerBar({
                 it bleeds into without eating into the clean 12px, so both
                 sides read as the same gap instead of just measuring the
                 same. */}
-            {/* min-[1071px]:block, live-bisected: the divider is the FIRST
+            {/* @min-[975px]:block (-96px from the old, live-bisected
+                1071px): the divider is the FIRST
                 casualty of this row's whole priority ladder, the widest
                 rung, disappearing before any of the icon-only/collapse/
                 hide-entirely rungs below it even start. Requested directly
                 as its own, separate breakpoint, not tied to the shared
-                793px icon-only threshold the way it used to be. 1071px
+                icon-only threshold the way it used to be. 975px
                 specifically (not an arbitrary wide value): that's this
                 row's own pre-existing full-label single-line ceiling (see
-                the min-[1071px] rung in this comment's own top section),
+                the @min-[975px] rung in this comment's own top section),
                 the widest point ANYTHING here needs to change at all,
                 hiding the divider any earlier would have nothing to buy,
                 since the row already fits with it present above that
                 point. */}
-            <div className="hidden min-[1071px]:block ml-[3px] w-[length:var(--border-thin)] h-[32px] bg-[var(--ink)]" />
+            <div className="hidden @min-[975px]:block ml-[3px] w-[length:var(--border-thin)] h-[32px] bg-[var(--ink)]" />
             <RecommendButton filledCount={filledCount} onRecommend={onRecommend} error={error} />
           </div>
         </motion.div>
+        </div>
       </motion.div>
     </motion.div>
   );
