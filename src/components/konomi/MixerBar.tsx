@@ -2252,7 +2252,7 @@ export function MixerBar({
     // identical (same 5px 5px 0 --ink hard shadow). See DESIGN_SYSTEM.md.
     <div
       ref={outerWrapperRef}
-      className="sticky bottom-0 z-[var(--z-overlay)] max-w-[1280px] mx-auto touch-none"
+      className="mixbar-root sticky bottom-0 z-[var(--z-overlay)] max-w-[1280px] mx-auto touch-none"
       // dragMarginTop during a live drag (a Motion value, `.set()` every
       // tick — see its own declaration, near dragHeightPx, for the full
       // Round 5 history), targetMarginTop otherwise — same key, switching

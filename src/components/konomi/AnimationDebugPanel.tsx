@@ -56,6 +56,10 @@ const DEBUG_TOGGLES: { attr: string; label: string }[] = [
   { attr: "data-debug-no-tag-scroll", label: "no card tag scroll" },
   { attr: "data-debug-no-desc-scroll", label: "no card desc scroll" },
   { attr: "data-debug-contain-cards", label: "contain cards (content-visibility)" },
+  // Cause C: layer-promote the mixbar's SVG icons so they stop sub-pixel
+  // jittering on WebKit's real-height drag (see globals.css). Test with mode
+  // = real on Safari + cards present.
+  { attr: "data-debug-stabilize-icons", label: "stabilize icons (layer-promote)" },
 ];
 
 export function AnimationDebugPanel() {
@@ -102,7 +106,7 @@ export function AnimationDebugPanel() {
   }
 
   return (
-    <div className="fixed top-[var(--space-lg)] right-[var(--space-lg)] z-[var(--z-popover)] max-h-[calc(100vh-var(--space-2xl))] w-[280px] overflow-y-auto border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] font-mono text-[length:var(--text-2xs)] text-[var(--ink)] shadow-[var(--elev-4)]">
+    <div className="fixed top-[var(--space-lg)] right-[var(--space-lg)] z-[var(--z-popover)] max-h-[calc(100dvh-var(--space-2xl))] w-[280px] overflow-y-auto overscroll-contain border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] font-mono text-[length:var(--text-2xs)] text-[var(--ink)] shadow-[var(--elev-4)]">
       <div className="sticky top-0 flex items-center justify-between gap-[var(--space-sm)] border-b-[length:var(--border-thin)] border-[var(--ink)] bg-[var(--surface)] px-[var(--space-md)] py-[var(--space-sm)]">
         <span className="font-bold uppercase tracking-[var(--tracking-sm)]">anim debug</span>
         <div className="flex items-center gap-[var(--space-sm)]">
