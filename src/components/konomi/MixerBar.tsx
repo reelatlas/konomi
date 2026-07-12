@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "motion/react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { MatchKey, MixerError, Slot, TagInfo } from "@/lib/konomi/types";
 import { ActionButton } from "./ActionButton";
@@ -2172,25 +2171,25 @@ export function MixerBar({
     // needs on-device confirmation, the same as this codebase's other
     // real-device-only WebKit fixes (see DESIGN_SYSTEM.md).
     //
-    // filter:drop-shadow, not cardRef's own box-shadow — moved here (Round
-    // 6) once cardRef needed a live clip-path (see that element's own
-    // comment): box-shadow is part of an element's own paint output, so
-    // cardRef's clip-path was clipping its shadow away too during a drag,
-    // uniformly, regardless of the shadow's own offset direction. A
-    // filter on an ANCESTOR applies to that ancestor's already-rendered
-    // subtree — cardRef's own clip-path has already been applied by the
-    // time this element's filter runs against it — so drop-shadow here
-    // tracks cardRef's current CLIPPED (correct, live) shape instead of
-    // ignoring it the way box-shadow on cardRef itself couldn't. Verified
-    // directly, not assumed: screenshotted mid-drag, shadow visible and
-    // sized to the currently-revealed card, not the full pinned extent.
-    // No blur radius (matching --elev-4's own 0-blur hard-shadow style),
-    // so this is a cheap offset+composite, not a gaussian blur, every time
-    // it has to re-track cardRef's shape during a drag tick — still worth
-    // a real-device check alongside everything else in this round, same
-    // as any other per-tick paint cost in this file.
-    <motion.div
-      className="sticky bottom-0 z-[var(--z-overlay)] max-w-[1280px] mx-auto touch-none [filter:drop-shadow(5px_5px_0_var(--ink))]"
+    // The shadow lives on cardRef's own box-shadow (below), NOT a
+    // filter:drop-shadow here. It was moved here as a filter under Round 6,
+    // when cardRef carried a live per-tick clip-path: box-shadow is part of
+    // an element's own paint output, so cardRef's clip-path was clipping its
+    // shadow away too, and a filter on an ANCESTOR applies AFTER the
+    // descendant's clip so it tracked the clipped shape correctly. But Path
+    // B removed the clip-path entirely, so that reason is gone — and on-
+    // device profiling (Safari Timeline, physical iPhone) then showed the
+    // real drag-time cost is COMPOSITE, not layout (layout ~0.15ms; composite
+    // 1.5 -> 2.9ms and GROWING across the drag). A filter:drop-shadow on this
+    // wrapper promotes its whole growing subtree to a compositor layer that
+    // WebKit repaints and re-uploads at an ever-larger texture size every
+    // frame the panel grows — precisely that growing composite curve. A plain
+    // box-shadow on cardRef (0 blur, offset only) is painted inline with the
+    // border in the ordinary paint pass, with no filter layer to re-upload,
+    // so the composite cost stops scaling with the panel's height. Visually
+    // identical (same 5px 5px 0 --ink hard shadow). See DESIGN_SYSTEM.md.
+    <div
+      className="sticky bottom-0 z-[var(--z-overlay)] max-w-[1280px] mx-auto touch-none"
       // dragMarginTop during a live drag (a Motion value, `.set()` every
       // tick — see its own declaration, near dragHeightPx, for the full
       // Round 5 history), targetMarginTop otherwise — same key, switching
@@ -2211,7 +2210,7 @@ export function MixerBar({
         transition: marginTopTransition,
       }}
     >
-      <motion.div
+      <div
         ref={cardRef}
         // No `layout` prop and no style.y/transform of any kind — see
         // targetMarginTop's own comment (above) for the full history of
@@ -2308,7 +2307,7 @@ export function MixerBar({
         // query the width the buttons actually lay out in, which a plain
         // wrapper around Row 2 reports identically (same content box) without
         // touching any of cardRef's growth/containment concerns.
-        className="px-[var(--space-2xl)] py-[var(--space-xl)] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] [contain:layout]"
+        className="px-[var(--space-2xl)] py-[var(--space-xl)] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-4)] [contain:layout]"
       >
       {/* growableRef wraps dialogRef alone now — no separate resize-handle
           row sibling anymore (see this file's own top comment for why that
@@ -2402,7 +2401,7 @@ export function MixerBar({
           a fresh guess) rather than being statically wrong — live-verified
           on open that the tab row stays visible throughout the reveal, not
           clipped away until the end. */}
-      <motion.div
+      <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
@@ -2545,7 +2544,7 @@ export function MixerBar({
           trailingControls={trailingControls}
           isPoolPanelResizing={dragHeightPx !== null}
         />
-      </motion.div>
+      </div>
       </div>
 
         {/* Row 2 (combined): the 3 tag slots and every control that used to
@@ -2743,7 +2742,7 @@ export function MixerBar({
             own wrap point — those wrap points are just measured against this
             container now, not the screen. */}
         <div className="@container">
-        <motion.div className="flex flex-nowrap items-center gap-x-[var(--space-lg)]">
+        <div className="flex flex-nowrap items-center gap-x-[var(--space-lg)]">
           {/* LEFT group. min-w-0: lets this flex item (and, more directly,
               its own min-w-0 slots sub-group below) actually shrink below
               its natural content width once the row runs out of room —
@@ -3007,9 +3006,9 @@ export function MixerBar({
             <div className="hidden @min-[975px]:block ml-[3px] w-[length:var(--border-thin)] h-[32px] bg-[var(--ink)]" />
             <RecommendButton filledCount={filledCount} onRecommend={onRecommend} error={error} />
           </div>
-        </motion.div>
         </div>
-      </motion.div>
-    </motion.div>
+        </div>
+      </div>
+    </div>
   );
 }
