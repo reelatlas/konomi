@@ -674,7 +674,7 @@ export function ResultCard({
               so treat this as the leading hypothesis until confirmed
               on-device, same as the touch-action attempt it replaces. */}
           {hasImage && !reflectionBroken && (
-            <div className="absolute left-0 top-0 w-full z-[var(--z-base)] bg-[var(--fill)]">
+            <div className="konomi-card-reflection absolute left-0 top-0 w-full z-[var(--z-base)] bg-[var(--fill)]">
               {/* eslint-disable-next-line @next/next/no-img-element -- needs width:100%/height:auto (natural scale), which next/image's fill mode can't do — see this whole block's own comment above */}
               <img
                 src={series.coverImageUrl as string}

@@ -593,6 +593,23 @@ html[data-mixbar-resizing] .kono-star {
   animation-play-state: paused;
 }
 
+/* Drop every visible ResultCard's blurred cover reflection (.konomi-card-
+   reflection — a filter:blur + contrast/saturate layer, rendered per card)
+   for the duration of a live MixerBar resize drag. The drag animates the
+   panel's real height/margin-top (layout properties), which forces a paint +
+   composite pass every frame; that pass re-processes every filter:blur layer
+   in view, so on a real phone the jitter appears ONLY once recommendation
+   cards are on screen and vanishes when results are cleared (confirmed
+   on-device). Each reflection is absolutely positioned, so display:none here
+   reflows nothing (no layout cost) and simply removes the expensive blur
+   layer from the per-frame composite for the gesture's duration. It's a
+   subtle decoration below the cover and the drag is brief, so hiding it while
+   dragging reads as inert. MixerBar toggles data-mixbar-resizing on <html>
+   imperatively at drag start/end (no React re-render). */
+html[data-mixbar-resizing] .konomi-card-reflection {
+  display: none;
+}
+
 /* RollingLabel's own slot-machine roll (MatchSelector/LevelSelector/
    SortSelect's collapsed forms) used to live here as roll-out-up/roll-in-up
    keyframes — removed once RollingLabel.tsx migrated to Motion
