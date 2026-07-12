@@ -566,6 +566,13 @@
      does, so a plain @layer base rule (not a @theme override) is enough. */
   .font-display {
     font-family: var(--font-anton), sans-serif;
+    /* Anton ships a single weight (400 — see layout.tsx). font-synthesis:none
+       stops the browser from FAUX-bolding it if a font-black/font-bold utility
+       ever lands on font-display text: synthesized bold on Anton renders much
+       heavier and blurrier in Safari than in Chrome (the RatingBadge/
+       TagCountBadge regression this guards against). Anton is a heavy display
+       face at 400 already; real emphasis comes from size, not weight. */
+    font-synthesis: none;
   }
 
   .font-body {
