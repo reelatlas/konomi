@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useState } from "react";
 import { useAnimationDebugValues } from "./animationDebugStore";
 
 interface RollingLabelProps {
@@ -88,7 +89,27 @@ export function RollingLabel({ value, sizeToWidestOf, className }: RollingLabelP
   // own top-of-file comment for why (a temporary tuning aid, remove once
   // settled). Defaults to this file's own original 220ms/easeOut.
   const { rollDurationMs, rollEase } = useAnimationDebugValues();
-  const rollTransition = { duration: rollDurationMs / 1000, ease: rollEase };
+
+  // Don't roll on the initial hydration settle. Every caller feeds this from a
+  // useSyncExternalStore whose getServerSnapshot is the DEFAULT (first value —
+  // Casual / Popular / min-match 1), so on load a non-default stored value
+  // arrives as a default->stored value CHANGE in the follow-up render, which
+  // AnimatePresence would otherwise play as a full roll on every refresh
+  // (reported: any non-first value animates on landing; the first value, having
+  // no correction, doesn't). Arm the roll one frame after mount — AFTER that
+  // correction has landed — so only genuine, user-driven changes animate.
+  // requestAnimationFrame specifically (not a plain post-mount flag): the store
+  // correction re-renders in the SAME commit/effect phase this effect runs in,
+  // and descendant effects run before the ancestor store's own subscribe effect
+  // fires the correction, so a plain flag would already be true when it lands —
+  // the next frame reliably falls after it. While unarmed, a change is applied
+  // instantly (duration 0), so a value that corrects on load just appears.
+  const [rollArmed, setRollArmed] = useState(false);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setRollArmed(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+  const rollTransition = rollArmed ? { duration: rollDurationMs / 1000, ease: rollEase } : { duration: 0 };
   // Sizes this box from the WIDEST candidate in sizeToWidestOf, permanently
   // fixed regardless of which value is currently showing, not from
   // whichever of outgoing/value happens to be longer at this exact moment.

@@ -128,7 +128,7 @@ export function ResultsFilterButton({ onLevelChange }: ResultsFilterButtonProps)
           // own git history/DESIGN_SYSTEM.md for the live-bisected values
           // actually used.
           //
-          // w-[min(340px,calc(100vw-3rem))], not w-max — a definite width,
+          // w-[min(340px,calc(100vw-6rem))], not w-max — a definite width,
           // required because FilterControls below is a `@container`
           // (container-type: inline-size) whose own children query it, and a
           // content-sized container can't resolve against descendants that
@@ -137,12 +137,27 @@ export function ResultsFilterButton({ onLevelChange }: ResultsFilterButtonProps)
           // to be on this dialog); it fills this definite width via w-full. See
           // FilterControls.tsx's own comment for the full reasoning.
           //
+          // The viewport term is 6rem, not the 3rem you'd expect for the two
+          // page gutters alone: this popover is absolute right-0 against the
+          // FILTER button, which sits LEFT of the Clear ✕ (not at the content
+          // column's right edge), so it opens leftward from a point already
+          // inset ~66px from the viewport's right (Clear button + gap + right
+          // gutter). At 3rem the leftward extent ran the popover off the left
+          // edge of the screen on phones (confirmed live: left edge −18px at
+          // 320–375px wide). 6rem (~96px) reserves that inset plus the left
+          // gutter, keeping a ~30px left margin at every phone width while
+          // leaving the 340px cap untouched above ~436px. The inner filters
+          // then collapse to fit the narrower box via FilterControls' own
+          // @container thresholds (label drops, then single-segment) — a
+          // coupled constant tied to the Clear ✕ width, re-derive if that
+          // control's own footprint changes.
+          //
           // No z-index needed here — the wrapper above already carries
           // z-popover for the whole time this panel exists (it only
           // renders while `open`), and position:absolute alone already
           // paints this above its own static-positioned trigger-button
           // sibling within that same local context.
-          className="absolute right-0 top-full mt-[var(--space-sm)] w-[min(340px,calc(100vw-3rem))] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-2)] p-[var(--space-lg)]"
+          className="absolute right-0 top-full mt-[var(--space-sm)] w-[min(340px,calc(100vw-6rem))] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-2)] p-[var(--space-lg)]"
         >
           <FilterControls onLevelChange={onLevelChange} className="w-full" />
         </div>
