@@ -163,19 +163,27 @@ export function TagPoolBody({
     tags: tagsForSection(allTags, section, level, totalSeriesCount),
   })).filter(({ tags }) => tags.length > 0);
 
-  // A Level change (in PanelToggleHeader) can make the currently-active
-  // section disappear entirely (e.g. every non-Genres section is empty at
-  // Level 1 "Casual") — collapsible sections never had to handle this,
-  // since a hidden section just stayed collapsed-and-invisible in place.
-  // The fallback (first visible section, always Genres, which passes every
-  // level) is computed here at render time rather than written back via
-  // setActiveSectionKey in an effect — a plain derived value, not a second
-  // synced copy of the state, and it means the *stored* key is left
-  // untouched while its section is only temporarily hidden: raise the
-  // level back up and the strip resumes showing whatever was actually
-  // active before, instead of having permanently reset to Genres the
-  // moment it first disappeared.
-  const active = visibleSections.find(({ section }) => section.key === activeSectionKey) ?? visibleSections[0];
+  // A Tag Density / Level change can make the currently-active section
+  // disappear entirely (e.g. every non-Genres section is empty at "Casual",
+  // leaving only Genres). When that happens, fall to the first visible section
+  // (always Genres, which passes every level) AND commit that back into state,
+  // so the tab STAYS where it landed rather than snapping back to the
+  // previously-active tab once the level rises and the old tab reappears.
+  // Requested directly: once a filter forces you onto Genres, switching the
+  // level back up should keep you on Genres (or on whatever tab you're
+  // currently on, as long as it's still available) — not restore a remembered
+  // tab. (This reverses the earlier "derive the fallback, leave the stored key
+  // untouched so it can be restored" behavior — that restore was the reported
+  // bug.) Render-phase conditional setState, comparing against state and
+  // converging in a single pass — the same pattern MixerBar/RecommendationsBody
+  // use to satisfy react-hooks/set-state-in-effect (this is not an effect):
+  // after the reset, activeSectionKey is a visible section, so the condition is
+  // false on the immediate re-render and it never loops.
+  const activeInVisible = visibleSections.find(({ section }) => section.key === activeSectionKey);
+  if (!activeInVisible && visibleSections.length > 0) {
+    setActiveSectionKey(visibleSections[0].section.key);
+  }
+  const active = activeInVisible ?? visibleSections[0];
 
   return (
     <div className="flex flex-col min-w-0" style={{ gap: STRIP_GAP }}>
