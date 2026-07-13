@@ -719,9 +719,11 @@
    out (90ms easeOut), that camouflages the one-time promote/demote AA re-raster
    blip with a deliberate, on-brand "engaged" motion — the eye tracks the
    intentional change and the ~1px blip disappears under it. The row PRESSES IN
-   (scale 0.99) by default; when the panel is GROWING (open, or a 50%/100% snap-up
-   — MixerBar adds .is-expanding) it inverts to a slight EXPAND (1.01) so the
-   controls read as growing WITH the panel. Manual drag and the shrink/close/
+   (scale 0.97) by default; when the panel is GROWING (open, or a 50%/100% snap-up
+   — MixerBar adds .is-expanding) it inverts to a slight EXPAND (1.03) so the
+   controls read as growing WITH the panel. (Was 0.99/1.01 — bumped to 0.97/1.03
+   so the squeeze/expand reads as distinct on small screens, where the smaller
+   travel was too subtle.) Manual drag and the shrink/close/
    down-arrow keep the press. Scale is safe here because the row is ALREADY one
    promoted raster, so scale() scales that cached bitmap on the compositor (a
    little softness that reads AS the press) — it does NOT re-rasterize the strokes
@@ -731,10 +733,10 @@
   transition: transform 90ms ease-out;
 }
 .mixbar-controls-row.is-animating {
-  transform: scale(0.99) translateZ(0);
+  transform: scale(0.97) translateZ(0);
 }
 .mixbar-controls-row.is-animating.is-expanding {
-  transform: scale(1.01) translateZ(0);
+  transform: scale(1.03) translateZ(0);
 }
 
 /* MixerBar resize grip — the 3x3 dot handle (GripIcon). A simple two-state
