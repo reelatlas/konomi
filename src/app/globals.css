@@ -636,39 +636,44 @@
   transform: scale(1.01) translateZ(0);
 }
 
-/* MixerBar resize grip — the 3x3 dot handle (GripIcon). At rest it's plain
-   --muted (the affordance's own colour). While the user presses and drags to
-   resize, each dot deepens toward --subtext and radiates an ever larger, more
-   intense halo out from itself. --subtext, NOT an accent (--primary/--secondary),
-   on purpose: it's the saturated member of the SAME muted family (globals.css
-   derives it straight from --muted), so the glow reads as the affordance's own
-   colour intensifying — Konomi's purple in the default theme — rather than a
-   different accent lighting up, exactly as requested.
+/* MixerBar resize grip — the 3x3 dot handle (GripIcon). A simple two-state
+   effect, driven by the [data-gripping] flag MixerBar sets while a resize drag
+   is live (isGripDragging). Not proportional, not Motion — just a state change
+   plus one CSS transition for the exit, which is the right tool here.
 
-   Intensity is --grip-glow (0..1), set live by MixerBar from how far the drag
-   has moved from where it began — 0 at the start point, stronger as it moves up
-   OR down (see gripGlow in MixerBar.tsx). Everything scales from it: the dot
-   colour mixes muted->subtext (so glow 0 is EXACTLY --muted, no change at rest),
-   and TWO stacked drop-shadows form the radiating bloom — a tight bright core
-   plus a wide soft outer halo — both growing in blur AND alpha together, so the
-   light genuinely radiates outward larger and brighter the further the drag
-   goes. At glow 0 both shadows are 0px/transparent (a no-op).
+   REST: plain --muted (the affordance's own colour), no halo — the two
+   0px/transparent drop-shadows are a no-op placeholder that just gives the
+   filter the same shape as the pressed state so it can interpolate on the way
+   out (transitioning to/from `filter: none` doesn't animate cleanly).
 
-   Simple CSS, not Motion: the live value is already a per-frame React value
-   (MixerBar re-renders each rAF drag tick), and a plain transition handles the
-   only timed part — the eased return to rest on release. That transition is
-   SUPPRESSED while [data-gripping] so the glow tracks the finger with no lag,
-   then re-enabled the instant the drag releases so it eases smoothly back. */
+   PRESSED ([data-gripping]): every dot deepens to --subtext and radiates a
+   purple bloom — a tight bright core plus a wide soft outer halo (two stacked
+   drop-shadows). --subtext, NOT an accent (--primary/--secondary), on purpose:
+   it's the saturated member of the SAME muted family (globals.css derives it
+   straight from --muted), so the glow reads as the affordance's own colour
+   intensifying — Konomi's purple in the default theme — rather than a different
+   accent lighting up. It shows at FULL strength immediately and holds constant
+   for the whole drag no matter where the panel goes (transition:none here, so
+   the press snaps on and never lags/tracks).
+
+   RELEASE: MixerBar drops the flag, the element falls back to the base rule
+   (whose 260ms transition now applies), and colour + bloom ease smoothly but
+   quickly back to rest. This is the only animated moment — exactly the "glow
+   gradually but quickly fades away when you let go" that was asked for. */
 .grip-glow {
-  color: color-mix(in srgb, var(--muted), var(--subtext) calc(var(--grip-glow, 0) * 100%));
+  color: var(--muted);
   filter:
-    drop-shadow(0 0 calc(var(--grip-glow, 0) * 5px) color-mix(in srgb, transparent, var(--subtext) calc(var(--grip-glow, 0) * 90%)))
-    drop-shadow(0 0 calc(var(--grip-glow, 0) * 13px) color-mix(in srgb, transparent, var(--subtext) calc(var(--grip-glow, 0) * 60%)));
+    drop-shadow(0 0 0 transparent)
+    drop-shadow(0 0 0 transparent);
   transition:
-    color 220ms ease-out,
-    filter 220ms ease-out;
+    color 260ms ease-out,
+    filter 260ms ease-out;
 }
 .grip-glow[data-gripping] {
+  color: var(--subtext);
+  filter:
+    drop-shadow(0 0 5px color-mix(in srgb, transparent, var(--subtext) 90%))
+    drop-shadow(0 0 13px color-mix(in srgb, transparent, var(--subtext) 60%));
   transition: none;
 }
 
