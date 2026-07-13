@@ -243,6 +243,27 @@
   --result-card-tag-scroll-height: calc(var(--result-card-tag-area-height) - (var(--space-md) * 2));
 }
 
+/* The single value the whole masthead morph interpolates off of: 0 = fully
+   expanded (tilted banner), 1 = fully collapsed (slim utility row). Registered
+   (not just an ad-hoc `--x`) mainly for (2) below; (1) matters less now that a
+   Motion spring drives it per frame rather than a CSS transition, but is kept
+   deliberately — see the note. (1) typed `<number>` so the value is a real
+   number, not an untyped token string — this makes it animatable by a CSS
+   transition too, which the hybrid-C driver no longer uses but which keeps the
+   property honest and leaves the pure-CSS-settle fallback (option A) a one-line
+   change away. (2) inherits, so KonomiApp only sets it on the scroll wrapper and
+   every descendant (Masthead's container, wordmark, accent bar) reads the same
+   live value via calc(). KonomiApp drives it from a Motion useMotionValue —
+   scrubbed off the wheel/touch delta, then sprung to the nearest endpoint on
+   release (see that file) — writing this property each frame with no React
+   re-render. initial 0 = the SSR/first-paint expanded state, so the masthead
+   renders expanded before any JS runs. */
+@property --masthead-progress {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
 /* Carousel breakpoint (< 1152px, the same width RecommendationsBody switches
    the grid to a single-row carousel — see its own comment): drop the 445px
    ceiling so a result card fills the whole compact-mode height available to

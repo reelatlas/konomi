@@ -1,5 +1,6 @@
 "use client";
 
+import { animate, useMotionValue, type AnimationPlaybackControls } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { visiblePoolTagNames } from "@/lib/konomi/tagPool";
 import { isThemeKey, THEME_STORAGE_KEY } from "@/lib/konomi/themes";
@@ -15,6 +16,31 @@ interface KonomiAppProps {
   initialSeries: Series[];
   initialTags: TagInfo[];
 }
+
+// Read live (not cached) so a change to the OS setting mid-session is honored,
+// and so it's cheap to call from the settle path. Gates only the AUTOMATIC,
+// spring-driven parts of the masthead morph (the release settle and the
+// RECOMMEND-triggered collapse) — the scrub itself is direct manipulation (the
+// user is moving it), which isn't the kind of motion this setting is about, so
+// it stays live either way. When reduced motion is on, those endpoints are set
+// instantly instead of sprung.
+function prefersReducedMotion(): boolean {
+  return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+// Masthead scroll-morph settle + gesture tuning (feat/masthead-scroll-morph),
+// settled live via the animation debug panel and then inlined here as plain
+// constants — the panel's own documented end state (see animationDebugStore.ts).
+// BOUNCE: the release spring's overshoot (0.2 = the KONOMI wordmark springs a
+// hair past its target size before settling back). DURATION_S: perceptual settle
+// time — 0.7, deliberately slower than the old 0.4 CSS default, chosen on-device
+// for a more languid settle. SCRUB_DISTANCE_PX: finger/wheel travel mapped to
+// the whole 0->1 morph. FLICK_PROJECTION_MS: velocity look-ahead so a fast flick
+// completes past the midpoint (momentum-based release, not raw position).
+const MASTHEAD_SETTLE_BOUNCE = 0.2;
+const MASTHEAD_SETTLE_DURATION_S = 0.7;
+const MASTHEAD_SCRUB_DISTANCE_PX = 120;
+const MASTHEAD_FLICK_PROJECTION_MS = 120;
 
 export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
   const k = useKonomi(initialSeries, initialTags);
@@ -53,63 +79,70 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
   // descendant of this ref), with no need to touch MixerBar.tsx (kept
   // fully out of scope this phase) to make that guarantee hold.
   const scrollableRef = useRef<HTMLDivElement>(null);
-  // Drives both masthead transitions: a downward gesture while expanded
-  // collapses it ("I'm done with the banner, show me more"), an upward-
-  // finger/pull-down gesture while collapsed and at the top re-expands it
-  // — a traditional collapsing-header pattern, triggered rather than
-  // continuously scroll-linked (this app's shell only has two discrete
-  // masthead sizes, not a smooth scroll-scrubbed range between them).
+  // Live masthead morph position, 0 (expanded) -> 1 (collapsed). A Motion
+  // useMotionValue (hybrid C), NOT a plain ref: the scrub sets it directly and
+  // Motion times successive sets to derive VELOCITY, which the release uses to
+  // (a) launch the settle spring carrying the gesture's momentum and (b) decide
+  // the endpoint from the projected rest position — so a fast flick completes
+  // past the midpoint. It never triggers a React re-render (it drives one CSS
+  // custom property via the subscription effect below), so the whole morph is
+  // still pure CSS calc off one inherited variable — the exact A layer, just
+  // with a physics-aware driver. mastheadCollapsed stays the settled boolean
+  // truth (RECOMMEND, ThemeSwitcher placement); this is the continuous value
+  // between its two endpoints. settleAnimRef holds the in-flight settle so a new
+  // grab (or a RECOMMEND) can stop() it and take over from the current value
+  // and velocity — a continuous hand-off, not a snap.
+  const progress = useMotionValue(0);
+  const settleAnimRef = useRef<AnimationPlaybackControls | null>(null);
+
+  // Mirror the motion value onto --masthead-progress on the scroll wrapper every
+  // frame Motion ticks it (scrub sets, or the settle spring animates) — Masthead
+  // and the wrapper's own paddingTop read it via calc, so writing this one
+  // inherited property drives the entire morph. React never manages this
+  // property (it's never in the element's style prop), so this coexists with the
+  // React-controlled paddingTop untouched. @property (globals.css) gives it an
+  // initial 0 for the pre-hydration first paint, so the masthead renders
+  // expanded before this ever runs.
+  useEffect(() => {
+    const write = (v: number) => scrollableRef.current?.style.setProperty("--masthead-progress", String(v));
+    write(progress.get());
+    return progress.on("change", write);
+  }, [progress]);
+  // Scrubs the masthead morph off the wheel/touch delta: a downward gesture
+  // while expanded grows progress toward 1 (collapsed), a pull-down at the top
+  // shrinks it back toward 0 (expanded), in real time — "the scroll reflects how
+  // far along the masthead is." On release a Motion spring settles it to the
+  // nearer endpoint (hybrid C), carrying the gesture's velocity and deciding the
+  // endpoint from the PROJECTED rest position so a fast flick completes past the
+  // midpoint. Replaced the old threshold boolean flip: same two-direction
+  // collapsing-header interaction, now a momentum-aware scrub. Listeners bind
+  // once — the effect reads no React state (direction from delta sign, gate from
+  // scrollTop, spring/scrub tuning read live from the debug store per event), so
+  // it never needs to re-bind.
   //
-  // A real, live-caught bug shaped this into a gesture-delta listener
-  // instead of the `scroll`-event/scrollTop-position approach an earlier
-  // pass used: this app's whole point is that content fits exactly, by
-  // construction, in ordinary use — meaning there is usually NO overflow
-  // to genuinely scroll into at all, at a normal viewport height. A
-  // `scroll`-event listener has nothing to ever fire from in that case —
-  // confirmed live, at a perfectly ordinary 1280×900 viewport, landing
-  // content's own scrollHeight exactly equals clientHeight, so a wheel
-  // scroll simply can't move scrollTop even a single px, and the collapse
-  // never triggers. Reading the gesture directly (wheel deltaY, touch
-  // move distance) instead of its scroll *result* works regardless of
-  // whether there's anything to actually scroll — the same reason the
-  // collapsed→expanded direction already had to work this way from the
-  // start (that direction never has overflow to react to positionally,
-  // even in principle, since collapsed content is designed to always fit).
+  // A real, live-caught bug shaped this into a gesture-delta listener instead of
+  // a `scroll`-event/scrollTop approach: this app's content fits exactly by
+  // construction, so there is usually NO overflow to scroll into — a `scroll`
+  // listener has nothing to fire from (confirmed live at 1280×900: scrollHeight
+  // == clientHeight, so scrollTop can't move). Reading the gesture directly
+  // works whether or not anything actually scrolls.
   //
-  // COLLAPSE_THRESHOLD_PX/EXPAND_THRESHOLD_PX: 20 each — down from 60,
-  // which read as too reluctant to trigger in practice; still enough to
-  // clear real gesture noise (sub-pixel jitter, a light accidental brush)
-  // without needing much deliberate intent.
+  // scrub distance = the finger/wheel travel mapped to the full 0->1 morph (live
+  // from the debug store, default 120px). AT_TOP_PX gates the EXPAND direction
+  // only: pulling to re-expand only makes sense once genuinely back at the top
+  // (requested directly), matching pull-to-refresh's "past the boundary" gate;
+  // collapsing has no such requirement.
   //
-  // AT_TOP_PX gates the expand direction only, not collapse: pulling to
-  // re-expand only makes sense once genuinely back at the top (requested
-  // directly — "make sure it scrolls all the way to the top to open"),
-  // matching a native pull-to-refresh's own "past the boundary" gate.
-  // Collapsing has no equivalent requirement — the intent ("show me more
-  // content") is the same whether the gesture starts at the top of
-  // whatever's currently scrolled or partway through it.
-  //
-  // scrollFadeOrientationAt mirrors MixerBar.tsx's own helper of the same
-  // name/shape (see that file's blockScrollThrough for the original) —
-  // duplicated rather than imported, since this is a small, self-
-  // contained check and the two call sites have no other reason to share
-  // a module. Matching-axis only, not "exempt from any ScrollFadeArea
-  // whatsoever" — an earlier version of this effect used the blunter
-  // check and broke on a second real, live-caught bug: the results
-  // carousel's own ScrollFadeArea (horizontal) wraps the ENTIRE card row
-  // as its scroll viewport, so a blanket "inside any ScrollFadeArea"
-  // check treated nearly every point in the whole results area as
-  // exempt, including a card's own cover image, which has nothing to do
-  // with any scrolling. Only a *vertical* ScrollFadeArea ancestor (a
-  // card's own tag-scroll area, TagPoolBody's chip area) actually
-  // conflicts with this vertical gesture — a horizontal one (the
-  // carousel, SectionTabStrip) doesn't care about vertical movement and
-  // shouldn't block it.
+  // scrollFadeOrientationAt mirrors MixerBar.tsx's helper of the same shape
+  // (duplicated, not shared — small and self-contained). Matching-axis only,
+  // not "exempt from any ScrollFadeArea": the results carousel's own horizontal
+  // ScrollFadeArea wraps the ENTIRE card row, so a blanket check treated nearly
+  // the whole results area (incl. card covers) as exempt — a real, live-caught
+  // regression. Only a VERTICAL ScrollFadeArea ancestor (a card's tag-scroll
+  // area, TagPoolBody's chips) actually conflicts with this vertical gesture.
   useEffect(() => {
     const scrollable = scrollableRef.current;
     if (!scrollable) return;
-    const COLLAPSE_THRESHOLD_PX = 20;
-    const EXPAND_THRESHOLD_PX = 20;
     const AT_TOP_PX = 2; // sub-pixel tolerance, not a strict === 0
 
     function scrollFadeOrientationAt(target: EventTarget | null): "horizontal" | "vertical" | null {
@@ -118,108 +151,176 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
       return value === "horizontal" || value === "vertical" ? value : null;
     }
 
-    // Accumulated, not read off a single event's own deltaY — a real
-    // trackpad sends many small wheel events per gesture (low single/
-    // double digits each), not one big one the way a notched mouse wheel
-    // can; checking each event independently against a 20px threshold
-    // meant no single trackpad tick ever crossed it, so a real, deliberate
-    // scroll gesture composed of many small ticks could never trigger at
-    // all (confirmed live: two dispatched 10px/15px events, clearly
-    // totaling past threshold, individually did nothing). wheelResetTimer
-    // approximates "the gesture ended" the same way this class of problem
-    // usually has to on the web (no native wheel-gesture-end event) — a
-    // short pause with no further wheel events resets the accumulator, so
-    // a later, unrelated scroll doesn't inherit stale leftover delta from
-    // a much earlier one.
-    let wheelAccum = 0;
-    let wheelResetTimer: number | null = null;
-    function handleWheel(e: WheelEvent) {
-      if (scrollFadeOrientationAt(e.target) === "vertical") return;
-      wheelAccum += e.deltaY;
-      if (wheelResetTimer !== null) window.clearTimeout(wheelResetTimer);
-      wheelResetTimer = window.setTimeout(() => {
-        wheelAccum = 0;
-        wheelResetTimer = null;
-      }, 150);
-      if (!mastheadCollapsed && wheelAccum > COLLAPSE_THRESHOLD_PX) {
-        e.preventDefault();
-        setMastheadCollapsed(true);
-        if (scrollable) scrollable.scrollTop = 0;
-        wheelAccum = 0;
-      } else if (mastheadCollapsed && scrollable && scrollable.scrollTop <= AT_TOP_PX && wheelAccum < -EXPAND_THRESHOLD_PX) {
-        e.preventDefault();
-        setMastheadCollapsed(false);
-        wheelAccum = 0;
-      }
+    // Kill any in-flight settle so a fresh grab takes over from the current
+    // value AND velocity (Motion keeps tracking velocity through the stop) — a
+    // continuous hand-off rather than a snap.
+    function stopSettle() {
+      settleAnimRef.current?.stop();
+      settleAnimRef.current = null;
     }
 
-    // touchStartY resets to the CURRENT finger position (not null) once a
-    // transition fires, rather than requiring a fresh touchstart — lets one
-    // continuous drag stay responsive if the user keeps moving (e.g.
-    // overshoots and reverses) instead of needing to lift and re-touch.
+    // Live scrub write: set the motion value directly (clamped). Motion times
+    // successive sets to derive the velocity the release reads.
+    function scrub(value: number) {
+      progress.set(Math.min(1, Math.max(0, value)));
+    }
+
+    // Release: choose the endpoint from the PROJECTED rest (current + velocity *
+    // look-ahead), not raw position — a fast flick completes past the midpoint,
+    // a slow drag falls back to whichever side it's actually on. Then spring
+    // there carrying that velocity, with the live-tunable bounce/duration.
+    // Reduced motion: jump to the endpoint instantly, no spring. Reconciles the
+    // settled boolean so ThemeSwitcher placement / a later RECOMMEND agree;
+    // Effect B no-ops on that change since progress is already at the target.
+    function settle() {
+      const velocity = progress.getVelocity(); // progress-units per second
+      const projected = progress.get() + velocity * (MASTHEAD_FLICK_PROJECTION_MS / 1000);
+      const target = projected >= 0.5 ? 1 : 0;
+      stopSettle();
+      if (prefersReducedMotion()) {
+        progress.set(target);
+      } else {
+        settleAnimRef.current = animate(progress, target, {
+          type: "spring",
+          bounce: MASTHEAD_SETTLE_BOUNCE,
+          duration: MASTHEAD_SETTLE_DURATION_S,
+          velocity,
+        });
+      }
+      setMastheadCollapsed(target === 1);
+      if (target === 1) scrollable!.scrollTop = 0;
+    }
+
+    let wheelResetTimer: number | null = null;
+    let wheelAxis: "horizontal" | "vertical" | null = null;
+    function handleWheel(e: WheelEvent) {
+      if (scrollFadeOrientationAt(e.target) === "vertical") return;
+
+      // Lock the gesture's axis on its first meaningful event and hold it until
+      // a ~150ms pause ends the gesture — the wheel counterpart of the touch
+      // axis lock below. A horizontally-dominant wheel (panning the results
+      // carousel) is left ENTIRELY to the browser: it never scrubs and never
+      // preventDefaults, so the carousel scrolls freely. The old threshold
+      // accumulator absorbed a horizontal swipe's incidental deltaY implicitly
+      // (it rarely reached 20px before the reset); the continuous scrub has no
+      // such deadzone, so the axis has to be explicit now, or that incidental
+      // deltaY nudges the masthead — the exact regression this fixes. Ties bias
+      // to horizontal (>=) so ambiguous diagonals favor the carousel, not a
+      // masthead takeover. Sub-1px events don't lock — they're noise between
+      // real ticks. Vertical wheels still scrub ANYWHERE, including over the
+      // carousel: a vertical intent collapses the masthead by design.
+      if (wheelAxis === null) {
+        if (Math.abs(e.deltaX) < 1 && Math.abs(e.deltaY) < 1) return;
+        wheelAxis = Math.abs(e.deltaX) >= Math.abs(e.deltaY) ? "horizontal" : "vertical";
+      }
+      // Re-arm the gesture-end timer every event. No native wheel-gesture-end
+      // event exists, so a short pause stands in for "released": settle a
+      // vertical gesture, then clear the axis so the next gesture re-locks
+      // fresh. (Wheel velocity has usually decayed by settle time, so wheel
+      // settles ~position-based; the flick projection is really a touch
+      // affordance, where touchend fires live.)
+      if (wheelResetTimer !== null) window.clearTimeout(wheelResetTimer);
+      wheelResetTimer = window.setTimeout(() => {
+        if (wheelAxis === "vertical") settle();
+        wheelAxis = null;
+        wheelResetTimer = null;
+      }, 150);
+      if (wheelAxis === "horizontal") return;
+
+      const p = progress.get();
+      const expanding = e.deltaY < 0;
+      // Expand only from the top; and don't fight past either end (let a normal
+      // over-scroll through at 0/1 rather than swallowing it).
+      if (expanding && scrollable!.scrollTop > AT_TOP_PX) return;
+      if ((e.deltaY > 0 && p >= 1) || (expanding && p <= 0)) return;
+      e.preventDefault();
+      stopSettle();
+      scrub(p + e.deltaY / MASTHEAD_SCRUB_DISTANCE_PX);
+    }
+
     let touchStartX: number | null = null;
     let touchStartY: number | null = null;
     let touchExempt = false;
     let touchAxis: "horizontal" | "vertical" | null = null;
+    // Captured at touchstart so the whole drag maps ABSOLUTELY (start + total
+    // dy / distance), not incrementally — an overshoot-then-reverse tracks the
+    // finger back down for free, no per-fire reset needed.
+    let progressAtStart = 0;
     function handleTouchStart(e: TouchEvent) {
       touchExempt = scrollFadeOrientationAt(e.target) === "vertical";
       touchStartX = e.touches[0].clientX;
       touchStartY = e.touches[0].clientY;
       touchAxis = null;
+      // A new touch interrupts a running settle; capture the frozen position as
+      // this drag's origin.
+      stopSettle();
+      progressAtStart = progress.get();
     }
     function handleTouchMove(e: TouchEvent) {
       if (touchExempt || touchStartX === null || touchStartY === null) return;
       const x = e.touches[0].clientX;
       const y = e.touches[0].clientY;
-      // Lock the gesture's axis on its FIRST touchmove and never re-decide
-      // (a diagonal start would otherwise flip mid-swipe). This must happen
-      // on the very first move, not after a pixel threshold: a touch
-      // gesture's scrollability is decided by the browser on that first
-      // touchmove — confirmed live (Chrome's own console) that preventing
-      // even one sub-threshold move commits the WHOLE gesture away from
-      // native scroll (it can't be handed back mid-gesture; further
-      // preventDefault() calls, or the lack of them, are silently ignored
-      // once "scrolling is in progress"). So a horizontal gesture has to go
-      // un-prevented from move one or the results carousel can't pan at all.
+      // Lock the axis on the FIRST touchmove and never re-decide — and it must
+      // be the first move, not after a threshold: the browser commits a touch
+      // gesture's scrollability on that first touchmove (confirmed live —
+      // preventing even one sub-threshold move commits the WHOLE gesture away
+      // from native scroll, and it can't be handed back). So a horizontal
+      // gesture must go un-prevented from move one or the carousel can't pan.
       if (touchAxis === null) {
         touchAxis = Math.abs(x - touchStartX) > Math.abs(y - touchStartY) ? "horizontal" : "vertical";
       }
-      // Horizontal gesture: leave it entirely to the browser so the results
-      // carousel (a horizontal ScrollFadeArea) scrolls natively. This is the
-      // fix for a horizontal swipe over a card's COVER (or any non-vertical-
-      // scroll-fade area) doing nothing — the old unconditional preventDefault
-      // below blocked the carousel's own native pan. Over a card's TAG area
-      // this already worked: that's a vertical ScrollFadeArea, so touchExempt
-      // bailed out above before ever reaching preventDefault.
       if (touchAxis === "horizontal") return;
-      // Vertical gesture: the masthead collapse/expand direction — claim it
-      // (preventDefault, same "prevent from move one" reasoning as the axis
-      // lock above, now scoped to the vertical axis only) and drive the
-      // transition off dy. Wheel doesn't need any of this — confirmed working
-      // with a late, conditional preventDefault — because wheel scrolling has
-      // no equivalent "commit on first event" handoff to the compositor.
+      // Vertical gesture: claim it (preventDefault from move one, scoped to
+      // this axis) and scrub the morph off the absolute finger travel.
       e.preventDefault();
       const dy = touchStartY - y; // positive = finger moved up = collapse direction
-      if (!mastheadCollapsed && dy > COLLAPSE_THRESHOLD_PX) {
-        setMastheadCollapsed(true);
-        if (scrollable) scrollable.scrollTop = 0;
-        touchStartY = y;
-      } else if (mastheadCollapsed && scrollable && scrollable.scrollTop <= AT_TOP_PX && -dy > EXPAND_THRESHOLD_PX) {
-        setMastheadCollapsed(false);
-        touchStartY = y;
-      }
+      let next = progressAtStart + dy / MASTHEAD_SCRUB_DISTANCE_PX;
+      // Gate the expand direction (going below where the gesture started) on
+      // being at the top, same rule as wheel.
+      if (next < progressAtStart && scrollable!.scrollTop > AT_TOP_PX) next = progressAtStart;
+      scrub(next);
+    }
+    function handleTouchEnd() {
+      if (touchAxis === "vertical") settle();
+      touchStartX = null;
+      touchStartY = null;
+      touchAxis = null;
     }
 
     scrollable.addEventListener("wheel", handleWheel, { passive: false });
     scrollable.addEventListener("touchstart", handleTouchStart, { passive: true });
     scrollable.addEventListener("touchmove", handleTouchMove, { passive: false });
+    scrollable.addEventListener("touchend", handleTouchEnd, { passive: true });
+    scrollable.addEventListener("touchcancel", handleTouchEnd, { passive: true });
     return () => {
       scrollable.removeEventListener("wheel", handleWheel);
       scrollable.removeEventListener("touchstart", handleTouchStart);
       scrollable.removeEventListener("touchmove", handleTouchMove);
+      scrollable.removeEventListener("touchend", handleTouchEnd);
+      scrollable.removeEventListener("touchcancel", handleTouchEnd);
       if (wheelResetTimer !== null) window.clearTimeout(wheelResetTimer);
     };
-  }, [mastheadCollapsed]);
+  }, [progress]);
+
+  // Effect B: settle the morph when mastheadCollapsed changes for a reason
+  // OTHER than the scrub — i.e. a successful RECOMMEND (handleRecommend sets it
+  // true). Springs the progress value to match the new settled boolean (or jumps
+  // instantly under reduced motion). No-ops when the gesture's own settle set the
+  // boolean (progress is already at the target), so the two never double-drive.
+  useEffect(() => {
+    const target = mastheadCollapsed ? 1 : 0;
+    if (progress.get() === target) return;
+    settleAnimRef.current?.stop();
+    if (prefersReducedMotion()) {
+      progress.set(target);
+      return;
+    }
+    settleAnimRef.current = animate(progress, target, {
+      type: "spring",
+      bounce: MASTHEAD_SETTLE_BOUNCE,
+      duration: MASTHEAD_SETTLE_DURATION_S,
+    });
+  }, [mastheadCollapsed, progress]);
 
   // Restores the persisted theme into React state on mount, then keeps
   // <html> and localStorage in sync with k.theme on every subsequent
@@ -386,12 +487,19 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
             carousel keeps its OWN overflow-x-auto (ScrollFadeArea), and the
             root's overflow-x-clip is the backstop against any real
             horizontal page scroll, so visible here can't leak one.
-            pt-[space-2xl] stays conditional on mastheadCollapsed: the
-            expanded masthead keeps its 24px breathing room, the collapsed
-            one sits flush at the true top edge. */}
+            paddingTop morphs with the masthead: it is the 24px breathing room
+            ABOVE the banner, so it has to close in lockstep with the masthead's
+            own collapse or the gap above would snap independently. Driven off
+            the same inherited --masthead-progress via calc (24px at 0 ->
+            0 at 1) — it rides the gesture live and the settle spring for free,
+            since the var is what transitions and this is just derived from it.
+            This element is scrollableRef, so the gesture effect's imperative
+            --masthead-progress / transition writes land here; React only owns
+            this paddingTop, so the two don't collide. */}
         <div
           ref={scrollableRef}
-          className={`flex flex-col flex-1 min-h-0 ${mastheadCollapsed ? "" : "pt-[var(--space-2xl)]"}`}
+          className="flex flex-col flex-1 min-h-0"
+          style={{ paddingTop: "calc(var(--space-2xl) * (1 - var(--masthead-progress)))" }}
         >
           <Masthead theme={k.theme} onThemeChange={k.setTheme} collapsed={mastheadCollapsed} />
 
