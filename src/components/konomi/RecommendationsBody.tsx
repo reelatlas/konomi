@@ -1,5 +1,5 @@
 import { AnimatePresence } from "motion/react";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { LevelKey, ResultEntry, TagInfo } from "@/lib/konomi/types";
 import { useAnimationDebugValues } from "./animationDebugStore";
 import { getAnimatingPaceCount, getEffectiveStaggerMs, getVisibleCardTierCount } from "./cardAnimTuning";
@@ -209,6 +209,12 @@ interface RecommendationsBodyProps {
   // FilterControls) — the same handler ResultsHeader threads into the results-
   // state Filter popover, so both surfaces drive the identical level cascade.
   onLevelChange: (level: LevelKey) => void;
+  // Fired whenever showResultsGrid flips — true while results are on screen OR
+  // still exit-animating out on a Clear ✕, false once the empty state is
+  // restored. KonomiApp feeds it back into ResultsHeader so that header row
+  // stays reserved for the WHOLE exit (cards don't jump) and then collapses the
+  // instant the last card is gone (empty state has no header row again).
+  onResultsGridVisibleChange?: (visible: boolean) => void;
 }
 
 // Body-only — the section-level chrome (border/shadow/padding) and the
@@ -236,6 +242,7 @@ export function RecommendationsBody({
   tagInfoByName,
   totalSeriesCount,
   onLevelChange,
+  onResultsGridVisibleChange,
 }: RecommendationsBodyProps) {
   const level = useLevel();
   const sort = useSort();
@@ -364,6 +371,16 @@ export function RecommendationsBody({
   // (some cards locked): hasResults is already true there regardless,
   // since the locked cards themselves keep `results` non-empty.
   const showResultsGrid = hasResults || isBatchClearActive;
+  // Report grid visibility (incl. the exit window) up to KonomiApp so
+  // ResultsHeader can hold its reserved row for the whole clear and drop it
+  // once the empty state is back — see this prop's own comment. useLayoutEffect,
+  // not useEffect: when the exit finishes, showResultsGrid and the empty state
+  // flip in the same render, and this must collapse the header row in that SAME
+  // pre-paint pass — a post-paint useEffect would leave the empty state painted
+  // once WITH the reserved row still up, then jump it up 54px a frame later.
+  useLayoutEffect(() => {
+    onResultsGridVisibleChange?.(showResultsGrid);
+  }, [showResultsGrid, onResultsGridVisibleChange]);
 
   return (
     // flow-root (a new block formatting context), not a plain fragment —

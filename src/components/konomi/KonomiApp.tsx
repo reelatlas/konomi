@@ -37,6 +37,12 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
   // way back to expanded (the in-banner toggle button was removed once
   // that gesture covered both directions).
   const [mastheadCollapsed, setMastheadCollapsed] = useState(false);
+  // True while the results grid is on screen OR still exit-animating out after
+  // a Clear ✕ (RecommendationsBody's own showResultsGrid, reported up via
+  // onResultsGridVisibleChange). ResultsHeader reserves its row for exactly this
+  // window — so a clear holds the cards in place as they sweep out, then the row
+  // collapses the instant the last one is gone and the empty state returns.
+  const [resultsGridVisible, setResultsGridVisible] = useState(false);
   // Wraps Masthead + the results section specifically, NOT MixerBar (see
   // the JSX below) — this is the actual scroll container now (moved off
   // the outer shell root), and the two effects right after this both key
@@ -412,7 +418,12 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
               results/MixerBar — RecommendationsBody's own root carries the
               matching flex-1 min-h-0 (see that file's own top comment). */}
           <section className="mb-[var(--space-2xl)] flex-1 min-h-0 flex flex-col">
-            <ResultsHeader hasResults={k.hasResults} onClearRecs={k.clearRecs} onLevelChange={handleLevelChange} />
+            <ResultsHeader
+              hasResults={k.hasResults}
+              reserveRow={resultsGridVisible}
+              onClearRecs={k.clearRecs}
+              onLevelChange={handleLevelChange}
+            />
 
             <RecommendationsBody
               results={k.results}
@@ -434,6 +445,7 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
               tagInfoByName={k.tagInfoByName}
               totalSeriesCount={k.totalSeriesCount}
               onLevelChange={handleLevelChange}
+              onResultsGridVisibleChange={setResultsGridVisible}
             />
           </section>
         </div>
