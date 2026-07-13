@@ -1,6 +1,4 @@
-import type { Variants } from "motion/react";
-import { motion, useIsPresent } from "motion/react";
-import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { scoreSeries } from "@/lib/konomi/scoring";
 import { isTagVisibleAtLevel, sortTags } from "@/lib/konomi/tagPool";
 import type { LevelKey, ResultEntry, SortKey, TagInfo } from "@/lib/konomi/types";
@@ -23,18 +21,6 @@ import { useSupportsHover } from "./useSupportsHover";
 const BACK_FILL_BLUR_PX = 10;
 const BACK_FILL_OPACITY = 0.9;
 const BACK_FILL_SCALE_DOWN = 4;
-
-// Provided by RecommendationsBody, wrapping its AnimatePresence block —
-// mirrors isBatchClearActive (that file's own comment) but reaches this
-// component via Context, not a normal prop, specifically because a card
-// mid-exit is no longer present in RecommendationsBody's own `results.map()`
-// output, so there's no fresh element for it to receive updated PROPS from
-// at all — Context is the one channel that still reaches an
-// AnimatePresence-held, still-mounted-but-no-longer-in-the-data component,
-// since it subscribes directly to the nearest Provider rather than
-// depending on a parent re-supplying props. See the useLayoutEffect below
-// (and DESIGN_SYSTEM.md) for what this actually drives.
-export const IsBatchClearActiveContext = createContext(false);
 
 interface ResultCardProps {
   entry: ResultEntry;
@@ -60,37 +46,25 @@ interface ResultCardProps {
   // needs this since toggling it never changes series.title, so the same
   // instance and its state persist across that toggle already.
   startWithSwapHint?: boolean;
-  // Gates whether this instance's mount plays the rise+fade-in transition
-  // at all (Motion's `initial` prop, see the motion.div below) — still
-  // exactly `newTitles.includes(title) || isEnteringFromSwap`, computed by
-  // RecommendationsBody, unchanged by the Motion migration (see
-  // DESIGN_SYSTEM.md): a card that's just sitting on screen (unlocked, no
-  // new render-worthy change) never has this flip since the boolean
-  // doesn't change on an already-mounted instance and Motion's `initial`
-  // only ever applies at genuine mount time regardless; it only actually
-  // (re)plays on a genuine mount, e.g. a fresh pick landing in this slot,
-  // or a swap.
+  // Gates the rise+fade-IN keyframe (animate-card-enter, globals.css). Exactly
+  // `newTitles.includes(title) || isEnteringFromSwap`, computed by
+  // RecommendationsBody: a card just sitting on screen never has this true on a
+  // genuine mount, and a CSS keyframe only plays once on mount and never
+  // replays on a later re-render/reorder — which is the whole reason the card
+  // enter/exit is CSS and not Motion here (AnimatePresence was replaying a
+  // present card's cached mount entrance on sibling shifts — the locked-card
+  // bug; see globals.css / CLAUDE.md).
   isEntering?: boolean;
-  // Enter stagger delay in ms — index*stagger, L->R (0 for a swap-driven
-  // single-card entrance, see RecommendationsBody's own justSwappedIndex
-  // comment). Only matters while isEntering is true and only actually
-  // takes effect at this instance's genuine first mount (Motion's
-  // `transition.delay` on an already-settled `animate` target has nothing
-  // left to delay).
-  enterDelayMs?: number;
-  // Exit stagger delay in ms — (count-1-index)*stagger, R->L, computed
-  // fresh on EVERY render (not just while actually exiting) using this
-  // card's own position/count in the full, still-current `results` array.
-  // This is deliberate, not a leftover: AnimatePresence (motion/react)
-  // freezes whatever props a child had on its own last real render before
-  // React drops it from the mapped array, then uses that frozen value to
-  // drive the exit animation — computing this fresh every render (rather
-  // than only while some "isExiting" flag is true) is what makes that
-  // frozen value automatically the correct pre-removal delay, with no
-  // separate lagging snapshot list required. See RecommendationsBody.tsx's
-  // own comment on isBatchClearActive for why this only actually animates
-  // (rather than an instant removal) when the removal was a Clear ✕.
-  exitDelayMs?: number;
+  // Drives the rise-UP-and-fade-OUT keyframe (animate-card-exit). Set by
+  // RecommendationsBody while a Clear ✕'s removed cards are still mid-exit (its
+  // lagging displayedResults/exitingTitles), so the card keeps rendering and
+  // animating out until the settle timer drops it. isExiting wins over
+  // isEntering (checked first below).
+  isExiting?: boolean;
+  // Stagger delay in ms for whichever of enter/exit is active — index*stagger,
+  // L->R for both (see RecommendationsBody). Fed to the keyframe's
+  // animation-delay via inline style.
+  animationDelayMs?: number;
 }
 
 export function ResultCard({
@@ -111,8 +85,8 @@ export function ResultCard({
   sort,
   startWithSwapHint,
   isEntering,
-  enterDelayMs,
-  exitDelayMs,
+  isExiting,
+  animationDelayMs,
 }: ResultCardProps) {
   // Live-tweakable via AnimationDebugPanel.tsx — see animationDebugStore.ts's
   // own top-of-file comment for why (a temporary tuning aid, remove once
@@ -122,61 +96,6 @@ export function ResultCard({
   // a later re-render with a still-true startWithSwapHint prop (harmless
   // leftover in the parent, see its own comment) can't re-trigger this.
   const [hoveredIcon, setHoveredIcon] = useState<"lock" | "swap" | null>(() => (startWithSwapHint ? "swap" : null));
-  // isPresent flips false the instant this card leaves RecommendationsBody's
-  // own `results` array (AnimatePresence, motion/react) — true for every
-  // normal render, including this instance's very first one. isBatchClearActive
-  // (Context, see this file's own top-of-file comment) distinguishes WHY:
-  // a genuine Clear ✕ (in which case this card should keep occupying its
-  // flex/grid slot throughout its sink+fade — the already-verified,
-  // preserved partial-clear behavior) versus a RECOMMEND/swap replacement
-  // (which should stop occupying that slot immediately).
-  const isPresent = useIsPresent();
-  const isBatchClearActive = useContext(IsBatchClearActiveContext);
-  const articleRef = useRef<HTMLElement>(null);
-  // Pops this card's own <article> (the actual flex/grid-participating box
-  // — never given a transform/motion treatment itself, see that element's
-  // own comment on iOS gesture-chaining) out of document flow the moment
-  // it starts exiting for a reason OTHER than Clear ✕. Confirmed live (a
-  // MutationObserver on the row) that without this, a RECOMMEND/swap
-  // replacement's departing card lingers as a genuine EXTRA sibling —
-  // article count briefly reads 6, not 5 — for one tick before Motion
-  // actually finishes its own (duration 0) exit and removes it, since even
-  // an "instant" AnimatePresence exit isn't literally synchronous with the
-  // state update that triggered it. That extra sibling, however briefly
-  // present, perturbs this row's own scroll-snap/scroll-anchoring (this
-  // app has already hit and fixed the same *class* of bug once, for the
-  // page's own vertical scroll — see globals.css's `overflow-anchor: none`
-  // and DESIGN_SYSTEM.md's "already covers scroll-anchoring, but not this"
-  // — the horizontal carousel viewport was never covered by that fix,
-  // since until this migration nothing in it ever produced a transient
-  // extra sibling for the browser to react to). Plain CSS position, not a
-  // Motion prop: this deliberately does NOT touch the article's own
-  // transform/compositing behavior, only its box-model participation in
-  // the row's layout, which is an unrelated mechanism from whatever broke
-  // gesture-chaining previously.
-  useLayoutEffect(() => {
-    const el = articleRef.current;
-    if (!el) return;
-    if (isPresent || isBatchClearActive) {
-      el.style.position = "";
-      el.style.top = "";
-      el.style.left = "";
-      el.style.width = "";
-      el.style.height = "";
-      el.style.pointerEvents = "";
-      return;
-    }
-    const parent = el.parentElement;
-    if (!parent) return;
-    const rect = el.getBoundingClientRect();
-    const parentRect = parent.getBoundingClientRect();
-    el.style.position = "absolute";
-    el.style.top = `${rect.top - parentRect.top}px`;
-    el.style.left = `${rect.left - parentRect.left}px`;
-    el.style.width = `${rect.width}px`;
-    el.style.height = `${rect.height}px`;
-    el.style.pointerEvents = "none";
-  }, [isPresent, isBatchClearActive]);
   // Separate from `hasImage` below — that only tells us a URL exists, not
   // that it actually decoded. Set by the shared cover filmstrip's own
   // onError (see that block's own comment) — the one place the cover
@@ -336,48 +255,25 @@ export function ResultCard({
   // year/eps come from AniList and can genuinely be null (e.g. unreleased
   // media) — omit whichever part is missing instead of rendering "null".
   const meta = [series.year ?? "TBA", series.eps != null ? `${series.eps} EP` : null].filter(Boolean).join(" · ");
-  // Redefined fresh every render (not memoized) — cheap plain objects, and
-  // `exit` in particular needs to close over THIS render's own
-  // exitDelayMs, since AnimatePresence (motion/react) uses whatever
-  // `variants` a card had on its own last real render before disappearing
-  // from RecommendationsBody's mapped array (see exitDelayMs's own comment
-  // on ResultCardProps). `exit` is a function, not a plain object — a
-  // Motion "dynamic variant" — specifically so it can also react to
-  // AnimatePresence's own `custom` prop (isBatchClearActive,
-  // RecommendationsBody.tsx), which — unlike this card's own frozen
-  // props — DOES keep updating live even after this instance is gone from
-  // the parent's array, because AnimatePresence re-supplies its current
-  // `custom` value to already-exiting children at the moment it evaluates
-  // their exit variant. That split (frozen exitDelayMs via closure, live
-  // shouldAnimate via the function's own argument) is what lets a single
-  // component distinguish "I'm exiting because of a Clear ✕" (real
-  // rise+fade-out) from "I'm exiting because RECOMMEND/swap replaced me"
-  // (instant removal, duration 0) despite neither being knowable at the
-  // time of this card's own last render.
-  const cardVariants: Variants = {
-    hidden: { opacity: 0, y: animationDebug.cardDistancePx },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: animationDebug.cardDurationMs / 1000, ease: animationDebug.cardEaseOut, delay: (enterDelayMs ?? 0) / 1000 },
-    },
-    // Clear exits UPWARD (negative y), the mirror of the entrance: the enter
-    // starts cardDistancePx BELOW and rises to 0, so with cards already at rest
-    // the clear starts at 0 and continues UP and out (-cardDistancePx), rather
-    // than sinking back down the way it came in. Requested directly.
-    exit: (shouldAnimate: boolean) =>
-      shouldAnimate
-        ? {
-            opacity: 0,
-            y: -animationDebug.cardDistancePx,
-            transition: { duration: animationDebug.cardDurationMs / 1000, ease: animationDebug.cardEaseIn, delay: (exitDelayMs ?? 0) / 1000 },
-          }
-        : { opacity: 1, y: 0, transition: { duration: 0 } },
-  };
+  // Enter/exit are plain CSS keyframes (animate-card-enter / animate-card-exit,
+  // globals.css), applied on the card wrapper below with inline duration/delay/
+  // distance from the live tuning store. isExiting is checked BEFORE isEntering
+  // (a card removed by a Clear ✕ on the very render it also would have entered
+  // must exit, not enter). ease is the shipped default cubic-bezier(0,0,.2,1)
+  // (== the store's "easeOut") for both; only duration/delay/distance are live.
+  const cardAnimClass = isExiting ? "animate-card-exit" : isEntering ? "animate-card-enter" : "";
+  const cardAnimStyle =
+    isEntering || isExiting
+      ? {
+          ["--card-anim-distance" as string]: `${animationDebug.cardDistancePx}px`,
+          animationDuration: `${animationDebug.cardDurationMs}ms`,
+          animationDelay: `${animationDelayMs ?? 0}ms`,
+          animationTimingFunction: "cubic-bezier(0, 0, 0.2, 1)",
+        }
+      : undefined;
 
   return (
     <article
-      ref={articleRef}
       data-title={series.title}
       // data-result-card: lets MixerBar's click-outside-closes-edit-mode
       // listener allowlist this whole card (body, the lock/dice icon
@@ -485,40 +381,21 @@ export function ResultCard({
           outside the flip container's own rotateY, so animating it here
           doesn't double up with or fight the flip transition.
 
-          motion.div (motion/react), not the CSS-keyframe classes this
-          replaced (animate-card-enter/-exit, removed from globals.css —
-          see DESIGN_SYSTEM.md for the migration writeup). RecommendationsBody
-          wraps this card's parent map in AnimatePresence, which is what
-          actually drives isEntering/exitDelayMs's real effect now:
-          - initial only applies at this exact instance's genuine first
-            mount (Motion's own guarantee, not something this file has to
-            arrange) — false skips it entirely for a card that mounted
-            already at rest, "hidden" plays the rise+fade-in for a card
-            gated on isEntering (still newTitles/isEnteringFromSwap,
-            RecommendationsBody.tsx, unchanged by this migration).
-          - exit is a dynamic variant (a function, not a plain object) so
-            it can react to AnimatePresence's own `custom` prop
-            (isBatchClearActive, RecommendationsBody.tsx) even though this
-            component has already been dropped from the parent's mapped
-            array by the time it actually exits — that custom flag is what
-            keeps a RECOMMEND/swap replacement's departing card an INSTANT
-            removal (duration 0, matching this app's existing, deliberate
-            asymmetry: today only Clear ✕ ever exit-animates a departing
-            card) while a genuine Clear ✕ gets the real sink+fade-out.
-            exitDelayMs itself is still whatever this instance's own LAST
-            render (while still part of `results`) computed — see that
-            prop's own comment in this file's interface for why computing
-            it unconditionally, every render, is what makes AnimatePresence's
-            own "freeze last render's props" behavior land on the correct
-            pre-removal stagger position with no separate lagging snapshot
-            list. */}
-      <motion.div
-        className="relative w-full h-full [perspective:1100px]"
-        variants={cardVariants}
-        initial={isEntering ? "hidden" : false}
-        animate="visible"
-        exit="exit"
-      >
+          Enter/exit are plain CSS keyframes (animate-card-enter /
+          animate-card-exit, globals.css) applied here via cardAnimClass +
+          cardAnimStyle (computed above), NOT Motion/AnimatePresence. A CSS
+          keyframe plays once on mount (enter) or while the exit class is
+          present, and — crucially — never replays on a later re-render or
+          reorder, which is exactly why this is CSS: AnimatePresence was
+          replaying a present card's cached mount entrance whenever a replaced
+          sibling shifted it (the locked-card re-animation bug). See globals.css
+          and CLAUDE.md "Animation / Motion" for the decision. RecommendationsBody
+          keeps a card mounted through its Clear-✕ exit via a lagging
+          displayedResults/exitingTitles + settle timer, so no presence-tracking
+          is needed here. This wrapper (not the article) carries the animation
+          for the same reason it always did — the article is the carousel's
+          snap/gesture box and must stay transform-free on iOS. */}
+      <div className={["relative w-full h-full [perspective:1100px]", cardAnimClass].join(" ")} style={cardAnimStyle}>
       <div
         // No rotateY(0deg) at rest — same trap as the perspective move onto
         // the wrapper above (this element's own comment): a non-none
@@ -1436,7 +1313,7 @@ export function ResultCard({
           </div>
         </div>
       </div>
-      </motion.div>
+      </div>
     </article>
   );
 }
