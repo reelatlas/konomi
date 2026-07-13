@@ -351,7 +351,7 @@ export function ResultCard({
   // their exit variant. That split (frozen exitDelayMs via closure, live
   // shouldAnimate via the function's own argument) is what lets a single
   // component distinguish "I'm exiting because of a Clear ✕" (real
-  // sink+fade-out) from "I'm exiting because RECOMMEND/swap replaced me"
+  // rise+fade-out) from "I'm exiting because RECOMMEND/swap replaced me"
   // (instant removal, duration 0) despite neither being knowable at the
   // time of this card's own last render.
   const cardVariants: Variants = {
@@ -361,11 +361,15 @@ export function ResultCard({
       y: 0,
       transition: { duration: animationDebug.cardDurationMs / 1000, ease: animationDebug.cardEaseOut, delay: (enterDelayMs ?? 0) / 1000 },
     },
+    // Clear exits UPWARD (negative y), the mirror of the entrance: the enter
+    // starts cardDistancePx BELOW and rises to 0, so with cards already at rest
+    // the clear starts at 0 and continues UP and out (-cardDistancePx), rather
+    // than sinking back down the way it came in. Requested directly.
     exit: (shouldAnimate: boolean) =>
       shouldAnimate
         ? {
             opacity: 0,
-            y: animationDebug.cardDistancePx,
+            y: -animationDebug.cardDistancePx,
             transition: { duration: animationDebug.cardDurationMs / 1000, ease: animationDebug.cardEaseIn, delay: (exitDelayMs ?? 0) / 1000 },
           }
         : { opacity: 1, y: 0, transition: { duration: 0 } },
