@@ -22,7 +22,7 @@ export function TagChip({ name, active, size = "base", onToggle }: TagChipProps)
         onToggle(name);
       }}
       className={[
-        "inline-flex items-center cursor-grab select-none lowercase font-mono font-bold",
+        "inline-flex items-center cursor-grab active:cursor-grabbing select-none lowercase font-mono font-bold",
         "border-[length:var(--border-base)] border-[var(--ink)] rounded-[var(--radius-chip)]",
         isBase
           ? "text-[length:var(--text-sm)] tracking-[var(--tracking-md)] px-[var(--space-lg)] py-[var(--space-md)]"

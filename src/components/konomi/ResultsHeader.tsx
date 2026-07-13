@@ -50,16 +50,18 @@ export function ResultsHeader({ hasResults, reserveRow, onClearRecs, onLevelChan
     //
     // min-h-[30px]: Clear ✕'s and the Filter button's own shared, measured
     // rendered height (see ActionButton.tsx's sm size) — pins the row so it
-    // doesn't jitter as those buttons mount. mb-[var(--space-2xl)]: a flat 24px
-    // now, no title-slack subtraction anymore — with the "Recommendations"
-    // title gone, the row's content is just the 30px-tall buttons filling it
-    // edge to edge, so there's no invisible centering slack below the text to
-    // compensate for; the margin IS the visual gap to the card row (24px, the
-    // same uniform gutter as card→mixer). justify-end: buttons sit at the right,
-    // where the Clear+Filter cluster always was.
-    <div className="flex flex-row items-center justify-end min-h-[30px] gap-x-[var(--space-lg)] mb-[var(--space-2xl)]">
+    // doesn't jitter as those buttons mount. mb-[var(--space-lg)]: 12px, half
+    // the app's usual 24px frame gutter — a deliberate exception here so the
+    // Clear/Filter controls read as belonging TO the results row directly below
+    // them (requested "feel more connected"), rather than as a separate band.
+    // justify-end: buttons sit at the right.
+    <div className="flex flex-row items-center justify-end min-h-[30px] gap-x-[var(--space-lg)] mb-[var(--space-lg)]">
       {hasResults && (
         <div className="flex items-center gap-[var(--space-lg)] flex-wrap">
+          {/* Filter popover first (left), Clear ✕ second (right) — requested
+              order swap; the row is a plain left-to-right flex, so listing
+              ResultsFilterButton before the Clear span puts Clear on the right. */}
+          <ResultsFilterButton onLevelChange={onLevelChange} />
           {
             // data-clear-results + contents: lets MixerBar's click-outside-
           // closes-edit-mode listener allowlist this button via a single
@@ -143,7 +145,6 @@ export function ResultsHeader({ hasResults, reserveRow, onClearRecs, onLevelChan
             </IconButton>
           </span>
           }
-          <ResultsFilterButton onLevelChange={onLevelChange} />
         </div>
       )}
     </div>

@@ -94,7 +94,13 @@ export function TagSlot({ index, tag, isDragOver, onDragOver, onDragLeave, onDro
         // comment) within this exact height.
         "w-[78px] h-[var(--control-h-md)] px-[var(--space-sm)] overflow-hidden",
         "flex items-center justify-center transition-transform duration-75",
-        filled ? "cursor-grab" : "cursor-pointer",
+        // While a tag is being dragged OVER this slot (isDragOver), force the
+        // closed grabbing hand — so the "I'm holding a tag" cursor persists over
+        // the empty ADD TAG affordance (and any swap target) instead of dropping
+        // back to the slot's own resting cursor mid-drag. Requested directly; the
+        // OS copy badge (green +) still renders on top. At rest: a filled slot is
+        // grabbable (grab / active:grabbing), an empty slot is a plain pointer.
+        isDragOver ? "cursor-grabbing" : filled ? "cursor-grab active:cursor-grabbing" : "cursor-pointer",
         "border-[length:var(--border-base)]",
         // border-dashed clips its left/right edges on iOS WebKit (all iOS
         // browsers) — cosmetic, empty-state only. Accepted. Do not "fix"
