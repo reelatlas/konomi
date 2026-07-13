@@ -42,7 +42,9 @@ interface MastheadProps {
 // instead — that's a structurally different case from this one).
 //
 // Collapsed state's specific numbers — text-xl/text-md wordmark sizes,
-// min-h-[36.5px] row, ThemeSwitcher subtextPlacement="left", border-b-only
+// min-h-[36px] row (whole/even for at-rest hygiene; was 36.5 from the old
+// condensed header, rounded to the nearest even px — a min-height, so the ~0.5px
+// change is visually inert), ThemeSwitcher subtextPlacement="left", border-b-only
 // (not all 4 sides), shadow-elev-3 (not elev-5), and a plain 3px accent
 // bar with no border-t or top-margin spacing trick — are pulled directly
 // from the old scroll-triggered condensed header's own already-tuned
@@ -97,7 +99,7 @@ export function Masthead({ theme, onThemeChange, collapsed, onToggleCollapsed }:
       <div
         className={
           collapsed
-            ? "flex items-center justify-between min-h-[36.5px] gap-x-[var(--space-lg)]"
+            ? "flex items-center justify-between min-h-[36px] gap-x-[var(--space-lg)]"
             : "flex justify-between items-start gap-[var(--space-xl)]"
         }
       >
