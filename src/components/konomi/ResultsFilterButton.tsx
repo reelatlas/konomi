@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { LevelKey } from "@/lib/konomi/types";
 import { FilterControls } from "./FilterControls";
 import { FilterIcon } from "./icons";
@@ -26,6 +26,39 @@ interface ResultsFilterButtonProps {
 export function ResultsFilterButton({ onLevelChange }: ResultsFilterButtonProps) {
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+
+  // Size the dialog to HUG its filters. Pure CSS can't: the dialog is
+  // position:absolute right-0, so a content width keyword (w-fit) resolves
+  // against its ~30px trigger wrapper and collapses to min-content, while w-max
+  // stays pinned at the max-width whenever the two fields wrap to two rows —
+  // either way leaving a wide empty strip beside the right-aligned filters at
+  // small widths (reported). So measure the two fields and set the width
+  // imperatively: their one-line sum when it fits the viewport-derived cap, else
+  // the wider field alone (the wrapped-two-row case). The field widths are
+  // intrinsic (viewport-media-query-driven, independent of the dialog's own
+  // width), so this doesn't feed back on itself. useLayoutEffect writes it before
+  // paint (no flash), imperatively (no setState → no cascading render); a resize
+  // listener re-runs it when the viewport (and thus the reduced form) changes.
+  useLayoutEffect(() => {
+    if (!open) return;
+    const el = popoverRef.current;
+    const fields = el?.firstElementChild ? Array.from(el.firstElementChild.children) : [];
+    if (!el || fields.length < 2) return;
+    const GAP = 12; // FilterControls' own gap-x-lg between the two fields
+    const PAD = 24; // this dialog's p-lg, both sides
+    function size() {
+      const w0 = fields[0].getBoundingClientRect().width;
+      const w1 = fields[1].getBoundingClientRect().width;
+      const capContent = Math.min(340, window.innerWidth - 96) - PAD; // dialog max-width minus padding
+      const oneLine = w0 + GAP + w1;
+      const content = oneLine <= capContent ? oneLine : Math.max(w0, w1);
+      el!.style.width = `${Math.ceil(content) + PAD}px`;
+    }
+    size();
+    window.addEventListener("resize", size);
+    return () => window.removeEventListener("resize", size);
+  }, [open]);
 
   // Closes on any outside pointerdown or Escape — the same two patterns
   // already proven this session for LevelSelector's collapsed hint and
@@ -118,6 +151,7 @@ export function ResultsFilterButton({ onLevelChange }: ResultsFilterButtonProps)
       </IconButton>
       {open && (
         <div
+          ref={popoverRef}
           role="dialog"
           aria-label="Filters"
           // @container: Level/Sort's own label-hide/collapse breakpoints
@@ -128,38 +162,41 @@ export function ResultsFilterButton({ onLevelChange }: ResultsFilterButtonProps)
           // own git history/DESIGN_SYSTEM.md for the live-bisected values
           // actually used.
           //
-          // w-[min(340px,calc(100vw-6rem))], not w-max — a definite width,
-          // required because FilterControls below is a `@container`
-          // (container-type: inline-size) whose own children query it, and a
-          // content-sized container can't resolve against descendants that
-          // depend on its width (a circular sizing dependency browsers collapse
-          // to near-zero). FilterControls carries the @container now (it used
-          // to be on this dialog); it fills this definite width via w-full. See
-          // FilterControls.tsx's own comment for the full reasoning.
+          // w-max (max-content) + max-w-[min(340px,calc(100vw-6rem))]: the dialog
+          // HUGS its filters rather than stretching to a fixed width — otherwise,
+          // right-aligned content in a wide box left a big empty gap on the left
+          // at small widths (reported). w-MAX, not w-fit: this dialog is
+          // position:absolute, so its containing block is the ~30px trigger
+          // wrapper, and fit-content resolves against THAT (near-min-content →
+          // everything wraps to its own row). max-content ignores available width
+          // and gives the one-line width, which max-w then wraps only when it
+          // truly exceeds the viewport-fit bound — so the two filters share a row
+          // when they fit and the box shrinks to exactly their width otherwise.
+          // Hugging is only possible because FilterControls' popover layout
+          // reduces off the VIEWPORT (plain media queries), NOT a @container: a
+          // container-type box ignores its own content for sizing, so a
+          // content-sized container query would collapse to zero — mutually
+          // exclusive (which is why this used to be a fixed w-[…]).
           //
-          // The viewport term is 6rem, not the 3rem you'd expect for the two
-          // page gutters alone: this popover is absolute right-0 against the
-          // FILTER button, which sits LEFT of the Clear ✕ (not at the content
-          // column's right edge), so it opens leftward from a point already
-          // inset ~66px from the viewport's right (Clear button + gap + right
-          // gutter). At 3rem the leftward extent ran the popover off the left
-          // edge of the screen on phones (confirmed live: left edge −18px at
-          // 320–375px wide). 6rem (~96px) reserves that inset plus the left
-          // gutter, keeping a ~30px left margin at every phone width while
-          // leaving the 340px cap untouched above ~436px. The inner filters
-          // then collapse to fit the narrower box via FilterControls' own
-          // @container thresholds (label drops, then single-segment) — a
-          // coupled constant tied to the Clear ✕ width, re-derive if that
-          // control's own footprint changes.
+          // The max-width's viewport term is 6rem, not the 3rem for the two page
+          // gutters alone: this dialog is absolute right-0 against the FILTER
+          // button, which sits LEFT of the Clear ✕ (not at the content column's
+          // right edge), so it opens leftward from a point already inset ~66px
+          // from the viewport's right (Clear button + gap + right gutter). At
+          // 3rem the leftward extent ran it off the left edge of the screen on
+          // phones (left edge −18px at 320–375px wide); 6rem (~96px) reserves
+          // that inset plus the left gutter, keeping the dialog fully on-screen
+          // while leaving the 340px cap untouched above ~436px. A coupled
+          // constant tied to the Clear ✕ width — re-derive if that changes.
           //
           // No z-index needed here — the wrapper above already carries
           // z-popover for the whole time this panel exists (it only
           // renders while `open`), and position:absolute alone already
           // paints this above its own static-positioned trigger-button
           // sibling within that same local context.
-          className="absolute right-0 top-full mt-[var(--space-sm)] w-[min(340px,calc(100vw-6rem))] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-2)] p-[var(--space-lg)]"
+          className="absolute right-0 top-full mt-[var(--space-sm)] w-max max-w-[min(340px,calc(100vw-6rem))] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-2)] p-[var(--space-lg)]"
         >
-          <FilterControls onLevelChange={onLevelChange} className="w-full" />
+          <FilterControls onLevelChange={onLevelChange} />
         </div>
       )}
     </div>

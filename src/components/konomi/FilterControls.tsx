@@ -13,14 +13,20 @@ interface FilterControlsProps {
   // Sort has no such cascade, so setSortPref (tagPoolPrefs.ts) is called
   // directly below.
   onLevelChange: (level: LevelKey) => void;
-  // "stacked" (default): the two fields stack vertically, each row full-width
-  // and right-aligned — the ResultsFilterButton popover's shape, a narrow
-  // column. "inline": the two fields sit side by side on ONE line, centred —
-  // the empty-state box's shape. The two differ enough (flex direction, and
-  // the @container widths at which labels/controls step down) that they're
-  // parameterised here rather than duplicated. Everything else — the actual
-  // LevelSelector/SortSelect controls, labels, icons, dual-render — is shared.
-  layout?: "stacked" | "inline";
+  // "inline": the two fields sit side by side on ONE line, centred — the
+  // empty-state box's shape (wide container). "popover": the ResultsFilterButton
+  // popover's shape (narrow, ≤312px container) — also a flex-row/wrap, but with
+  // its own far tighter @container thresholds AND a single shared collapse point
+  // so BOTH controls drop to their single-tap-cycle form together (requested:
+  // "if either enters the single-select breakpoint, both do", for visual
+  // consistency). flex-wrap then does the rest for free: two EXPANDED controls
+  // (~360px combined) never fit the popover's width so they wrap to two rows,
+  // while two COLLAPSED single-selects (~228px) fit one row and stay on it until
+  // the box is narrow enough to wrap — no explicit "put them on one row" rule
+  // needed, wrap is the rule. The two layouts differ enough (thresholds, gaps)
+  // to parameterise rather than duplicate; the actual LevelSelector/SortSelect
+  // controls, icons, labels, dual-render are shared.
+  layout?: "inline" | "popover";
   className?: string;
 }
 
@@ -29,46 +35,72 @@ interface FilterControlsProps {
 // (RecommendationsBody) so the two render the identical controls from one
 // source rather than re-implementing them.
 //
-// @container lives on this root: the label-hide/collapse breakpoints below
-// query this element's own width, so it must be a definite-width query
-// container in every host. Callers give it that width — `w-full` inside the
-// popover's own definite-width dialog, or a definite-width wrapper in the empty
-// state — never content-sized (w-max), which is circular with the content-
-// querying children (see ResultsFilterButton's own width comment).
+// INLINE puts a @container on this root: its label-hide/collapse breakpoints
+// query this element's own width, so its host must give it a definite width — a
+// definite-width wrapper in the empty state — never content-sized (w-max), which
+// is circular with the content-querying children. POPOVER instead reduces off
+// the VIEWPORT (plain media queries) precisely so its dialog can be content-
+// sized (w-fit) and hug the filters — see the threshold comment below and
+// ResultsFilterButton's own width comment.
 //
 // Progressive reduction (both layouts, same idea as MixerBar's own Min Match
-// cluster — keep it to as few lines as possible, drop an element before ever
-// wrapping): full (label + icon + expanded control) → drop the label (icon +
-// expanded) → single-segment collapsed control (icon + collapsed) → only then,
-// if it still doesn't fit, wrap. The @container widths differ per layout
-// because "inline" holds BOTH fields on one line (so its thresholds are ~2x
-// wider than "stacked", which only ever has one field's width to fit).
-export function FilterControls({ onLevelChange, layout = "stacked", className }: FilterControlsProps) {
+// cluster): full (label + icon + expanded control) → drop the label (icon +
+// expanded) → single-tap-cycle collapsed control (icon + collapsed) → wrap. The
+// @container widths differ per layout: "inline" keys off the wide (~560px)
+// empty-state box; "popover" off the narrow (≤312px) results-header dialog,
+// where the two expanded controls can't share one row so they wrap, and both
+// collapse together at one shared threshold so the two single-selects then land
+// on one row (see the threshold comment below).
+export function FilterControls({ onLevelChange, layout = "popover", className }: FilterControlsProps) {
   const level = useLevel();
   const sort = useSort();
   const inline = layout === "inline";
 
-  // Label shows above these widths; expanded control shows above the collapse
-  // width, the collapsed single-segment control at/below it. Inline's numbers
-  // are measured from the real piece widths (full ≈ 510 / no-label ≈ 372 one
-  // line) plus a cross-engine margin so labels drop / controls collapse a hair
-  // before the row would actually have to wrap. Stacked keeps the popover's own
-  // long-standing single-field thresholds.
-  const labelShow = inline ? "hidden @min-[530px]:inline" : "hidden @min-[220px]:inline";
-  const expandedHide = inline ? "@max-[390px]:hidden" : "@max-[180px]:hidden";
-  const collapsedShow = inline ? "hidden @max-[390px]:block" : "hidden @max-[180px]:block";
+  // Label shows above the first width; the expanded control shows above the
+  // collapse width, the collapsed single-tap-cycle control at/below it.
+  //
+  // The two layouts query DIFFERENT things. INLINE queries its own @container
+  // (the wide empty-state box) via @min-/@max-. POPOVER queries the VIEWPORT
+  // (plain min-/max-, Tailwind's media variants) instead — because the dialog
+  // now hugs its own content (w-fit, see ResultsFilterButton), so it has no
+  // definite width of its own for a container query to read; a container-type
+  // box ignores its content for sizing, so hugging + @container are mutually
+  // exclusive. The popover's own max-width is viewport-derived anyway
+  // (min(340px, 100vw-6rem)), so the viewport is the right axis to reduce on.
+  // The collapse threshold is SHARED by both fields (same expandedHide/
+  // collapsedShow), so Density and Sort drop to single-select together
+  // (requested, for consistency); flex-wrap then puts the two single-selects on
+  // one row and only wraps them once even that won't fit. Popover numbers: 369px
+  // — below it a single expanded control would exceed the dialog's max-width, so
+  // both cut to single-select; 434px — above it the dialog (max-width min(340px,
+  // 100vw-6rem)) is finally wide enough to hold the labelled Density field
+  // (~310px + the dialog's own padding = ~334px) WITH its left padding intact.
+  // At the earlier 420px labels appeared ~14px too soon, so the "TAG DENSITY"
+  // text pressed against the dialog's left edge until it widened out (reported).
+  // All live-bisected; re-check on-device.
+  const labelShow = inline ? "hidden @min-[530px]:inline" : "hidden min-[434px]:inline";
+  const expandedHide = inline ? "@max-[390px]:hidden" : "max-[369px]:hidden";
+  const collapsedShow = inline ? "hidden @max-[390px]:block" : "hidden max-[369px]:block";
 
-  // Inline: flex-wrap so the LAST resort (below the single-segment width) is a
-  // wrap to a second row; gap-y-2xl gives a wrapped second row clearance for
-  // LevelSelector's own hover hint (which renders absolutely below its control).
-  // Stacked: a plain vertical column; the density row carries pb-[24px] for that
-  // same hint, since the Sort row sits directly beneath it there.
+  // Both layouts are flex-row + flex-wrap so the LAST resort is a wrap to a
+  // second row (inline below its single-segment width; popover once even the two
+  // single-selects stop fitting one row). They differ in cross-axis alignment,
+  // because their hosts differ: INLINE centres its fields in the wide, symmetric
+  // empty-state box; POPOVER right-aligns them (justify-end) so wrapped rows and
+  // every reduced form stack flush against the dialog's right edge — the side its
+  // trigger and the whole results header live on (reported: centred read as
+  // off). Only inline is a @container. gap-y is 2xl in both: it doubles as
+  // clearance for LevelSelector's own hover hint (absolutely positioned below its
+  // control) when the two fields wrap to separate rows (the popover's earlier md
+  // crowded them — reported). Popover fields are plain (no shrink-0, no min-w-0):
+  // the dialog hugs content, so a field keeps its intrinsic width and simply
+  // wraps rather than shrinking or overflowing.
   const root = inline
     ? "@container flex flex-row flex-wrap items-center justify-center gap-x-[var(--space-xl)] gap-y-[var(--space-2xl)]"
-    : "@container flex flex-col";
+    : "flex flex-row flex-wrap items-center justify-end gap-x-[var(--space-lg)] gap-y-[var(--space-2xl)]";
   const fieldBase = "flex items-center gap-[var(--space-sm)]";
-  const densityField = inline ? `${fieldBase} shrink-0` : `${fieldBase} justify-end pb-[24px]`;
-  const sortField = inline ? `${fieldBase} shrink-0` : `${fieldBase} justify-end`;
+  const densityField = inline ? `${fieldBase} shrink-0` : fieldBase;
+  const sortField = inline ? `${fieldBase} shrink-0` : fieldBase;
   const labelClass = `${labelShow} font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap`;
 
   return (
