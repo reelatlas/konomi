@@ -5,7 +5,6 @@ import { visiblePoolTagNames } from "@/lib/konomi/tagPool";
 import { isThemeKey, THEME_STORAGE_KEY } from "@/lib/konomi/themes";
 import type { LevelKey, Series, TagInfo } from "@/lib/konomi/types";
 import { useKonomi } from "@/lib/konomi/useKonomi";
-import { IconFxDebugPanel } from "./IconFxDebugPanel";
 import { Masthead } from "./Masthead";
 import { MixerBar } from "./MixerBar";
 import { RecommendationsBody } from "./RecommendationsBody";
@@ -329,11 +328,6 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
       {/* AnimationDebugPanel removed for now, not deleted — see
           AnimationDebugPanel.tsx/animationDebugStore.ts, both left intact.
           Re-add `<AnimationDebugPanel />` here if it's needed again. */}
-
-      {/* TEMPORARY A/B tool for choosing an icon-engagement treatment (see
-          IconFxDebugPanel.tsx). Delete this line + the file once a winner is
-          picked and baked into globals.css. */}
-      <IconFxDebugPanel />
 
       {/* flex-1 min-h-0: this column, not the root div above, is what
           fills 100svh minus this root's own pt/pb padding — a single flex

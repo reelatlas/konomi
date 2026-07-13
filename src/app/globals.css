@@ -612,94 +612,28 @@
    rest of the bar, on both engines, in every mode (browse or edit, small panel or
    large). The shimmer only ever happens while the panel is animating, so the layer
    is only needed then; at rest and during a window resize the row is a normal
-   in-flow element again, with nothing to rattle. */
+   in-flow element again, with nothing to rattle.
+
+   ENGAGE PRESS/EXPAND (same .is-animating window): a subtle scale, eased in and
+   out (90ms easeOut), that camouflages the one-time promote/demote AA re-raster
+   blip with a deliberate, on-brand "engaged" motion — the eye tracks the
+   intentional change and the ~1px blip disappears under it. The row PRESSES IN
+   (scale 0.99) by default; when the panel is GROWING (open, or a 50%/100% snap-up
+   — MixerBar adds .is-expanding) it inverts to a slight EXPAND (1.01) so the
+   controls read as growing WITH the panel. Manual drag and the shrink/close/
+   down-arrow keep the press. Scale is safe here because the row is ALREADY one
+   promoted raster, so scale() scales that cached bitmap on the compositor (a
+   little softness that reads AS the press) — it does NOT re-rasterize the strokes
+   per frame, so no shimmer returns. The base transition below covers both the
+   eased press-in (on .is-animating add) and the eased settle-back (on remove). */
+.mixbar-controls-row {
+  transition: transform 90ms ease-out;
+}
 .mixbar-controls-row.is-animating {
-  transform: translateZ(0);
-}
-
-/* ============================================================================
-   ICON-ENGAGEMENT TREATMENTS (debug / A-B) — camouflage the one-time promote/
-   demote AA re-raster blip with a deliberate, on-brand emphasis over the EXACT
-   SAME window (.is-animating = the promote gate). The eye tracks the intentional
-   change and the ~1px blip disappears under it. Selected live via
-   html[data-icon-fx="N"] (IconFxDebugPanel); absent = off (nothing applies).
-
-   TIMING TRICK (covers both blips): instant-ON at promote so the emphasis is
-   already full the frame the layer is created, then eased-OUT after demote so
-   it's still full the frame the layer is destroyed and only then settles.
-   Implemented by putting the transition on the REST state and `transition:none`
-   on `.is-animating`. Paint-tier treatments (color/shadow/background) do this
-   cleanly; the transform "lift" is included to eyeball on-device (its layer
-   lifecycle is fuzzier — that's what the A/B panel is for). None distort the
-   glyphs (no scale — that reintroduces the blur we rejected). */
-[data-icon-fx] .mixbar-controls-row {
-  transition: transform 60ms ease-out, background-color 240ms ease-out;
-}
-[data-icon-fx] .mixbar-controls-row svg {
-  transition: color 240ms ease-out, opacity 240ms ease-out;
-}
-[data-icon-fx] .mixbar-controls-row button {
-  transition: box-shadow 240ms ease-out;
-}
-/* instant-ON at promote (no fade-in, so the create-frame is already covered) */
-[data-icon-fx] .mixbar-controls-row.is-animating,
-[data-icon-fx] .mixbar-controls-row.is-animating svg,
-[data-icon-fx] .mixbar-controls-row.is-animating button {
-  transition: none;
-}
-
-/* 1 — PRESS: the whole row shrinks slightly inward, like it got pressed, then
-       reverts. Safe scale here specifically: the row is already ONE promoted
-       raster during .is-animating, so scale() scales that cached bitmap on the
-       compositor (a little interpolation softness that reads AS the press) — it
-       does NOT re-rasterize the strokes per frame the way the old growing-card
-       resize-scale did, so it can't bring back the shimmer. */
-[data-icon-fx="1"] .mixbar-controls-row.is-animating {
-  transform: scale(0.5) translateZ(0);
-}
-/* 2 — OBSCURE: stroked icons fade to the SAME ink at 50% (color, not opacity, so
-       no extra stacking layer) — a slight obscure, then back to full. */
-[data-icon-fx="2"] .mixbar-controls-row.is-animating svg {
-  color: color-mix(in srgb, var(--ink) 50%, transparent);
-}
-/* 3 — PRESS (eased, hold-to-confirm feel): same shrink as slot 1 but EASED in and
-       out — a smooth "pushed in with resistance" ramp, like Motion's hold-to-
-       confirm example (which is just scale [1, 0.85] on easeOut under the hood),
-       instead of snapping on. The two transitions here override the shared
-       instant-on (.is-animating) and the shared 60ms revert. Trade-off: an eased
-       ramp covers the frame-0 promote blip LESS than instant-on slot 1 (scale
-       starts at 1), so compare which reads better on-device. */
-[data-icon-fx="3"] .mixbar-controls-row {
-  transition: transform 90ms ease-out; /* eased release */
-}
-[data-icon-fx="3"] .mixbar-controls-row.is-animating {
   transform: scale(0.99) translateZ(0);
-  transition: transform 90ms ease-out; /* eased press-in */
 }
-/* INVERT on GROW (open + 50%/100% snap arrow — see MixerBar is-expanding): the
-   row expands slightly WITH the growing panel instead of pressing in — same
-   magnitude, opposite direction (0.99 -> 1.01). Manual drag and close keep the
-   press. Higher specificity (extra class) overrides the scale above; transition/
-   revert are inherited from the two rules above unchanged. */
-[data-icon-fx="3"] .mixbar-controls-row.is-animating.is-expanding {
+.mixbar-controls-row.is-animating.is-expanding {
   transform: scale(1.01) translateZ(0);
-}
-/* 4 — HARD RING: a flat on-brand accent ring snaps on each control box, settles
-       (matches Konomi's hard-edged shadow language rather than a soft glow) */
-[data-icon-fx="4"] .mixbar-controls-row.is-animating button {
-  box-shadow: 0 0 0 2px var(--secondary);
-}
-/* 5 — ROW WASH: a brief accent tint washes across the whole controls row */
-[data-icon-fx="5"] .mixbar-controls-row.is-animating {
-  background-color: color-mix(in srgb, var(--secondary) 16%, transparent);
-}
-/* 6 — PRESS (deep): a slightly stronger shrink whose origin is the bar's own
-       BASE (center bottom), so the row reads as pressed DOWN into its footing
-       rather than shrinking evenly in place — fits this bottom-anchored bar.
-       Same cached-layer scale as treatment 1, so no re-raster/shimmer. */
-[data-icon-fx="6"] .mixbar-controls-row.is-animating {
-  transform: scale(0.5) translateZ(0);
-  transform-origin: center bottom;
 }
 
 /* RollingLabel's own slot-machine roll (MatchSelector/LevelSelector/
