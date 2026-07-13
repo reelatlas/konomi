@@ -2343,18 +2343,28 @@ export function MixerBar({
     // so the composite cost stops scaling with the panel's height. Visually
     // identical (same 5px 5px 0 --ink hard shadow). See DESIGN_SYSTEM.md.
     <div
+      // w-full: the bar always FILLS its column, so its width is constant
+      // regardless of how much the current section tab's content happens to be.
+      // Without it the bar sized to content and its width HUGGED per tab — a
+      // sparse section (e.g. Demographic at Seasoned, ~10 tags) rendered the whole
+      // card ~290px narrower than a dense one, so switching tabs visibly changed
+      // the bar's width. (mx-auto used to sit here and made it worse, not better:
+      // auto margins on a flex item DISABLE cross-axis stretch, so the bar could
+      // never fill even when it should — removed.)
+      //
       // max-w-full, NOT max-w-[1280px]: this bar is a flex item in KonomiApp's
       // own already-max-w-[1280px] column (so the 1280 cap is inherited, not
-      // lost). A definite max-width also CAPS this flex item's automatic
-      // minimum size (CSS Flexbox spec) — without it, a wide inner row (the
-      // section-tab strip at Seasoned/Otaku tag density, many tabs) forced the
-      // item's min-content past the viewport and the whole bar overflowed the
-      // page on small screens, since min-width:0 alone does NOT cap a flex
-      // item's auto-minimum, only a definite max-width does. Paired with the
-      // min-w-0 shrink chain down to SectionTabStrip (TagPoolBody), so that row
-      // scrolls instead of overflowing. Casual only ever fit by luck (its tab
-      // strip was narrow enough); this makes every level behave the same.
-      className="sticky bottom-0 z-[var(--z-overlay)] max-w-full mx-auto touch-none"
+      // lost). A definite max-width also CAPS this flex item's automatic minimum
+      // size (CSS Flexbox spec) — without it, a wide inner row (the section-tab
+      // strip at Seasoned/Otaku tag density, many tabs) forced the item's
+      // min-content past the viewport and the whole bar overflowed the page on
+      // small screens, since min-width:0 alone does NOT cap a flex item's
+      // auto-minimum, only a definite max-width does. Paired with the min-w-0
+      // shrink chain down to SectionTabStrip (TagPoolBody), so an over-wide row
+      // scrolls instead of overflowing. Together: w-full fills, max-w-full caps
+      // the auto-min, min-w-0 lets over-wide content scroll — so the bar is the
+      // same width at every tag density and every tab.
+      className="sticky bottom-0 z-[var(--z-overlay)] w-full max-w-full touch-none"
       // marginTop + transition: the outer wrapper's real, bottom-anchoring
       // negative margin (targetMarginTop) with the open/close/snap CSS
       // transition (instant 0ms during a drag, since a drag never sets the
