@@ -75,7 +75,10 @@ export function SortSelect({ value, onChange, collapsed }: SortSelectProps) {
           // before). See MatchSelector's own identical comment for the
           // full reasoning, shared verbatim across all three of this row's
           // collapsed controls.
-          className="py-[var(--space-md)] px-[var(--space-lg)] border-0 cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] whitespace-nowrap bg-[var(--surface)] text-[var(--ink)]"
+          // leading-[16px]: whole 32px box, matching MatchSelector's collapsed
+          // form so this filter's single button lines up with min-match and
+          // Tag Density at the same height (see MatchSelector's own comment).
+          className="py-[var(--space-md)] leading-[16px] px-[var(--space-lg)] border-0 cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] whitespace-nowrap bg-[var(--surface)] text-[var(--ink)]"
         >
           <RollingLabel value={activeOption.label} sizeToWidestOf={SORT_LABELS} />
         </button>
@@ -88,7 +91,11 @@ export function SortSelect({ value, onChange, collapsed }: SortSelectProps) {
       <select
         value={value}
         onChange={(e) => onChange(e.target.value as SortKey)}
-        className="appearance-none bg-[var(--surface)] border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-2)] font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] uppercase text-[var(--ink)] pl-[var(--space-lg)] pr-[var(--space-2xl)] py-[var(--space-md)] cursor-pointer"
+        // leading-[16px]: whole 32px control height (16 padding + 16 line),
+        // matching the segmented min-match/density controls so this <select>
+        // sits at the same height as the rest of the filter row rather than
+        // the browser's default ~32.5px line-height for text-xs.
+        className="appearance-none leading-[16px] bg-[var(--surface)] border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-2)] font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] uppercase text-[var(--ink)] pl-[var(--space-lg)] pr-[var(--space-2xl)] py-[var(--space-md)] cursor-pointer"
       >
         {SORT_OPTIONS.map((option) => (
           <option key={option.key} value={option.key}>

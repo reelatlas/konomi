@@ -593,6 +593,70 @@
   }
 }
 
+/* ResultCard enter/exit — plain CSS keyframes, NOT Motion/AnimatePresence.
+   Deliberate choice (see CLAUDE.md "Animation / Motion"): this is a simple
+   one-shot mount/unmount animation, and AnimatePresence was replaying a present
+   child's cached mount `initial` as an entrance whenever a replaced sibling
+   shifted it — so a LOCKED card visibly re-animated on a later RECOMMEND even
+   though its result never changed (root-caused via CDP: same DOM node, no
+   remount, yet it re-entered). A CSS keyframe plays once on mount and never
+   replays on reflow/reorder, so it sidesteps that presence-tracking behavior
+   entirely with less code. Keyframe (not transition) because a freshly-mounted
+   (enter) or about-to-unmount (exit) card has no painted "before" frame a
+   transition could animate from. Enter rises INTO place from below; exit rises
+   UP and out (the current direction — a deliberate mirror of the entrance, set
+   this session). Duration / delay / timing-function / --card-anim-distance are
+   inline style per card (ResultCard, from cardAnimTuning's live store), so the
+   debug panel's edits take effect with no rebuild; only animation-name/
+   fill-mode are static here (Tailwind's scanner can't see a JS-interpolated
+   class). RecommendationsBody keeps a card mounted through its own exit via a
+   lagging displayedResults/exitingTitles + a settle setTimeout (the pre-Motion
+   mechanism), so there's no AnimatePresence involved in the card lifecycle. */
+@keyframes result-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(var(--card-anim-distance, 8px));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes result-card-exit {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(calc(var(--card-anim-distance, 8px) * -1));
+  }
+}
+
+.animate-card-enter {
+  animation-name: result-card-enter;
+  animation-fill-mode: both;
+}
+
+.animate-card-exit {
+  /* fill-mode both (not just forwards): also holds the from-state during the
+     staggered animation-delay, so a card doesn't flash at its resting look for
+     one frame before its own delay elapses, then holds the faded-out end until
+     RecommendationsBody's settle setTimeout actually drops it. */
+  animation-name: result-card-exit;
+  animation-fill-mode: both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-card-enter,
+  .animate-card-exit {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    transform: none !important;
+  }
+}
+
 /* MixerBar controls row is promoted to its own compositor layer WHILE THE PANEL
    ANIMATES. THE fix for the Safari/WebKit resize shimmer: as the panel animates
    (real height/margin-top) WebKit re-rasterizes descendant thin SVG strokes and
@@ -634,6 +698,47 @@
 }
 .mixbar-controls-row.is-animating.is-expanding {
   transform: scale(1.01) translateZ(0);
+}
+
+/* MixerBar resize grip — the 3x3 dot handle (GripIcon). A simple two-state
+   effect, driven by the [data-gripping] flag MixerBar sets while a resize drag
+   is live (isGripDragging). Not proportional, not Motion — just a state change
+   plus one CSS transition for the exit, which is the right tool here.
+
+   REST: plain --muted (the affordance's own colour), no halo — the two
+   0px/transparent drop-shadows are a no-op placeholder that just gives the
+   filter the same shape as the pressed state so it can interpolate on the way
+   out (transitioning to/from `filter: none` doesn't animate cleanly).
+
+   PRESSED ([data-gripping]): every dot deepens to --subtext and radiates a
+   purple bloom — a tight bright core plus a wide soft outer halo (two stacked
+   drop-shadows). --subtext, NOT an accent (--primary/--secondary), on purpose:
+   it's the saturated member of the SAME muted family (globals.css derives it
+   straight from --muted), so the glow reads as the affordance's own colour
+   intensifying — Konomi's purple in the default theme — rather than a different
+   accent lighting up. It shows at FULL strength immediately and holds constant
+   for the whole drag no matter where the panel goes (transition:none here, so
+   the press snaps on and never lags/tracks).
+
+   RELEASE: MixerBar drops the flag, the element falls back to the base rule
+   (whose 260ms transition now applies), and colour + bloom ease smoothly but
+   quickly back to rest. This is the only animated moment — exactly the "glow
+   gradually but quickly fades away when you let go" that was asked for. */
+.grip-glow {
+  color: var(--muted);
+  filter:
+    drop-shadow(0 0 0 transparent)
+    drop-shadow(0 0 0 transparent);
+  transition:
+    color 260ms ease-out,
+    filter 260ms ease-out;
+}
+.grip-glow[data-gripping] {
+  color: var(--subtext);
+  filter:
+    drop-shadow(0 0 5px color-mix(in srgb, transparent, var(--subtext) 90%))
+    drop-shadow(0 0 13px color-mix(in srgb, transparent, var(--subtext) 60%));
+  transition: none;
 }
 
 /* RollingLabel's own slot-machine roll (MatchSelector/LevelSelector/

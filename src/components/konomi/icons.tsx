@@ -178,9 +178,26 @@ export function ArrowUpHalfIcon({ className }: IconProps) {
 // box (TagPoolBody's tab row) alongside the resize arrow and Close, rather
 // than a bare icon that needed to read as "draggable" on its own within a
 // wider, busier row.
-export function GripIcon({ className }: IconProps) {
+// The MixerBar resize handle — a 3×3 grid of dots you grab and drag. `dragging`
+// is a simple on/off: while a resize drag is live it flags the icon (data-
+// gripping) and CSS lights every dot up at FULL strength in purple with a
+// radiating halo, held constant; on release the flag drops and CSS eases it
+// back to rest. All the visual work (color + bloom + fade) lives in .grip-glow
+// in globals.css. The at-rest color is --muted, so no text-color class is
+// needed here anymore.
+interface GripIconProps extends IconProps {
+  dragging?: boolean;
+}
+export function GripIcon({ className, dragging = false }: GripIconProps) {
   return (
-    <svg className={className} width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+    <svg
+      className={["grip-glow", className].filter(Boolean).join(" ")}
+      data-gripping={dragging ? "" : undefined}
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="currentColor"
+    >
       <circle cx="2" cy="2" r="1.3" />
       <circle cx="8" cy="2" r="1.3" />
       <circle cx="14" cy="2" r="1.3" />

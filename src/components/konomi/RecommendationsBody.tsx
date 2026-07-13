@@ -1,9 +1,15 @@
-import { AnimatePresence } from "motion/react";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import type { ResultEntry, TagInfo } from "@/lib/konomi/types";
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
+import type { LevelKey, ResultEntry, TagInfo } from "@/lib/konomi/types";
 import { useAnimationDebugValues } from "./animationDebugStore";
-import { getAnimatingPaceCount, getEffectiveStaggerMs, getVisibleCardTierCount } from "./cardAnimTuning";
-import { IsBatchClearActiveContext, ResultCard } from "./ResultCard";
+import {
+  CARD_ANIM_DURATION_MS,
+  CARD_ANIM_STAGGER_MS,
+  getAnimatingPaceCount,
+  getEffectiveStaggerMs,
+  getVisibleCardTierCount,
+} from "./cardAnimTuning";
+import { FilterControls } from "./FilterControls";
+import { ResultCard } from "./ResultCard";
 import { ScrollFadeArea } from "./ScrollFadeArea";
 import { useLevel, useSort } from "./tagPoolPrefs";
 
@@ -204,6 +210,16 @@ interface RecommendationsBodyProps {
   onChipToggle: (tag: string) => void;
   tagInfoByName: Map<string, TagInfo>;
   totalSeriesCount: number;
+  // Powers the Tag Density/Sort filters embedded in the empty-state box (see
+  // FilterControls) — the same handler ResultsHeader threads into the results-
+  // state Filter popover, so both surfaces drive the identical level cascade.
+  onLevelChange: (level: LevelKey) => void;
+  // Fired whenever showResultsGrid flips — true while results are on screen OR
+  // still exit-animating out on a Clear ✕, false once the empty state is
+  // restored. KonomiApp feeds it back into ResultsHeader so that header row
+  // stays reserved for the WHOLE exit (cards don't jump) and then collapses the
+  // instant the last card is gone (empty state has no header row again).
+  onResultsGridVisibleChange?: (visible: boolean) => void;
 }
 
 // Body-only — the section-level chrome (border/shadow/padding) and the
@@ -230,6 +246,8 @@ export function RecommendationsBody({
   onChipToggle,
   tagInfoByName,
   totalSeriesCount,
+  onLevelChange,
+  onResultsGridVisibleChange,
 }: RecommendationsBodyProps) {
   const level = useLevel();
   const sort = useSort();
@@ -297,37 +315,59 @@ export function RecommendationsBody({
     setJustSwappedIndex(null);
   }
   const visibleCardTierCount = useVisibleCardTierCount();
-  // True from the moment a Clear ✕ dispatches until every card it removed
-  // has actually finished exit-animating out (AnimatePresence's own
-  // onExitComplete, below) — replaces the old displayedResults-lagging-
-  // state + exitingTitles + setTimeout mechanism entirely (see
-  // DESIGN_SYSTEM.md for the migration writeup). `results` itself already
-  // updates the instant clearRecs() dispatches (useKonomi.ts is
-  // deliberately DOM/animation-free) — AnimatePresence, not a manually
-  // lagged copy of `results`, is what keeps a removed card mounted long
-  // enough to play its own exit animation now, so this component no
-  // longer needs to own that deferral itself.
-  //
-  // Serves two purposes, both requiring it to stay true for the whole
-  // exit window, not just the one render Clear ✕ dispatched on: (1) fed to
-  // AnimatePresence's own `custom` prop below, which is what lets a
-  // departing card distinguish "I'm leaving because of a Clear ✕" (real
-  // sink+fade-out, see ResultCard.tsx's own cardVariants) from "I'm
-  // leaving because RECOMMEND/swap replaced me" (instant removal, this
-  // app's existing, deliberate asymmetry — only Clear ✕ has ever
-  // exit-animated a departing card); (2) folded into showResultsGrid
-  // below, so the empty-state placeholder doesn't swap in until a
-  // full clear (nothing locked) has actually finished animating out.
-  const [isBatchClearActive, setIsBatchClearActive] = useState(false);
-  // Last clearGen this render logic has already reacted to — the
-  // render-phase conditional-setState pattern (compare against state, not
-  // a ref) this session's MixerBar.tsx work established to satisfy
-  // react-hooks/set-state-in-effect and react-hooks/refs simultaneously.
+  // Card enter/exit is plain CSS keyframes now (ResultCard / globals.css), not
+  // Motion/AnimatePresence — so this component owns keeping a Clear-✕'d card
+  // mounted through its exit itself, via a lagging displayedResults copy (the
+  // pre-Motion mechanism, restored). On a Clear ✕ (clearGen bump) any removed
+  // titles go into exitingTitles and keep rendering out of displayedResults —
+  // playing animate-card-exit — until the settle timer below drops them; any
+  // OTHER results change (a fresh RECOMMEND, a single-card swap) syncs
+  // displayedResults immediately with no exit choreography (this app's
+  // deliberate asymmetry — only Clear ✕ animates a departure). Render-phase
+  // conditional setState (compare against state, not a ref), the pattern this
+  // codebase uses to satisfy the react-hooks rules.
+  const [displayedResults, setDisplayedResults] = useState(results);
   const [lastClearGen, setLastClearGen] = useState(clearGen);
+  const [exitingTitles, setExitingTitles] = useState<ReadonlySet<string>>(new Set());
   if (clearGen !== lastClearGen) {
     setLastClearGen(clearGen);
-    setIsBatchClearActive(true);
+    const stillThere = new Set(results.map((r) => r.series.title));
+    const removed = displayedResults.filter((r) => !stillThere.has(r.series.title));
+    if (removed.length > 0) {
+      // displayedResults left as the full pre-clear set, so the removed cards
+      // keep rendering (and animating out) until the settle effect finalizes.
+      setExitingTitles(new Set(removed.map((r) => r.series.title)));
+    } else {
+      setDisplayedResults(results);
+    }
+  } else if (results !== displayedResults && exitingTitles.size === 0) {
+    setDisplayedResults(results);
   }
+  // Finalizes a Clear ✕ once its exit animation has actually finished — a plain
+  // timer matching the declared duration, NOT animationend/transitionend (this
+  // app treats animation-completion events as unreliable on real devices; see
+  // MixerBar/RollingLabel history). Only re-fires on a genuine empty->non-empty
+  // exitingTitles transition, not every render.
+  useEffect(() => {
+    if (exitingTitles.size === 0) return;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const paceCount = getAnimatingPaceCount(
+      displayedResults.map((r) => r.series.title),
+      locked,
+      visibleCardTierCount,
+    );
+    const effectiveStaggerMs = getEffectiveStaggerMs(CARD_ANIM_STAGGER_MS, paceCount);
+    // Last card to finish is the one with the largest delay = the last index
+    // (L->R stagger), so total = duration + (count-1)*stagger.
+    const lastIndex = Math.max(0, displayedResults.length - 1);
+    const totalMs = reduced ? 0 : CARD_ANIM_DURATION_MS + lastIndex * effectiveStaggerMs;
+    const t = setTimeout(() => {
+      setDisplayedResults(results);
+      setExitingTitles(new Set());
+    }, totalMs);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-fires on exitingTitles itself changing, see comment above
+  }, [exitingTitles]);
   // ScrollFadeArea (horizontal orientation) now owns the scroll/fade/arrow
   // mechanics here — the same primitive the Tag Pool's section tab strip
   // uses (SectionTabStrip.tsx) — via getScrollStep/scrollResetKey/arrow*
@@ -350,14 +390,23 @@ export function RecommendationsBody({
     return cardWidth + 16; // mirrors --space-xl, the row's own gap-xl
   };
   // hasResults alone would flip false the instant Clear ✕ dispatches (see
-  // useKonomi.ts), showing the empty-state placeholder *before* the
-  // exiting cards below have finished their own animation. Staying "true"
-  // for the extra beat while isBatchClearActive is still set keeps the
-  // grid (and AnimatePresence's own still-mounted, animating-out cards) on
-  // screen for that whole window instead. A no-op for a partial clear
-  // (some cards locked): hasResults is already true there regardless,
-  // since the locked cards themselves keep `results` non-empty.
-  const showResultsGrid = hasResults || isBatchClearActive;
+  // useKonomi.ts), showing the empty-state placeholder *before* the exiting
+  // cards below have finished their own animation. Staying "true" for the extra
+  // beat while exitingTitles is non-empty keeps the grid (and displayedResults'
+  // still-mounted, animating-out cards) on screen for that whole window. A
+  // no-op for a partial clear (some cards locked): hasResults is already true
+  // there regardless, since the locked cards keep `results` non-empty.
+  const showResultsGrid = hasResults || exitingTitles.size > 0;
+  // Report grid visibility (incl. the exit window) up to KonomiApp so
+  // ResultsHeader can hold its reserved row for the whole clear and drop it
+  // once the empty state is back — see this prop's own comment. useLayoutEffect,
+  // not useEffect: when the exit finishes, showResultsGrid and the empty state
+  // flip in the same render, and this must collapse the header row in that SAME
+  // pre-paint pass — a post-paint useEffect would leave the empty state painted
+  // once WITH the reserved row still up, then jump it up 54px a frame later.
+  useLayoutEffect(() => {
+    onResultsGridVisibleChange?.(showResultsGrid);
+  }, [showResultsGrid, onResultsGridVisibleChange]);
 
   return (
     // flow-root (a new block formatting context), not a plain fragment —
@@ -471,6 +520,22 @@ export function RecommendationsBody({
           <p className="font-mono text-[length:var(--text-base)] text-[var(--primary)] m-0 mt-[var(--space-xs)]">
             {EMPTY_STATE_COPY[emptyStateIndex].payoff}
           </p>
+          {/* The Tag Density + Sort filters, embedded directly in the empty
+              state (not behind the results-header Filter popover, which isn't
+              shown here) so a first-time user meets the two things they can
+              adjust up front. Same FilterControls the popover uses — one
+              source — but layout="inline": both fields sit side by side on one
+              line, centred below the divider, progressively reducing (drop
+              labels → single-segment → wrap) exactly like MixerBar's controls
+              rather than stacking. A hairline rule + extra top gap set them
+              apart from the flavor copy above as their own "what you can tune"
+              zone. w-[min(560px,100%)] + mx-auto: a definite, centred width —
+              required because FilterControls is a @container whose children
+              query it (see FilterControls.tsx), wide enough to hold the full
+              inline row (~510px) at desktop; it also sizes the divider. */}
+          <div className="w-[min(560px,100%)] mx-auto mt-[var(--space-lg)] pt-[var(--space-xl)] border-t-[length:var(--border-hair)] border-[var(--muted)]">
+            <FilterControls onLevelChange={onLevelChange} layout="inline" className="w-full" />
+          </div>
         </div>
       )}
 
@@ -715,45 +780,16 @@ export function RecommendationsBody({
                   it) is a legitimate resting position again — confirmed
                   live this keeps scrollLeft at 0 at rest. */}
               <div aria-hidden className="hidden max-[1152px]:block max-[1152px]:w-[6px] flex-none [scroll-snap-align:start]" />
-              {/* AnimatePresence (motion/react), wrapping `results.map()`
-                  directly — no lagging displayedResults copy anymore. This
-                  is what actually keeps a departing card mounted long
-                  enough to play its own exit animation (or not, see
-                  isBatchClearActive below): AnimatePresence detects a key
-                  (series.title) missing from this render's children versus
-                  the last, and holds that child's last-rendered element in
-                  place (still occupying its grid slot, same as
-                  displayedResults used to) until its own exit finishes.
-                  custom={isBatchClearActive} feeds ResultCard's own dynamic
-                  exit variant (see that file's cardVariants) — Motion
-                  re-supplies whatever `custom` this AnimatePresence
-                  currently holds to an already-exiting child at the moment
-                  it evaluates that child's exit variant, which is what
-                  lets a single ResultCard distinguish a Clear ✕ removal
-                  (real sink+fade-out) from a RECOMMEND/swap replacement
-                  (instant, matching this app's existing asymmetry — only
-                  Clear ✕ has ever exit-animated a departing card).
-                  onExitComplete fires once every currently-exiting child
-                  has finished — resets isBatchClearActive back to false,
-                  which is what lets showResultsGrid above finally fall
-                  through to the empty-state placeholder for a full clear
-                  (nothing locked); a no-op for a partial clear, where
-                  hasResults was already true throughout. */}
-              {/* IsBatchClearActiveContext.Provider — mirrors the same
-                  isBatchClearActive value already fed to AnimatePresence's
-                  own `custom` prop above, but via Context: a card mid-exit
-                  is no longer part of this render's results.map() output,
-                  so it can't receive a fresh isBatchClearActive PROP the
-                  normal way (there's no new element for it in the array to
-                  supply one), but it's still a genuinely mounted descendant
-                  of this Provider (AnimatePresence keeps it mounted, not
-                  frozen), so it still re-renders and receives updates via
-                  Context regardless. See ResultCard.tsx's own comment on
-                  what this specifically drives (popping a RECOMMEND/swap
-                  departure out of flow, but not a Clear ✕ one). */}
-              <IsBatchClearActiveContext.Provider value={isBatchClearActive}>
-              <AnimatePresence custom={isBatchClearActive} onExitComplete={() => setIsBatchClearActive(false)}>
-                {(() => {
+              {/* Card enter/exit is plain CSS keyframes now (ResultCard /
+                  globals.css), not AnimatePresence. Departing cards stay mounted
+                  through their exit via the lagging displayedResults/exitingTitles
+                  above: a Clear ✕ leaves them in this map tagged isExiting until
+                  the settle timer drops them; a RECOMMEND/swap replacement isn't
+                  in exitingTitles, so it's simply no longer rendered (instant
+                  removal — this app's deliberate asymmetry, only Clear ✕ animates
+                  a departure). Iterating displayedResults (NOT results) is what
+                  keeps the exiting cards in the DOM through their animation. */}
+              {(() => {
                   // Pace count = how many cards are actually sweeping in/out
                   // within the currently-visible breakpoint tier (5/4/3/2/1,
                   // matching ResultCard.tsx's own card-width tiers), minus
@@ -767,49 +803,37 @@ export function RecommendationsBody({
                   // once here, outside the per-card map below, since it's the
                   // same for every card this render.
                   const paceCount = getAnimatingPaceCount(
-                    results.map((r) => r.series.title),
+                    displayedResults.map((r) => r.series.title),
                     locked,
                     visibleCardTierCount,
                   );
                   const effectiveStaggerMs = getEffectiveStaggerMs(cardStaggerMs, paceCount);
-                  return results.map((entry, index) => {
-                    // Gated on newTitles (useKonomi.ts), not `!locked` —
-                    // deliberately decoupled from live lock state so
-                    // locking/unlocking a card never replays its entrance;
-                    // see newTitles' own comment on KonomiState for why.
-                    //
-                    // A single-card dice swap also counts as entering now,
-                    // via justSwappedIndex (the same signal that already
-                    // seeds startWithSwapHint below) — requested directly:
-                    // the freshly-swapped card should rise+fade in exactly
-                    // like a RECOMMEND entrance, reusing the same duration/
-                    // easing/distance, just as the one and only card
-                    // entering right now rather than part of a batch.
+                  return displayedResults.map((entry, index) => {
+                    // Exiting wins: a card removed by a Clear ✕ (in exitingTitles)
+                    // plays the exit keyframe, not the enter, even if its title
+                    // still happens to be in newTitles.
+                    const isExiting = exitingTitles.has(entry.series.title);
+                    // Enter gating unchanged: newTitles (useKonomi.ts), or a dice
+                    // swap (justSwappedIndex, the same signal that seeds
+                    // startWithSwapHint below). Decoupled from live lock state so
+                    // locking/unlocking never replays an entrance. Crucially, a
+                    // CSS keyframe only plays on mount and never replays on a
+                    // later re-render/reorder — so a settled or locked card never
+                    // re-animates while its title lingers in newTitles between
+                    // RECOMMENDs. That immunity is the whole reason the card
+                    // enter/exit is CSS and not AnimatePresence (which replayed a
+                    // present card's cached entrance on sibling shifts — the
+                    // locked-card bug; see globals.css / CLAUDE.md).
                     const isEnteringFromSwap = justSwappedIndex === index;
-                    const isEntering = newTitles.includes(entry.series.title) || isEnteringFromSwap;
-                    // Enter: L->R, index * stagger (0 for a swap-driven
-                    // entrance — see isEnteringFromSwap above; otherwise a
-                    // swap on, say, card #4 would wait through 3 stagger
-                    // steps for no reason, the same "single card, no one
-                    // else to sweep with" pacing getAnimatingPaceCount
-                    // already applies for a RECOMMEND that leaves only one
-                    // card entering). Only actually takes effect at this
-                    // instance's genuine first mount — see
-                    // ResultCard.tsx's own enterDelayMs comment.
-                    const enterDelayMs = isEnteringFromSwap ? 0 : index * effectiveStaggerMs;
-                    // Exit: R->L, (count-1-index) * stagger, computed
-                    // fresh every render (not just while this card happens
-                    // to be about to be removed) using this card's own
-                    // index/count in the full, still-current `results`
-                    // array — a locked card that stays put doesn't shift
-                    // the timing of the ones sweeping around it, it just
-                    // sits still while the sweep passes its slot. See
-                    // ResultCard.tsx's own exitDelayMs comment for why
-                    // computing this unconditionally is what makes
-                    // AnimatePresence's "freeze last render's props"
-                    // behavior land on the correct pre-removal value with
-                    // no separate lagging snapshot list required.
-                    const exitDelayMs = (results.length - 1 - index) * effectiveStaggerMs;
+                    const isEntering = !isExiting && (newTitles.includes(entry.series.title) || isEnteringFromSwap);
+                    // Stagger delay for whichever keyframe is active — both enter
+                    // and exit sweep L->R (index * stagger); a swap entrance has
+                    // no stagger (single card). Unused when neither is active.
+                    const animationDelayMs = isExiting
+                      ? index * effectiveStaggerMs
+                      : isEnteringFromSwap
+                        ? 0
+                        : index * effectiveStaggerMs;
                     return (
                       <ResultCard
                         key={entry.series.title}
@@ -838,14 +862,12 @@ export function RecommendationsBody({
                         level={level}
                         sort={sort}
                         isEntering={isEntering}
-                        enterDelayMs={enterDelayMs}
-                        exitDelayMs={exitDelayMs}
+                        isExiting={isExiting}
+                        animationDelayMs={animationDelayMs}
                       />
                     );
                   });
                 })()}
-              </AnimatePresence>
-              </IsBatchClearActiveContext.Provider>
               {/* Trailing spacer, carousel tier only (hidden — display:none
                   removes it from the grid entirely above 1152px, so it
                   never becomes a 6th grid cell or perturbs that tier's

@@ -1564,6 +1564,14 @@ export function MixerBar({
   const isBarGeometryExpanding =
     dragHeightPx === null && ((isSnapTransitioning && isSnapGrowing) || (isEditModeTransitioning && editMode));
 
+  // Grip glow (see GripIcon + .grip-glow in globals.css): a simple on/off,
+  // not a proportional value. While a resize drag is live it shows at FULL
+  // strength and stays constant no matter where or how the panel is dragged;
+  // on release it eases off (pure CSS — see .grip-glow). The full-force look
+  // IS the whole effect, so there's no per-distance math — just this boolean,
+  // which also drives the closed-hand cursor so the two turn on together.
+  const isGripDragging = dragHeightPx !== null;
+
   // Measures growableFixedOverheadPx — see that state's own comment
   // (near its declaration) for why this is deliberately NOT the fast-
   // changing path: growableRef.height - effectiveHeightPx is the part of
@@ -2091,9 +2099,23 @@ export function MixerBar({
             aria-orientation="horizontal"
             aria-label="Drag to resize edit panel"
             onPointerDown={handleResizeStart}
-            className="cursor-ns-resize select-none touch-none"
+            // cursor-grab (not cursor-ns-resize) — same "you can pick this up
+            // and move it" open hand the draggable tags use (TagChip/TagSlot),
+            // requested directly: the grip is a thing you grab and drag, so it
+            // should read like the tags do rather than like an edge-resize
+            // handle. Once a drag is live it becomes the closed grabbing hand,
+            // driven by isGripDragging (the SAME state as the glow) so the two
+            // turn on together and can't desync — not `:active`, which can
+            // flicker during a captured-pointer drag. active:cursor-grabbing is
+            // kept only to cover the one frame between pointerdown and the state
+            // re-render. Goes through IconButton's `cursor` prop, NOT className
+            // (className can't override IconButton's own cursor-pointer — see
+            // that prop's comment). Arrow snaps and Close keep the default
+            // pointer — only this grab affordance changed.
+            cursor={isGripDragging ? "cursor-grabbing" : "cursor-grab active:cursor-grabbing"}
+            className="select-none touch-none"
           >
-            <GripIcon className="text-[var(--muted)]" />
+            <GripIcon dragging={isGripDragging} />
           </IconButton>
         </div>
       )}

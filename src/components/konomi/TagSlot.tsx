@@ -94,7 +94,7 @@ export function TagSlot({ index, tag, isDragOver, onDragOver, onDragLeave, onDro
         // comment) within this exact height.
         "w-[78px] h-[var(--control-h-md)] px-[var(--space-sm)] overflow-hidden",
         "flex items-center justify-center transition-transform duration-75",
-        filled ? "cursor-grab" : "cursor-pointer",
+        filled ? "cursor-grab active:cursor-grabbing" : "cursor-pointer",
         "border-[length:var(--border-base)]",
         // border-dashed clips its left/right edges on iOS WebKit (all iOS
         // browsers) — cosmetic, empty-state only. Accepted. Do not "fix"

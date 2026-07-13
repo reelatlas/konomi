@@ -31,11 +31,18 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
   // derivation re-expands the masthead the instant results are cleared,
   // reported directly as jarring — the user only ever wants the shrink to
   // happen once, on the first real RECOMMEND, and never automatically
-  // reverse itself afterward. One-way, not a toggle-by-effect: set true in
-  // handleRecommend below on success, never reset by clearRecs or anything
-  // else — the only way back to expanded is the manual toggle (Masthead's
-  // own onToggleCollapse, below).
+  // reverse itself afterward. Set true in handleRecommend below on
+  // success (never reset by clearRecs or anything else), and toggled
+  // either direction by the scroll/pull gesture effect below — the only
+  // way back to expanded (the in-banner toggle button was removed once
+  // that gesture covered both directions).
   const [mastheadCollapsed, setMastheadCollapsed] = useState(false);
+  // True while the results grid is on screen OR still exit-animating out after
+  // a Clear ✕ (RecommendationsBody's own showResultsGrid, reported up via
+  // onResultsGridVisibleChange). ResultsHeader reserves its row for exactly this
+  // window — so a clear holds the cards in place as they sweep out, then the row
+  // collapses the instant the last one is gone and the empty state returns.
+  const [resultsGridVisible, setResultsGridVisible] = useState(false);
   // Wraps Masthead + the results section specifically, NOT MixerBar (see
   // the JSX below) — this is the actual scroll container now (moved off
   // the outer shell root), and the two effects right after this both key
@@ -386,12 +393,7 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
           ref={scrollableRef}
           className={`flex flex-col flex-1 min-h-0 ${mastheadCollapsed ? "" : "pt-[var(--space-2xl)]"}`}
         >
-          <Masthead
-            theme={k.theme}
-            onThemeChange={k.setTheme}
-            collapsed={mastheadCollapsed}
-            onToggleCollapsed={() => setMastheadCollapsed((c) => !c)}
-          />
+          <Masthead theme={k.theme} onThemeChange={k.setTheme} collapsed={mastheadCollapsed} />
 
           {/* Results is the one flexible region of the shell — flex-1
               min-h-0 (same reasoning as the column above) makes this section
@@ -416,7 +418,12 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
               results/MixerBar — RecommendationsBody's own root carries the
               matching flex-1 min-h-0 (see that file's own top comment). */}
           <section className="mb-[var(--space-2xl)] flex-1 min-h-0 flex flex-col">
-            <ResultsHeader hasResults={k.hasResults} onClearRecs={k.clearRecs} onLevelChange={handleLevelChange} />
+            <ResultsHeader
+              hasResults={k.hasResults}
+              reserveRow={resultsGridVisible}
+              onClearRecs={k.clearRecs}
+              onLevelChange={handleLevelChange}
+            />
 
             <RecommendationsBody
               results={k.results}
@@ -437,6 +444,8 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
               onChipToggle={k.toggleTag}
               tagInfoByName={k.tagInfoByName}
               totalSeriesCount={k.totalSeriesCount}
+              onLevelChange={handleLevelChange}
+              onResultsGridVisibleChange={setResultsGridVisible}
             />
           </section>
         </div>

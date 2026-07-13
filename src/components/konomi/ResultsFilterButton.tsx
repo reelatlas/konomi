@@ -2,11 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { LevelKey } from "@/lib/konomi/types";
-import { FilterIcon, SortIcon, TagIcon } from "./icons";
+import { FilterControls } from "./FilterControls";
+import { FilterIcon } from "./icons";
 import { IconButton } from "./IconButton";
-import { LevelSelector } from "./LevelSelector";
-import { SortSelect } from "./SortSelect";
-import { setSortPref, useLevel, useSort } from "./tagPoolPrefs";
 
 interface ResultsFilterButtonProps {
   // Persisting Level also prunes any selected tag the new level hides —
@@ -26,8 +24,6 @@ interface ResultsFilterButtonProps {
 // untouched by the move: TagPoolBody and ResultCard keep reading it
 // directly and independently, exactly as before.
 export function ResultsFilterButton({ onLevelChange }: ResultsFilterButtonProps) {
-  const level = useLevel();
-  const sort = useSort();
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -132,58 +128,23 @@ export function ResultsFilterButton({ onLevelChange }: ResultsFilterButtonProps)
           // own git history/DESIGN_SYSTEM.md for the live-bisected values
           // actually used.
           //
-          // w-[min(340px,calc(100vw-3rem))], not w-max — confirmed live as
-          // a real bug with w-max: a `container-type: inline-size` element
-          // (what Tailwind's `@container` sets) can't size itself from its
-          // own descendants' content when those descendants' own rendered
-          // content depends on querying that same container (exactly what
-          // the label/collapse spans below do) — a circular sizing
-          // dependency browsers resolve by collapsing the container down
-          // to a near-zero width instead. A definite width formula (a
-          // fixed px figure clamped against the viewport, no content
-          // sizing involved) sidesteps the circularity entirely, the same
-          // reason the old MixerBar cardRef (this pattern's origin) was
-          // already a definite-width box (max-w-[1280px] mx-auto), never
-          // an intrinsically-sized one.
+          // w-[min(340px,calc(100vw-3rem))], not w-max — a definite width,
+          // required because FilterControls below is a `@container`
+          // (container-type: inline-size) whose own children query it, and a
+          // content-sized container can't resolve against descendants that
+          // depend on its width (a circular sizing dependency browsers collapse
+          // to near-zero). FilterControls carries the @container now (it used
+          // to be on this dialog); it fills this definite width via w-full. See
+          // FilterControls.tsx's own comment for the full reasoning.
           //
           // No z-index needed here — the wrapper above already carries
           // z-popover for the whole time this panel exists (it only
           // renders while `open`), and position:absolute alone already
           // paints this above its own static-positioned trigger-button
           // sibling within that same local context.
-          className="@container absolute right-0 top-full mt-[var(--space-sm)] w-[min(340px,calc(100vw-3rem))] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-2)] p-[var(--space-lg)] flex flex-col"
+          className="absolute right-0 top-full mt-[var(--space-sm)] w-[min(340px,calc(100vw-3rem))] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-2)] p-[var(--space-lg)]"
         >
-          {/* pb-[24px]: reserves clearance for LevelSelector's own hover/tap
-              hint, which renders *below* the control via absolute
-              positioning (see LevelSelector.tsx's own comment) — without
-              this, the hint would visually overlap the Sort row directly
-              beneath it in this stacked layout, rather than the horizontal
-              row this control used to share with Sort in MixerBar, which
-              had no row below it to collide with. */}
-          <div className="flex items-center justify-end gap-[var(--space-sm)] pb-[24px]">
-            <span className="hidden @min-[220px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
-              Tag Density
-            </span>
-            <TagIcon className="text-[var(--ink)]" />
-            <div className="@max-[180px]:hidden">
-              <LevelSelector value={level} onChange={onLevelChange} />
-            </div>
-            <div className="hidden @max-[180px]:block">
-              <LevelSelector value={level} onChange={onLevelChange} collapsed />
-            </div>
-          </div>
-          <div className="flex items-center justify-end gap-[var(--space-sm)]">
-            <span className="hidden @min-[220px]:inline font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
-              Tag Sort
-            </span>
-            <SortIcon className="text-[var(--ink)]" />
-            <div className="@max-[180px]:hidden">
-              <SortSelect value={sort} onChange={setSortPref} />
-            </div>
-            <div className="hidden @max-[180px]:block">
-              <SortSelect value={sort} onChange={setSortPref} collapsed />
-            </div>
-          </div>
+          <FilterControls onLevelChange={onLevelChange} className="w-full" />
         </div>
       )}
     </div>

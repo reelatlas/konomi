@@ -58,12 +58,36 @@ Before creating or resizing icons, buttons, or control chrome:
 
 Before writing or changing any animation (CSS transitions, keyframes, Motion,
 rAF, layout animation, drag/resize motion):
-1. Read and follow the Motion skill: `~/.claude/skills/motion/SKILL.md`
-2. If stroked icons live inside a container whose layout animates and they
+1. Read and follow the Motion skill: `~/.claude/skills/motion/SKILL.md`.
+   **"Consulting Motion" means using this project's Motion Pro tooling** — the
+   Motion MCP (search the Motion Codex for the official/canonical pattern,
+   visualise springs and curves), the Motion agent, and the Motion repos — not
+   just recalling Motion from memory. Search the Codex for the pattern before
+   hand-rolling one.
+2. **Always weigh Motion against a standard alternative BEFORE implementing, and
+   surface that decision — never silently pick one, and never randomly mix.**
+   For any animation, consider both (a) what Motion offers here (a canonical
+   pattern, smoother physics, more expressive creativity — check the Codex) and
+   (b) the standard alternative (a CSS transition/keyframe, basic state logic).
+   Then state which one you're choosing and the trade-off — e.g. "Motion's
+   AnimatePresence is the canonical fit here" or "a CSS transition does this exit
+   with less code and no per-frame JS, so I'm NOT using Motion." Present the call
+   so it can be acknowledged; do not merge an approach (Motion, CSS, or a
+   combination of both) without naming which path and why. If an existing
+   animation already works, prefer understanding/keeping its approach over
+   swapping it to the other tool "just because" — a migration is itself a
+   decision to surface, not a default. (Motion is the usual choice for real,
+   interruptible/gesture-driven motion; simpler CSS often wins for one-shot
+   enter/exit and state toggles.)
+3. **A MotionScore performance audit** (Motion skill → `performance-audit/`) can
+   profile an existing animation/component/URL to get a baseline of animation
+   strength and jank, and to advise the best way to proceed — run one when
+   tuning or evaluating motion, or when unsure whether an approach is smooth.
+4. If stroked icons live inside a container whose layout animates and they
    shimmer in Safari, the fix is to promote the **whole moving row** to its own
    compositor layer (`transform: translateZ(0)`), NOT per-frame pixel snapping
    and NOT promoting individual icons. See `AGENTS.md` `webkit-icon-shimmer`.
-3. For project-specific animation history and lessons, search `DESIGN_SYSTEM.md`
+5. For project-specific animation history and lessons, search `DESIGN_SYSTEM.md`
    (MixerBar, RollingLabel, Masthead, card enter/exit, etc.)
 
 Do not hand-roll animation patterns Motion already covers without checking the

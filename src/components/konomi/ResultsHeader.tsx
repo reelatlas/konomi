@@ -3,20 +3,37 @@ import { ActionButton } from "./ActionButton";
 import { CloseIcon } from "./icons";
 import { IconButton } from "./IconButton";
 import { ResultsFilterButton } from "./ResultsFilterButton";
-import { TitleWithSubtitle } from "./TitleWithSubtitle";
 
 interface ResultsHeaderProps {
   hasResults: boolean;
+  // True while the results grid is on screen OR still exit-animating out on a
+  // Clear ✕ (KonomiApp's resultsGridVisible). Distinct from hasResults, which
+  // flips false the instant Clear dispatches: this stays true for the whole
+  // exit, so the row keeps its reserved height while cards sweep out, then goes
+  // false once the empty state is restored, collapsing the row entirely.
+  reserveRow: boolean;
   onClearRecs: () => void;
   onLevelChange: (level: LevelKey) => void;
 }
 
-// Extracted from the retired PanelToggleHeader's Recommendations-active
-// branch — Results is now the only surface, so this header is unconditional
-// instead of tab-gated. Title/JP-subtitle classes match the app's own
-// title-row rule exactly (leading-display on the title, leading-tight on
-// the companion span), same as Mixer/MixerBar's own title row.
-export function ResultsHeader({ hasResults, onClearRecs, onLevelChange }: ResultsHeaderProps) {
+// Results-state chrome only: the Clear ✕ button and the Filter popover,
+// right-aligned. There is NO "Recommendations" title text anymore (dropped to
+// condense the page), and the Clear ✕ / Filter CONTENT shows only when there
+// are results — in the empty state the Tag Density/Sort filters live inside the
+// empty-state box itself (RecommendationsBody), so there's nothing to show here.
+//
+// The row's own HEIGHT (min-h-[30px] + mb-[space-2xl]) is reserved while
+// reserveRow is true — the whole time results are on screen OR still exit-
+// animating out — with only its content gated on hasResults. Requested
+// directly: without the reserved height, clearing results collapsed this row
+// the instant hasResults flipped false, and the cards — still visible, mid-exit
+// — jumped upward into the vacated space instead of sweeping out from their own
+// row. Reserving it for the whole exit keeps the cards in place as they leave;
+// then reserveRow goes false (empty state restored) and the row collapses
+// entirely (return null), so the resting empty state carries no header row —
+// exactly as it does on a first load that never had results.
+export function ResultsHeader({ hasResults, reserveRow, onClearRecs, onLevelChange }: ResultsHeaderProps) {
+  if (!reserveRow) return null;
   return (
     // Always flex-row, never flex-col — this row must never wrap to two
     // lines: wrapping would push the card row's own spawn position down,
@@ -31,57 +48,22 @@ export function ResultsHeader({ hasResults, onClearRecs, onLevelChange }: Result
     // shrink to make room for it before that breakpoint, and stops the
     // row itself from ever being forced wider than available space.
     //
-    // min-h-[30px] (was 36.5px, retuned when Clear ✕/Filter both dropped
-    // to a shared 30px height — see ActionButton.tsx's own comment on its
-    // sm size): the title's own line-height (22.36px) is still shorter
-    // than either button's rendered height (30px now, not 36.5px), so
-    // mounting Clear ✕ would otherwise grow the row and — with
-    // items-center — visibly drop the title by half that delta. Pinning
-    // the height directly avoids that regardless of hasResults. 30px is
-    // Clear ✕'s and the Filter button's own shared, measured rendered
-    // height — retune by hand if that ever changes.
-    //
-    // mb-[calc(var(--space-2xl)_-_3.82px)]: the *visual* gap from the
-    // title's own text to the card row below, which is the one that has
-    // to match card→mixer's 24px, not the raw margin value alone. Because
-    // this row is items-center (required — see below) and min-h pins it to
-    // 30px while the title's own text is only ~22.36px tall, centering
-    // leaves ~3.82px of invisible slack *below* the text before this
-    // margin even starts (the same slack sits above it too, harmless —
-    // it's just breathing room under the masthead gap). Left as a flat
-    // space-2xl, the text-to-card gap would visually read bigger than the
-    // mixer's tight 24px. Subtracting the slack here means margin + slack
-    // = 24 again, matching visually rather than just matching the token.
-    // Not swapping to items-end instead (which would remove the slack at
-    // its source): that would also un-center Clear ✕/Filter from the title
-    // text (both already span the row's full 30px either way, so their own
-    // alignment never moves — only the title's alignment is actually in
-    // play here, and center is what keeps them vertically centered on the
-    // title, a separate, confirmed-correct requirement this fix must not
-    // undo). 3.82 = half of (30 − 22.36), both live-measured — not a fresh
-    // guess, but also not expressible purely in existing tokens (the
-    // title's exact rendered line-height isn't one), so it's recorded here
-    // the same way this file already records 30 and 417.
-    //
-    // --header-row-height in globals.css (30px, a single flat value since
-    // this row can't wrap anymore) is this row's own *content* height
-    // only, read independently by the card-height clamp — that constant
-    // and this margin must never both change without checking the other.
-    <div className="flex flex-row items-center justify-between min-h-[30px] gap-x-[var(--space-lg)] mb-[calc(var(--space-2xl)_-_3.82px)]">
-      <div className="flex items-center gap-[var(--space-md)] min-w-0">
-        {/* max-[417px]:hidden on the JP span — bisected live against this
-            row's own worst-case content (title + Clear ✕ both mounted):
-            おすすめ wraps to two lines below 417px, which this row no
-            longer permits (see the row's own comment above), so it's
-            dropped instead. 417 (not 416) because max-[Npx]: compiles to
-            "width < Npx" — the JP span's own single-line fit boundary is
-            exactly 417px, so 417 is the smallest value that still hides
-            it at 416px and below. */}
-        <TitleWithSubtitle title="Recommendations" subtitle="おすすめ" subtitleClassName="max-[417px]:hidden" />
-      </div>
-      <div className="flex items-center gap-[var(--space-lg)] flex-wrap">
-        {hasResults && (
-          // data-clear-results + contents: lets MixerBar's click-outside-
+    // min-h-[30px]: Clear ✕'s and the Filter button's own shared, measured
+    // rendered height (see ActionButton.tsx's sm size) — pins the row so it
+    // doesn't jitter as those buttons mount. mb-[var(--space-lg)]: 12px, half
+    // the app's usual 24px frame gutter — a deliberate exception here so the
+    // Clear/Filter controls read as belonging TO the results row directly below
+    // them (requested "feel more connected"), rather than as a separate band.
+    // justify-end: buttons sit at the right.
+    <div className="flex flex-row items-center justify-end min-h-[30px] gap-x-[var(--space-lg)] mb-[var(--space-lg)]">
+      {hasResults && (
+        <div className="flex items-center gap-[var(--space-lg)] flex-wrap">
+          {/* Filter popover first (left), Clear ✕ second (right) — requested
+              order swap; the row is a plain left-to-right flex, so listing
+              ResultsFilterButton before the Clear span puts Clear on the right. */}
+          <ResultsFilterButton onLevelChange={onLevelChange} />
+          {
+            // data-clear-results + contents: lets MixerBar's click-outside-
           // closes-edit-mode listener allowlist this button via a single
           // closest() check (see that file's own comment) without this
           // wrapper affecting layout — display:contents removes the span
@@ -162,9 +144,9 @@ export function ResultsHeader({ hasResults, onClearRecs, onLevelChange }: Result
               <CloseIcon />
             </IconButton>
           </span>
-        )}
-        <ResultsFilterButton onLevelChange={onLevelChange} />
-      </div>
+          }
+        </div>
+      )}
     </div>
   );
 }

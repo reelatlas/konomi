@@ -101,6 +101,16 @@ type IconButtonBaseProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "classN
   // by inspection, not assumed. Making display itself a single overridable
   // prop guarantees only one `display` utility is ever present at once.
   display?: string;
+  // Defaults to "cursor-pointer". A dedicated prop, not just a className the
+  // caller appends, for the exact same reason `display` is (see above):
+  // cursor-* are all unconditional cursor utilities, Tailwind doesn't order
+  // generated classes by source position, so a `cursor-grab` passed via
+  // className would sit alongside this component's own hardcoded
+  // `cursor-pointer` with no guaranteed winner (confirmed live — it lost).
+  // Replacing the single token here guarantees only one resting cursor
+  // utility is ever emitted. MixerBar's resize grip uses this to read as a
+  // grabbable handle ("cursor-grab active:cursor-grabbing") like the tags.
+  cursor?: string;
   className?: string;
   children: ReactNode;
 };
@@ -147,6 +157,7 @@ export function IconButton({
   revealOnHover,
   visuallyDisabled,
   display = "inline-flex",
+  cursor = "cursor-pointer",
   className,
   children,
   ...rest
@@ -174,7 +185,7 @@ export function IconButton({
         shape === "circle" ? "rounded-full" : "",
         shadowClass,
         revealOnHover ? REVEAL_CLASSES[revealOnHover] : "",
-        visuallyDisabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer",
+        visuallyDisabled ? "opacity-40 cursor-not-allowed" : cursor,
         className ?? "",
       ].join(" ")}
       style={{ width: resolvedWidth, height: resolvedHeight, backgroundColor, color: textColor, borderColor, ...style }}
