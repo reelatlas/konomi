@@ -363,7 +363,30 @@ export function ResultCard({
       // something still being actively chased — whole-card tap-to-flip
       // works everywhere (all devices), and native scroll works desktop-
       // everywhere + mobile-via-the-tag-area.
-      className="h-[var(--result-card-height)] cursor-pointer pointer-events-auto max-[1152px]:flex-none max-[1152px]:snap-start min-[993px]:max-[1152px]:w-[22%] min-[741px]:max-[993px]:w-[30%] min-[501px]:max-[741px]:w-[46%] max-[501px]:w-[85%]"
+      //
+      // max-w-[244px]: an upper cap on the card's own width, on top of the
+      // per-tier % widths above. The cover art is a fixed 230px-wide raster
+      // (AniList "medium" — confirmed across all 501 catalog covers, every one
+      // exactly 230px wide), and the card renders it at width:100%, so a card
+      // wider than 230 UPSCALES the cover (softens it) AND squats toward square
+      // as the height clamp floors — the "resizes a little wide" case. Without a
+      // cap the % tiers balloon the card to ~280-320px at the top of the 30% /
+      // 46% / 85% tiers (e.g. 46% of a 693px row = 319px). 244 = 230 × ~1.06:
+      // ~6% upscale is imperceptible (verified live at ?cap= against 230/276 —
+      // see git history / the cap-compare artifact) while giving the carousel
+      // tiers a little breathing room, and it keeps the card portrait (aspect
+      // H/W ≈ 1.32-1.82 across the 322-445 height clamp, well under the ~2.6
+      // reflection-fill ceiling). It NEVER binds the 5-across desktop grid
+      // (≥1152px): that already tops out ~234px per card, below this cap — so
+      // this only ever reins in the carousel tiers. This 244 also feeds the
+      // REFLECTION BUDGET that clamps the carousel card HEIGHT: the card is
+      // backed by a cover + its mirror = 2× the rendered cover height, so it can
+      // only be filled to aspect ≤ 2×298/230 ≈ 2.59 (shortest cover); the
+      // carousel --result-card-height is clamped to cardWidth × 2.59 (max
+      // 244×2.59 ≈ 632px) in globals.css so a very tall viewport can't grow the
+      // card past what the filmstrip fills and leave a dead band under the
+      // reflection. See DESIGN_SYSTEM.md for the full sizing derivation.
+      className="h-[var(--result-card-height)] max-w-[244px] cursor-pointer pointer-events-auto max-[1152px]:flex-none max-[1152px]:snap-start min-[993px]:max-[1152px]:w-[22%] min-[741px]:max-[993px]:w-[30%] min-[501px]:max-[741px]:w-[46%] max-[501px]:w-[85%]"
     >
       {/* New wrapper: carries perspective now (see the article's own
           comment above for why). relative w-full h-full so the flip-

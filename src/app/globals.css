@@ -287,11 +287,27 @@
    card WIDTH (unchanged here — cards fill vertically, not horizontally), so
    40px should still cover it, but confirm on a tall phone; if the flip clips
    at the taller size, bump that pt/pb-40 and its matching -mt/-mb-40. */
-@media (max-width: 1152px) {
-  :root {
-    --result-card-height: max(322px, 100cqh);
-  }
-}
+/* …but never past the REFLECTION BUDGET, or the card grows taller than the
+   filmstrip can fill and shows a flat dead band under the reflection at a very
+   tall viewport (reported live, confirmed on-device). ResultCard's front is a
+   cover <img> plus its mirror, so the backing art is exactly 2× the rendered
+   cover height = 2 × cardWidth × (coverHeight/230). Clamping the card to that
+   keeps the mirrored strip reaching the card's own bottom edge. Using the
+   SHORTEST catalog cover (298px, of 501) makes it hold for EVERY cover:
+   budget = cardWidth × (2 × 298 / 230) = cardWidth × 2.59. cardWidth is each
+   tier's own % of the container (so this is per-tier via cqw, matching
+   ResultCard's own w-[%] tiers 85/46/30/22 one-for-one — keep the two in sync),
+   capped by ResultCard's own max-w-[244px], so 244 × 2.59 ≈ 632px is the flat
+   ceiling (coupled literal — if either the 244 cap or the 298 shortest-cover
+   figure changes, re-derive it). Below the budget the card still fills
+   (max(322px, 100cqh)); only a viewport tall enough to push 100cqh past the
+   budget gets clamped — trading an in-card dead band for a little extra room
+   above the mixer, the better of the two. The four ranges use CSS media-range
+   syntax to meet ResultCard's own exclusive tier boundaries with no 1px gap. */
+@media (width < 501px) { :root { --result-card-height: min(max(322px, 100cqh), 632px, calc(85cqw * 2.59)); } }
+@media (501px <= width < 741px) { :root { --result-card-height: min(max(322px, 100cqh), 632px, calc(46cqw * 2.59)); } }
+@media (741px <= width < 993px) { :root { --result-card-height: min(max(322px, 100cqh), 632px, calc(30cqw * 2.59)); } }
+@media (993px <= width < 1152px) { :root { --result-card-height: min(max(322px, 100cqh), 632px, calc(22cqw * 2.59)); } }
 
 /* ── color roles, one palette per theme ──────────────────────────────────
  * Every key is a semantic role, not a hue, so the names hold up across all
