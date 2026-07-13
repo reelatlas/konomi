@@ -777,6 +777,12 @@ export function MixerBar({
   // window resizes (70% stays 70%, max stays max) instead of holding a fixed px.
   const persistedFraction = usePoolPanelHeightFraction();
   const [dragHeightPx, setDragHeightPx] = useState<number | null>(null);
+  // The height the current drag STARTED at — the "0" reference for the grip's
+  // charge-up glow (see gripGlow below). State, not a ref, because gripGlow is
+  // computed during render (reading a ref there is disallowed). Set in
+  // handleResizeStart in the same batch as the first setDragHeightPx, so the
+  // opening drag frame already renders with both in hand (glow 0 at the start).
+  const [dragStartHeightPx, setDragStartHeightPx] = useState<number | null>(null);
   // No height-freeze during a window resize (deliberately): because the height is
   // now a FRACTION of the live ceiling (effectiveHeightPx = fraction * max), it
   // scales SMOOTHLY as the window resizes — expanding/shrinking exactly like a
@@ -1564,6 +1570,29 @@ export function MixerBar({
   const isBarGeometryExpanding =
     dragHeightPx === null && ((isSnapTransitioning && isSnapGrowing) || (isEditModeTransitioning && editMode));
 
+  // Grip charge-up glow (see GripIcon + .grip-glow in globals.css). Only ever
+  // active during a live manual drag (dragHeightPx !== null). Intensity is how
+  // far the drag has moved from where it STARTED (dragStartHeightRef, the "0"),
+  // as a fraction of the panel's full travel (ceiling − floor) — so equal
+  // finger distance is equal brightness in either direction, and returning to
+  // the start returns to no glow, exactly as requested. Normalizing by the full
+  // travel (not the remaining reach) keeps the "brighter per unit moved" rate
+  // constant no matter where the drag began. The eased return-to-rest on release
+  // is pure CSS (transition on .grip-glow, suppressed while dragging).
+  const isGripDragging = dragHeightPx !== null;
+  // Glow saturates at this fraction of the panel's full travel (ceiling−floor),
+  // not the whole thing — a real drag rarely spans the entire range, so mapping
+  // max brightness to the full span left typical partial drags looking faint.
+  // Reaching full glow around two-thirds of the way keeps the bloom clearly
+  // visible mid-drag while staying linear and symmetric (equal finger distance =
+  // equal brightness, either direction) up to the cap. Tunable.
+  const GRIP_GLOW_SATURATE_FRACTION = 0.65;
+  const gripGlowTravelPx = Math.max(1, poolPanelMaxHeight - POOL_HEIGHT_MIN) * GRIP_GLOW_SATURATE_FRACTION;
+  const gripGlow =
+    isGripDragging && dragStartHeightPx !== null
+      ? Math.min(1, Math.abs(dragHeightPx - dragStartHeightPx) / gripGlowTravelPx)
+      : 0;
+
   // Measures growableFixedOverheadPx — see that state's own comment
   // (near its declaration) for why this is deliberately NOT the fast-
   // changing path: growableRef.height - effectiveHeightPx is the part of
@@ -1810,6 +1839,10 @@ export function MixerBar({
     const startHeight = effectiveHeightPx;
     const startY = e.clientY;
     const liveHeightRef = { current: startHeight };
+    // Anchor the grip glow's "0" at wherever this drag began — moving away from
+    // it in EITHER direction brightens proportionally, coming back dims (see
+    // gripGlow in the render body).
+    setDragStartHeightPx(startHeight);
     // See fixedOverheadPx's own effect (above) for why this freezes
     // poolPanelMaxHeight for the duration of the drag — isDraggingRef's
     // own purpose, unrelated to the grip's mount guarantee: that comes
@@ -2091,9 +2124,19 @@ export function MixerBar({
             aria-orientation="horizontal"
             aria-label="Drag to resize edit panel"
             onPointerDown={handleResizeStart}
-            className="cursor-ns-resize select-none touch-none"
+            // cursor-grab (not cursor-ns-resize) — same "you can pick this up
+            // and move it" hand the draggable tags use (TagChip/TagSlot),
+            // requested directly: the grip is a thing you grab and drag, so it
+            // should read like the tags do rather than like an edge-resize
+            // handle. Goes through IconButton's `cursor` prop, NOT className —
+            // className can't override IconButton's own cursor-pointer (see
+            // that prop's comment). active:cursor-grabbing is the closed hand
+            // while actually holding it. The arrow snaps and Close keep the
+            // default pointer — only this grab affordance changed.
+            cursor="cursor-grab active:cursor-grabbing"
+            className="select-none touch-none"
           >
-            <GripIcon className="text-[var(--muted)]" />
+            <GripIcon glow={gripGlow} dragging={isGripDragging} />
           </IconButton>
         </div>
       )}

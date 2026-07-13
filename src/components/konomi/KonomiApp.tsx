@@ -31,10 +31,11 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
   // derivation re-expands the masthead the instant results are cleared,
   // reported directly as jarring — the user only ever wants the shrink to
   // happen once, on the first real RECOMMEND, and never automatically
-  // reverse itself afterward. One-way, not a toggle-by-effect: set true in
-  // handleRecommend below on success, never reset by clearRecs or anything
-  // else — the only way back to expanded is the manual toggle (Masthead's
-  // own onToggleCollapse, below).
+  // reverse itself afterward. Set true in handleRecommend below on
+  // success (never reset by clearRecs or anything else), and toggled
+  // either direction by the scroll/pull gesture effect below — the only
+  // way back to expanded (the in-banner toggle button was removed once
+  // that gesture covered both directions).
   const [mastheadCollapsed, setMastheadCollapsed] = useState(false);
   // Wraps Masthead + the results section specifically, NOT MixerBar (see
   // the JSX below) — this is the actual scroll container now (moved off
@@ -386,12 +387,7 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
           ref={scrollableRef}
           className={`flex flex-col flex-1 min-h-0 ${mastheadCollapsed ? "" : "pt-[var(--space-2xl)]"}`}
         >
-          <Masthead
-            theme={k.theme}
-            onThemeChange={k.setTheme}
-            collapsed={mastheadCollapsed}
-            onToggleCollapsed={() => setMastheadCollapsed((c) => !c)}
-          />
+          <Masthead theme={k.theme} onThemeChange={k.setTheme} collapsed={mastheadCollapsed} />
 
           {/* Results is the one flexible region of the shell — flex-1
               min-h-0 (same reasoning as the column above) makes this section

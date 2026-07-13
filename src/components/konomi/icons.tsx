@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 interface IconProps {
   className?: string;
 }
@@ -178,9 +180,31 @@ export function ArrowUpHalfIcon({ className }: IconProps) {
 // box (TagPoolBody's tab row) alongside the resize arrow and Close, rather
 // than a bare icon that needed to read as "draggable" on its own within a
 // wider, busier row.
-export function GripIcon({ className }: IconProps) {
+// The MixerBar resize handle — a 3×3 grid of dots you grab and drag. The two
+// optional props drive the "charge up" glow (see .grip-glow in globals.css):
+// `glow` (0..1) is how far the active drag has moved from where it started —
+// 0 at rest / at the start point, brighter as it moves up OR down — and
+// `dragging` suppresses the ease-out transition so the glow tracks the finger
+// live, then releases it to ease back to rest. All the visual work (color
+// mix + halo + transition) lives in CSS keyed off the --grip-glow variable;
+// this only forwards the live value. The base at-rest color is --muted (the
+// color-mix resolves to exactly --muted at glow 0), so no text-color class is
+// needed here anymore.
+interface GripIconProps extends IconProps {
+  glow?: number;
+  dragging?: boolean;
+}
+export function GripIcon({ className, glow = 0, dragging = false }: GripIconProps) {
   return (
-    <svg className={className} width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+    <svg
+      className={["grip-glow", className].filter(Boolean).join(" ")}
+      data-gripping={dragging ? "" : undefined}
+      style={dragging ? ({ "--grip-glow": glow } as CSSProperties) : undefined}
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="currentColor"
+    >
       <circle cx="2" cy="2" r="1.3" />
       <circle cx="8" cy="2" r="1.3" />
       <circle cx="14" cy="2" r="1.3" />

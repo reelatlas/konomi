@@ -1,6 +1,4 @@
 import { motion } from "motion/react";
-import { ArrowDownIcon, ArrowUpIcon } from "./icons";
-import { IconButton } from "./IconButton";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 import type { ThemeKey } from "@/lib/konomi/types";
 
@@ -11,19 +9,18 @@ interface MastheadProps {
   // collapsed (true) shrinks it to a slim row. Deliberately NOT derived
   // from k.hasResults (that was tried first, `active={k.hasResults}`) —
   // a live derivation re-expands the masthead the instant results are
-  // cleared, reported directly as jarring. This is now a one-way trigger
-  // owned in KonomiApp.tsx (set true on a successful RECOMMEND, never
-  // reset by clearing results), plus a manual override via
-  // onToggleCollapsed below. Replaces the old scroll-position-triggered
+  // cleared, reported directly as jarring. Driven from KonomiApp.tsx:
+  // set true on a successful RECOMMEND, and toggled either way by the
+  // page's own scroll/pull gesture (a downward gesture collapses, a
+  // pull-down at the top re-expands — see KonomiApp.tsx's wheel/touch
+  // effect). There is no in-banner toggle button: an earlier manual
+  // IconButton affordance was removed once the scroll interaction covered
+  // both directions cleanly. Replaces the old scroll-position-triggered
   // condensed header entirely: with no page scroll left in the new shell
   // (see KonomiApp.tsx's own top comment), the IntersectionObserver/
   // sentinel mechanism that used to drive this has nothing left to
   // observe.
   collapsed: boolean;
-  // The manual affordance (an IconButton, below) — lets the user get back
-  // to the expanded banner even after collapsed has been triggered, since
-  // the trigger itself is one-way and never reverses on its own.
-  onToggleCollapsed: () => void;
 }
 
 // Single persistent element, not two (a full header plus a separate
@@ -58,7 +55,7 @@ interface MastheadProps {
 // git history for that now-inapplicable reasoning): expanded reads as the
 // more expressive, tilted banner; collapsed settles into a flatter utility
 // row once the user is actually working with results.
-export function Masthead({ theme, onThemeChange, collapsed, onToggleCollapsed }: MastheadProps) {
+export function Masthead({ theme, onThemeChange, collapsed }: MastheadProps) {
   return (
     <motion.header
       layout
@@ -138,25 +135,12 @@ export function Masthead({ theme, onThemeChange, collapsed, onToggleCollapsed }:
             own slim box, over whatever's rendered beneath it, rather than
             over this component's own surface.
 
-            The collapse/expand toggle sits beside ThemeSwitcher in both
-            states — always reachable, not just once collapsed has already
-            triggered, since the point is letting the user get back to
-            expanded too. ArrowUpIcon (collapsed: clicking grows the
-            header) / ArrowDownIcon (expanded: clicking shrinks it) reuse
-            MixerBar's own up-means-grow/down-means-shrink icon vocabulary
-            (see icons.tsx) rather than introducing a new glyph meaning. */}
-        <div className={["flex gap-[var(--space-md)] items-center", collapsed ? "" : "self-center shrink-0"].join(" ")}>
+            ThemeSwitcher is the only trailing control now — the manual
+            collapse/expand toggle that used to sit beside it was removed
+            once the page's scroll/pull gesture handled both directions
+            (see MastheadProps.collapsed). */}
+        <div className={collapsed ? "" : "self-center shrink-0"}>
           <ThemeSwitcher value={theme} onChange={onThemeChange} subtextPlacement={collapsed ? "left" : undefined} />
-          <IconButton
-            size="sm"
-            border="thin"
-            backgroundColor="transparent"
-            title={collapsed ? "Expand header" : "Collapse header"}
-            aria-label={collapsed ? "Expand header" : "Collapse header"}
-            onClick={onToggleCollapsed}
-          >
-            {collapsed ? <ArrowUpIcon className="text-[var(--ink)]" /> : <ArrowDownIcon className="text-[var(--ink)]" />}
-          </IconButton>
         </div>
       </div>
       {/* Expanded: h-[9px] with border-t + mt-[calc(space-2xl-9px)] — this
