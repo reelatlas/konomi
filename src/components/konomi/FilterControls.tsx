@@ -69,35 +69,35 @@ export function FilterControls({ onLevelChange, layout = "popover", className }:
   // (min(340px, 100vw-6rem)), so the viewport is the right axis to reduce on.
   // The collapse threshold is SHARED by both fields (same expandedHide/
   // collapsedShow), so Density and Sort drop to single-select together
-  // (requested, for consistency); flex-wrap then puts the two single-selects on
-  // one row and only wraps them once even that won't fit. Popover numbers: 369px
-  // — below it a single expanded control would exceed the dialog's max-width, so
-  // both cut to single-select; 434px — above it the dialog (max-width min(340px,
-  // 100vw-6rem)) is finally wide enough to hold the labelled Density field
-  // (~310px + the dialog's own padding = ~334px) WITH its left padding intact.
-  // At the earlier 420px labels appeared ~14px too soon, so the "TAG DENSITY"
-  // text pressed against the dialog's left edge until it widened out (reported).
-  // All live-bisected; re-check on-device.
+  // (requested, for consistency) — each on its own row throughout. Popover
+  // numbers: 369px — below it the expanded Density row (icon + 3-segment control
+  // ~232px + the dialog's padding) would exceed the dialog's max-width, so both
+  // cut to single-select; 434px — above it the dialog (max-width min(340px,
+  // 100vw-6rem)) is finally wide enough to hold the labelled Density row (~310px
+  // + padding = ~334px) WITH its left padding intact. At the earlier 420px labels
+  // appeared ~14px too soon, so the "TAG DENSITY" text pressed against the
+  // dialog's left edge until it widened out (reported). All live-bisected;
+  // re-check on-device.
   const labelShow = inline ? "hidden @min-[530px]:inline" : "hidden min-[434px]:inline";
   const expandedHide = inline ? "@max-[390px]:hidden" : "max-[369px]:hidden";
   const collapsedShow = inline ? "hidden @max-[390px]:block" : "hidden max-[369px]:block";
 
-  // Both layouts are flex-row + flex-wrap so the LAST resort is a wrap to a
-  // second row (inline below its single-segment width; popover once even the two
-  // single-selects stop fitting one row). They differ in cross-axis alignment,
-  // because their hosts differ: INLINE centres its fields in the wide, symmetric
-  // empty-state box; POPOVER right-aligns them (justify-end) so wrapped rows and
-  // every reduced form stack flush against the dialog's right edge — the side its
-  // trigger and the whole results header live on (reported: centred read as
-  // off). Only inline is a @container. gap-y is 2xl in both: it doubles as
-  // clearance for LevelSelector's own hover hint (absolutely positioned below its
-  // control) when the two fields wrap to separate rows (the popover's earlier md
-  // crowded them — reported). Popover fields are plain (no shrink-0, no min-w-0):
-  // the dialog hugs content, so a field keeps its intrinsic width and simply
-  // wraps rather than shrinking or overflowing.
+  // INLINE is a flex-row + flex-wrap @container, centred in the wide, symmetric
+  // empty-state box. POPOVER is a flex-COL: its two fields ALWAYS sit on their
+  // own rows (Density above Sort), never sharing one — deliberately. Almost no
+  // real breakpoint was wide enough to fit both single-selects on a line, and a
+  // fixed two-row shape makes the dialog's hug trivial and its padding
+  // consistent: there's exactly one widest row to size to, with no wrap-vs-one-
+  // row branch (which had also left the dialog stretched at rest just under the
+  // collapse point — reported). items-end right-aligns each row flush to the
+  // dialog's right edge (its trigger + the results header live there); the fields
+  // size to their own content (align-items isn't stretch), so plain w-max on the
+  // dialog hugs the WIDEST of the two rows — no JS measurement needed (flex-col
+  // max-content is its widest child, unlike a flex-row's which is both fields on
+  // one line). gap-y 2xl clears LevelSelector's own hover hint between the rows.
   const root = inline
     ? "@container flex flex-row flex-wrap items-center justify-center gap-x-[var(--space-xl)] gap-y-[var(--space-2xl)]"
-    : "flex flex-row flex-wrap items-center justify-end gap-x-[var(--space-lg)] gap-y-[var(--space-2xl)]";
+    : "flex flex-col items-end gap-y-[var(--space-2xl)]";
   const fieldBase = "flex items-center gap-[var(--space-sm)]";
   const densityField = inline ? `${fieldBase} shrink-0` : fieldBase;
   const sortField = inline ? `${fieldBase} shrink-0` : fieldBase;

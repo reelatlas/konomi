@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { LevelKey } from "@/lib/konomi/types";
 import { FilterControls } from "./FilterControls";
 import { FilterIcon } from "./icons";
@@ -26,39 +26,6 @@ interface ResultsFilterButtonProps {
 export function ResultsFilterButton({ onLevelChange }: ResultsFilterButtonProps) {
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const popoverRef = useRef<HTMLDivElement>(null);
-
-  // Size the dialog to HUG its filters. Pure CSS can't: the dialog is
-  // position:absolute right-0, so a content width keyword (w-fit) resolves
-  // against its ~30px trigger wrapper and collapses to min-content, while w-max
-  // stays pinned at the max-width whenever the two fields wrap to two rows —
-  // either way leaving a wide empty strip beside the right-aligned filters at
-  // small widths (reported). So measure the two fields and set the width
-  // imperatively: their one-line sum when it fits the viewport-derived cap, else
-  // the wider field alone (the wrapped-two-row case). The field widths are
-  // intrinsic (viewport-media-query-driven, independent of the dialog's own
-  // width), so this doesn't feed back on itself. useLayoutEffect writes it before
-  // paint (no flash), imperatively (no setState → no cascading render); a resize
-  // listener re-runs it when the viewport (and thus the reduced form) changes.
-  useLayoutEffect(() => {
-    if (!open) return;
-    const el = popoverRef.current;
-    const fields = el?.firstElementChild ? Array.from(el.firstElementChild.children) : [];
-    if (!el || fields.length < 2) return;
-    const GAP = 12; // FilterControls' own gap-x-lg between the two fields
-    const PAD = 24; // this dialog's p-lg, both sides
-    function size() {
-      const w0 = fields[0].getBoundingClientRect().width;
-      const w1 = fields[1].getBoundingClientRect().width;
-      const capContent = Math.min(340, window.innerWidth - 96) - PAD; // dialog max-width minus padding
-      const oneLine = w0 + GAP + w1;
-      const content = oneLine <= capContent ? oneLine : Math.max(w0, w1);
-      el!.style.width = `${Math.ceil(content) + PAD}px`;
-    }
-    size();
-    window.addEventListener("resize", size);
-    return () => window.removeEventListener("resize", size);
-  }, [open]);
 
   // Closes on any outside pointerdown or Escape — the same two patterns
   // already proven this session for LevelSelector's collapsed hint and
@@ -151,7 +118,6 @@ export function ResultsFilterButton({ onLevelChange }: ResultsFilterButtonProps)
       </IconButton>
       {open && (
         <div
-          ref={popoverRef}
           role="dialog"
           aria-label="Filters"
           // @container: Level/Sort's own label-hide/collapse breakpoints
@@ -165,18 +131,19 @@ export function ResultsFilterButton({ onLevelChange }: ResultsFilterButtonProps)
           // w-max (max-content) + max-w-[min(340px,calc(100vw-6rem))]: the dialog
           // HUGS its filters rather than stretching to a fixed width — otherwise,
           // right-aligned content in a wide box left a big empty gap on the left
-          // at small widths (reported). w-MAX, not w-fit: this dialog is
-          // position:absolute, so its containing block is the ~30px trigger
-          // wrapper, and fit-content resolves against THAT (near-min-content →
-          // everything wraps to its own row). max-content ignores available width
-          // and gives the one-line width, which max-w then wraps only when it
-          // truly exceeds the viewport-fit bound — so the two filters share a row
-          // when they fit and the box shrinks to exactly their width otherwise.
-          // Hugging is only possible because FilterControls' popover layout
-          // reduces off the VIEWPORT (plain media queries), NOT a @container: a
-          // container-type box ignores its own content for sizing, so a
-          // content-sized container query would collapse to zero — mutually
-          // exclusive (which is why this used to be a fixed w-[…]).
+          // at small widths (reported). FilterControls' popover layout is a
+          // flex-COL (two fixed rows — Density above Sort), so its max-content
+          // width is simply its WIDEST row, which is exactly what the dialog
+          // should hug — and w-max reads that with no JS measurement. (w-fit would
+          // collapse to min-content here, since this dialog is position:absolute
+          // and fit-content resolves against its ~30px trigger wrapper; and
+          // max-content only equals the widest row because the layout is a column
+          // — a flex-row's would be both fields on one line.) Hugging is only
+          // possible because that popover layout reduces off the VIEWPORT (plain
+          // media queries), NOT a @container: a container-type box ignores its own
+          // content for sizing, so a content-sized container query would collapse
+          // to zero — mutually exclusive (which is why this used to be a fixed
+          // w-[…]).
           //
           // The max-width's viewport term is 6rem, not the 3rem for the two page
           // gutters alone: this dialog is absolute right-0 against the FILTER
