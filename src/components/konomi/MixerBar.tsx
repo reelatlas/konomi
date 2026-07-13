@@ -561,16 +561,23 @@ export function MixerBar({
       // chips in one shot, since all three are descendants of that same
       // element), the theme swatches (data-theme-switcher, ThemeSwitcher.tsx),
       // the results Clear ✕ button (data-clear-results, ResultsHeader.tsx),
-      // and the Filter popover (data-results-filter, ResultsFilterButton.tsx)
+      // the Filter popover (data-results-filter, ResultsFilterButton.tsx)
       // — without that last one, opening/using the Filter popover while
       // Tag Pool's edit mode happens to already be open would close edit
       // mode as an unrelated side effect, the same footgun Clear was
-      // already protected against.
+      // already protected against — and the empty-state's inline Tag Density /
+      // Sort filters plus its surfaced Tag Pool / Random buttons (all tagged
+      // data-empty-controls, RecommendationsBody.tsx), which sit above the
+      // expanded panel on larger phones: the filters must adjust without
+      // dismissing the panel (exactly like data-results-filter above), Random
+      // must shuffle without closing it (matching this bar's own Random), and Tag
+      // Pool owns its own open↔"Done" toggle there — so none of them should also
+      // be dismissed by this outside-click listener.
       // target is typed as Node (a mousedown's target can in principle be a
       // text node), but .closest() is Element-only — falls back to the
       // nearest element via parentElement for that case.
       const el = target instanceof Element ? target : (target as Node).parentElement;
-      if (el?.closest("[data-result-card], [data-theme-switcher], [data-clear-results], [data-results-filter]")) return;
+      if (el?.closest("[data-result-card], [data-theme-switcher], [data-clear-results], [data-results-filter], [data-empty-controls]")) return;
       onCloseEditModeRef.current();
     }
     document.addEventListener("keydown", handleKeyDown);

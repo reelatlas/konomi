@@ -10,7 +10,7 @@ import {
   getVisibleCardTierCount,
 } from "./cardAnimTuning";
 import { FilterControls } from "./FilterControls";
-import { DiceIcon, TagPoolIcon } from "./icons";
+import { CheckIcon, DiceIcon, TagPoolIcon } from "./icons";
 import { IconButton } from "./IconButton";
 import { ResultCard } from "./ResultCard";
 import { ScrollFadeArea } from "./ScrollFadeArea";
@@ -217,12 +217,16 @@ interface RecommendationsBodyProps {
   // FilterControls) — the same handler ResultsHeader threads into the results-
   // state Filter popover, so both surfaces drive the identical level cascade.
   onLevelChange: (level: LevelKey) => void;
-  // Open the Tag Pool (edit mode) and shuffle Random tags — the SAME two
-  // handlers MixerBar's own Tag Pool / Random buttons use. Surfaced in the
-  // empty-state box only at the narrow widths where MixerBar's control row has
-  // dropped those buttons entirely (see the surfaced row below), so a
-  // narrow-viewport user still has one-tap access to both from here.
+  // Open / close the Tag Pool (edit mode) and shuffle Random tags — the SAME
+  // handlers + toggle behaviour MixerBar's own Tag Pool / Random buttons use.
+  // Surfaced in the empty-state box only at the narrow widths where MixerBar's
+  // control row has dropped those buttons entirely (see the surfaced row below),
+  // so a narrow-viewport user still has one-tap access to both from here.
+  // editMode drives the Tag Pool button's open↔"Done" toggle, exactly like the
+  // bar's; onCloseEditMode is its close half.
+  editMode: boolean;
   onOpenEditMode: () => void;
+  onCloseEditMode: () => void;
   onRandomTags: () => void;
   // Fired whenever showResultsGrid flips — true while results are on screen OR
   // still exit-animating out on a Clear ✕, false once the empty state is
@@ -257,7 +261,9 @@ export function RecommendationsBody({
   tagInfoByName,
   totalSeriesCount,
   onLevelChange,
+  editMode,
   onOpenEditMode,
+  onCloseEditMode,
   onRandomTags,
   onResultsGridVisibleChange,
 }: RecommendationsBodyProps) {
@@ -552,8 +558,15 @@ export function RecommendationsBody({
               zone. w-[min(560px,100%)] + mx-auto: a definite, centred width —
               required because FilterControls is a @container whose children
               query it (see FilterControls.tsx), wide enough to hold the full
-              inline row (~510px) at desktop; it also sizes the divider. */}
-          <div className="w-[min(560px,100%)] mx-auto mt-[var(--space-2xl)] pt-[var(--space-2xl)] border-t-[length:var(--border-hair)] border-[var(--muted)]">
+              inline row (~510px) at desktop; it also sizes the divider.
+
+              data-empty-controls: same allowlist opt-out as the surfaced buttons
+              below — adjusting Tag Density / Sort here while the Tag Pool / edit
+              panel is open (visible above it on larger phones) must NOT be treated
+              as an outside click that dismisses the panel, exactly as the results-
+              state Filter popover (data-results-filter) already behaves. See
+              MixerBar's click-outside listener. */}
+          <div data-empty-controls className="w-[min(560px,100%)] mx-auto mt-[var(--space-2xl)] pt-[var(--space-2xl)] border-t-[length:var(--border-hair)] border-[var(--muted)]">
             <FilterControls onLevelChange={onLevelChange} layout="inline" className="w-full" />
           </div>
           {/* Surfaced controls: Tag Pool + Random, shown ONLY at the narrow
@@ -588,17 +601,32 @@ export function RecommendationsBody({
               drop to icons just above where they'd spill — live-measured, wants an
               on-device confirm like every width in this app) — the same idiom
               FilterControls above and MixerBar's own icon/text split use. */}
-          <div className="hidden @max-[561px]:flex items-center gap-[var(--space-lg)] mt-[var(--space-2xl)]">
-            {/* Tag Pool — always present when this row shows. Outline variant +
-                TagPoolIcon, matching MixerBar's own Tag Pool button; opens edit
-                mode (the pool), the same onOpenEditMode handler. */}
+          {/* data-empty-controls: allowlisted by MixerBar's own click-outside-
+              closes-edit-mode listener (the same closest() check that exempts the
+              Clear ✕ / Filter popover / theme swatches — see MixerBar). Without
+              it, tapping either of these buttons while the Tag Pool / edit panel
+              is open (visible above the panel on larger phones) would be treated
+              as an outside click and dismiss the panel: for Random that's exactly
+              wrong (it should shuffle WITHOUT closing, matching the bar's own
+              Random), and for Tag Pool the button owns its own open↔close toggle
+              below, so the listener must not double-act on it either. */}
+          <div data-empty-controls className="hidden @max-[561px]:flex items-center gap-[var(--space-lg)] mt-[var(--space-2xl)]">
+            {/* Tag Pool — always present when this row shows. Mirrors MixerBar's
+                own Tag Pool button exactly, toggle included: opens the pool when
+                closed, and becomes a "Done ✓" / CheckIcon button that closes it
+                when edit mode is already open (reachable above the expanded panel
+                on larger phones). Outline variant + TagPoolIcon otherwise. */}
             <div className="flex-none">
               <div className="@max-[250px]:hidden">
-                <ActionButton variant="outline" onClick={onOpenEditMode}>
-                  <span className="inline-flex items-center gap-[var(--space-sm)]">
-                    Tag Pool
-                    <TagPoolIcon className="text-[var(--ink)]" />
-                  </span>
+                <ActionButton variant="outline" onClick={editMode ? onCloseEditMode : onOpenEditMode}>
+                  {editMode ? (
+                    "Done ✓"
+                  ) : (
+                    <span className="inline-flex items-center gap-[var(--space-sm)]">
+                      Tag Pool
+                      <TagPoolIcon className="text-[var(--ink)]" />
+                    </span>
+                  )}
                 </ActionButton>
               </div>
               <div className="hidden @max-[250px]:block">
@@ -607,16 +635,18 @@ export function RecommendationsBody({
                   border="base"
                   shadow="elev-2"
                   backgroundColor="transparent"
-                  title="Tag Pool"
-                  aria-label="Tag Pool"
-                  onClick={onOpenEditMode}
+                  title={editMode ? "Done" : "Tag Pool"}
+                  aria-label={editMode ? "Done" : "Tag Pool"}
+                  onClick={editMode ? onCloseEditMode : onOpenEditMode}
                 >
-                  <TagPoolIcon className="text-[var(--ink)]" />
+                  {editMode ? <CheckIcon className="text-[var(--ink)]" /> : <TagPoolIcon className="text-[var(--ink)]" />}
                 </IconButton>
               </div>
             </div>
             {/* Random — joins @max-[481px]. Filled variant + DiceIcon, matching
-                MixerBar's own Random button; shuffles via onRandomTags. */}
+                MixerBar's own Random button; shuffles via onRandomTags and never
+                closes an open edit panel (the row's data-empty-controls above is
+                what exempts it from the click-outside close, same as the bar). */}
             <div className="hidden @max-[481px]:block flex-none">
               <div className="@max-[250px]:hidden">
                 <ActionButton variant="filled" onClick={onRandomTags}>
