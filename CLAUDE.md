@@ -9,6 +9,29 @@ Hard rules live in `AGENTS.md` (imported below).
 
 Follow `AGENTS.md` for all code changes. It contains non-negotiable project rules.
 
+## Before you build (design-system-first)
+
+Before creating or changing UI, reference the system first — don't invent in
+isolation:
+
+1. **Reuse before authoring.** Check for an existing token (`src/lib/konomi/tokens.ts`,
+   `themes.ts`, `src/app/globals.css`), component, or pattern that already covers
+   this. Prefer composing or extending what's there over a new one-off value or
+   component. Values come from tokens (spacing, color, radius, control sizes);
+   visual language and precedent come from `DESIGN_SYSTEM.md`.
+2. **Build for reuse or customization.** New shared UI should be token-driven and
+   parameterized (props/variants), so the next use is a reuse, not a
+   re-implementation. Centralize a shared size/behavior as one token/constant
+   rather than copying a literal across components.
+3. **Flag one-offs and experiments.** A deliberate exception, prototype, or
+   experiment is legitimate — but say so in a brief comment (why it's a one-off,
+   and whether it should be generalized later) so it isn't mistaken for a pattern
+   or silently copied.
+
+Consistency first; novelty only with a reason. This is a working principle, not a
+straitjacket — good hygiene and best practice, applied with judgment (see
+`AGENTS.md` "Don't over-correct").
+
 ## When to read other docs
 
 ### UI / components / layout / tokens
