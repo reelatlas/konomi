@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { LevelKey, ResultEntry, TagInfo } from "@/lib/konomi/types";
+import { ActionButton } from "./ActionButton";
 import { useAnimationDebugValues } from "./animationDebugStore";
 import {
   CARD_ANIM_DURATION_MS,
@@ -9,6 +10,8 @@ import {
   getVisibleCardTierCount,
 } from "./cardAnimTuning";
 import { FilterControls } from "./FilterControls";
+import { DiceIcon, TagPoolIcon } from "./icons";
+import { IconButton } from "./IconButton";
 import { ResultCard } from "./ResultCard";
 import { ScrollFadeArea } from "./ScrollFadeArea";
 import { useLevel, useSort } from "./tagPoolPrefs";
@@ -214,6 +217,13 @@ interface RecommendationsBodyProps {
   // FilterControls) — the same handler ResultsHeader threads into the results-
   // state Filter popover, so both surfaces drive the identical level cascade.
   onLevelChange: (level: LevelKey) => void;
+  // Open the Tag Pool (edit mode) and shuffle Random tags — the SAME two
+  // handlers MixerBar's own Tag Pool / Random buttons use. Surfaced in the
+  // empty-state box only at the narrow widths where MixerBar's control row has
+  // dropped those buttons entirely (see the surfaced row below), so a
+  // narrow-viewport user still has one-tap access to both from here.
+  onOpenEditMode: () => void;
+  onRandomTags: () => void;
   // Fired whenever showResultsGrid flips — true while results are on screen OR
   // still exit-animating out on a Clear ✕, false once the empty state is
   // restored. KonomiApp feeds it back into ResultsHeader so that header row
@@ -247,6 +257,8 @@ export function RecommendationsBody({
   tagInfoByName,
   totalSeriesCount,
   onLevelChange,
+  onOpenEditMode,
+  onRandomTags,
   onResultsGridVisibleChange,
 }: RecommendationsBodyProps) {
   const level = useLevel();
@@ -485,7 +497,15 @@ export function RecommendationsBody({
         // same value in every theme by design — see tokens.ts/themes.ts —
         // so this also already matches RECOMMEND's own disabled-state
         // background for free.)
-        <div className="border-[length:var(--border-base)] border-dashed border-[var(--muted)] bg-[var(--slot-empty)] min-h-[var(--result-card-height)] flex flex-col items-center justify-center gap-[var(--space-md)] px-[var(--space-2xl)] py-[var(--space-2xl)] text-center">
+        // @container: this box is the query context for the surfaced Tag Pool/
+        // Random row below — its content width equals MixerBar cardRef's own
+        // @container width by construction (both are the shared max-w column
+        // minus one px-2xl each side minus a border-base), so the 561/481
+        // breakpoints mirror MixerBar's rungs to within a pixel. inline-size
+        // only, so the box's own min-height/vertical centering is unaffected;
+        // FilterControls carries its own nested @container, so it still queries
+        // itself, not this box.
+        <div className="@container border-[length:var(--border-base)] border-dashed border-[var(--muted)] bg-[var(--slot-empty)] min-h-[var(--result-card-height)] flex flex-col items-center justify-center gap-[var(--space-md)] px-[var(--space-2xl)] py-[var(--space-2xl)] text-center">
           <div className="font-display text-[length:var(--text-2xl)] text-[var(--muted)] uppercase">
             {EMPTY_STATE_COPY[emptyStateIndex].headline}
           </div>
@@ -533,8 +553,93 @@ export function RecommendationsBody({
               required because FilterControls is a @container whose children
               query it (see FilterControls.tsx), wide enough to hold the full
               inline row (~510px) at desktop; it also sizes the divider. */}
-          <div className="w-[min(560px,100%)] mx-auto mt-[var(--space-lg)] pt-[var(--space-xl)] border-t-[length:var(--border-hair)] border-[var(--muted)]">
+          <div className="w-[min(560px,100%)] mx-auto mt-[var(--space-2xl)] pt-[var(--space-2xl)] border-t-[length:var(--border-hair)] border-[var(--muted)]">
             <FilterControls onLevelChange={onLevelChange} layout="inline" className="w-full" />
+          </div>
+          {/* Surfaced controls: Tag Pool + Random, shown ONLY at the narrow
+              widths where MixerBar's control row has dropped them entirely, so a
+              phone user keeps one-tap access to both from the empty state. The
+              show/hide widths mirror MixerBar Row 2's own rungs EXACTLY — Tag
+              Pool @max-[561px], Random @max-[481px] — querying this box (the
+              @container, set on its className above), whose content width equals
+              MixerBar cardRef's own @container width by construction, so the same
+              numbers line up within a pixel.
+
+              ⚠️ SHARED BREAKPOINTS — keep in sync with MixerBar.tsx Row 2:
+                561 = Tag Pool dropped from the bar (MixerBar RUNG 4)
+                481 = Random dropped from the bar   (MixerBar RUNG 6)
+              These are DUPLICATED literals, not a shared constant, on purpose: a
+              Tailwind arbitrary-value / container-query class must be static
+              source text (the scanner can't read a JS constant, and a container
+              query can't read a CSS var), so both sites carry the same number
+              with cross-reference comments instead — this app's own precedent for
+              coupled magic numbers (see MixerBar's spacer/-ml-[22px] note). If
+              either rung is re-bisected in MixerBar, update it here too.
+
+              Layout: Tag Pool is always in this row (the row itself only exists
+              @max-[561px], exactly when Tag Pool surfaces); Random joins it
+              @max-[481px]. The row is content-width and the box centres it
+              (items-center), so one button showing sits centred and both sit
+              next to each other with a standard gap — Tag Pool left, Random right
+              (DOM order), enough for the association without pinning them to the
+              box edges. Each button reduces label+icon → icon-only before it would
+              overflow (@max-[250px]: the two labelled buttons measure ~230px
+              combined incl. gap, so labels hold down to a ~250px container and
+              drop to icons just above where they'd spill — live-measured, wants an
+              on-device confirm like every width in this app) — the same idiom
+              FilterControls above and MixerBar's own icon/text split use. */}
+          <div className="hidden @max-[561px]:flex items-center gap-[var(--space-lg)] mt-[var(--space-2xl)]">
+            {/* Tag Pool — always present when this row shows. Outline variant +
+                TagPoolIcon, matching MixerBar's own Tag Pool button; opens edit
+                mode (the pool), the same onOpenEditMode handler. */}
+            <div className="flex-none">
+              <div className="@max-[250px]:hidden">
+                <ActionButton variant="outline" onClick={onOpenEditMode}>
+                  <span className="inline-flex items-center gap-[var(--space-sm)]">
+                    Tag Pool
+                    <TagPoolIcon className="text-[var(--ink)]" />
+                  </span>
+                </ActionButton>
+              </div>
+              <div className="hidden @max-[250px]:block">
+                <IconButton
+                  size="md"
+                  border="base"
+                  shadow="elev-2"
+                  backgroundColor="transparent"
+                  title="Tag Pool"
+                  aria-label="Tag Pool"
+                  onClick={onOpenEditMode}
+                >
+                  <TagPoolIcon className="text-[var(--ink)]" />
+                </IconButton>
+              </div>
+            </div>
+            {/* Random — joins @max-[481px]. Filled variant + DiceIcon, matching
+                MixerBar's own Random button; shuffles via onRandomTags. */}
+            <div className="hidden @max-[481px]:block flex-none">
+              <div className="@max-[250px]:hidden">
+                <ActionButton variant="filled" onClick={onRandomTags}>
+                  <span className="inline-flex items-center gap-[var(--space-sm)]">
+                    Random
+                    <DiceIcon className="text-[var(--ink)]" />
+                  </span>
+                </ActionButton>
+              </div>
+              <div className="hidden @max-[250px]:block">
+                <IconButton
+                  size="md"
+                  border="base"
+                  shadow="elev-2"
+                  backgroundColor="var(--fill)"
+                  title="Random"
+                  aria-label="Random"
+                  onClick={onRandomTags}
+                >
+                  <DiceIcon className="text-[var(--ink)]" />
+                </IconButton>
+              </div>
+            </div>
           </div>
         </div>
       )}

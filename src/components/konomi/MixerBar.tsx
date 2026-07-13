@@ -3013,7 +3013,16 @@ export function MixerBar({
                     once all 3 slots are filled and Clear has also gone
                     below its own, narrower threshold, an accepted gap at
                     this row's tightest widths, requested as the priority
-                    order regardless. */}
+                    order regardless.
+
+                    ⚠️ SHARED BREAKPOINT (561) — MIRRORED in
+                    RecommendationsBody.tsx's empty-state box, which surfaces its
+                    own Tag Pool button at exactly @max-[561px] (the width this
+                    one vanishes at). Duplicated literal, not a shared constant,
+                    on purpose: a Tailwind container-query class must be static
+                    source text (see that file's own loud note for the full
+                    reasoning + this app's coupled-magic-number precedent). If
+                    this rung is re-bisected, update 561 there too. */}
                 <div className="@max-[561px]:hidden">
                   <IconButton
                     size="md"
@@ -3130,7 +3139,14 @@ export function MixerBar({
                 hide-entirely conditions already live on a single div each,
                 nested only inside ONE shared icon-tier wrapper they both
                 sit in together, not two levels of nested divs the way
-                this one used to be. */}
+                this one used to be.
+
+                ⚠️ SHARED BREAKPOINT (481) — MIRRORED in
+                RecommendationsBody.tsx's empty-state box, which surfaces its own
+                Random button at exactly @max-[481px] (the width this one
+                vanishes at). Duplicated literal, not a shared constant, on
+                purpose — same reasoning as Tag Pool's 561 note above. If this
+                rung is re-bisected, update 481 there too. */}
             <div className="@min-[975px]:hidden @max-[481px]:hidden">
               <IconButton
                 size="md"

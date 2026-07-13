@@ -553,6 +553,8 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
               tagInfoByName={k.tagInfoByName}
               totalSeriesCount={k.totalSeriesCount}
               onLevelChange={handleLevelChange}
+              onOpenEditMode={() => setEditMode(true)}
+              onRandomTags={handleRandomTags}
               onResultsGridVisibleChange={setResultsGridVisible}
             />
           </section>
