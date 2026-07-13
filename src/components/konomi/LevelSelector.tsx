@@ -141,7 +141,10 @@ export function LevelSelector({ value, onChange, collapsed }: LevelSelectorProps
           // [outline:none] — see MatchSelector's own identical comment for
           // the full reasoning (this control's own .focus() call has the
           // same newly-reliable-focus side effect).
-          className="py-[var(--space-md)] px-[var(--space-lg)] border-0 [outline:none] cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] whitespace-nowrap bg-[var(--surface)] text-[var(--ink)]"
+          // leading-[16px]: whole 32px box, matching MatchSelector's collapsed
+          // form (and the expanded segments above) so all three filters — and
+          // their collapsed single buttons — share one height on the pixel grid.
+          className="py-[var(--space-md)] leading-[16px] px-[var(--space-lg)] border-0 [outline:none] cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] whitespace-nowrap bg-[var(--surface)] text-[var(--ink)]"
         >
           <RollingLabel value={activeOption.label} sizeToWidestOf={LEVEL_LABELS} />
         </button>
@@ -173,7 +176,12 @@ export function LevelSelector({ value, onChange, collapsed }: LevelSelectorProps
             onFocus={() => setHovered(option.key)}
             onBlur={() => setHovered(null)}
             className={[
-              "flex-1 py-[var(--space-md)] px-[var(--space-lg)] border-0 cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] whitespace-nowrap",
+              // leading-[16px]: matches MatchSelector's segment sizing (see
+              // its own comment) so this box resolves to a whole 32px (16
+              // padding + 16 line) instead of 32.5, keeping one consistent
+              // segmented-control height across min-match/density/sort and the
+              // neighbouring icons centred on the device-pixel grid.
+              "flex-1 py-[var(--space-md)] leading-[16px] px-[var(--space-lg)] border-0 cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] whitespace-nowrap",
               i > 0 ? "border-l-[length:var(--border-thin)] border-l-[var(--ink)]" : "",
               active ? "bg-[var(--primary)] text-[var(--surface)]" : "bg-[var(--surface)] text-[var(--ink)]",
             ].join(" ")}

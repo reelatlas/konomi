@@ -58,12 +58,27 @@ Before creating or resizing icons, buttons, or control chrome:
 
 Before writing or changing any animation (CSS transitions, keyframes, Motion,
 rAF, layout animation, drag/resize motion):
-1. Read and follow the Motion skill: `~/.claude/skills/motion/SKILL.md`
-2. If stroked icons live inside a container whose layout animates and they
+1. Read and follow the Motion skill: `~/.claude/skills/motion/SKILL.md`.
+   **"Consulting Motion" means using this project's Motion Pro tooling** — the
+   Motion MCP (search the Motion Codex for the official/canonical pattern,
+   visualise springs and curves), the Motion agent, and the Motion repos — not
+   just recalling Motion from memory. Search the Codex for the pattern before
+   hand-rolling one.
+2. **Motion is the default for real animation, but not mandatory.** If, after
+   consulting Motion, plain CSS (a transition/keyframe) or basic state logic is
+   simpler, lighter, or genuinely better for the case, choose that — and when
+   you do, **tell me explicitly that you're NOT using Motion and why** (e.g. "a
+   CSS transition handles this exit with less code and no per-frame JS"). Don't
+   silently skip Motion, and don't force it where simpler code wins.
+3. **A MotionScore performance audit** (Motion skill → `performance-audit/`) can
+   profile an existing animation/component/URL to get a baseline of animation
+   strength and jank, and to advise the best way to proceed — run one when
+   tuning or evaluating motion, or when unsure whether an approach is smooth.
+4. If stroked icons live inside a container whose layout animates and they
    shimmer in Safari, the fix is to promote the **whole moving row** to its own
    compositor layer (`transform: translateZ(0)`), NOT per-frame pixel snapping
    and NOT promoting individual icons. See `AGENTS.md` `webkit-icon-shimmer`.
-3. For project-specific animation history and lessons, search `DESIGN_SYSTEM.md`
+5. For project-specific animation history and lessons, search `DESIGN_SYSTEM.md`
    (MixerBar, RollingLabel, Masthead, card enter/exit, etc.)
 
 Do not hand-roll animation patterns Motion already covers without checking the
