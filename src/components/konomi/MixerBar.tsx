@@ -318,6 +318,13 @@ export function MixerBar({
   // state in the (currently unreachable, but not worth relying on) case
   // they ever overlapped.
   const [isSnapTransitioning, setIsSnapTransitioning] = useState(false);
+  // Whether the in-flight snap is GROWING (target taller than the current height)
+  // vs shrinking — set by the snap handlers from target-vs-current. Only used to
+  // pick the icon-fx direction (see isBarGeometryExpanding): a growing snap
+  // (50%/100% up arrow) expands with the panel, a shrinking snap (the down arrow
+  // to min) presses in like a manual shrink. Captured, not derived per-handler,
+  // so a 50% that happens to shrink from 100% still reads as a shrink.
+  const [isSnapGrowing, setIsSnapGrowing] = useState(false);
 
   // Continuously tracks whether the page is currently scrolled to its own
   // true bottom — read once below, right as editMode flips true, to know
@@ -1558,7 +1565,7 @@ export function MixerBar({
   // (isEditModeTransitioning while editMode is already false). dragHeightPx wins:
   // a drag is never treated as expanding even if a snap flag were somehow still set.
   const isBarGeometryExpanding =
-    dragHeightPx === null && (isSnapTransitioning || (isEditModeTransitioning && editMode));
+    dragHeightPx === null && ((isSnapTransitioning && isSnapGrowing) || (isEditModeTransitioning && editMode));
 
   // Measures growableFixedOverheadPx — see that state's own comment
   // (near its declaration) for why this is deliberately NOT the fast-
@@ -1697,6 +1704,7 @@ export function MixerBar({
     setDragHeightPx(null);
     isTransitioningRef.current = true;
     setIsSnapTransitioning(true);
+    setIsSnapGrowing(poolPanelMaxHeight * fraction > effectiveHeightPxRef.current);
     setPoolPanelHeightPref(poolPanelMaxHeight * fraction);
   }
   // The down arrow's own target — POOL_HEIGHT_MIN, not a fraction of
@@ -1707,6 +1715,9 @@ export function MixerBar({
     setDragHeightPx(null);
     isTransitioningRef.current = true;
     setIsSnapTransitioning(true);
+    // The down arrow targets POOL_HEIGHT_MIN — a shrink from anything above it,
+    // so this snap presses in rather than expands (see isBarGeometryExpanding).
+    setIsSnapGrowing(POOL_HEIGHT_MIN > effectiveHeightPxRef.current);
     setPoolPanelHeightPref(POOL_HEIGHT_MIN);
   }
   // Clears the snap-triggered freeze the same way isEditModeTransitioning's
