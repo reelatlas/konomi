@@ -670,10 +670,10 @@
        ramp covers the frame-0 promote blip LESS than instant-on slot 1 (scale
        starts at 1), so compare which reads better on-device. */
 [data-icon-fx="3"] .mixbar-controls-row {
-  transition: transform 90ms ease-out; /* eased release */
+  transition: transform 60ms ease-out; /* eased release */
 }
 [data-icon-fx="3"] .mixbar-controls-row.is-animating {
-  transform: scale(0.98) translateZ(0);
+  transform: scale(0.99) translateZ(0);
   transition: transform 90ms ease-out; /* eased press-in */
 }
 /* 4 — HARD RING: a flat on-brand accent ring snaps on each control box, settles
