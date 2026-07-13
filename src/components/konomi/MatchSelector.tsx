@@ -165,7 +165,7 @@ export function MatchSelector({ value, onChange, collapsed }: MatchSelectorProps
           // hint span below, and RollingLabel's own roll), so a ring adds
           // nothing and isn't worth leaving to inconsistent per-engine
           // default behavior.
-          className="py-[var(--space-md)] px-[var(--space-lg)] border-0 [outline:none] cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] bg-[var(--surface)] text-[var(--ink)]"
+          className="py-[var(--space-md)] leading-[16px] px-[var(--space-lg)] border-0 [outline:none] cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] bg-[var(--surface)] text-[var(--ink)]"
         >
           <RollingLabel value={value} />
         </button>
@@ -200,7 +200,12 @@ export function MatchSelector({ value, onChange, collapsed }: MatchSelectorProps
               // Matches LevelSelector's segment sizing exactly (py-md/px-lg,
               // text-xs, tracking-sm) — one consistent segmented-control
               // size across the app, not a MatchSelector-specific one.
-              "flex-1 py-[var(--space-md)] px-[var(--space-lg)] border-0 cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)]",
+              // leading-[16px]: whole line-height so the box resolves to a
+              // whole 32px (16 padding + 16 line) instead of 32.5 (default
+              // 1.5 leading on 11px text) — the ≥/tag icons that align to this
+              // cluster then centre on the device-pixel grid (AGENTS.md
+              // whole-pixel-geometry).
+              "flex-1 py-[var(--space-md)] leading-[16px] px-[var(--space-lg)] border-0 cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)]",
               i > 0 ? "border-l-[length:var(--border-thin)] border-l-[var(--ink)]" : "",
               active ? "bg-[var(--primary)] text-[var(--surface)]" : "bg-[var(--surface)] text-[var(--ink)]",
             ].join(" ")}

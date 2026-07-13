@@ -108,7 +108,7 @@ export function RatingBadge({ averageScore }: RatingBadgeProps) {
       ))}
       <div
         className={[
-          "relative font-display font-black text-[length:var(--text-sm)] tracking-[var(--tracking-lg)] border-[length:var(--border-base)] px-[var(--space-md)] py-[var(--space-xs)] shadow-[var(--elev-1)]",
+          "relative font-display text-[length:var(--text-sm)] tracking-[var(--tracking-lg)] border-[length:var(--border-base)] px-[var(--space-md)] py-[var(--space-xs)] shadow-[var(--elev-1)]",
           tier.plateClassName,
         ].join(" ")}
       >

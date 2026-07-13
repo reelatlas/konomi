@@ -206,7 +206,6 @@ interface TagCountBadgeProps {
   // this component did.
   bordered?: boolean;
   shadow?: boolean;
-  bold?: boolean;
   // Rotation in degrees, applied to the whole badge (shape, border, hole,
   // shadow, and label together) as one rigid unit. Defaults to 0 — this
   // component's own neutral default, not tied to any one caller's own
@@ -216,7 +215,7 @@ interface TagCountBadgeProps {
   tiltDeg?: number;
 }
 
-export function TagCountBadge({ label, perfect = false, bordered = true, shadow = true, bold = false, tiltDeg = 0 }: TagCountBadgeProps) {
+export function TagCountBadge({ label, perfect = false, bordered = true, shadow = true, tiltDeg = 0 }: TagCountBadgeProps) {
   const borderWidth = bordered ? 2 : 0; // matches --border-thin
   const ringWidth = holeRingWidth(borderWidth);
   const fill = perfect ? "var(--secondary)" : "var(--surface)";
@@ -249,7 +248,7 @@ export function TagCountBadge({ label, perfect = false, bordered = true, shadow 
       setTextWidth(textRef.current.offsetWidth);
       setTextHeight(textRef.current.offsetHeight);
     }
-  }, [label, bold]);
+  }, [label]);
   const bodyW = textWidth + BODY_PADDING * 2;
 
   // HEIGHT is the label's own measured line-height plus vertical padding
@@ -360,7 +359,6 @@ export function TagCountBadge({ label, perfect = false, bordered = true, shadow 
         className={[
           "absolute whitespace-nowrap font-display leading-none",
           textColorClass,
-          bold ? "font-black" : "",
           "text-[length:var(--text-sm)] tracking-[var(--tracking-lg)]",
         ].join(" ")}
         style={{ left: textLeft, top: "50%", transform: "translateY(-50%)" }}

@@ -72,6 +72,14 @@
   --space-huge: 48px;
   --space-page: 60px;
 
+  /* Shared height of the md control cluster — Tag Pool / Clear / Random /
+     Recommend / MIN MATCH / the md icon buttons and TagSlot all line up on
+     this one value. Whole + even (was 44.5px) so a centered icon's
+     (box - icon)/2 offset is a whole number and lands on the device-pixel
+     grid — see AGENTS.md whole-pixel-geometry. Single source: never re-author
+     the literal in a component. */
+  --control-h-md: 44px;
+
   /* z-index scale — introduced once the tag-pool/recommendations tab panel
      started keeping both bodies permanently mounted (one hidden via
      `display:none`, not unmounted, so scroll position survives a tab
@@ -558,6 +566,13 @@
      does, so a plain @layer base rule (not a @theme override) is enough. */
   .font-display {
     font-family: var(--font-anton), sans-serif;
+    /* Anton ships a single weight (400 — see layout.tsx). font-synthesis:none
+       stops the browser from FAUX-bolding it if a font-black/font-bold utility
+       ever lands on font-display text: synthesized bold on Anton renders much
+       heavier and blurrier in Safari than in Chrome (the RatingBadge/
+       TagCountBadge regression this guards against). Anton is a heavy display
+       face at 400 already; real emphasis comes from size, not weight. */
+    font-synthesis: none;
   }
 
   .font-body {
@@ -576,6 +591,49 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+/* MixerBar controls row is promoted to its own compositor layer WHILE THE PANEL
+   ANIMATES. THE fix for the Safari/WebKit resize shimmer: as the panel animates
+   (real height/margin-top) WebKit re-rasterizes descendant thin SVG strokes and
+   snaps them to the device-pixel grid every frame — the controls stroked icons
+   (Tag Pool, Clear, Random, MIN MATCH >=/tag, check) hopped +/-1px while filled
+   shapes (Recommend play) and text rode along cleanly. Caching the WHOLE row as
+   one composited layer means it is TRANSLATED, not re-rasterized, so the strokes
+   never re-snap. Confirmed on-device. Promoting individual icons instead desyncs
+   them (each becomes its own layer that snaps) — it has to be the whole row as
+   one unit. The whole-pixel geometry (AGENTS.md) pairs with this as resting-state
+   hygiene.
+
+   SCOPED to the .is-animating class (toggled by MixerBar for the open/close/snap
+   /drag animation only), NOT permanent. A permanent standalone layer here made
+   the ENTIRE bar rattle during a plain window resize — the compositor repositions
+   a stand-alone layer a frame out of step with the main-thread relayout of the
+   rest of the bar, on both engines, in every mode (browse or edit, small panel or
+   large). The shimmer only ever happens while the panel is animating, so the layer
+   is only needed then; at rest and during a window resize the row is a normal
+   in-flow element again, with nothing to rattle.
+
+   ENGAGE PRESS/EXPAND (same .is-animating window): a subtle scale, eased in and
+   out (90ms easeOut), that camouflages the one-time promote/demote AA re-raster
+   blip with a deliberate, on-brand "engaged" motion — the eye tracks the
+   intentional change and the ~1px blip disappears under it. The row PRESSES IN
+   (scale 0.99) by default; when the panel is GROWING (open, or a 50%/100% snap-up
+   — MixerBar adds .is-expanding) it inverts to a slight EXPAND (1.01) so the
+   controls read as growing WITH the panel. Manual drag and the shrink/close/
+   down-arrow keep the press. Scale is safe here because the row is ALREADY one
+   promoted raster, so scale() scales that cached bitmap on the compositor (a
+   little softness that reads AS the press) — it does NOT re-rasterize the strokes
+   per frame, so no shimmer returns. The base transition below covers both the
+   eased press-in (on .is-animating add) and the eased settle-back (on remove). */
+.mixbar-controls-row {
+  transition: transform 90ms ease-out;
+}
+.mixbar-controls-row.is-animating {
+  transform: scale(0.99) translateZ(0);
+}
+.mixbar-controls-row.is-animating.is-expanding {
+  transform: scale(1.01) translateZ(0);
 }
 
 /* RollingLabel's own slot-machine roll (MatchSelector/LevelSelector/

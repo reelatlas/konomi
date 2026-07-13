@@ -14,15 +14,17 @@ import type { LevelKey, SortKey } from "@/lib/konomi/types";
 // their setters are called directly from the control that changes them.
 const LEVEL_STORAGE_KEY = "konomi:tagpool:level";
 const SORT_STORAGE_KEY = "konomi:tagpool:sort";
-// MixerBar's edit-mode pool panel height, desktop-drag-resizable only —
-// see MixerBar.tsx's resize handle. Unlike level/sort (an enum, always
-// valid), this is the app's first persisted raw pixel value, so it needs
-// bounds-checking on every read, not just a type guard — a value dragged
-// tall on a large desktop monitor must not break a later, narrower/shorter
-// session (see clampPoolPanelHeight below). null means "never dragged, use
-// the CSS 50dvh default" — the stored key only exists once the user drags
-// at least once.
-const POOL_HEIGHT_STORAGE_KEY = "konomi:tagpool:poolPanelHeight";
+// MixerBar's edit-mode pool panel height, stored as a FRACTION of the current
+// resize ceiling (poolPanelMaxHeight), NOT an absolute pixel height. Storing the
+// proportion is what makes the panel track the window: at 70% it stays 70% of
+// whatever the ceiling is as the browser resizes, at 100% it stays glued to the
+// ceiling, etc. — instead of being pinned to the pixel height it happened to have
+// when set (which stopped reading as the same size the moment the viewport
+// changed). MixerBar multiplies this back out by the live ceiling (and clamps to
+// [POOL_HEIGHT_MIN, ceiling]). null = never set, use the default (POOL_HEIGHT_MIN).
+// New key (not the old absolute-px one) so pre-fraction values are simply ignored
+// and fall back to the default rather than being misread as a fraction.
+const POOL_HEIGHT_FRACTION_KEY = "konomi:tagpool:poolPanelHeightFraction";
 const DEFAULT_LEVEL: LevelKey = "1";
 const DEFAULT_SORT: SortKey = "popular";
 export const POOL_HEIGHT_MIN = 160;
@@ -192,12 +194,18 @@ function getSortSnapshot(): SortKey {
 // later clampPoolPanelHeight call is always the one actually binding, and
 // this one only ever catches genuinely absurd stored values (e.g. dragged
 // tall on a large monitor, then opened on a much shorter one).
-function getPoolHeightSnapshot(): number | null {
-  const stored = window.localStorage.getItem(POOL_HEIGHT_STORAGE_KEY);
+// Returns the stored height FRACTION (0..1] of the ceiling, or null if never set
+// / invalid. Pure of any live measurement now (no window read at all) — the
+// fraction is viewport-independent by construction, so unlike the old absolute-px
+// snapshot it needs no innerHeight clamp here; MixerBar multiplies it by the live
+// ceiling and clamps there. Values outside (0, 1] (e.g. a stale absolute px under
+// a different key, or a corrupt entry) are rejected -> null -> default.
+function getPoolHeightFractionSnapshot(): number | null {
+  const stored = window.localStorage.getItem(POOL_HEIGHT_FRACTION_KEY);
   if (stored === null) return null;
   const parsed = Number(stored);
-  if (!Number.isFinite(parsed) || parsed <= 0) return null;
-  return clampPoolPanelHeight(parsed, window.innerHeight * (1 - EDIT_MODE_TOP_BUFFER_RATIO));
+  if (!Number.isFinite(parsed) || parsed <= 0 || parsed > 1) return null;
+  return parsed;
 }
 
 export function useLevel(): LevelKey {
@@ -226,19 +234,19 @@ export function useSort(): SortKey {
 // — window isn't available server-side to clamp against anyway, and null
 // already means exactly "use the CSS default," which is the correct
 // pre-hydration state regardless of what's in localStorage.
-export function usePoolPanelHeight(): number | null {
+export function usePoolPanelHeightFraction(): number | null {
   return useSyncExternalStore(
     (callback) => {
       poolHeightListeners.add(callback);
       return () => poolHeightListeners.delete(callback);
     },
-    getPoolHeightSnapshot,
+    getPoolHeightFractionSnapshot,
     () => null,
   );
 }
 
 // MixerBar's own seed for a first-ever open (before the user has ever
-// dragged, i.e. usePoolPanelHeight() above is still null) is just
+// dragged, i.e. usePoolPanelHeightFraction() above is still null) is just
 // POOL_HEIGHT_MIN itself — opens at the same minimum height a user could
 // drag down to, so the sheet reads as "already at its floor, expand if you
 // want more" rather than guessing a taller default. A plain constant, not
@@ -256,7 +264,11 @@ export function setSortPref(sort: SortKey) {
   sortListeners.forEach((callback) => callback());
 }
 
-export function setPoolPanelHeightPref(height: number) {
-  window.localStorage.setItem(POOL_HEIGHT_STORAGE_KEY, String(Math.round(height)));
+// Stores the pool height as a fraction (0..1] of the current ceiling. Callers
+// pass height/ceiling (see MixerBar's persist sites); clamped to (0, 1] here so a
+// tiny rounding overshoot at max still reads back as a valid fraction.
+export function setPoolPanelHeightFraction(fraction: number) {
+  const clamped = Math.min(1, Math.max(0.0001, fraction));
+  window.localStorage.setItem(POOL_HEIGHT_FRACTION_KEY, String(clamped));
   poolHeightListeners.forEach((callback) => callback());
 }
