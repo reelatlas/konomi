@@ -73,16 +73,29 @@ export function Masthead({ theme, onThemeChange, collapsed }: MastheadProps) {
       // read as physical, not so much it overshoots and settles visibly.
       transition={{ type: "spring", duration: 0.4, bounce: 0.2 }}
       className={[
-        // mb-[space-2xl] (was space-3xl): the masthead->recommendations gap
-        // is deliberately the SAME 24px as every other frame gap in the app
-        // (page top->masthead, left/right edge->content, recommendations->
-        // mixbar, page bottom->mixbar), for one uniform gutter everywhere.
-        // --space-2xl is the single reference value for all of them; do not
-        // reintroduce a larger value here without matching the rest.
-        "bg-[var(--surface)] px-[var(--space-2xl)] pb-0 mb-[var(--space-2xl)]",
+        // The masthead->content gap is the SAME 24px (--space-2xl) as every
+        // other frame gap in the app (page top->masthead, left/right edge->
+        // content, recommendations->mixbar, page bottom->mixbar), for one
+        // uniform gutter everywhere. --space-2xl is the single reference value;
+        // do not reintroduce a larger value without matching the rest.
+        //
+        // BUT the expanded state carries the rotate-[-0.5deg] tilt (below), and
+        // a tilt rotates the box about its centre — so its lowest corner dips
+        // BELOW the element's own layout box by (width * sin(0.5deg) / 2), and
+        // margin is measured from the un-rotated box, so a flat mb-24 leaves the
+        // real gap at that dipping corner only ~18.5px at desktop (measured),
+        // reading as too tight next to the app's other true-24 gaps. So the
+        // expanded margin adds that dip back — 24px measured from the BOTTOM of
+        // the tilt, not the un-rotated edge. The dip scales with width (the
+        // masthead is min(1280px, 100vw - 2*gutter) wide), so this is a
+        // width-tracking calc, not a fixed fudge — exactly 24px at the low
+        // corner at every viewport. 0.00436 = sin(0.5deg)/2. Collapsed has no
+        // tilt, so it keeps the plain flat 24px. (Same class of browser-derived
+        // fractional gap-compensation as ResultsHeader's own calc.)
+        "bg-[var(--surface)] px-[var(--space-2xl)] pb-0",
         collapsed
-          ? "border-b-[length:var(--border-base)] border-b-[var(--ink)] shadow-[var(--elev-3)]"
-          : "border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-5)] rotate-[-0.5deg] pt-[var(--space-2xl)]",
+          ? "border-b-[length:var(--border-base)] border-b-[var(--ink)] shadow-[var(--elev-3)] mb-[var(--space-2xl)]"
+          : "border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-5)] rotate-[-0.5deg] pt-[var(--space-2xl)] mb-[calc(var(--space-2xl)_+_min(1280px,100vw_-_var(--space-2xl)*2)*0.00436)]",
       ].join(" ")}
     >
       {/* flex-nowrap (the default, not written out) on this outer row in
