@@ -12,13 +12,19 @@ interface ResultsHeaderProps {
 
 // Results-state chrome only: the Clear ✕ button and the Filter popover,
 // right-aligned. There is NO "Recommendations" title text anymore (dropped to
-// condense the page), and this whole row renders ONLY when there are results —
-// in the empty state the Tag Density/Sort filters live inside the empty-state
-// box itself (RecommendationsBody), so there's no header or filter control to
-// show here at all. Returning null (rather than an empty row) lets the empty
-// state reclaim that vertical space.
+// condense the page), and the Clear ✕ / Filter CONTENT shows only when there
+// are results — in the empty state the Tag Density/Sort filters live inside the
+// empty-state box itself (RecommendationsBody), so there's nothing to show here.
+//
+// The row's own HEIGHT (min-h-[30px] + mb-[space-2xl]) is reserved in BOTH
+// states, though — the wrapper always renders, only its content is gated on
+// hasResults. Requested directly: without this, clearing results made this row
+// collapse to nothing the instant hasResults flipped false, and the cards —
+// still visible, mid-exit-animation — jumped upward into the vacated space
+// instead of sweeping out from their own row. Keeping the space means the cards
+// exit from exactly where they sat, and the empty state below stays in the same
+// position the results grid occupied (no shift on clear).
 export function ResultsHeader({ hasResults, onClearRecs, onLevelChange }: ResultsHeaderProps) {
-  if (!hasResults) return null;
   return (
     // Always flex-row, never flex-col — this row must never wrap to two
     // lines: wrapping would push the card row's own spawn position down,
@@ -43,9 +49,10 @@ export function ResultsHeader({ hasResults, onClearRecs, onLevelChange }: Result
     // same uniform gutter as card→mixer). justify-end: buttons sit at the right,
     // where the Clear+Filter cluster always was.
     <div className="flex flex-row items-center justify-end min-h-[30px] gap-x-[var(--space-lg)] mb-[var(--space-2xl)]">
-      <div className="flex items-center gap-[var(--space-lg)] flex-wrap">
-        {
-          // data-clear-results + contents: lets MixerBar's click-outside-
+      {hasResults && (
+        <div className="flex items-center gap-[var(--space-lg)] flex-wrap">
+          {
+            // data-clear-results + contents: lets MixerBar's click-outside-
           // closes-edit-mode listener allowlist this button via a single
           // closest() check (see that file's own comment) without this
           // wrapper affecting layout — display:contents removes the span
@@ -126,9 +133,10 @@ export function ResultsHeader({ hasResults, onClearRecs, onLevelChange }: Result
               <CloseIcon />
             </IconButton>
           </span>
-        }
-        <ResultsFilterButton onLevelChange={onLevelChange} />
-      </div>
+          }
+          <ResultsFilterButton onLevelChange={onLevelChange} />
+        </div>
+      )}
     </div>
   );
 }

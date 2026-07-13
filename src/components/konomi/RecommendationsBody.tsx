@@ -819,19 +819,23 @@ export function RecommendationsBody({
                     // instance's genuine first mount — see
                     // ResultCard.tsx's own enterDelayMs comment.
                     const enterDelayMs = isEnteringFromSwap ? 0 : index * effectiveStaggerMs;
-                    // Exit: R->L, (count-1-index) * stagger, computed
-                    // fresh every render (not just while this card happens
-                    // to be about to be removed) using this card's own
-                    // index/count in the full, still-current `results`
-                    // array — a locked card that stays put doesn't shift
-                    // the timing of the ones sweeping around it, it just
-                    // sits still while the sweep passes its slot. See
-                    // ResultCard.tsx's own exitDelayMs comment for why
+                    // Exit: L->R, index * stagger — the SAME left-to-right
+                    // order as the enter above (requested directly: clear
+                    // sweeps out left-to-right, not the old right-to-left). The
+                    // cards still leave upward (that's the exit variant in
+                    // ResultCard.tsx, unchanged); only the horizontal stagger
+                    // order flipped, so the leftmost card leaves first. Computed
+                    // fresh every render (not just while this card happens to be
+                    // about to be removed) using this card's own index in the
+                    // full, still-current `results` array — a locked card that
+                    // stays put doesn't shift the timing of the ones sweeping
+                    // around it, it just sits still while the sweep passes its
+                    // slot. See ResultCard.tsx's own exitDelayMs comment for why
                     // computing this unconditionally is what makes
-                    // AnimatePresence's "freeze last render's props"
-                    // behavior land on the correct pre-removal value with
-                    // no separate lagging snapshot list required.
-                    const exitDelayMs = (results.length - 1 - index) * effectiveStaggerMs;
+                    // AnimatePresence's "freeze last render's props" behavior
+                    // land on the correct pre-removal value with no separate
+                    // lagging snapshot list required.
+                    const exitDelayMs = index * effectiveStaggerMs;
                     return (
                       <ResultCard
                         key={entry.series.title}
