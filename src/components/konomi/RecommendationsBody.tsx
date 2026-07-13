@@ -1,8 +1,9 @@
 import { AnimatePresence } from "motion/react";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import type { ResultEntry, TagInfo } from "@/lib/konomi/types";
+import type { LevelKey, ResultEntry, TagInfo } from "@/lib/konomi/types";
 import { useAnimationDebugValues } from "./animationDebugStore";
 import { getAnimatingPaceCount, getEffectiveStaggerMs, getVisibleCardTierCount } from "./cardAnimTuning";
+import { FilterControls } from "./FilterControls";
 import { IsBatchClearActiveContext, ResultCard } from "./ResultCard";
 import { ScrollFadeArea } from "./ScrollFadeArea";
 import { useLevel, useSort } from "./tagPoolPrefs";
@@ -204,6 +205,10 @@ interface RecommendationsBodyProps {
   onChipToggle: (tag: string) => void;
   tagInfoByName: Map<string, TagInfo>;
   totalSeriesCount: number;
+  // Powers the Tag Density/Sort filters embedded in the empty-state box (see
+  // FilterControls) — the same handler ResultsHeader threads into the results-
+  // state Filter popover, so both surfaces drive the identical level cascade.
+  onLevelChange: (level: LevelKey) => void;
 }
 
 // Body-only — the section-level chrome (border/shadow/padding) and the
@@ -230,6 +235,7 @@ export function RecommendationsBody({
   onChipToggle,
   tagInfoByName,
   totalSeriesCount,
+  onLevelChange,
 }: RecommendationsBodyProps) {
   const level = useLevel();
   const sort = useSort();
@@ -471,6 +477,20 @@ export function RecommendationsBody({
           <p className="font-mono text-[length:var(--text-base)] text-[var(--primary)] m-0 mt-[var(--space-xs)]">
             {EMPTY_STATE_COPY[emptyStateIndex].payoff}
           </p>
+          {/* The Tag Density + Sort filters, embedded directly in the empty
+              state (not behind the results-header Filter popover, which isn't
+              shown here) so a first-time user meets the two things they can
+              adjust up front. Same FilterControls the popover uses — one
+              source, so they stay identical. A hairline rule + extra top gap
+              set them apart from the flavor copy above as their own "what you
+              can tune" zone. w-[min(340px,100%)] + mx-auto: a definite,
+              centred width — required because FilterControls is a @container
+              whose children query it (see FilterControls.tsx), and it also
+              sizes the divider so the rule spans exactly the filter block's own
+              width rather than the whole box. */}
+          <div className="w-[min(340px,100%)] mx-auto mt-[var(--space-lg)] pt-[var(--space-xl)] border-t-[length:var(--border-hair)] border-[var(--muted)]">
+            <FilterControls onLevelChange={onLevelChange} className="w-full" />
+          </div>
         </div>
       )}
 

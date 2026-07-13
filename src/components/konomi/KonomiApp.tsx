@@ -433,6 +433,7 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
               onChipToggle={k.toggleTag}
               tagInfoByName={k.tagInfoByName}
               totalSeriesCount={k.totalSeriesCount}
+              onLevelChange={handleLevelChange}
             />
           </section>
         </div>
