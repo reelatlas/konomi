@@ -25,8 +25,8 @@ import {
   clampPoolPanelHeight,
   EDIT_MODE_FIXED_ROWS_HEIGHT,
   POOL_HEIGHT_MIN,
-  setPoolPanelHeightPref,
-  usePoolPanelHeight,
+  setPoolPanelHeightFraction,
+  usePoolPanelHeightFraction,
   usePoolPanelMaxHeight,
 } from "./tagPoolPrefs";
 import { TagPoolBody } from "./TagPoolBody";
@@ -772,21 +772,21 @@ export function MixerBar({
   // (component state, not persisted) so the panel tracks the pointer
   // smoothly; the committed value is written to localStorage once on
   // release, not on every mousemove.
-  const persistedHeightPx = usePoolPanelHeight();
+  // Persisted as a FRACTION of the ceiling (see tagPoolPrefs), multiplied back out
+  // by the live poolPanelMaxHeight below — so the panel keeps its proportion as the
+  // window resizes (70% stays 70%, max stays max) instead of holding a fixed px.
+  const persistedFraction = usePoolPanelHeightFraction();
   const [dragHeightPx, setDragHeightPx] = useState<number | null>(null);
-  // Task C (height-freeze): effectiveHeightPx snapshotted at the START of a
-  // window-resize burst and held for its whole duration, so the panel's own
-  // height stops twitching mid-resize. null = not resizing. isWindowResizingRef
-  // already freezes the async OVERHEAD (the marginTop/ceiling desync); this
-  // freezes the height too. The one that actually matters day-to-day is mobile
-  // Safari's address-bar show/hide storm: every one of those fires a `resize`
-  // that changes window.innerHeight -> poolPanelMaxHeight, and when the panel
-  // sits near that ceiling the clamp re-snaps its height on every event, so the
-  // panel visibly jumps while you're just scrolling. Holding the pre-resize
-  // height for the burst and re-clamping once on settle (see the resize effect
-  // below) turns that storm into at most a single settle at the end. Set only
-  // from that effect's own resize handler; the render body just reads it.
-  const [frozenResizeHeightPx, setFrozenResizeHeightPx] = useState<number | null>(null);
+  // No height-freeze during a window resize (deliberately): because the height is
+  // now a FRACTION of the live ceiling (effectiveHeightPx = fraction * max), it
+  // scales SMOOTHLY as the window resizes — expanding/shrinking exactly like a
+  // manual drag rather than holding fixed and snapping once at the end. That
+  // fraction model also removes the old address-bar-storm "twitch" a freeze was
+  // once added to guard against: that twitch was the absolute-px clamp cutting the
+  // height when the ceiling dropped; a proportional height never gets cut, it just
+  // tracks. isWindowResizingRef below still freezes the async OVERHEAD (the
+  // marginTop/ceiling desync) so the live height stays coherent with a stable
+  // overhead in the same commit — that half stays.
   // The resize drag animates the panel's REAL height/margin-top every frame
   // (see handleResizeStart). On WebKit that per-frame paint re-rasterizes the
   // controls row's thin SVG-stroke icons and snaps them to the pixel grid,
@@ -1409,19 +1409,16 @@ export function MixerBar({
   // freeze (above) covers the same class of mid-drag resize event for the
   // other consumers of poolPanelMaxHeight (canShowResizeHandleRow, the
   // 50%/100% buttons), so this line and that guard are two halves of one fix.
-  // Priority: a live drag wins (tracks the pointer); then a frozen resize height
-  // (Task C — held for a resize burst so the panel doesn't twitch, re-clamped
-  // once on settle); otherwise the normal live clamp. frozenResizeHeightPx was
-  // itself the live-clamped value at the instant the resize started, so it's
-  // already a valid height — deliberately NOT re-clamped against the live
-  // ceiling here, since re-clamping every resize event is exactly the twitch
-  // this freezes out (same reasoning as the dragHeightPx branch above).
+  // Priority: a live drag wins (tracks the pointer); otherwise the persisted
+  // fraction times the LIVE ceiling (clamped to [MIN, ceiling]) — so a window
+  // resize scales the panel smoothly and proportionally, exactly like a manual
+  // drag. First-ever open (no stored fraction) uses the MIN default.
   const effectiveHeightPx =
     dragHeightPx !== null
       ? dragHeightPx
-      : frozenResizeHeightPx !== null
-        ? frozenResizeHeightPx
-        : clampPoolPanelHeight(persistedHeightPx ?? defaultPoolHeightPx, poolPanelMaxHeight);
+      : persistedFraction === null
+        ? defaultPoolHeightPx
+        : clampPoolPanelHeight(persistedFraction * poolPanelMaxHeight, poolPanelMaxHeight);
 
   // effectiveHeightPxRef mirrors effectiveHeightPx every render without
   // being a dependency of the effect below — same ref-mirroring pattern
@@ -1648,25 +1645,18 @@ export function MixerBar({
     const RESIZE_SETTLE_MS = 150;
     let settleTimer: ReturnType<typeof setTimeout> | undefined;
     function onResize() {
-      // On the FIRST event of a burst only (false -> true), snapshot the current
-      // effectiveHeightPx (Task C) so the panel height is held at its pre-resize
-      // value for the whole burst instead of re-clamping on every event. Reading
-      // the ref here (not state) is deliberate: this is an event handler, and the
-      // ref holds the value from the last committed render, i.e. before this
-      // resize perturbed anything. Never a drag at this point (a drag suppresses
-      // nothing here, but dragHeightPx takes priority in the render body anyway).
-      if (!isWindowResizingRef.current) {
-        setFrozenResizeHeightPx(effectiveHeightPxRef.current);
-      }
+      // Mark a resize active so the two overhead measure()s skip mid-resize
+      // (freezing the async half of the marginTop/ceiling math while the live,
+      // synchronous, proportional height keeps tracking). The height itself is NOT
+      // frozen — it scales smoothly with the live ceiling, so the panel expands/
+      // shrinks like a manual drag. See effectiveHeightPx above.
       isWindowResizingRef.current = true;
       if (settleTimer) clearTimeout(settleTimer);
       settleTimer = setTimeout(() => {
         isWindowResizingRef.current = false;
-        // Release the height freeze -> the render body re-clamps against the
-        // now-settled poolPanelMaxHeight exactly once (shrinking the panel to
-        // fit if the viewport genuinely got shorter), and re-sync both overheads
-        // in the same pass — the same catch-up handleEnd does on drag release.
-        setFrozenResizeHeightPx(null);
+        // Re-sync both overheads once the resize settles (in case a breakpoint
+        // genuinely changed a row's height) — same catch-up handleEnd does on
+        // drag release. The height already tracked live, so nothing snaps here.
         measureFixedOverheadRef.current();
         measureGrowableFixedOverheadRef.current();
       }, RESIZE_SETTLE_MS);
@@ -1675,11 +1665,10 @@ export function MixerBar({
     return () => {
       window.removeEventListener("resize", onResize);
       if (settleTimer) clearTimeout(settleTimer);
-      // Never leave either freeze latched if the effect tears down mid-resize
-      // (e.g. edit mode closes) — a stuck flag/height would silently freeze the
-      // next edit session's very first measurement or height.
+      // Never leave the overhead freeze latched if the effect tears down mid-resize
+      // (e.g. edit mode closes) — a stuck flag would silently freeze the next edit
+      // session's very first measurement.
       isWindowResizingRef.current = false;
-      setFrozenResizeHeightPx(null);
     };
   }, [editMode]);
 
@@ -1705,7 +1694,9 @@ export function MixerBar({
     isTransitioningRef.current = true;
     setIsSnapTransitioning(true);
     setIsSnapGrowing(poolPanelMaxHeight * fraction > effectiveHeightPxRef.current);
-    setPoolPanelHeightPref(poolPanelMaxHeight * fraction);
+    // The snap fraction (0.5 / 1) IS the proportion to persist — so a 100% snap
+    // stays glued to the ceiling and a 50% snap stays at half as the window resizes.
+    setPoolPanelHeightFraction(fraction);
   }
   // The down arrow's own target — POOL_HEIGHT_MIN, not a fraction of
   // poolPanelMaxHeight, so this can't just be another handleSnapPoolHeight
@@ -1718,7 +1709,9 @@ export function MixerBar({
     // The down arrow targets POOL_HEIGHT_MIN — a shrink from anything above it,
     // so this snap presses in rather than expands (see isBarGeometryExpanding).
     setIsSnapGrowing(POOL_HEIGHT_MIN > effectiveHeightPxRef.current);
-    setPoolPanelHeightPref(POOL_HEIGHT_MIN);
+    // Persist MIN as the fraction it currently represents, so "reset" lands on the
+    // floor now and still scales proportionally on later resizes like any other height.
+    setPoolPanelHeightFraction(POOL_HEIGHT_MIN / poolPanelMaxHeight);
   }
   // Clears the snap-triggered freeze the same way isEditModeTransitioning's
   // own effect clears its — see that effect's comment for why a setTimeout,
@@ -1908,7 +1901,10 @@ export function MixerBar({
       }
       flushPendingMove();
       const finalHeight = liveHeightRef.current;
-      setPoolPanelHeightPref(finalHeight);
+      // Persist the drag's ending PROPORTION of the ceiling (poolPanelMaxHeight
+      // here is the drag-start value finalHeight was clamped against, this closure),
+      // so wherever it was dragged to stays at that proportion on later resizes.
+      setPoolPanelHeightFraction(finalHeight / poolPanelMaxHeight);
       // dragHeightPx already held the real final height the whole time; clearing
       // it hands the same value to the persisted branch — no jump.
       setDragHeightPx(null);
