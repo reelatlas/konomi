@@ -1549,6 +1549,16 @@ export function MixerBar({
   // Off at rest and during a window resize -> the row is a normal in-flow element
   // with no floating layer to rattle. See globals.css for the full writeup.
   const isBarGeometryAnimating = isEditModeTransitioning || isSnapTransitioning || dragHeightPx !== null;
+  // Direction of the icon-fx treatment (see globals.css .is-expanding): the panel
+  // GROWING should read as "expanding" (some treatments invert to scale up),
+  // everything else as the default (press-in / shrink). Growing = a 50%/100%
+  // resize-shortcut snap, or the open transition (editMode just became true).
+  // Keeps the default (press) for a manual drag (dragHeightPx set — a drag can go
+  // either way, so it stays the neutral press) and for the close transition
+  // (isEditModeTransitioning while editMode is already false). dragHeightPx wins:
+  // a drag is never treated as expanding even if a snap flag were somehow still set.
+  const isBarGeometryExpanding =
+    dragHeightPx === null && (isSnapTransitioning || (isEditModeTransitioning && editMode));
 
   // Measures growableFixedOverheadPx — see that state's own comment
   // (near its declaration) for why this is deliberately NOT the fast-
@@ -2875,7 +2885,7 @@ export function MixerBar({
             own wrap point — those wrap points are just measured against this
             container now, not the screen. */}
         <div className="@container">
-        <div className={`mixbar-controls-row${isBarGeometryAnimating ? " is-animating" : ""} flex flex-nowrap items-center gap-x-[var(--space-lg)]`}>
+        <div className={`mixbar-controls-row${isBarGeometryAnimating ? " is-animating" : ""}${isBarGeometryExpanding ? " is-expanding" : ""} flex flex-nowrap items-center gap-x-[var(--space-lg)]`}>
           {/* LEFT group. min-w-0: lets this flex item (and, more directly,
               its own min-w-0 slots sub-group below) actually shrink below
               its natural content width once the row runs out of room —

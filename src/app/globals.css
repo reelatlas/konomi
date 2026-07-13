@@ -670,11 +670,19 @@
        ramp covers the frame-0 promote blip LESS than instant-on slot 1 (scale
        starts at 1), so compare which reads better on-device. */
 [data-icon-fx="3"] .mixbar-controls-row {
-  transition: transform 60ms ease-out; /* eased release */
+  transition: transform 90ms ease-out; /* eased release */
 }
 [data-icon-fx="3"] .mixbar-controls-row.is-animating {
   transform: scale(0.99) translateZ(0);
   transition: transform 90ms ease-out; /* eased press-in */
+}
+/* INVERT on GROW (open + 50%/100% snap arrow — see MixerBar is-expanding): the
+   row expands slightly WITH the growing panel instead of pressing in — same
+   magnitude, opposite direction (0.99 -> 1.01). Manual drag and close keep the
+   press. Higher specificity (extra class) overrides the scale above; transition/
+   revert are inherited from the two rules above unchanged. */
+[data-icon-fx="3"] .mixbar-controls-row.is-animating.is-expanding {
+  transform: scale(1.01) translateZ(0);
 }
 /* 4 — HARD RING: a flat on-brand accent ring snaps on each control box, settles
        (matches Konomi's hard-edged shadow language rather than a soft glow) */
