@@ -481,15 +481,17 @@ export function RecommendationsBody({
               state (not behind the results-header Filter popover, which isn't
               shown here) so a first-time user meets the two things they can
               adjust up front. Same FilterControls the popover uses — one
-              source, so they stay identical. A hairline rule + extra top gap
-              set them apart from the flavor copy above as their own "what you
-              can tune" zone. w-[min(340px,100%)] + mx-auto: a definite,
-              centred width — required because FilterControls is a @container
-              whose children query it (see FilterControls.tsx), and it also
-              sizes the divider so the rule spans exactly the filter block's own
-              width rather than the whole box. */}
-          <div className="w-[min(340px,100%)] mx-auto mt-[var(--space-lg)] pt-[var(--space-xl)] border-t-[length:var(--border-hair)] border-[var(--muted)]">
-            <FilterControls onLevelChange={onLevelChange} className="w-full" />
+              source — but layout="inline": both fields sit side by side on one
+              line, centred below the divider, progressively reducing (drop
+              labels → single-segment → wrap) exactly like MixerBar's controls
+              rather than stacking. A hairline rule + extra top gap set them
+              apart from the flavor copy above as their own "what you can tune"
+              zone. w-[min(560px,100%)] + mx-auto: a definite, centred width —
+              required because FilterControls is a @container whose children
+              query it (see FilterControls.tsx), wide enough to hold the full
+              inline row (~510px) at desktop; it also sizes the divider. */}
+          <div className="w-[min(560px,100%)] mx-auto mt-[var(--space-lg)] pt-[var(--space-xl)] border-t-[length:var(--border-hair)] border-[var(--muted)]">
+            <FilterControls onLevelChange={onLevelChange} layout="inline" className="w-full" />
           </div>
         </div>
       )}
