@@ -70,13 +70,15 @@ export function FilterControls({ onLevelChange, layout = "popover", className }:
   const collapsedShow = inline ? "hidden @max-[390px]:block" : "hidden max-[369px]:block";
 
   // INLINE root: a centered flex-wrap @container row, in the wide, symmetric
-  // empty-state box. POPOVER root: a right-aligned flex-COL — its two fields
-  // always sit on their own rows (Density above Sort), each sized to its own
-  // content so the dialog's w-max hugs the widest of the two. gap-y 2xl clears
+  // empty-state box. POPOVER root: a LEFT-aligned flex-COL (items-start) — its
+  // two fields always sit on their own rows (Density above Sort), each sized to
+  // its own content so the dialog's w-max still hugs the widest of the two; only
+  // the alignment within that hug is left, not right (requested — reads more
+  // naturally under the on-top labels than the old right-flush). gap-y 2xl clears
   // LevelSelector's own hover hint between the rows / wrapped lines.
   const root = inline
     ? "@container flex flex-row flex-wrap items-center justify-center gap-x-[var(--space-xl)] gap-y-[var(--space-2xl)]"
-    : "flex flex-col items-end gap-y-[var(--space-2xl)]";
+    : "flex flex-col items-start gap-y-[var(--space-2xl)]";
   const labelBase = "font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap";
 
   // LABEL-ON-TOP field, used by BOTH surfaces. A 2-column grid; DOM order is
