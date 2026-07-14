@@ -67,17 +67,18 @@ interface ResultCardProps {
   // animation-delay via inline style.
   animationDelayMs?: number;
   // Enables the Motion `layout` FLIP slide (below) that animates a surviving
-  // card from its old grid slot to its new one when the row reorders — locked
-  // cards compacting to the front on a RECOMMEND/Clear ✕ (see recommend()/
-  // clearRecs() in useKonomi.ts). Passed true ONLY on the desktop 5-across grid
-  // tier by RecommendationsBody (visibleCardTierCount === 5): the mobile
-  // carousel is a horizontal scroll-snap row whose own scrollReset + snap would
-  // fight a layout transform, so it's deliberately left snapping for now (a
-  // different treatment for that tier is a future idea). This is FLIP — the one
-  // thing plain CSS genuinely can't do (a reorder has no interpolable "from"),
-  // and Motion `layout` is its canonical tool; enter/exit stay CSS keyframes
-  // (unchanged), since `layout` only animates position deltas and never replays
-  // a mount `initial`, so the locked-card re-animation scar doesn't apply here.
+  // card from its old slot to its new one when the row reorders — locked cards
+  // compacting to the front on a RECOMMEND/Clear ✕ (see recommend()/clearRecs()
+  // in useKonomi.ts). Passed on ALL tiers by RecommendationsBody (grid AND the
+  // scroll-snap carousel) for a consistent feel; CDP-verified smooth on the
+  // carousel (scrollLeft stays put, no snap fight). Kept as a prop rather than
+  // hardcoded so a future per-breakpoint gate (e.g. skip the very narrowest
+  // width, where a RECOMMEND's scroll-reset slides the locks off-screen anyway)
+  // has a seam. This is FLIP — the one thing plain CSS genuinely can't do (a
+  // reorder has no interpolable "from"), and Motion `layout` is its canonical
+  // tool; enter/exit stay CSS keyframes (unchanged), since `layout` only
+  // animates position deltas and never replays a mount `initial`, so the
+  // locked-card re-animation scar doesn't apply here.
   layoutSlide?: boolean;
   // Gate for WHEN Motion re-measures for the FLIP: `layout` otherwise animates
   // on every render that shifts this card's box — including a plain window

@@ -1130,14 +1130,25 @@ export function RecommendationsBody({
                         isExiting={isExiting}
                         animationDelayMs={animationDelayMs}
                         // FLIP-slide a surviving card to its new slot when the
-                        // row reorders (locks compacting to the front), grid
-                        // tier only — the carousel (tier < 5) stays snapping,
-                        // its scroll-snap/reset would fight a layout transform.
-                        // visibleCardTierCount === 5 is exactly the >=1152px
-                        // grid tier (cardAnimTuning breakpoints). layoutDependency
-                        // is the displayedResults reference so Motion only
-                        // re-measures on a genuine reorder, not on resize renders.
-                        layoutSlide={visibleCardTierCount === 5}
+                        // row reorders (locks compacting to the front). Enabled
+                        // on ALL tiers, carousel included, for consistency: the
+                        // carousel often shows several cards at once (and shows
+                        // up on mid-range resizes/breakpoints), so the slide is
+                        // frequently visible there too — and it's CDP-verified
+                        // smooth on the scroll-snap row (scrollLeft stays put,
+                        // no snap fight) in both directions. The one spot it's
+                        // effectively unseen is a RECOMMEND at the narrowest
+                        // widths, where the scroll-reset-to-first-new-card slides
+                        // the locked block off-screen left — harmless (still no
+                        // jank), and a candidate for a future per-breakpoint gate
+                        // via this same prop (kept as the seam) or a different
+                        // header cue for that case. Clear ✕ has no scroll reset,
+                        // so its slide is visible on the carousel and worth it.
+                        // The prop still routes through ResultCard's reduced-motion
+                        // gate. layoutDependency is the displayedResults reference
+                        // so Motion only re-measures on a genuine reorder, never
+                        // on a resize render.
+                        layoutSlide
                         layoutDependency={displayedResults}
                       />
                     );
