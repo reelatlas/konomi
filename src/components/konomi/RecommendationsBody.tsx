@@ -598,13 +598,14 @@ export function RecommendationsBody({
         // emptyBoxAnimStyle play the rise+fade keyframe (globals.css) on the same
         // timing/travel as the cards.
         <div
-          className={`@container border-[length:var(--border-base)] border-dashed border-[var(--muted)] bg-[var(--slot-empty)] mt-[calc((30px_+_var(--space-lg))_*_-1)] min-h-[calc(var(--result-card-height)_+_30px_+_var(--space-lg))] grid grid-rows-[1fr_1fr] px-[var(--space-2xl)] py-[var(--space-2xl)] text-center ${emptyBoxOverlay ? "absolute inset-x-0 top-0" : ""} ${emptyBoxAnimClass}`}
+          className={`@container border-[length:var(--border-base)] border-dashed border-[var(--muted)] bg-[var(--slot-empty)] mt-[calc((30px_+_var(--space-lg))_*_-1)] min-h-[calc(var(--result-card-height)_+_30px_+_var(--space-lg))] grid grid-rows-[1fr_1fr_1fr] px-[var(--space-2xl)] py-[var(--space-2xl)] text-center ${emptyBoxOverlay ? "absolute inset-x-0 top-0" : ""} ${emptyBoxAnimClass}`}
           style={emptyBoxAnimStyle}
         >
-          {/* Two balanced halves (grid-rows-[1fr_1fr], no divider line): the
-              headline group centers in the upper 1fr, the filters in the lower
-              1fr — rather than one center-stacked clump (requested). The visible
-              rule that used to mark the middle was removed. */}
+          {/* THREE equal sections (grid-rows-[1fr_1fr_1fr], no divider lines),
+              each centered horizontally + vertically in its own 1fr band
+              (requested): TOP = hero headline + instruction; MIDDLE = filters
+              (+ surfaced buttons); BOTTOM = the rotating payoff line. */}
+          {/* TOP: hero + instruction. */}
           <div className="flex flex-col items-center justify-center gap-[var(--space-md)]">
           <div className="font-display text-[length:var(--text-2xl)] text-[var(--muted)] uppercase">
             {EMPTY_STATE_COPY[emptyStateIndex].headline}
@@ -623,29 +624,15 @@ export function RecommendationsBody({
               matches the arrow-phrase's own casing (the removed Masthead
               tagline was lowercase too) rather than shouting a functional
               instruction. */}
-          {/* -mt-[var(--space-xs)]: the container's own gap-md (below)
-              applies uniformly to every child, but headline->instruction
-              wanted to be tighter than instruction->payoff (left as
-              gap-md, unchanged) — pulling just this line up by space-xs
-              nets a smaller gap above it without touching the one below,
-              rather than restructuring the container into two separately-
-              gapped groups for a single-value tweak. */}
+          {/* -mt-[var(--space-xs)]: tightens the headline->instruction gap a
+              touch below the container's shared gap-md (the payoff that used to
+              follow moved to its own BOTTOM section). */}
           <p className="font-mono text-[length:var(--text-base)] tracking-[var(--tracking-xl)] text-[var(--subtext)] m-0 -mt-[var(--space-xs)]">
             {EMPTY_STATE_INSTRUCTION}
           </p>
-          {/* mt-[var(--space-xs)]: same technique as the instruction's own
-              -mt above, opposite direction — widens just this gap (on top
-              of the container's shared gap-md) without touching
-              headline->instruction. */}
-          <p className="font-mono text-[length:var(--text-base)] text-[var(--primary)] m-0 mt-[var(--space-xs)]">
-            {EMPTY_STATE_COPY[emptyStateIndex].payoff}
-          </p>
           </div>
-          {/* Bottom half: filters (+ the surfaced Tag Pool/Random row), centered
-              vertically in the lower 1fr region. The divider line that used to sit
-              between the two halves was removed (requested); the grid is now two
-              balanced 1fr rows (headline group centered in the top half, filters
-              in the bottom), so the split is kept without a visible rule. */}
+          {/* MIDDLE: filters (+ the surfaced Tag Pool/Random row), centered
+              horizontally + vertically in the middle 1fr band. */}
           <div className="flex flex-col items-center justify-center gap-[var(--space-2xl)]">
           {/* The Tag Density + Sort filters, embedded directly in the empty
               state (not behind the results-header Filter popover, which isn't
@@ -772,6 +759,14 @@ export function RecommendationsBody({
               </div>
             </div>
           </div>
+          </div>
+          {/* BOTTOM: the rotating payoff line, centered horizontally +
+              vertically in the bottom 1fr band (moved out of the top section
+              so hero+instruction, filters, and payoff each own an equal third). */}
+          <div className="flex flex-col items-center justify-center">
+            <p className="font-mono text-[length:var(--text-base)] text-[var(--primary)] m-0">
+              {EMPTY_STATE_COPY[emptyStateIndex].payoff}
+            </p>
           </div>
         </div>
       )}
