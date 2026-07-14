@@ -70,6 +70,13 @@ export function ResultsHeader({ hasResults, lockedCount, newCount, existingCount
   // jitter width).
   const metaBase = "inline-flex items-center gap-[var(--space-xs)] font-mono text-[length:var(--text-2xs)] tracking-[var(--tracking-lg)] lowercase shrink-0";
   const iconBox = "inline-flex items-center justify-center w-[15px] h-[15px] shrink-0";
+  // Unified colour rule for ALL THREE readouts (requested): a 0/empty count uses
+  // the app's INACTIVE-tab colour (--muted), a non-zero count the ACTIVE-tab
+  // colour (--ink) — the exact pair SectionTabStrip uses (active ? --ink :
+  // --muted). Each readout colours off its OWN count. The locked readout follows
+  // the same rule; its hover glow (globals.css) is a separate accent layered on
+  // top when interactive.
+  const metaColor = (n: number) => (n > 0 ? "text-[var(--ink)]" : "text-[var(--muted)]");
   // Thin vertical divider between readouts.
   const divider = <span aria-hidden className="w-px h-[13px] bg-[var(--muted)] shrink-0" />;
   return (
@@ -119,28 +126,28 @@ export function ResultsHeader({ hasResults, lockedCount, newCount, existingCount
                 ? `unlock all ${lockedCount} locked ${lockedCount === 1 ? "card" : "cards"}`
                 : `${lockedCount} locked`
             }
-            className={`${metaBase} text-[var(--primary)] ${lockInteractive ? "unlock-btn cursor-pointer" : "cursor-default"}`}
+            className={`${metaBase} ${metaColor(lockedCount)} ${lockInteractive ? "unlock-btn cursor-pointer" : "cursor-default"}`}
           >
             <span className={iconBox}>
-              {justUnlocked ? (
-                <LockOpenIcon className="lock-glow text-[var(--primary)]" />
-              ) : (
-                <LockClosedIcon className="lock-glow text-[var(--primary)]" />
-              )}
+              {justUnlocked ? <LockOpenIcon className="lock-glow" /> : <LockClosedIcon className="lock-glow" />}
             </span>
             {justUnlocked ? <span>unlocked</span> : <span className="tabular-nums">{lockedCount}</span>}
           </button>
           {divider}
-          {/* NEW — fresh picks this batch (not in the previous batch). */}
-          <span className={`${metaBase} text-[var(--ink)]`} title="new">
+          {/* NEW — fresh picks this batch (not in the previous batch). Text
+              label "new" in front of the icon+count (requested). */}
+          <span className={`${metaBase} ${metaColor(newCount)}`} title="new">
+            <span>new</span>
             <span className={iconBox}>
               <NewIcon />
             </span>
             <span className="tabular-nums">{newCount}</span>
           </span>
           {divider}
-          {/* EXISTING — results carried/re-appearing from the previous batch. */}
-          <span className={`${metaBase} text-[var(--subtext)]`} title="existing">
+          {/* EXISTING — results re-appearing from the previous batch (recycle
+              glyph). Text label "existing" in front of the icon+count. */}
+          <span className={`${metaBase} ${metaColor(existingCount)}`} title="existing">
+            <span>existing</span>
             <span className={iconBox}>
               <ExistingIcon />
             </span>

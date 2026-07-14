@@ -26,6 +26,8 @@ export function LockClosedIcon({ className }: IconProps) {
 // one set. NEW = a four-point sparkle (fresh this batch). EXISTING = a
 // recur/again loop (a card that was in the previous batch and came back).
 export function NewIcon({ className }: IconProps) {
+  // Sparkles (Tabler "sparkles") — one large four-point star plus two small
+  // ones, for the fresh-this-batch results.
   return (
     <svg
       className={className}
@@ -34,16 +36,21 @@ export function NewIcon({ className }: IconProps) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={2.2}
+      strokeWidth={1.9}
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <path d="M12 3l1.9 6.1L20 11l-6.1 1.9L12 19l-1.9-6.1L4 11l6.1-1.9L12 3Z" />
+      <path d="M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2z" />
+      <path d="M16 6a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2z" />
+      <path d="M9 18a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6z" />
     </svg>
   );
 }
 
 export function ExistingIcon({ className }: IconProps) {
+  // Recycle symbol (three-arrow Möbius loop, Tabler "recycle") — a result that
+  // was in the previous batch coming back around. Slightly lighter stroke than
+  // the other glyphs since it's a busier path at 15px.
   return (
     <svg
       className={className}
@@ -52,12 +59,16 @@ export function ExistingIcon({ className }: IconProps) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={2.2}
+      strokeWidth={1.9}
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <path d="M20 11.5A8 8 0 1 0 18 17" />
-      <path d="M20 4v4h-4" />
+      <path d="M12 17l-2 2l2 2" />
+      <path d="M10 19h9a2 2 0 0 0 1.75 -2.75l-.55 -1" />
+      <path d="M8.536 11l-.732 -2.732l-2.732 .732" />
+      <path d="M7.804 8.268l-4.5 7.794a2 2 0 0 0 1.506 2.89l1.141 .024" />
+      <path d="M15.464 11l2.732 .732l.732 -2.732" />
+      <path d="M18.196 11.732l-4.5 -7.794a2 2 0 0 0 -3.256 -.14l-.591 .976" />
     </svg>
   );
 }

@@ -759,9 +759,11 @@ Tapping an *empty* slot or the "+ Tag Pool — tap to add tags" affordance (rend
 
 The results header (`ResultsHeader.tsx`) went from `justify-end` (controls only, right) to `justify-between`: **result-set metadata is left-aligned**, the Filter/Clear controls stay right. The metadata is **three icon+count readouts**, divider-separated (thin vertical rules), all lowercase, all gated on `hasResults` (empty state shows none, though the row's 30px height is still always reserved — see that row's own comment). They **partition the result set** — `locked + new + existing === results.length`:
 
-- **`🔒 locked`** (leftmost, `--primary`) — how many current results are held. Also the **unlock-all affordance** (below). Shown even at 0 (so a click can settle it to `🔒 0`).
-- **`✦ new`** (`--ink`, `NewIcon` sparkle) — fresh picks this batch (title was NOT in the previous batch).
-- **`↻ existing`** (`--subtext`, `ExistingIcon` recur) — results that were in the previous batch and came back.
+- **`🔒 {n}`** (leftmost) — how many current results are held; icon+count only (no text label, by request). Also the **unlock-all affordance** (below). Shown even at 0 (so a click can settle it to `🔒 0`).
+- **`new ✨ {n}`** (`NewIcon`, a Tabler sparkles glyph) — fresh picks this batch (title was NOT in the previous batch).
+- **`existing ♻ {n}`** (`ExistingIcon`, a Tabler recycle glyph) — results that were in the previous batch and came back. (The `new`/`existing` text labels sit in front of the icon+count, per request; `locked` has none.)
+
+**All three share ONE colour rule** (requested): a count of 0 uses the app's INACTIVE-tab colour (`--muted`), a non-zero count the ACTIVE-tab colour (`--ink`) — the exact `active ? --ink : --muted` pair `SectionTabStrip` uses — each readout colouring off its own count (`metaColor(n)` in `ResultsHeader`). So the locked readout is no longer a fixed `--primary`; it's `--ink` when something's held, `--muted` at 0, like the other two. The hover glow (below) is a separate accent layered on top when interactive.
 
 **New vs existing needs the previous batch's titles**, so `KonomiState` gained `prevResultTitles` — captured in `recommend()` from `state.results` at the moment it runs (that array *is* the prior batch, since `out` is built fresh). A current result is `existing` if its title is in `prevResultTitles`, else `new`; `locked` wins over both so a carried-over lock counts once. This is deliberately *not* derived from `newTitles` (pulled-from-pool-this-call), which can include a re-pick of a previously-shown title — exactly an "existing" result. Because `scorePool` shuffles (`Math.random()`), re-RECOMMEND genuinely produces mostly-new with the occasional existing re-pick, so the split is meaningful. All three counts are computed in `KonomiApp` from `results`/`locked`/`prevResultTitles`. Nice property: unlock-all moves the freed cards `locked → existing` (they were carried from the prior batch), so the totals stay consistent with no extra bookkeeping.
 
@@ -769,7 +771,7 @@ The results header (`ResultsHeader.tsx`) went from `justify-end` (controls only,
 - **Hover/focus glow** — reuses the *same* two-stacked-drop-shadow bloom the MixerBar resize grip uses (`.grip-glow`), but hover-driven (an "engaged, click to act" cue, not a live-drag flag) and in `--primary` (the lock's own colour) rather than the grip's `--subtext`. See `.unlock-btn`/`.lock-glow` in `globals.css`.
 - **Click → "unlocked" flash** — clears every lock via a dedicated `UNLOCK_ALL` reducer action (`locked: {}` — a blanket reset is correct because `locked` only ever holds current results' locks and a missing key reads as unlocked everywhere), then the readout flips to an **open** lock + the word "unlocked" for `UNLOCKED_FEEDBACK_MS` (1100ms) before settling to a closed lock + `0`. The FLIP reorder-slide (`layout` on `ResultCard`) handles any card motion for free — unlocking doesn't reorder `results`, so there's no bespoke animation.
 
-**Known follow-ups (deliberate, for iteration):** the "unlock all" label is carried only by `title`/`aria-label` for now — a richer floating hint (result-card icon-hint chrome) and a touch-tap-to-reveal step (no hover on touch) are planned, not shipped. The `new`/`existing` icon choices (sparkle / recur) and their colours are first-pass and easy to swap.
+**Known follow-ups (deliberate, for iteration):** the "unlock all" label is carried only by `title`/`aria-label` for now — a richer floating hint (result-card icon-hint chrome) and a touch-tap-to-reveal step (no hover on touch) are planned, not shipped. The `new`/`existing` glyphs (sparkles / recycle) and the `existing` label wording are first-pass and easy to swap.
 
 ### The single box that grows: how edit mode actually expands
 
