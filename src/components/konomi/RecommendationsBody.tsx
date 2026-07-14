@@ -698,7 +698,10 @@ export function RecommendationsBody({
               wrong (it should shuffle WITHOUT closing, matching the bar's own
               Random), and for Tag Pool the button owns its own open↔close toggle
               below, so the listener must not double-act on it either. */}
-          <div data-empty-controls className="hidden @max-[561px]:flex items-center gap-[var(--space-lg)]">
+          {/* gap-xl (16px) between Tag Pool + Random — matched to the gap
+              between the two filters above (FilterControls' inline root
+              gap-x-[var(--space-xl)]), bumped up from the earlier space-lg. */}
+          <div data-empty-controls className="hidden @max-[561px]:flex items-center gap-[var(--space-xl)]">
             {/* Tag Pool — always present when this row shows. Mirrors MixerBar's
                 own Tag Pool button exactly, toggle included: opens the pool when
                 closed, and becomes a "Done ✓" / CheckIcon button that closes it
