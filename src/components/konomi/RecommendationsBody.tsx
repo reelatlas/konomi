@@ -509,7 +509,12 @@ export function RecommendationsBody({
         // only, so the box's own min-height/vertical centering is unaffected;
         // FilterControls carries its own nested @container, so it still queries
         // itself, not this box.
-        <div className="@container border-[length:var(--border-base)] border-dashed border-[var(--muted)] bg-[var(--slot-empty)] mt-[calc((30px_+_var(--space-lg))_*_-1)] min-h-[calc(var(--result-card-height)_+_30px_+_var(--space-lg))] flex flex-col items-center justify-center gap-[var(--space-md)] px-[var(--space-2xl)] py-[var(--space-2xl)] text-center">
+        <div className="@container border-[length:var(--border-base)] border-dashed border-[var(--muted)] bg-[var(--slot-empty)] mt-[calc((30px_+_var(--space-lg))_*_-1)] min-h-[calc(var(--result-card-height)_+_30px_+_var(--space-lg))] grid grid-rows-[1fr_auto_1fr] px-[var(--space-2xl)] py-[var(--space-2xl)] text-center">
+          {/* Two balanced halves split by a centered rule: the headline group
+              centers in the upper half (flex-1), the divider sits at the box's
+              middle, and the filters center in the lower half (flex-1) — rather
+              than one center-stacked clump (requested). */}
+          <div className="flex flex-col items-center justify-center gap-[var(--space-md)]">
           <div className="font-display text-[length:var(--text-2xl)] text-[var(--muted)] uppercase">
             {EMPTY_STATE_COPY[emptyStateIndex].headline}
           </div>
@@ -544,6 +549,13 @@ export function RecommendationsBody({
           <p className="font-mono text-[length:var(--text-base)] text-[var(--primary)] m-0 mt-[var(--space-xs)]">
             {EMPTY_STATE_COPY[emptyStateIndex].payoff}
           </p>
+          </div>
+          {/* Divider centered between the two halves (the box's own middle).
+              w-[min(560px,100%)] mx-auto matches the filters' width below. */}
+          <div className="w-[min(560px,100%)] mx-auto border-t-[length:var(--border-hair)] border-[var(--muted)]" />
+          {/* Bottom half: filters (+ the surfaced Tag Pool/Random row) centered
+              vertically in the lower flex-1 region. */}
+          <div className="flex flex-col items-center justify-center gap-[var(--space-2xl)]">
           {/* The Tag Density + Sort filters, embedded directly in the empty
               state (not behind the results-header Filter popover, which isn't
               shown here) so a first-time user meets the two things they can
@@ -564,7 +576,7 @@ export function RecommendationsBody({
               as an outside click that dismisses the panel, exactly as the results-
               state Filter popover (data-results-filter) already behaves. See
               MixerBar's click-outside listener. */}
-          <div data-empty-controls className="w-[min(560px,100%)] mx-auto mt-[var(--space-2xl)] pt-[var(--space-2xl)] border-t-[length:var(--border-hair)] border-[var(--muted)]">
+          <div data-empty-controls className="w-[min(560px,100%)] mx-auto">
             <FilterControls onLevelChange={onLevelChange} layout="inline" className="w-full" />
           </div>
           {/* Surfaced controls: Tag Pool + Random, shown ONLY at the narrow
@@ -608,7 +620,7 @@ export function RecommendationsBody({
               wrong (it should shuffle WITHOUT closing, matching the bar's own
               Random), and for Tag Pool the button owns its own open↔close toggle
               below, so the listener must not double-act on it either. */}
-          <div data-empty-controls className="hidden @max-[561px]:flex items-center gap-[var(--space-lg)] mt-[var(--space-2xl)]">
+          <div data-empty-controls className="hidden @max-[561px]:flex items-center gap-[var(--space-lg)]">
             {/* Tag Pool — always present when this row shows. Mirrors MixerBar's
                 own Tag Pool button exactly, toggle included: opens the pool when
                 closed, and becomes a "Done ✓" / CheckIcon button that closes it
@@ -668,6 +680,7 @@ export function RecommendationsBody({
                 </IconButton>
               </div>
             </div>
+          </div>
           </div>
         </div>
       )}

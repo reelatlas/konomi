@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import type { LevelKey } from "@/lib/konomi/types";
 import { SortIcon, TagIcon } from "./icons";
 import { LevelSelector } from "./LevelSelector";
@@ -99,32 +100,57 @@ export function FilterControls({ onLevelChange, layout = "popover", className }:
     ? "@container flex flex-row flex-wrap items-center justify-center gap-x-[var(--space-xl)] gap-y-[var(--space-2xl)]"
     : "flex flex-col items-end gap-y-[var(--space-2xl)]";
   const fieldBase = "flex items-center gap-[var(--space-sm)]";
-  const densityField = inline ? `${fieldBase} shrink-0` : fieldBase;
-  const sortField = inline ? `${fieldBase} shrink-0` : fieldBase;
-  const labelClass = `${labelShow} font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap`;
+  const labelBase = "font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap";
+  const labelClass = inline ? labelBase : `${labelShow} ${labelBase}`;
+
+  // INLINE (empty state): a 2-column grid while stacked (narrow) that flips to a
+  // plain flex row at @min-[530px]. DOM order is [label, icon, control], so the
+  // wide flex row reads label → icon → control (the original inline). While
+  // stacked, the grid places them so BOTH requests hold at once — something a
+  // single flex axis can't do:
+  //   • label  → col2 / row1  (justify-self-start)
+  //   • control→ col2 / row2  → the label's left edge lines up with the CONTROL,
+  //                             NOT the icon (col2 is shared, icon is in col1).
+  //   • icon   → col1 / row2, self-center → vertically centered against the
+  //                             CONTROL's own row, not the whole label+control
+  //                             column.
+  // The control wrapper goes display:contents at @min-[530px] so its expanded/
+  // collapsed children become direct flex items of the wide row. The inline
+  // label is ALWAYS shown (moving above is its purpose), not width-gated.
+  // POPOVER is unchanged: the original flat [label, icon, control] row, gated.
+  const field = (label: string, icon: ReactNode, expanded: ReactNode, collapsed: ReactNode) =>
+    inline ? (
+      <div className="grid grid-cols-[auto_auto] items-center gap-x-[var(--space-sm)] gap-y-[var(--space-sm)] @min-[530px]:flex @min-[530px]:items-center shrink-0">
+        <span className={`${labelClass} col-start-2 row-start-1 justify-self-start`}>{label}</span>
+        <span className="col-start-1 row-start-2 self-center inline-flex">{icon}</span>
+        <div className="col-start-2 row-start-2 justify-self-start @min-[530px]:contents">
+          <div className={expandedHide}>{expanded}</div>
+          <div className={collapsedShow}>{collapsed}</div>
+        </div>
+      </div>
+    ) : (
+      <div className={fieldBase}>
+        <span className={labelClass}>{label}</span>
+        {icon}
+        <div className={expandedHide}>{expanded}</div>
+        <div className={collapsedShow}>{collapsed}</div>
+      </div>
+    );
 
   return (
     <div className={[root, className ?? ""].join(" ")}>
-      <div className={densityField}>
-        <span className={labelClass}>Tag Density</span>
-        <TagIcon className="text-[var(--ink)]" />
-        <div className={expandedHide}>
-          <LevelSelector value={level} onChange={onLevelChange} />
-        </div>
-        <div className={collapsedShow}>
-          <LevelSelector value={level} onChange={onLevelChange} collapsed />
-        </div>
-      </div>
-      <div className={sortField}>
-        <span className={labelClass}>Tag Sort</span>
-        <SortIcon className="text-[var(--ink)]" />
-        <div className={expandedHide}>
-          <SortSelect value={sort} onChange={setSortPref} />
-        </div>
-        <div className={collapsedShow}>
-          <SortSelect value={sort} onChange={setSortPref} collapsed />
-        </div>
-      </div>
+      {field(
+        "Tag Density",
+        <TagIcon className="text-[var(--ink)]" />,
+        <LevelSelector value={level} onChange={onLevelChange} />,
+        <LevelSelector value={level} onChange={onLevelChange} collapsed />,
+      )}
+      {field(
+        "Tag Sort",
+        <SortIcon className="text-[var(--ink)]" />,
+        <SortSelect value={sort} onChange={setSortPref} />,
+        <SortSelect value={sort} onChange={setSortPref} collapsed />,
+      )}
     </div>
   );
 }
