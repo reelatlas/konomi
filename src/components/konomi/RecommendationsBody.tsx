@@ -598,13 +598,22 @@ export function RecommendationsBody({
         // emptyBoxAnimStyle play the rise+fade keyframe (globals.css) on the same
         // timing/travel as the cards.
         <div
-          className={`@container border-[length:var(--border-base)] border-dashed border-[var(--muted)] bg-[var(--slot-empty)] mt-[calc((30px_+_var(--space-lg))_*_-1)] min-h-[calc(var(--result-card-height)_+_30px_+_var(--space-lg))] grid grid-rows-[1fr_1fr_1fr] px-[var(--space-2xl)] py-[var(--space-2xl)] text-center ${emptyBoxOverlay ? "absolute inset-x-0 top-0" : ""} ${emptyBoxAnimClass}`}
+          className={`@container border-[length:var(--border-base)] border-dashed border-[var(--muted)] bg-[var(--slot-empty)] mt-[calc((30px_+_var(--space-lg))_*_-1)] min-h-[calc(var(--result-card-height)_+_30px_+_var(--space-lg))] grid grid-rows-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] px-[var(--space-2xl)] py-[var(--space-2xl)] text-center ${emptyBoxOverlay ? "absolute inset-x-0 top-0" : ""} ${emptyBoxAnimClass}`}
           style={emptyBoxAnimStyle}
         >
-          {/* THREE equal sections (grid-rows-[1fr_1fr_1fr], no divider lines),
-              each centered horizontally + vertically in its own 1fr band
-              (requested): TOP = hero headline + instruction; MIDDLE = filters
-              (+ surfaced buttons); BOTTOM = the rotating payoff line. */}
+          {/* THREE ALWAYS-EQUAL sections (no divider lines), each centered
+              horizontally + vertically in its own band (requested): TOP = hero
+              headline + instruction; MIDDLE = filters (+ surfaced buttons);
+              BOTTOM = the rotating payoff line.
+              minmax(0,1fr) per row, NOT a bare 1fr: a bare grid `1fr` is
+              `minmax(auto,1fr)`, so a content-heavier row (the MIDDLE, with the
+              filters + surfaced buttons) grows past its share the moment the box
+              gets short enough that a third < that content — leaving the three
+              rows UNEQUAL (reported live while morphing the masthead compact<->
+              expanded, which resizes this box via 100cqh). The `0` minimum forces
+              the fr algorithm to keep all three rows exactly equal at every box
+              height; content that can't fit a third overflows (centered) rather
+              than stealing height from the others. */}
           {/* TOP: hero + instruction. */}
           <div className="flex flex-col items-center justify-center gap-[var(--space-md)]">
           <div className="font-display text-[length:var(--text-2xl)] text-[var(--muted)] uppercase">
