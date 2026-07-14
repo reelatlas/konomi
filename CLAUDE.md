@@ -122,7 +122,7 @@ notices. See `AGENTS.md` `nextjs-agent-rules`.
 
 ## _sandbox/ — experiment scratch (ignored by default)
 
-`_sandbox/` holds exploratory and throwaway experiments (animations + explorations). It's gitignored and cursorignored.
+`_sandbox/` holds exploratory, throwaway experiments — animations, data-viz, flows/iterations, and mockups or prototypes (Figma included) — and may lean on the design/reference/motion MCPs (mobbin/figma/motion). It's gitignored and cursorignored. The same one-way boundary below applies to all of it, code or prototype.
 
 - Do NOT read, scan, or reference `_sandbox/` unless I explicitly ask.
 - When I DO ask, experiments MAY import from the real app (`src/...`, tokens, components) — that's intended, so ideas use real Konomi code.
