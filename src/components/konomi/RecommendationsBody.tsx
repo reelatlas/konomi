@@ -1129,6 +1129,16 @@ export function RecommendationsBody({
                         isEntering={isEntering}
                         isExiting={isExiting}
                         animationDelayMs={animationDelayMs}
+                        // FLIP-slide a surviving card to its new slot when the
+                        // row reorders (locks compacting to the front), grid
+                        // tier only — the carousel (tier < 5) stays snapping,
+                        // its scroll-snap/reset would fight a layout transform.
+                        // visibleCardTierCount === 5 is exactly the >=1152px
+                        // grid tier (cardAnimTuning breakpoints). layoutDependency
+                        // is the displayedResults reference so Motion only
+                        // re-measures on a genuine reorder, not on resize renders.
+                        layoutSlide={visibleCardTierCount === 5}
+                        layoutDependency={displayedResults}
                       />
                     );
                   });

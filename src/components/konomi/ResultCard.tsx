@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import { scoreSeries } from "@/lib/konomi/scoring";
 import { isTagVisibleAtLevel, sortTags } from "@/lib/konomi/tagPool";
 import type { LevelKey, ResultEntry, SortKey, TagInfo } from "@/lib/konomi/types";
@@ -65,6 +66,26 @@ interface ResultCardProps {
   // L->R for both (see RecommendationsBody). Fed to the keyframe's
   // animation-delay via inline style.
   animationDelayMs?: number;
+  // Enables the Motion `layout` FLIP slide (below) that animates a surviving
+  // card from its old grid slot to its new one when the row reorders — locked
+  // cards compacting to the front on a RECOMMEND/Clear ✕ (see recommend()/
+  // clearRecs() in useKonomi.ts). Passed true ONLY on the desktop 5-across grid
+  // tier by RecommendationsBody (visibleCardTierCount === 5): the mobile
+  // carousel is a horizontal scroll-snap row whose own scrollReset + snap would
+  // fight a layout transform, so it's deliberately left snapping for now (a
+  // different treatment for that tier is a future idea). This is FLIP — the one
+  // thing plain CSS genuinely can't do (a reorder has no interpolable "from"),
+  // and Motion `layout` is its canonical tool; enter/exit stay CSS keyframes
+  // (unchanged), since `layout` only animates position deltas and never replays
+  // a mount `initial`, so the locked-card re-animation scar doesn't apply here.
+  layoutSlide?: boolean;
+  // Gate for WHEN Motion re-measures for the FLIP: `layout` otherwise animates
+  // on every render that shifts this card's box — including a plain window
+  // resize reflowing the grid, which would make every card slide around as you
+  // drag the window edge. Passed the `displayedResults` reference, which only
+  // changes on a genuine reorder (RECOMMEND, or a Clear ✕'s settle), so Motion
+  // measures+animates then and skips resize renders entirely.
+  layoutDependency?: unknown;
 }
 
 export function ResultCard({
@@ -87,11 +108,17 @@ export function ResultCard({
   isEntering,
   isExiting,
   animationDelayMs,
+  layoutSlide,
+  layoutDependency,
 }: ResultCardProps) {
   // Live-tweakable via AnimationDebugPanel.tsx — see animationDebugStore.ts's
   // own top-of-file comment for why (a temporary tuning aid, remove once
   // settled). Defaults to cardAnimTuning.ts's own original values.
   const animationDebug = useAnimationDebugValues();
+  // prefers-reduced-motion disables the FLIP slide (snapping to the new slot is
+  // the correct reduced-motion behavior, matching how the enter/exit keyframes
+  // are already collapsed under the same query in globals.css).
+  const prefersReduced = useReducedMotion();
   // Lazy initializer — only runs on this instance's actual first render, so
   // a later re-render with a still-true startWithSwapHint prop (harmless
   // leftover in the parent, see its own comment) can't re-trigger this.
@@ -420,7 +447,27 @@ export function ResultCard({
           is needed here. This wrapper (not the article) carries the animation
           for the same reason it always did — the article is the carousel's
           snap/gesture box and must stay transform-free on iOS. */}
-      <div className={["relative w-full h-full [perspective:1100px]", cardAnimClass].join(" ")} style={cardAnimStyle}>
+      {/* Motion `layout="position"` FLIP-slides this wrapper from its old grid
+          slot to its new one when the row reorders (locked cards compacting to
+          the front) — position only, so the card never morphs its size. The
+          transform Motion writes lands HERE, on the perspective wrapper (never
+          the article — the carousel's snap/gesture box, kept transform-free on
+          iOS), the same element the enter/exit translateY already safely uses,
+          and only transiently during the slide. Enabled only on the grid tier
+          (layoutSlide) and off under reduced motion; layoutDependency gates
+          re-measurement to real reorders (see the props' own comments). Timing
+          matches the card enter/exit (cardDurationMs, cubic-bezier(0,0,.2,1))
+          so the slide reads as one motion with the rest of the sweep. A new
+          card mounting here has no prior box, so Motion doesn't FLIP it — it
+          just lands and plays its CSS enter, so the two mechanisms never fight
+          on the same element. */}
+      <motion.div
+        layout={layoutSlide && !prefersReduced ? "position" : false}
+        layoutDependency={layoutDependency}
+        transition={{ layout: { duration: animationDebug.cardDurationMs / 1000, ease: [0, 0, 0.2, 1] } }}
+        className={["relative w-full h-full [perspective:1100px]", cardAnimClass].join(" ")}
+        style={cardAnimStyle}
+      >
       <div
         // No rotateY(0deg) at rest — same trap as the perspective move onto
         // the wrapper above (this element's own comment): a non-none
@@ -1338,7 +1385,7 @@ export function ResultCard({
           </div>
         </div>
       </div>
-      </div>
+      </motion.div>
     </article>
   );
 }
