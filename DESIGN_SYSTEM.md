@@ -1728,3 +1728,66 @@ Rounds 3-6 above are superseded on branch `diag/mixbar-resize-animation`. The li
 **Fix 2 — the mixbar's four structural `motion.div`s were vestigial.** The outer wrapper, `cardRef`, `dialogRef`, and Row 2's container were all `motion.div` left over from the Round 1-4 FLIP migration, but Path B drives them entirely with plain React inline styles — no `layout` prop, no motion value, no `animate`. A `motion` component still spins up a `VisualElement` + projection node with per-frame work (the repeating minified `tJ` in the Timeline's Initiator column) and Motion's own layer-promotion (the MotionScore audit's long-standing "stale `will-change` on 1 layer" flag — there is no `will-change` anywhere in this project's own source). Converted all four to plain `div`, which drops `motion/react` from `MixerBar` entirely. The mixbar's Motion migration is effectively fully unwound now: real geometry via CSS/React, no Motion in the resize path at all.
 
 Both fixes target composite specifically and need on-device re-measurement of the same Timeline to confirm the curve flattens — desktop composite is cheap everywhere and cannot show the win. A separate, still-unshipped idea if residual sub-pixel vibration remains after the composite fix: the drag-time `marginTop` uses a `getBoundingClientRect()`-measured overhead (fractional), while `growableRef` renders at exactly `height + DIALOG_MARGIN_BOTTOM_PX`, so the `16 − measuredOverhead` residual shifts Row 2 by a sub-pixel that changes every frame; using the exact `DIALOG_MARGIN_BOTTOM_PX` constant during a drag (as the open/close toggle frame already does) makes the compensation pixel-exact. Held back deliberately so the composite fix can be measured in isolation.
+
+## Animation & data-viz: the decision ladder and its precedent library
+
+The rules live in `AGENTS.md` (`animation-and-dataviz-stack`); this section is the
+*evidence* — the earned case histories each rung is built on. The ladder is a
+default to argue from, not an auto-decision: you still surface the Motion-vs-CSS
+call per CLAUDE.md before implementing.
+
+- **Rung 1 — CSS transition (state/hover/color).** The diffuse majority: Tailwind
+  `transition-*` on `IconButton`, the `glow-host`/`glow-icon` hover bloom, tab and
+  filter color swaps. No per-frame JS, compositor-friendly.
+- **Rung 2 — CSS `@keyframes` one-shot enter/exit.** "Result-card enter/exit
+  animation" and "The empty-state box animates as one more object in the same sweep
+  (Path A: CSS keyframes, no AnimatePresence)". The scar this rung exists to avoid:
+  `AnimatePresence` replayed a *present* card's cached mount `initial` on sibling
+  shifts (the locked-card re-animation), reverted to keyframes. `RollingLabel`'s own
+  earlier CSS-keyframe era also documents why a `setTimeout` beats
+  `transitionend`/`animationend` on real devices.
+- **Rung 3 — Motion `layout="position"` FLIP (reorder).** "Locked cards slide to
+  their new slot: Motion `layout` FLIP — the one place Motion beats CSS here" plus
+  MixerBar's `layout="position"` panel saga. A reorder has no interpolable "from",
+  so CSS genuinely can't do it; the `layoutDependency` guard is load-bearing (it
+  stops a plain window resize from re-measuring and sliding every card).
+- **Rung 4 — Motion values (gesture/scroll/velocity).** "The two discrete states
+  became one continuous scroll-scrubbed morph — pure CSS `calc` first, then a Motion
+  velocity driver". Motion drives the per-frame input; CSS `calc` off a custom
+  property renders it.
+- **Rung 5 — Motion `AnimatePresence` (presence swap).** "`RollingLabel` migrated to
+  Motion" — a genuine keyed mount/unmount content swap, the narrow case where
+  `AnimatePresence` is the right tool rather than the scar.
+- **Counter-example — Motion unwound back to CSS.** "Path B ... kill the
+  growing-layer filter": MixerBar's resize Motion migration was reverted wholesale to
+  real geometry via CSS/React once an on-device Safari Timeline showed the cost was
+  *compositing* (a growing `filter` layer), not layout. Precedent that a migration is
+  a decision that can go back, and that the on-device culprit is usually a growing
+  compositor layer, not a layout cost.
+
+## Data viz (d3) — architecture & patterns
+
+Stack added 2026-07-14, pre-first-chart (no visualization built yet). Installed:
+`d3-hierarchy`, `d3-force`, `d3-scale`, `d3-scale-chromatic`, `d3-shape`, `d3-array`
+(+ `@types/*`). Deliberately NOT installed: `d3-selection`, `d3-transition`, the `d3`
+monolith — React owns the DOM.
+
+**Architecture (locked — structural, won't change):** d3 supplies **math only** (a
+layout returns `{x, y, r}`, a scale maps weight→size or value→color). **React
+renders** the SVG by mapping those positions to JSX `<circle>`/`<rect>`. **Motion
+animates** the rendered nodes per the ladder above (drag on bubbles, enter/exit,
+reorder).
+
+**Starting defaults (validate on the first real chart; correct if reality differs):**
+- Token-seeded color scales (built from `--primary`/`--muted`/`--secondary`), not
+  stock `d3-scale-chromatic` palettes.
+- `scaleSqrt` for size so a bubble's *area* ∝ weight (a linear radius scale
+  visually over-weights big values).
+- One coordinate, one owner between a `d3-force` sim and Motion — sim computes
+  resting positions, Motion owns the gesture; they never drive the same x/y.
+- SVG by default; canvas/WebGL only past the SVG node ceiling (~few hundred nodes).
+
+**Planned first surfaces:** weighted tag bubble-cluster (`d3-force` + `forceCollide`,
+Motion drag), treemap and circle-pack (`d3-hierarchy`), heatmap (`d3-scale` +
+`d3-scale-chromatic` over a grid). Fill this section in with the real decisions as
+each ships — and revisit whether the starting defaults above held.

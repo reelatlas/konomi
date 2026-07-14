@@ -65,3 +65,61 @@ boundary artifact is an anti-aliasing/re-rasterization mode change at layer
 create/destroy, not a fractional-position problem, so geometry snapping can't
 touch it. Reverted; don't re-add it as a shimmer/boundary fix.
 <!-- END:webkit-icon-shimmer -->
+
+<!-- BEGIN:animation-and-dataviz-stack -->
+# Animation & data-viz stack — pick the cheapest tool that fits
+
+**The ladder gives the DEFAULT answer; it does NOT skip the surfacing step.**
+Per CLAUDE.md you still weigh Motion vs the alternative and name the call before
+implementing — the ladder is the starting position you argue *from*, not an
+auto-decision. Escalate a rung only for the reason named. Precedent (the earned
+case history behind each rung) lives in `DESIGN_SYSTEM.md`.
+
+1. Discrete state / hover / color / visibility toggle (A→B)
+   → **CSS transition** (Tailwind `transition-*`). Nothing cheaper; no per-frame JS.
+2. One-shot enter/exit on mount/unmount
+   → **CSS `@keyframes`** + a `setTimeout` mount-through-exit orchestration.
+   NOT `AnimatePresence` — it replays a present child's cached mount `initial` on
+   sibling shifts (the "AnimatePresence scar"; a keyframe plays once, never on a
+   later reflow).
+3. Reorder / FLIP / shared-layout (element moves, no interpolable "from")
+   → **Motion `layout="position"`** + a `layoutDependency` guard. CSS has no "from"
+   box to animate here; this is the one clear Motion win.
+4. Continuous, gesture / scroll / velocity-driven, interruptible
+   → **Motion values** (`useMotionValue`/`useVelocity`/`useScroll`), optionally
+   driving a CSS custom property that `calc` renders. Needs per-frame input CSS
+   can't read.
+5. Presence-based content swap (text roll, true mount/unmount replacement)
+   → **Motion `AnimatePresence`**, narrowly — only genuine presence replacement,
+   never a sibling-shift on a stable child (that's rung 2's scar).
+
+Always, regardless of rung:
+- Honor `prefers-reduced-motion` in **both** the CSS and the JS timing.
+- Prefer `setTimeout(namedConstant)` over `animationend`/`onAnimationComplete`
+  (both unreliable on-device in this app's history).
+- Keep timing/easing as named constants in a `*Tuning.ts`, never inline literals.
+- Animate `transform`/`opacity`; watch composite cost (a *growing* `filter`/layer
+  re-uploads a larger texture every frame — the usual on-device culprit, not
+  layout). If a layout animation shimmers WebKit strokes, promote the whole moving
+  row to its own layer, scoped to the animating window only (`webkit-icon-shimmer`).
+- Verify on-device; headless has hidden nearly every hard animation bug here.
+
+## Data viz (d3)
+
+**Structural rules (locked — these won't change):**
+- d3 is for **math only** — layout (`d3-hierarchy` pack/treemap, `d3-force`) and
+  scales (`d3-scale`, `d3-scale-chromatic`). **Never** `d3-selection`,
+  `d3-transition`, or the `d3` monolith: React owns the DOM.
+- **React renders** the SVG/DOM by mapping computed positions to JSX.
+- **Motion animates** the rendered nodes, per the ladder above.
+
+**Starting defaults (validate when we build the first chart; correct if reality
+differs — same restraint as leaving easing values and chart-libs open):**
+- Tokens drive color/size — seed scales from Konomi tokens, not stock d3 palettes;
+  size via `scaleSqrt` so a bubble's *area* ∝ weight.
+- One coordinate, one owner — if `d3-force` ticks a simulation, don't also
+  Motion-animate the same x/y; pick the driver (sim → resting positions, Motion →
+  gesture/enter/exit).
+- SVG by default; escalate to canvas/WebGL only past the SVG node ceiling (~few
+  hundred nodes).
+<!-- END:animation-and-dataviz-stack -->

@@ -78,7 +78,11 @@ rAF, layout animation, drag/resize motion):
    swapping it to the other tool "just because" — a migration is itself a
    decision to surface, not a default. (Motion is the usual choice for real,
    interruptible/gesture-driven motion; simpler CSS often wins for one-shot
-   enter/exit and state toggles.)
+   enter/exit and state toggles.) The 5-rung decision ladder in `AGENTS.md`
+   (`animation-and-dataviz-stack`) gives the default answer for each case — treat
+   it as the starting position to argue *from*, not an auto-decision that skips
+   this surfacing step. The human check still happens; the ladder just tells you
+   where to start the argument.
 3. **A MotionScore performance audit** (Motion skill → `performance-audit/`) can
    profile an existing animation/component/URL to get a baseline of animation
    strength and jank, and to advise the best way to proceed — run one when
@@ -93,6 +97,17 @@ rAF, layout animation, drag/resize motion):
 Do not hand-roll animation patterns Motion already covers without checking the
 Motion skill first.
 
+### Data viz / charts (d3)
+
+Before building any visualization (bubble cluster, treemap, heatmap, etc.):
+- Hard rules — the d3=math / React=DOM / Motion=motion split, and the animation
+  ladder — live in `AGENTS.md` (`animation-and-dataviz-stack`). The structural
+  split is locked; never reach for `d3-selection`/`d3-transition`/the `d3` monolith.
+- Precedent, token integration, and the running log of chart decisions live in
+  `DESIGN_SYSTEM.md` ("Data viz (d3) — architecture & patterns"). The specifics
+  there (`scaleSqrt`, token palettes, one-coordinate-one-owner) are **starting
+  defaults** — validate and correct them when the first chart actually ships.
+
 ### Product-wide geometry
 
 Whole-pixel structural geometry (per `AGENTS.md` `webkit-icon-shimmer`) is
@@ -104,3 +119,11 @@ judgment when building UI, not as a harsh rule and not as a shimmer fix.
 This project uses a non-standard Next.js version. Before writing Next.js code,
 read the relevant guide in `node_modules/next/dist/docs/` and heed deprecation
 notices. See `AGENTS.md` `nextjs-agent-rules`.
+
+## _sandbox/ — experiment scratch (ignored by default)
+
+`_sandbox/` holds exploratory and throwaway experiments (animations + explorations). It's gitignored and cursorignored.
+
+- Do NOT read, scan, or reference `_sandbox/` unless I explicitly ask.
+- When I DO ask, experiments MAY import from the real app (`src/...`, tokens, components) — that's intended, so ideas use real Konomi code.
+- `_sandbox/` code is never graduated into `src/` or referenced by real app code unless I explicitly confirm the idea. It may freely reuse the app's tokens/styles/formats/guidance or explore freely.
