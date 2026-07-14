@@ -63,12 +63,6 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
   // way back to expanded (the in-banner toggle button was removed once
   // that gesture covered both directions).
   const [mastheadCollapsed, setMastheadCollapsed] = useState(false);
-  // True while the results grid is on screen OR still exit-animating out after
-  // a Clear ✕ (RecommendationsBody's own showResultsGrid, reported up via
-  // onResultsGridVisibleChange). ResultsHeader reserves its row for exactly this
-  // window — so a clear holds the cards in place as they sweep out, then the row
-  // collapses the instant the last one is gone and the empty state returns.
-  const [resultsGridVisible, setResultsGridVisible] = useState(false);
   // Wraps Masthead + the results section specifically, NOT MixerBar (see
   // the JSX below) — this is the actual scroll container now (moved off
   // the outer shell root), and the two effects right after this both key
@@ -450,7 +444,17 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
           flex-col parent's cross axis the way max-w-[1280px] mx-auto
           alone would have on a plain block div — needed to keep mx-auto's
           own centering working the same as before. */}
-      <div className="relative z-[var(--z-raised)] flex flex-col flex-1 min-h-0 max-w-[1280px] mx-auto w-full">
+      {/* max-w-[1214px]: the shared content column for masthead, results, AND
+          MixerBar (see MixerBar's own comment below on why it rides this same
+          column). 1214 = the natural width of 5 result cards at their 230px cap
+          + 4 × 16px gaps (5×230 + 4×16) — so the desktop 5-across grid fills
+          this column edge-to-edge with a constant gap and everything (wordmark,
+          Filter/Clear, cards, empty box, mixer controls) shares one set of
+          edges. Was 1280 before the 230px card cap landed; capping the column
+          to the card row's own width is what keeps them aligned rather than
+          leaving the cards inset within a wider column. If the card cap (230,
+          ResultCard) or the count (5, DEFAULT_RESULT_COUNT) changes, re-derive. */}
+      <div className="relative z-[var(--z-raised)] flex flex-col flex-1 min-h-0 max-w-[1214px] mx-auto w-full">
         {/* Wraps Masthead + results only — MixerBar (below, outside this
             div) is deliberately not part of it. scrollableRef is what the
             wheel/touch gesture effect above listens on (a real `scroll`
@@ -528,7 +532,6 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
           <section className="mb-[var(--space-2xl)] flex-1 min-h-0 flex flex-col">
             <ResultsHeader
               hasResults={k.hasResults}
-              reserveRow={resultsGridVisible}
               onClearRecs={k.clearRecs}
               onLevelChange={handleLevelChange}
             />
@@ -557,12 +560,11 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
               onOpenEditMode={() => setEditMode(true)}
               onCloseEditMode={() => setEditMode(false)}
               onRandomTags={handleRandomTags}
-              onResultsGridVisibleChange={setResultsGridVisible}
             />
           </section>
         </div>
 
-        {/* Nested inside the same max-w-[1280px] z-raised column as
+        {/* Nested inside the same max-w-[1214px] z-raised column as
             Masthead/the results section above (a sibling of the new
             scrollable wrapper, not inside it — see that wrapper's own
             comment for why), not a page-level sibling either — now that

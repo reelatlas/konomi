@@ -6,12 +6,6 @@ import { ResultsFilterButton } from "./ResultsFilterButton";
 
 interface ResultsHeaderProps {
   hasResults: boolean;
-  // True while the results grid is on screen OR still exit-animating out on a
-  // Clear ✕ (KonomiApp's resultsGridVisible). Distinct from hasResults, which
-  // flips false the instant Clear dispatches: this stays true for the whole
-  // exit, so the row keeps its reserved height while cards sweep out, then goes
-  // false once the empty state is restored, collapsing the row entirely.
-  reserveRow: boolean;
   onClearRecs: () => void;
   onLevelChange: (level: LevelKey) => void;
 }
@@ -22,18 +16,21 @@ interface ResultsHeaderProps {
 // are results — in the empty state the Tag Density/Sort filters live inside the
 // empty-state box itself (RecommendationsBody), so there's nothing to show here.
 //
-// The row's own HEIGHT (min-h-[30px] + mb-[space-2xl]) is reserved while
-// reserveRow is true — the whole time results are on screen OR still exit-
-// animating out — with only its content gated on hasResults. Requested
-// directly: without the reserved height, clearing results collapsed this row
-// the instant hasResults flipped false, and the cards — still visible, mid-exit
-// — jumped upward into the vacated space instead of sweeping out from their own
-// row. Reserving it for the whole exit keeps the cards in place as they leave;
-// then reserveRow goes false (empty state restored) and the row collapses
-// entirely (return null), so the resting empty state carries no header row —
-// exactly as it does on a first load that never had results.
-export function ResultsHeader({ hasResults, reserveRow, onClearRecs, onLevelChange }: ResultsHeaderProps) {
-  if (!reserveRow) return null;
+// The row's own HEIGHT (min-h-[30px] + mb-[space-lg]) is ALWAYS reserved,
+// including the empty state — only its CONTENT is gated on hasResults. This is
+// the whole mechanism that keeps the empty state's vertical footprint identical
+// to the results footprint (header + cards): because this row never collapses,
+// RecommendationsBody's own height — and therefore the 100cqh that drives
+// --result-card-height — is the same whether it holds the cards or the empty-
+// state box, so the two match automatically at every width/height with NO
+// per-breakpoint sizing (see RecommendationsBody's empty-state comment and
+// DESIGN_SYSTEM.md). A previous version collapsed this row when empty (an
+// earlier reserveRow / onResultsGridVisibleChange dance driven from KonomiApp),
+// which made the empty box sit shorter than the results block above the mixer
+// (reported); always-reserving removes that whole mechanism AND the jump.
+// Cards also can't jump on Clear anymore because the row is simply always here,
+// not held up for the exit and then dropped.
+export function ResultsHeader({ hasResults, onClearRecs, onLevelChange }: ResultsHeaderProps) {
   return (
     // Always flex-row, never flex-col — this row must never wrap to two
     // lines: wrapping would push the card row's own spawn position down,

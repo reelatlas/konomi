@@ -297,17 +297,18 @@
    budget = cardWidth × (2 × 298 / 230) = cardWidth × 2.59. cardWidth is each
    tier's own % of the container (so this is per-tier via cqw, matching
    ResultCard's own w-[%] tiers 85/46/30/22 one-for-one — keep the two in sync),
-   capped by ResultCard's own max-w-[244px], so 244 × 2.59 ≈ 632px is the flat
-   ceiling (coupled literal — if either the 244 cap or the 298 shortest-cover
+   capped by ResultCard's own max-w-[230px], so 230 × 2.59 = 596px (exactly
+   2×298, since at the 230 cap the card renders the cover 1:1) is the flat
+   ceiling (coupled literal — if either the 230 cap or the 298 shortest-cover
    figure changes, re-derive it). Below the budget the card still fills
    (max(322px, 100cqh)); only a viewport tall enough to push 100cqh past the
    budget gets clamped — trading an in-card dead band for a little extra room
    above the mixer, the better of the two. The four ranges use CSS media-range
    syntax to meet ResultCard's own exclusive tier boundaries with no 1px gap. */
-@media (width < 501px) { :root { --result-card-height: min(max(322px, 100cqh), 632px, calc(85cqw * 2.59)); } }
-@media (501px <= width < 741px) { :root { --result-card-height: min(max(322px, 100cqh), 632px, calc(46cqw * 2.59)); } }
-@media (741px <= width < 993px) { :root { --result-card-height: min(max(322px, 100cqh), 632px, calc(30cqw * 2.59)); } }
-@media (993px <= width < 1152px) { :root { --result-card-height: min(max(322px, 100cqh), 632px, calc(22cqw * 2.59)); } }
+@media (width < 501px) { :root { --result-card-height: min(max(322px, 100cqh), 596px, calc(85cqw * 2.59)); } }
+@media (501px <= width < 741px) { :root { --result-card-height: min(max(322px, 100cqh), 596px, calc(46cqw * 2.59)); } }
+@media (741px <= width < 993px) { :root { --result-card-height: min(max(322px, 100cqh), 596px, calc(30cqw * 2.59)); } }
+@media (993px <= width < 1152px) { :root { --result-card-height: min(max(322px, 100cqh), 596px, calc(22cqw * 2.59)); } }
 
 /* ── color roles, one palette per theme ──────────────────────────────────
  * Every key is a semantic role, not a hue, so the names hold up across all

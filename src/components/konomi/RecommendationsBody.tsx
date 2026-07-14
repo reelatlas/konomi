@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { LevelKey, ResultEntry, TagInfo } from "@/lib/konomi/types";
 import { ActionButton } from "./ActionButton";
 import { useAnimationDebugValues } from "./animationDebugStore";
@@ -228,12 +228,6 @@ interface RecommendationsBodyProps {
   onOpenEditMode: () => void;
   onCloseEditMode: () => void;
   onRandomTags: () => void;
-  // Fired whenever showResultsGrid flips — true while results are on screen OR
-  // still exit-animating out on a Clear ✕, false once the empty state is
-  // restored. KonomiApp feeds it back into ResultsHeader so that header row
-  // stays reserved for the WHOLE exit (cards don't jump) and then collapses the
-  // instant the last card is gone (empty state has no header row again).
-  onResultsGridVisibleChange?: (visible: boolean) => void;
 }
 
 // Body-only — the section-level chrome (border/shadow/padding) and the
@@ -265,7 +259,6 @@ export function RecommendationsBody({
   onOpenEditMode,
   onCloseEditMode,
   onRandomTags,
-  onResultsGridVisibleChange,
 }: RecommendationsBodyProps) {
   const level = useLevel();
   const sort = useSort();
@@ -415,16 +408,6 @@ export function RecommendationsBody({
   // no-op for a partial clear (some cards locked): hasResults is already true
   // there regardless, since the locked cards keep `results` non-empty.
   const showResultsGrid = hasResults || exitingTitles.size > 0;
-  // Report grid visibility (incl. the exit window) up to KonomiApp so
-  // ResultsHeader can hold its reserved row for the whole clear and drop it
-  // once the empty state is back — see this prop's own comment. useLayoutEffect,
-  // not useEffect: when the exit finishes, showResultsGrid and the empty state
-  // flip in the same render, and this must collapse the header row in that SAME
-  // pre-paint pass — a post-paint useEffect would leave the empty state painted
-  // once WITH the reserved row still up, then jump it up 54px a frame later.
-  useLayoutEffect(() => {
-    onResultsGridVisibleChange?.(showResultsGrid);
-  }, [showResultsGrid, onResultsGridVisibleChange]);
 
   return (
     // flow-root (a new block formatting context), not a plain fragment —
@@ -480,17 +463,32 @@ export function RecommendationsBody({
         // set replaces it — no jarring collapse-then-jump when the user
         // fixes the error and hits RECOMMEND again.
         //
-        // min-h-[var(--result-card-height)] (the same token ResultCard's
-        // own height reads from, and the same one TagPoolBody's scroll area
-        // now targets too — see that file) instead of a measured literal:
-        // the empty state and the results grid must always be the exact
-        // same height, or the page visibly jumps the instant results
-        // replace this placeholder. flex/items-center/justify-center
-        // centers the content within that now-taller box (previously this
-        // relied on py-huge padding to both establish height and center
-        // content at once — min-height needs a real centering mechanism
-        // instead, since padding alone doesn't grow to fill leftover
-        // min-height space).
+        // The empty box occupies the SAME total vertical space the results
+        // block does — ResultsHeader's row + the cards — as ONE seamless box
+        // with NO visible gap, so clearing results doesn't change the footprint.
+        // The header row's height is inlined here as (30px + var(--space-lg)) —
+        // ResultsHeader's own min-h-[30px] + its mb-[space-lg]. It is NOT a
+        // shared --results-header-h custom property: a new :root var added for
+        // this was silently NOT emitted by this project's Turbopack/Lightning
+        // CSS dev pipeline (confirmed live — its neighbors emitted, it did not),
+        // while these Tailwind arbitrary utilities DO emit, so the value lives
+        // in the class. The 30px couples to ResultsHeader's min-h — keep in sync.
+        //   min-h = --result-card-height + 30px + space-lg: the card-row height
+        //     (shared token the cards use, so it tracks automatically across
+        //     widths/heights via 100cqh — no per-breakpoint math) PLUS the
+        //     header row's height.
+        //   -mt (30px + space-lg): pulls the box UP by the header's height so it
+        //     spans over the (always-rendered) ResultsHeader row and its top
+        //     sits at the results block's top — the box visually covers that row
+        //     (no blank strip), while the row staying in layout keeps 100cqh
+        //     honest (== the cards' own container height, so the card portion is
+        //     the exact real card height — no drift, no overflow into the mixer).
+        //     ResultsHeader shows Filter/Clear only when there are results, so
+        //     under the empty box that row is just empty space the box paints over.
+        // Deliberately NOT flex-1/h-full/100cqh: the box must match the (capped)
+        // results block and stop, NOT swallow the leftover space above MixerBar
+        // (that gap is present in both states on a tall viewport, by design).
+        // flex/items-center/justify-center centers the content in that box.
         // border-dashed clips its left/right edges on iOS WebKit (all iOS
         // browsers) — cosmetic, empty-state only. Accepted. Do not "fix"
         // by swapping to outline-dashed (also clips) or SVG stroke
@@ -511,7 +509,7 @@ export function RecommendationsBody({
         // only, so the box's own min-height/vertical centering is unaffected;
         // FilterControls carries its own nested @container, so it still queries
         // itself, not this box.
-        <div className="@container border-[length:var(--border-base)] border-dashed border-[var(--muted)] bg-[var(--slot-empty)] min-h-[var(--result-card-height)] flex flex-col items-center justify-center gap-[var(--space-md)] px-[var(--space-2xl)] py-[var(--space-2xl)] text-center">
+        <div className="@container border-[length:var(--border-base)] border-dashed border-[var(--muted)] bg-[var(--slot-empty)] mt-[calc((30px_+_var(--space-lg))_*_-1)] min-h-[calc(var(--result-card-height)_+_30px_+_var(--space-lg))] flex flex-col items-center justify-center gap-[var(--space-md)] px-[var(--space-2xl)] py-[var(--space-2xl)] text-center">
           <div className="font-display text-[length:var(--text-2xl)] text-[var(--muted)] uppercase">
             {EMPTY_STATE_COPY[emptyStateIndex].headline}
           </div>
@@ -856,7 +854,35 @@ export function RecommendationsBody({
               // unset here (no z-index alongside relative), so this
               // deliberately does NOT create a new stacking context —
               // doesn't touch this app's existing z-index layering.
-              className="relative grid grid-cols-[repeat(auto-fill,minmax(208px,1fr))] gap-[var(--space-xl)] pt-[40px] pr-[5px] pb-[40px] max-[1152px]:flex max-[1152px]:flex-nowrap pointer-events-none"
+              // grid-cols-[repeat(5,minmax(0,230px))] + justify-center: the
+              // desktop 5-across grid caps every card at 230px (the cover
+              // art's native raster width, so covers never upscale — max
+              // sharpness) and keeps a CONSTANT gap between cards (gap-xl, 16px),
+              // putting the leftover row space on the OUTER EDGES instead — the
+              // 5-card group centers, so the standard gap never changes and only
+              // the two outer margins flex (measured: 0 at widths where the row
+              // fills, growing to ~9px each side at the 1280 container cap).
+              // minmax(0,230): tracks grow to 230 and STOP, but still shrink
+              // below 230 when 5×230 + gaps won't fit the row (~1153-1262px), so
+              // they stay one row and downscale (still sharp) instead of
+              // wrapping. Nothing fractional ever lands in a rendered card — the
+              // cards are 230 (or a clean downscale) and the gap is a flat 16.
+              // Replaced repeat(auto-fill,minmax(208px,1fr)): 1fr ate all
+              // leftover into the CELLS, so a 230-capped card left ~2-3px slack
+              // on its right at wide widths; a definite-max minmax(208,230)
+              // miscounts columns and wraps the 5th card mid-range — repeat(5) +
+              // minmax(0,230) is the only form that holds 5-across AND caps AND
+              // stays clean (all CDP-verified). The literal 5 couples to
+              // DEFAULT_RESULT_COUNT, same as the 1152px carousel breakpoint
+              // above — re-derive both if it changes. ALTERNATIVE considered:
+              // justify-BETWEEN instead of center distributes the leftover into
+              // the gaps (first card flush-left, last flush-right, gaps 16→20.5)
+              // — a one-word swap if edge-flush is ever preferred over a
+              // constant gap. justify-center is desktop-only:
+              // max-[1152px]:justify-start restores the flex carousel's own
+              // left-packed row. 230 also caps the carousel tiers via
+              // ResultCard's max-w-[230px].
+              className="relative grid grid-cols-[repeat(5,minmax(0,230px))] justify-center gap-[var(--space-xl)] pt-[40px] pr-[5px] pb-[40px] max-[1152px]:flex max-[1152px]:flex-nowrap max-[1152px]:justify-start pointer-events-none"
             >
               {/* Leading spacer, carousel tier only (hidden above 1152px,
                   same reasoning as the trailing one below: display:none

@@ -364,29 +364,31 @@ export function ResultCard({
       // works everywhere (all devices), and native scroll works desktop-
       // everywhere + mobile-via-the-tag-area.
       //
-      // max-w-[244px]: an upper cap on the card's own width, on top of the
+      // max-w-[230px]: an upper cap on the card's own width, on top of the
       // per-tier % widths above. The cover art is a fixed 230px-wide raster
       // (AniList "medium" — confirmed across all 501 catalog covers, every one
-      // exactly 230px wide), and the card renders it at width:100%, so a card
-      // wider than 230 UPSCALES the cover (softens it) AND squats toward square
-      // as the height clamp floors — the "resizes a little wide" case. Without a
-      // cap the % tiers balloon the card to ~280-320px at the top of the 30% /
-      // 46% / 85% tiers (e.g. 46% of a 693px row = 319px). 244 = 230 × ~1.06:
-      // ~6% upscale is imperceptible (verified live at ?cap= against 230/276 —
-      // see git history / the cap-compare artifact) while giving the carousel
-      // tiers a little breathing room, and it keeps the card portrait (aspect
-      // H/W ≈ 1.32-1.82 across the 322-445 height clamp, well under the ~2.6
-      // reflection-fill ceiling). It NEVER binds the 5-across desktop grid
-      // (≥1152px): that already tops out ~234px per card, below this cap — so
-      // this only ever reins in the carousel tiers. This 244 also feeds the
+      // exactly 230px wide), and the card renders it at width:100%, so capping
+      // at exactly 230 renders every cover 1:1 at its native width — NEVER
+      // upscaled, maximum sharpness at every breakpoint (the prior 244 was a
+      // ~6% upscale compromise; 230 drops it for true crispness, the original
+      // plan). Without a cap the % tiers balloon the card to ~280-320px at the
+      // top of the 30% / 46% / 85% tiers (e.g. 46% of a 693px row = 319px),
+      // upscaling and squatting toward square. At 230 the card stays portrait
+      // (aspect H/W ≈ 1.40-1.93 across the 322-445 height clamp, well under the
+      // ~2.59 reflection-fill ceiling). On the 5-across desktop grid (≥1152px)
+      // it's paired with grid-cols-[repeat(5,minmax(0,230px))]+justify-between
+      // (RecommendationsBody): the grid caps cells at 230 and distributes the
+      // leftover as even gaps (flush edges), so the desktop cards are 230 too
+      // and stay flush — see that grid's own comment. This 230 also feeds the
       // REFLECTION BUDGET that clamps the carousel card HEIGHT: the card is
       // backed by a cover + its mirror = 2× the rendered cover height, so it can
       // only be filled to aspect ≤ 2×298/230 ≈ 2.59 (shortest cover); the
       // carousel --result-card-height is clamped to cardWidth × 2.59 (max
-      // 244×2.59 ≈ 632px) in globals.css so a very tall viewport can't grow the
-      // card past what the filmstrip fills and leave a dead band under the
-      // reflection. See DESIGN_SYSTEM.md for the full sizing derivation.
-      className="h-[var(--result-card-height)] max-w-[244px] cursor-pointer pointer-events-auto max-[1152px]:flex-none max-[1152px]:snap-start min-[993px]:max-[1152px]:w-[22%] min-[741px]:max-[993px]:w-[30%] min-[501px]:max-[741px]:w-[46%] max-[501px]:w-[85%]"
+      // 230×2.59 = exactly 596px, = 2×298) in globals.css so a very tall
+      // viewport can't grow the card past what the filmstrip fills and leave a
+      // dead band under the reflection. See DESIGN_SYSTEM.md for the full
+      // sizing derivation.
+      className="h-[var(--result-card-height)] max-w-[230px] cursor-pointer pointer-events-auto max-[1152px]:flex-none max-[1152px]:snap-start min-[993px]:max-[1152px]:w-[22%] min-[741px]:max-[993px]:w-[30%] min-[501px]:max-[741px]:w-[46%] max-[501px]:w-[85%]"
     >
       {/* New wrapper: carries perspective now (see the article's own
           comment above for why). relative w-full h-full so the flip-
