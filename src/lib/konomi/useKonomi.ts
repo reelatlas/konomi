@@ -25,14 +25,16 @@ interface KonomiState {
   recommendGen: number;
   // The index (within the just-produced `results`) of the first entry that
   // ISN'T a locked card carried forward from before this RECOMMEND — i.e.
-  // the first genuinely new pick. Locked entries keep their own existing
-  // index rather than being compacted to the front (see recommend()'s own
-  // comment below), so this is not always 0: with any locks in place, the
-  // new results start wherever the first unlocked slot happens to sit.
-  // With no locks at all, every entry is fresh, so this is 0 — the same
-  // "scroll to the first card" reset as before locks existed. Bumped in
-  // lockstep with recommendGen (both set together, only on a successful
-  // RECOMMEND), so the carousel always reads them from the same state.
+  // the first genuinely new pick. Locked entries are now compacted to the
+  // FRONT (in their prior relative order), then the fresh picks fill the
+  // remaining slots (see recommend()'s own comment below), so this equals
+  // the number of locked cards carried forward: lock 3 of 5, hit RECOMMEND,
+  // and the 3 locks take slots 0-2 while the 2 new picks take slots 3-4 with
+  // this === 3. With no locks at all, every entry is fresh, so this is 0 —
+  // the same "scroll to the first card" reset as before locks existed.
+  // Bumped in lockstep with recommendGen (both set together, only on a
+  // successful RECOMMEND), so the carousel always reads them from the same
+  // state.
   firstNewIndex: number;
   // Titles of every entry that was a genuinely fresh pool pick in the most
   // recent RECOMMEND — used by the result-card enter animation
@@ -129,37 +131,38 @@ function recommend(state: KonomiState): KonomiState {
     return { ...state, generated: true, error: "no-match" };
   }
 
-  // Walks the raw stored order directly — there's no separate "visible
-  // order" to reconcile against anymore. The displayed set is always
-  // exactly `state.results`; nothing hides between RECOMMENDs, so stored
-  // order and displayed order can never diverge. Locked entries are carried
-  // forward unconditionally at their existing position; non-locked slots
-  // get the next fresh pool pick, or are dropped (compacting, no gaps) if
-  // the pool runs short.
-  let pi = 0;
+  // Two-pass build: locked cards are COMPACTED to the front (in their prior
+  // relative order), then fresh pool picks fill whatever slots remain up to
+  // DEFAULT_RESULT_COUNT. This is the deliberate reorder requested — locks no
+  // longer keep their own scattered indices; they gather at the start so the
+  // brand-new results always form one contiguous block right after them, and
+  // the carousel can focus the first of that block (firstNewIndex below). If
+  // the pool runs short the row just ends early (compacting, no gaps), same as
+  // before. Walking state.results (not the locked map's own key order) for the
+  // first pass is what preserves the locks' on-screen relative order.
   const out: ResultEntry[] = [];
-  // -1 (not "not found yet, default 0") specifically so an all-locked batch
-  // (every slot carried forward, no fresh pick landed anywhere — only
-  // reachable if the pool ran short) can fall back to 0 explicitly below,
-  // rather than accidentally reading as "the first slot is fresh" by an
-  // uninitialized default coinciding with a real index.
-  let firstNewIndex = -1;
+  state.results.forEach((r) => {
+    if (lockedTitles.has(r.series.title)) out.push({ series: r.series });
+  });
+  // The first fresh pick always lands at exactly this index — the slot right
+  // after the last carried-forward lock (0 when nothing's locked). Captured
+  // before the second pass appends anything, so it's independent of how many
+  // picks the pool can actually supply.
+  const lockedCount = out.length;
   // Every title actually pulled from `pool` this call — see newTitles' own
-  // comment on KonomiState. Locked entries are never pushed here (they hit
-  // the `old` branch above), so this set naturally excludes them without
-  // needing any extra check.
+  // comment on KonomiState. Locked entries are pushed in the first pass above,
+  // never here, so this set naturally excludes them without any extra check.
   const newTitles: string[] = [];
-  for (let i = 0; i < DEFAULT_RESULT_COUNT; i++) {
-    const old = state.results[i];
-    if (old && lockedTitles.has(old.series.title)) {
-      out.push({ series: old.series });
-    } else if (pi < pool.length) {
-      out.push(pool[pi]);
-      newTitles.push(pool[pi].series.title);
-      pi++;
-      if (firstNewIndex === -1) firstNewIndex = out.length - 1;
-    }
+  let pi = 0;
+  while (out.length < DEFAULT_RESULT_COUNT && pi < pool.length) {
+    out.push(pool[pi]);
+    newTitles.push(pool[pi].series.title);
+    pi++;
   }
+  // lockedCount when at least one fresh pick landed; 0 otherwise (an all-locked
+  // batch, or a pool that ran fully short — no new card to focus, so fall back
+  // to the first card, matching the pre-lock "scroll to the top" reset).
+  const firstNewIndex = newTitles.length > 0 ? lockedCount : 0;
   const outTitles = new Set(out.map((r) => r.series.title));
   const flipped: Record<string, boolean> = {};
   Object.keys(state.flipped).forEach((t) => {
@@ -172,7 +175,7 @@ function recommend(state: KonomiState): KonomiState {
     flipped,
     error: null,
     recommendGen: state.recommendGen + 1,
-    firstNewIndex: firstNewIndex === -1 ? 0 : firstNewIndex,
+    firstNewIndex,
     newTitles,
   };
 }
