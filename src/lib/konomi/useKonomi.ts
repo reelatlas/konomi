@@ -96,6 +96,7 @@ type Action =
   | { type: "RANDOM_TAGS"; visible: string[] }
   | { type: "CLEAR_SLOTS" }
   | { type: "TOGGLE_LOCK"; title: string }
+  | { type: "UNLOCK_ALL" }
   | { type: "TOGGLE_FLIP"; title: string }
   | { type: "SET_THEME"; theme: ThemeKey }
   | { type: "PRUNE_TAGS"; visible: Set<string> };
@@ -354,6 +355,13 @@ function reducer(state: KonomiState, action: Action): KonomiState {
     }
     case "TOGGLE_LOCK":
       return { ...state, locked: { ...state.locked, [action.title]: !state.locked[action.title] } };
+    // Clears every lock at once (the results-header "unlock all" affordance).
+    // A blanket reset to {} rather than a per-title unset: `locked` only ever
+    // holds current results' locks, and the reducer already treats a missing
+    // key as unlocked everywhere it reads the map, so {} is the honest empty
+    // state — nothing downstream needs the removed titles to linger as `false`.
+    case "UNLOCK_ALL":
+      return { ...state, locked: {} };
     case "TOGGLE_FLIP":
       return { ...state, flipped: { ...state.flipped, [action.title]: !state.flipped[action.title] } };
     case "SET_THEME":
@@ -451,6 +459,7 @@ export function useKonomi(initialSeries: Series[], initialTags: TagInfo[]) {
       randomTags: (visible: string[]) => dispatch({ type: "RANDOM_TAGS", visible }),
       clearSlots: () => dispatch({ type: "CLEAR_SLOTS" }),
       toggleLock: (title: string) => dispatch({ type: "TOGGLE_LOCK", title }),
+      unlockAll: () => dispatch({ type: "UNLOCK_ALL" }),
       toggleFlip: (title: string) => dispatch({ type: "TOGGLE_FLIP", title }),
       setTheme: (theme: ThemeKey) => dispatch({ type: "SET_THEME", theme }),
       pruneTags: (visible: Set<string>) => dispatch({ type: "PRUNE_TAGS", visible }),

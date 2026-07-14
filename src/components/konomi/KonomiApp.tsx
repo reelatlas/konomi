@@ -532,6 +532,11 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
           <section className="mb-[var(--space-2xl)] flex-1 min-h-0 flex flex-col">
             <ResultsHeader
               hasResults={k.hasResults}
+              resultCount={k.results.length}
+              // Locked cards among the CURRENT results — locked can only ever
+              // hold current results' titles, but filter to be safe/explicit.
+              lockedCount={k.results.filter((r) => k.locked[r.series.title]).length}
+              onUnlockAll={k.unlockAll}
               onClearRecs={k.clearRecs}
               onLevelChange={handleLevelChange}
             />

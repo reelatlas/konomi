@@ -755,6 +755,17 @@ Tapping an *empty* slot or the "+ Tag Pool — tap to add tags" affordance (rend
 
 **The "Sort" label inside the popover became "Tag Sort"** (`ResultsFilterButton.tsx`, renders uppercase via the existing `uppercase` class either way) — requested directly, clarifies which sort this is now that it's no longer sitting directly beside a `SortIcon` inside MixerBar's own controls, where the context was more obvious.
 
+### Results-header metadata: result count + an "unlock all" affordance
+
+The results header (`ResultsHeader.tsx`) went from `justify-end` (controls only, right) to `justify-between`: **result-set metadata is now left-aligned**, the Filter/Clear controls stay right. Two readouts, both gated on `hasResults` (empty state shows neither, though the row's 30px height is still always reserved — see that row's own comment):
+
+- **Result count** — `"{n} results"`, inert metadata in `--subtext` (reads as info, not a control). The word "results" drops below `min-[400px]` (number always shows) to protect the row's hard **no-wrap invariant** (a wrapped header pushes the card row down and breaks the one-viewport group).
+- **Locked count + unlock-all** — appears to the LEFT of the result count, and **only when `lockedCount > 0`**. It's a single compact button: a closed-lock glyph + the count, in `--primary` so the "held" cards read as active and visually distinct from the muted result count beside them. On hover the closed lock cross-fades to an **open** lock (both glyphs stacked, toggled by `group-hover/unlock`) to signal that clicking *unlocks*; the click clears every lock at once. `lockedCount` is `results.filter(r => locked[r.series.title]).length`, computed in `KonomiApp`.
+
+**`unlockAll` is a dedicated reducer action** (`UNLOCK_ALL` → `locked: {}`), not N chained `toggleLock`s — a blanket reset is correct because `locked` only ever holds current results' locks and the reducer treats a missing key as unlocked everywhere, so `{}` is the honest empty state. The FLIP reorder-slide already animates the cards back to their natural order for free when the locks clear (`layout` on `ResultCard`), since unlocking doesn't reorder `results` (locks stay put; only future RECOMMENDs compact) — so unlock-all is purely a state change with no bespoke animation.
+
+**Known v1 gaps (deliberate, for iteration):** the "Unlock all" label is carried only by `title`/`aria-label` for now — a richer floating hint (result-card icon-hint chrome) and a touch-tap-to-reveal step (no hover on touch, so the bare `🔒 n` doesn't yet self-explain "tap to unlock") are planned follow-ups, not shipped.
+
 ### The single box that grows: how edit mode actually expands
 
 **Three architectures, in order, each rejected for a concrete reason found building the next:**

@@ -1,11 +1,19 @@
 import type { LevelKey } from "@/lib/konomi/types";
 import { ActionButton } from "./ActionButton";
-import { CloseIcon } from "./icons";
+import { CloseIcon, LockClosedIcon, LockOpenIcon } from "./icons";
 import { IconButton } from "./IconButton";
 import { ResultsFilterButton } from "./ResultsFilterButton";
 
 interface ResultsHeaderProps {
   hasResults: boolean;
+  // Result-set metadata shown left-aligned in this row (results state only).
+  // resultCount drives the "N results" readout; lockedCount (how many of those
+  // results are currently locked) gates + labels the unlock-all affordance —
+  // it appears only when > 0. onUnlockAll clears every lock at once (UNLOCK_ALL
+  // in useKonomi).
+  resultCount: number;
+  lockedCount: number;
+  onUnlockAll: () => void;
   onClearRecs: () => void;
   onLevelChange: (level: LevelKey) => void;
 }
@@ -30,7 +38,7 @@ interface ResultsHeaderProps {
 // (reported); always-reserving removes that whole mechanism AND the jump.
 // Cards also can't jump on Clear anymore because the row is simply always here,
 // not held up for the exit and then dropped.
-export function ResultsHeader({ hasResults, onClearRecs, onLevelChange }: ResultsHeaderProps) {
+export function ResultsHeader({ hasResults, resultCount, lockedCount, onUnlockAll, onClearRecs, onLevelChange }: ResultsHeaderProps) {
   return (
     // Always flex-row, never flex-col — this row must never wrap to two
     // lines: wrapping would push the card row's own spawn position down,
@@ -51,8 +59,51 @@ export function ResultsHeader({ hasResults, onClearRecs, onLevelChange }: Result
     // the app's usual 24px frame gutter — a deliberate exception here so the
     // Clear/Filter controls read as belonging TO the results row directly below
     // them (requested "feel more connected"), rather than as a separate band.
-    // justify-end: buttons sit at the right.
-    <div className="flex flex-row items-center justify-end min-h-[30px] gap-x-[var(--space-lg)] mb-[var(--space-lg)]">
+    // justify-between: result-set metadata (count + unlock-all) sits at the
+    // LEFT, the Filter/Clear controls at the right. Both halves are gated on
+    // hasResults, so the empty state leaves the row visually empty (its height
+    // still always reserved, above).
+    <div className="flex flex-row items-center justify-between min-h-[30px] gap-x-[var(--space-lg)] mb-[var(--space-lg)]">
+      {/* LEFT: result-set metadata. Order is [locked] then [results] — the
+          locked readout sits to the LEFT of the results count (requested), and
+          only exists when something is locked. Both are compact mono labels;
+          the locked one is the unlock-all button, the results one is inert. */}
+      {hasResults && (
+        <div className="flex items-center gap-[var(--space-md)] min-w-0">
+          {lockedCount > 0 && (
+            // Compact unlock-all affordance: 🔒 + count. On hover the closed
+            // lock cross-fades to an OPEN lock (both glyphs stacked, toggled by
+            // group-hover) to signal the click UNLOCKS; click clears every lock
+            // (onUnlockAll → UNLOCK_ALL). --primary so the "held" cards read as
+            // active, distinct from the muted results count beside it. title +
+            // aria-label carry the "Unlock all" text (a richer floating hint /
+            // touch-tap reveal is a planned follow-up). tabular-nums so the
+            // count doesn't jitter width as it changes.
+            <button
+              type="button"
+              onClick={onUnlockAll}
+              title="Unlock all"
+              aria-label={`Unlock all ${lockedCount} locked ${lockedCount === 1 ? "card" : "cards"}`}
+              className="group/unlock inline-flex items-center gap-[var(--space-xs)] shrink-0 cursor-pointer font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase text-[var(--primary)]"
+            >
+              <span className="relative inline-flex items-center justify-center w-[15px] h-[15px]">
+                <LockClosedIcon className="text-[var(--primary)] transition-opacity group-hover/unlock:opacity-0" />
+                <LockOpenIcon className="absolute inset-0 text-[var(--primary)] opacity-0 transition-opacity group-hover/unlock:opacity-100" />
+              </span>
+              <span className="tabular-nums">{lockedCount}</span>
+            </button>
+          )}
+          {/* Results count — inert metadata, muted (--subtext) so it reads as
+              info, not a control, and clearly distinct from the --primary
+              locked readout. The word "results" drops below 400px to protect
+              the row's no-wrap invariant; the number always shows. */}
+          <span className="shrink-0 whitespace-nowrap font-mono text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase text-[var(--subtext)] tabular-nums">
+            {resultCount}
+            <span className="hidden min-[400px]:inline"> {resultCount === 1 ? "result" : "results"}</span>
+          </span>
+        </div>
+      )}
+      {/* RIGHT: the Filter popover + Clear ✕ controls (unchanged). */}
       {hasResults && (
         <div className="flex items-center gap-[var(--space-lg)] flex-wrap">
           {/* Filter popover first (left), Clear ✕ second (right) — requested
