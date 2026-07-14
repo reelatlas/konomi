@@ -265,7 +265,11 @@ export function RecommendationsBody({
   // Live-tweakable via AnimationDebugPanel.tsx — read at the top level (not
   // inside the IIFE below) since hooks can't be called from a nested
   // function, even one invoked synchronously during this same render.
-  const { cardStaggerMs } = useAnimationDebugValues();
+  // cardStaggerMs paces the card sweep below; cardDurationMs/cardDistancePx are
+  // also handed to the empty-state box's own enter/exit (see the box lifecycle
+  // block + its inline style further down) so the box moves on the SAME timing
+  // and travel as the cards it sweeps with — one debug slider would tune both.
+  const { cardStaggerMs, cardDurationMs, cardDistancePx } = useAnimationDebugValues();
   // Hydration-safe: 0 on every server render and the client's own first
   // (hydration) render, then automatically resolves to the real random
   // pick right after — see getEmptyStateIndexServerSnapshot's own comment
@@ -409,6 +413,76 @@ export function RecommendationsBody({
   // there regardless, since the locked cards keep `results` non-empty.
   const showResultsGrid = hasResults || exitingTitles.size > 0;
 
+  // Empty-state box enter/exit — Path A (CSS keyframes, mirroring the cards'
+  // own displayedResults/exitingTitles mount-through-exit mechanism above, NOT
+  // AnimatePresence; see globals.css empty-state-enter/exit). The box animates
+  // as one more object in the SAME upward sweep as the cards:
+  //   • RECOMMEND (empty -> results): the box is knocked up and out. hasResults
+  //     flips true, so the grid mounts and its cards enter immediately; we keep
+  //     the box mounted as an absolute overlay playing its EXIT for one
+  //     card-duration (boxExiting), then drop it.
+  //   • CLEAR (results -> empty): the box bumps up into place. hasResults flips
+  //     false the instant Clear ✕ dispatches — BEFORE the cards finish their own
+  //     exit — so the box mounts right away as an absolute overlay and plays its
+  //     ENTER (boxEntering) concurrently with the departing cards, then settles
+  //     in-flow once the grid unmounts. (This is the one spot that intentionally
+  //     keys the box off hasResults, not showResultsGrid: the whole point is to
+  //     overlap the box's entrance WITH the still-animating card exit, which
+  //     showResultsGrid deliberately suppresses.)
+  // Edges detected render-phase (compare against state, not a ref — the same
+  // pattern the swap-hint / clearGen blocks above use to satisfy the react-hooks
+  // rules), off hasResults' own true<->false transitions.
+  const [boxExiting, setBoxExiting] = useState(false);
+  const [boxEntering, setBoxEntering] = useState(false);
+  const [lastHasResultsForBox, setLastHasResultsForBox] = useState(hasResults);
+  if (hasResults !== lastHasResultsForBox) {
+    setLastHasResultsForBox(hasResults);
+    if (hasResults) {
+      setBoxExiting(true);
+      setBoxEntering(false);
+    } else {
+      setBoxEntering(true);
+      setBoxExiting(false);
+    }
+  }
+  // Settle timers: drop each flag once its keyframe has run — a plain timer
+  // matching the card duration, the same "timers, not animationend, are the
+  // reliable signal on-device" choice the card settle effect above makes.
+  // Reduced-motion collapses to 0 (the keyframes themselves are near-instant
+  // under the prefers-reduced-motion rule). Each only re-fires on its own
+  // flag's false->true edge.
+  useEffect(() => {
+    if (!boxExiting) return;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const t = setTimeout(() => setBoxExiting(false), reduced ? 0 : cardDurationMs);
+    return () => clearTimeout(t);
+  }, [boxExiting, cardDurationMs]);
+  useEffect(() => {
+    if (!boxEntering) return;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const t = setTimeout(() => setBoxEntering(false), reduced ? 0 : cardDurationMs);
+    return () => clearTimeout(t);
+  }, [boxEntering, cardDurationMs]);
+  // The box stays in the DOM whenever there are no results (resting/entering) OR
+  // while it's still playing its exit over the freshly-mounted grid. While the
+  // grid co-renders (recommend exit, or the clear-overlap window before the
+  // cards settle) the box floats as an absolute overlay so it doesn't add its
+  // own height to the container — it paints above the grid (positioned element
+  // over the in-flow grid) which is correct for both directions (the departing
+  // box fades off the top on recommend; the arriving box covers the departing
+  // cards on clear). At rest it's a normal in-flow block again.
+  const showEmptyBox = !hasResults || boxExiting;
+  const emptyBoxOverlay = showResultsGrid;
+  const emptyBoxAnimClass = boxExiting ? "animate-empty-exit" : boxEntering ? "animate-empty-enter" : "";
+  const emptyBoxAnimStyle =
+    boxExiting || boxEntering
+      ? {
+          ["--empty-anim-distance" as string]: `${cardDistancePx}px`,
+          animationDuration: `${cardDurationMs}ms`,
+          animationTimingFunction: "cubic-bezier(0, 0, 0.2, 1)",
+        }
+      : undefined;
+
   return (
     // flow-root (a new block formatting context), not a plain fragment —
     // the carousel row below cancels its own shadow-clipping padding with a
@@ -445,8 +519,13 @@ export function RecommendationsBody({
     // circular: this element's own size comes from flex-1 above (external
     // to its own content), not from anything that would need to query it
     // first to know its size.
-    <div className="flow-root flex-1 min-h-0 [container-type:size]">
-      {!showResultsGrid && (
+    // relative: the containing block for the empty-state box while it floats as
+    // an absolute overlay through its enter/exit (see showEmptyBox/emptyBoxOverlay
+    // above). position:relative alone adds no z-index and creates no stacking
+    // context, so it doesn't perturb the card layering or the inner rowRef's own
+    // relative (which stays the nearer containing block for a card's pop-out).
+    <div className="relative flow-root flex-1 min-h-0 [container-type:size]">
+      {showEmptyBox && (
         // !showResultsGrid (hasResults, extended through any in-flight exit
         // animation — see its own comment above), not `empty` (!generated)
         // — a RECOMMEND that fails
@@ -509,7 +588,19 @@ export function RecommendationsBody({
         // only, so the box's own min-height/vertical centering is unaffected;
         // FilterControls carries its own nested @container, so it still queries
         // itself, not this box.
-        <div className="@container border-[length:var(--border-base)] border-dashed border-[var(--muted)] bg-[var(--slot-empty)] mt-[calc((30px_+_var(--space-lg))_*_-1)] min-h-[calc(var(--result-card-height)_+_30px_+_var(--space-lg))] grid grid-rows-[1fr_auto_1fr] px-[var(--space-2xl)] py-[var(--space-2xl)] text-center">
+        // emptyBoxOverlay -> absolute inset-x-0 top-0: while the results grid
+        // co-renders (recommend exit, or the clear overlap window), the box floats
+        // above it without adding its own height. The existing -mt (pulls the box
+        // up over the header row) still applies from `top: 0`, so the overlaid
+        // position matches the in-flow resting position exactly — the switch back
+        // to in-flow once the grid unmounts is seamless (the box's min-h and the
+        // results block are designed to the same footprint). emptyBoxAnimClass /
+        // emptyBoxAnimStyle play the rise+fade keyframe (globals.css) on the same
+        // timing/travel as the cards.
+        <div
+          className={`@container border-[length:var(--border-base)] border-dashed border-[var(--muted)] bg-[var(--slot-empty)] mt-[calc((30px_+_var(--space-lg))_*_-1)] min-h-[calc(var(--result-card-height)_+_30px_+_var(--space-lg))] grid grid-rows-[1fr_auto_1fr] px-[var(--space-2xl)] py-[var(--space-2xl)] text-center ${emptyBoxOverlay ? "absolute inset-x-0 top-0" : ""} ${emptyBoxAnimClass}`}
+          style={emptyBoxAnimStyle}
+        >
           {/* Two balanced halves split by a centered rule: the headline group
               centers in the upper half (flex-1), the divider sits at the box's
               middle, and the filters center in the lower half (flex-1) — rather

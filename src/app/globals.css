@@ -695,6 +695,64 @@
   }
 }
 
+/* Empty-state box enter/exit — the SAME rise+fade the result cards use
+   (result-card-enter/exit above), applied to the whole empty-state box so it
+   reads as one more object in the same upward sweep, NOT a separate motion
+   vocabulary. On RECOMMEND (empty -> results) the box plays EXIT (rises up +
+   fades out) while the cards rise into place beneath it — the incoming cards
+   "knock" the box up and out. On CLEAR (results -> empty) the box plays ENTER
+   (rises up from below + fades in) while the departing cards rise up and out —
+   the box "bumps" them out from below. RecommendationsBody keeps the box mounted
+   as an absolute overlay through each transition (boxExiting/boxEntering flags +
+   a settle setTimeout), exactly mirroring the cards' own displayedResults/
+   exitingTitles mount-through-exit mechanism — and for the same reason it's CSS
+   keyframes, not AnimatePresence (see the card block above: a keyframe plays
+   once on mount and never replays on reflow, and the app treats a plain timer as
+   more reliable than animationend on-device). Distance/duration/easing are inline
+   on the box (RecommendationsBody), read from the SAME animationDebug store the
+   cards use (cardDistancePx/cardDurationMs) so both move as one unit and a future
+   debug slider tunes them together; only name/fill-mode are static here. */
+@keyframes empty-state-enter {
+  from {
+    opacity: 0;
+    transform: translateY(var(--empty-anim-distance, 8px));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes empty-state-exit {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(calc(var(--empty-anim-distance, 8px) * -1));
+  }
+}
+
+.animate-empty-enter {
+  animation-name: empty-state-enter;
+  animation-fill-mode: both;
+}
+
+.animate-empty-exit {
+  animation-name: empty-state-exit;
+  animation-fill-mode: both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-empty-enter,
+  .animate-empty-exit {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    transform: none !important;
+  }
+}
+
 /* MixerBar controls row is promoted to its own compositor layer WHILE THE PANEL
    ANIMATES. THE fix for the Safari/WebKit resize shimmer: as the panel animates
    (real height/margin-top) WebKit re-rasterizes descendant thin SVG strokes and
