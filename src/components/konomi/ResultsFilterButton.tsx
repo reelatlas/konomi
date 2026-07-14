@@ -86,40 +86,35 @@ export function ResultsFilterButton({ onLevelChange }: ResultsFilterButtonProps)
     // this token for why MixerBar's cardRef, later in the DOM, would
     // otherwise silently win by accident).
     <div ref={wrapperRef} data-results-filter className={["relative", open ? "z-[var(--z-popover)]" : "z-[var(--z-raised)]"].join(" ")}>
-      {/* Both states use --primary throughout (icon, border, and fill),
-          not --ink — requested directly: a theme-adaptive color
-          (Konomi/Tide/Newsprint each define their own --primary) rather
-          than the fixed, always-dark neutral every other plain icon
-          button in this bar defaults to. Deliberately not --secondary
-          either — that's RecommendButton's own accent color
-          (DEFAULT_ACCENT, config.ts), and reusing it here would make this
-          button read as sharing Recommend's own "primary action" weight
-          instead of its own, secondary one. Default: outlined, --primary
-          icon/border, transparent fill. Active (while `open`): filled
-          --primary with a --surface icon, the same pairing LevelSelector's
-          own active segment already uses for an "on" state — reverts the
-          instant `open` goes false again, whether that's the trigger
-          click, an outside click, or Escape, since all three already just
-          flip this same `open` state. borderColor: IconButton.tsx's own
-          prop (added alongside backgroundColor/textColor), not a
-          className override — every other icon button in this app still
-          gets IconButton's own var(--ink) default unchanged. */}
+      {/* Colour matches the results-header metadata scheme (requested): a
+          CLOSED (inactive) filter is --muted — the app's inactive-tab colour,
+          the same one the metadata's 0-count readouts use — outlined with a
+          transparent fill; an OPEN ("engaged") filter is filled --primary with a
+          --surface icon, i.e. the SAME "engaged filter bg" the Level/Sort
+          segmented controls give their selected option (LevelSelector). It
+          reverts the instant `open` goes false (trigger click, outside click, or
+          Escape all flip this one state). glow-host + a glow-icon on FilterIcon
+          add the shared hover/focus bloom (globals.css) — the same --subtext
+          glow the MixerBar drag grip and the metadata lock use — so hovering
+          signals it's clickable. borderColor/backgroundColor are IconButton's
+          own props; every other icon button keeps IconButton's --ink default. */}
       <IconButton
         size="sm"
         border="base"
-        borderColor="var(--primary)"
+        borderColor={open ? "var(--primary)" : "var(--muted)"}
         backgroundColor={open ? "var(--primary)" : "transparent"}
-        title="Filters"
-        aria-label="Filters"
+        title="filters"
+        aria-label="filters"
         aria-pressed={open}
         onClick={() => setOpen((o) => !o)}
+        className="glow-host"
       >
-        <FilterIcon className={open ? "text-[var(--surface)]" : "text-[var(--primary)]"} />
+        <FilterIcon className={`glow-icon ${open ? "text-[var(--surface)]" : "text-[var(--muted)]"}`} />
       </IconButton>
       {open && (
         <div
           role="dialog"
-          aria-label="Filters"
+          aria-label="filters"
           // @container: Level/Sort's own label-hide/collapse breakpoints
           // below key off this container's width, not the old MixerBar
           // cardRef's — the old @min-[480px]/@max-[352px] numbers were

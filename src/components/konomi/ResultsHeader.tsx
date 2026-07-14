@@ -68,17 +68,25 @@ export function ResultsHeader({ hasResults, lockedCount, newCount, existingCount
   // Shared look for the three metadata readouts (mono, small, lowercase — the
   // uppercase treatment was dropped per request; tabular-nums so counts don't
   // jitter width).
-  const metaBase = "inline-flex items-center gap-[var(--space-xs)] font-mono text-[length:var(--text-2xs)] tracking-[var(--tracking-lg)] lowercase shrink-0";
-  const iconBox = "inline-flex items-center justify-center w-[15px] h-[15px] shrink-0";
+  // Bumped up a size from the first pass (requested): text-xs (was 2xs) and an
+  // 18px icon box (was 15). Still well under the row's 30px min-height, so the
+  // empty-state footprint match is untouched.
+  // transition-colors so a readout eases between passive/active — most visibly
+  // the unlock flash below, which holds the ACTIVE colour then eases back to
+  // passive once it settles to locked 0 (simulating "active → now unlocked →
+  // passive again").
+  const metaBase = "inline-flex items-center gap-[var(--space-xs)] font-mono text-[length:var(--text-xs)] tracking-[var(--tracking-lg)] lowercase shrink-0 transition-colors duration-500";
+  const iconSize = "w-[18px] h-[18px]";
+  const iconBox = `inline-flex items-center justify-center ${iconSize} shrink-0`;
   // Unified colour rule for ALL THREE readouts (requested): a 0/empty count uses
-  // the app's INACTIVE-tab colour (--muted), a non-zero count the ACTIVE-tab
-  // colour (--ink) — the exact pair SectionTabStrip uses (active ? --ink :
-  // --muted). Each readout colours off its OWN count. The locked readout follows
-  // the same rule; its hover glow (globals.css) is a separate accent layered on
-  // top when interactive.
-  const metaColor = (n: number) => (n > 0 ? "text-[var(--ink)]" : "text-[var(--muted)]");
+  // the app's INACTIVE-tab colour (--muted), a non-zero count the SELECTED-FILTER
+  // colour (--primary — the bg the Level/Sort segmented controls use for their
+  // chosen option, LevelSelector.tsx). Each readout colours off its OWN count.
+  // The locked readout follows the same rule; its hover glow (globals.css) is a
+  // separate accent layered on top when interactive.
+  const metaColor = (n: number) => (n > 0 ? "text-[var(--primary)]" : "text-[var(--muted)]");
   // Thin vertical divider between readouts.
-  const divider = <span aria-hidden className="w-px h-[13px] bg-[var(--muted)] shrink-0" />;
+  const divider = <span aria-hidden className="w-px h-[16px] bg-[var(--muted)] shrink-0" />;
   return (
     // Always flex-row, never flex-col — this row must never wrap to two
     // lines: wrapping would push the card row's own spawn position down,
@@ -105,18 +113,28 @@ export function ResultsHeader({ hasResults, lockedCount, newCount, existingCount
     // still always reserved, above).
     <div className="flex flex-row items-center justify-between min-h-[30px] gap-x-[var(--space-lg)] mb-[var(--space-lg)]">
       {/* LEFT: result-set metadata — three icon+count readouts, divider-
-          separated: LOCKED · NEW · EXISTING. Locked leftmost (it owns the
-          unlock-all interaction), then the two results buckets. locked + new +
-          existing === total results. All three always show while hasResults
-          (locked shows 0 too, so unlock-all can settle to 🔒 0). */}
+          separated: LOCKED · EXISTING · NEW (existing before new, requested).
+          Locked leftmost (it owns the unlock-all interaction), then the two
+          results buckets. locked + new + existing === total results. All three
+          always show while hasResults (locked shows 0 too, so unlock-all can
+          settle to 🔒 0). Only `new` carries a text label right now; locked and
+          existing are icon+count only. */}
+      {/* relative z-[var(--z-raised)]: WITHOUT this, real clicks (and hover)
+          on the metadata never landed — the results carousel's own invisible
+          pt/pb-40px flip-bulge padding (RecommendationsBody) geometrically
+          overlaps the bottom of this header row, and its ScrollFadeArea
+          wrappers are pointer-events-auto, so they won the hit-test over the
+          metadata sitting under them. Same fix, same reason, as the Clear ✕
+          button's own z-raised in this file (see its comment). Reported live as
+          "clicking the lock does nothing." */}
       {hasResults && (
-        <div className="flex items-center gap-[var(--space-sm)] min-w-0">
+        <div className="relative z-[var(--z-raised)] flex items-center gap-[var(--space-sm)] min-w-0">
           {/* LOCKED — the unlock-all affordance. Interactive only when > 0:
-              .unlock-btn enables the hover/focus glow (globals.css, the same
-              bloom the MixerBar grip uses, in --primary), and the click clears
+              .glow-host enables the shared hover/focus glow (globals.css, the
+              SAME --subtext bloom the MixerBar grip uses), and the click clears
               every lock, then flashes "unlocked" (open lock + word) for a beat
-              before settling to a closed lock + 0. --primary throughout so the
-              held cards read as active vs the muted new/existing counts. */}
+              before settling to a closed lock + 0. Colour follows metaColor
+              (--primary when held, --muted at 0). */}
           <button
             type="button"
             onClick={lockInteractive ? handleUnlockAll : undefined}
@@ -126,32 +144,39 @@ export function ResultsHeader({ hasResults, lockedCount, newCount, existingCount
                 ? `unlock all ${lockedCount} locked ${lockedCount === 1 ? "card" : "cards"}`
                 : `${lockedCount} locked`
             }
-            className={`${metaBase} ${metaColor(lockedCount)} ${lockInteractive ? "unlock-btn cursor-pointer" : "cursor-default"}`}
+            className={`${metaBase} ${justUnlocked ? "text-[var(--primary)]" : metaColor(lockedCount)} ${lockInteractive ? "glow-host cursor-pointer" : "cursor-default"}`}
           >
+            {/* During the "unlocked" flash the open lock + word hold the ACTIVE
+                colour (--primary, same as a non-zero count), set on the button so
+                both the icon (currentColor) and text inherit it; then metaBase's
+                transition-colors eases it back to passive (--muted) once
+                justUnlocked clears and it settles to locked 0 — reading as
+                "active → just unlocked → passive again". */}
             <span className={iconBox}>
-              {justUnlocked ? <LockOpenIcon className="lock-glow" /> : <LockClosedIcon className="lock-glow" />}
+              {justUnlocked ? <LockOpenIcon className={`glow-icon ${iconSize}`} /> : <LockClosedIcon className={`glow-icon ${iconSize}`} />}
             </span>
             {justUnlocked ? <span>unlocked</span> : <span className="tabular-nums">{lockedCount}</span>}
           </button>
           {divider}
-          {/* NEW — fresh picks this batch (not in the previous batch). Text
-              label "new" in front of the icon+count (requested). */}
+          {/* EXISTING — results re-appearing from the previous batch (recycle
+              glyph). Now BEFORE new (order swapped, requested) and icon+count
+              ONLY — its "existing" text label was removed for now (kept just on
+              new). title still carries the word for hover/a11y. */}
+          <span className={`${metaBase} ${metaColor(existingCount)}`} title="existing">
+            <span className={iconBox}>
+              <ExistingIcon className={iconSize} />
+            </span>
+            <span className="tabular-nums">{existingCount}</span>
+          </span>
+          {divider}
+          {/* NEW — fresh picks this batch (not in the previous batch). Keeps its
+              "new" text label in front of the sparkles icon + count. */}
           <span className={`${metaBase} ${metaColor(newCount)}`} title="new">
             <span>new</span>
             <span className={iconBox}>
-              <NewIcon />
+              <NewIcon className={iconSize} />
             </span>
             <span className="tabular-nums">{newCount}</span>
-          </span>
-          {divider}
-          {/* EXISTING — results re-appearing from the previous batch (recycle
-              glyph). Text label "existing" in front of the icon+count. */}
-          <span className={`${metaBase} ${metaColor(existingCount)}`} title="existing">
-            <span>existing</span>
-            <span className={iconBox}>
-              <ExistingIcon />
-            </span>
-            <span className="tabular-nums">{existingCount}</span>
           </span>
         </div>
       )}

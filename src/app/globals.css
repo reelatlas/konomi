@@ -839,26 +839,28 @@
   transition: none;
 }
 
-/* Results-header unlock-all affordance glow (ResultsHeader.tsx). Reuses the
-   SAME two-stacked-drop-shadow bloom the MixerBar grip uses above, but:
-   (a) HOVER/focus-driven — an "engaged, click to act" cue, not a live-drag flag
-   like the grip's [data-gripping]; and (b) in --primary (the lock readout's own
-   colour) rather than the grip's --subtext, so it reads as the lock intensifying.
-   The .unlock-btn class is applied only while the button is actually
-   interactive (something is locked), so a 0-count lock never glows. Base rule
-   is a transparent no-op placeholder giving the filter the same shape to
+/* Shared hover/focus glow for click affordances that want the SAME bloom the
+   MixerBar drag grip uses above — the results-header unlock-all lock and the
+   results Filter trigger (ResultsHeader.tsx / ResultsFilterButton.tsx). Same
+   two-stacked-drop-shadow bloom, in the same --subtext colour, so all three
+   affordances glow identically — but HOVER/focus-driven (an "engaged, clicking
+   does something" cue) rather than the grip's live-drag [data-gripping] flag.
+   .glow-host is the interactive element (button); .glow-icon is the glyph inside
+   it that blooms. The host applies .glow-host only while actually interactive
+   (e.g. the lock omits it at a 0 count), so a no-op affordance never glows. Base
+   rule is a transparent no-op placeholder giving the filter the same shape to
    interpolate out of, exactly as .grip-glow does. */
-.unlock-btn .lock-glow {
+.glow-icon {
   filter:
     drop-shadow(0 0 0 transparent)
     drop-shadow(0 0 0 transparent);
   transition: filter 240ms ease-out;
 }
-.unlock-btn:hover .lock-glow,
-.unlock-btn:focus-visible .lock-glow {
+.glow-host:hover .glow-icon,
+.glow-host:focus-visible .glow-icon {
   filter:
-    drop-shadow(0 0 4px color-mix(in srgb, transparent, var(--primary) 90%))
-    drop-shadow(0 0 11px color-mix(in srgb, transparent, var(--primary) 55%));
+    drop-shadow(0 0 5px color-mix(in srgb, transparent, var(--subtext) 90%))
+    drop-shadow(0 0 13px color-mix(in srgb, transparent, var(--subtext) 60%));
   transition: none;
 }
 
