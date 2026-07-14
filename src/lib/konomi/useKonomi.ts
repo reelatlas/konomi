@@ -51,6 +51,15 @@ interface KonomiState {
   // that specific reset for correctness — see recommend()'s own comment on
   // why locked entries are naturally excluded from this set regardless.
   newTitles: string[];
+  // Titles that were on screen JUST BEFORE the most recent RECOMMEND — i.e.
+  // the previous batch. Powers the results-header "new vs existing" split: a
+  // current result whose title is in here reappeared (existing); one that isn't
+  // is brand new this batch. Captured in recommend() from state.results at the
+  // moment it runs (that array IS the previous batch, since `out` is built
+  // fresh). Distinct from newTitles, which is "pulled from the pool this call"
+  // and can include a re-pick of a previously-shown title — that case is
+  // exactly an "existing" result, so the two signals genuinely differ.
+  prevResultTitles: string[];
   // Bumped once per CLEAR_RECS dispatch, mirroring recommendGen's own
   // pattern — an explicit "Clear ✕ just ran" signal for the exit
   // animation, rather than the component having to infer it by diffing
@@ -79,6 +88,7 @@ function createInitialState(catalog: { series: Series[]; tags: TagInfo[] }): Kon
     recommendGen: 0,
     firstNewIndex: 0,
     newTitles: [],
+    prevResultTitles: [],
     clearGen: 0,
   };
 }
@@ -178,6 +188,9 @@ function recommend(state: KonomiState): KonomiState {
     recommendGen: state.recommendGen + 1,
     firstNewIndex,
     newTitles,
+    // The batch that was showing before this RECOMMEND — state.results is still
+    // the old array here (out is separate), so this captures the prior titles.
+    prevResultTitles: state.results.map((r) => r.series.title),
   };
 }
 
@@ -487,6 +500,7 @@ export function useKonomi(initialSeries: Series[], initialTags: TagInfo[]) {
     recommendGen: state.recommendGen,
     firstNewIndex: state.firstNewIndex,
     newTitles: state.newTitles,
+    prevResultTitles: state.prevResultTitles,
     clearGen: state.clearGen,
     ...actions,
   };

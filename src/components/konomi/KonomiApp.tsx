@@ -532,10 +532,22 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
           <section className="mb-[var(--space-2xl)] flex-1 min-h-0 flex flex-col">
             <ResultsHeader
               hasResults={k.hasResults}
-              resultCount={k.results.length}
-              // Locked cards among the CURRENT results — locked can only ever
-              // hold current results' titles, but filter to be safe/explicit.
+              // Partition the current results into locked / new / existing (they
+              // sum to results.length). A result is LOCKED if held; else EXISTING
+              // if its title was in the previous batch (prevResultTitles), else
+              // NEW. Locked wins over existing so a carried-over lock is counted
+              // once, as locked (see ResultsHeader's own comment).
               lockedCount={k.results.filter((r) => k.locked[r.series.title]).length}
+              newCount={
+                k.results.filter(
+                  (r) => !k.locked[r.series.title] && !k.prevResultTitles.includes(r.series.title),
+                ).length
+              }
+              existingCount={
+                k.results.filter(
+                  (r) => !k.locked[r.series.title] && k.prevResultTitles.includes(r.series.title),
+                ).length
+              }
               onUnlockAll={k.unlockAll}
               onClearRecs={k.clearRecs}
               onLevelChange={handleLevelChange}

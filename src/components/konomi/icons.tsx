@@ -21,6 +21,47 @@ export function LockClosedIcon({ className }: IconProps) {
   );
 }
 
+// Results-header metadata glyphs (ResultsHeader.tsx), sized/stroked to match
+// the lock icons above so the three counts (locked / new / existing) read as
+// one set. NEW = a four-point sparkle (fresh this batch). EXISTING = a
+// recur/again loop (a card that was in the previous batch and came back).
+export function NewIcon({ className }: IconProps) {
+  return (
+    <svg
+      className={className}
+      width="15"
+      height="15"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 3l1.9 6.1L20 11l-6.1 1.9L12 19l-1.9-6.1L4 11l6.1-1.9L12 3Z" />
+    </svg>
+  );
+}
+
+export function ExistingIcon({ className }: IconProps) {
+  return (
+    <svg
+      className={className}
+      width="15"
+      height="15"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M20 11.5A8 8 0 1 0 18 17" />
+      <path d="M20 4v4h-4" />
+    </svg>
+  );
+}
+
 export function LockOpenIcon({ className }: IconProps) {
   return (
     <svg

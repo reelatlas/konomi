@@ -839,6 +839,29 @@
   transition: none;
 }
 
+/* Results-header unlock-all affordance glow (ResultsHeader.tsx). Reuses the
+   SAME two-stacked-drop-shadow bloom the MixerBar grip uses above, but:
+   (a) HOVER/focus-driven — an "engaged, click to act" cue, not a live-drag flag
+   like the grip's [data-gripping]; and (b) in --primary (the lock readout's own
+   colour) rather than the grip's --subtext, so it reads as the lock intensifying.
+   The .unlock-btn class is applied only while the button is actually
+   interactive (something is locked), so a 0-count lock never glows. Base rule
+   is a transparent no-op placeholder giving the filter the same shape to
+   interpolate out of, exactly as .grip-glow does. */
+.unlock-btn .lock-glow {
+  filter:
+    drop-shadow(0 0 0 transparent)
+    drop-shadow(0 0 0 transparent);
+  transition: filter 240ms ease-out;
+}
+.unlock-btn:hover .lock-glow,
+.unlock-btn:focus-visible .lock-glow {
+  filter:
+    drop-shadow(0 0 4px color-mix(in srgb, transparent, var(--primary) 90%))
+    drop-shadow(0 0 11px color-mix(in srgb, transparent, var(--primary) 55%));
+  transition: none;
+}
+
 /* RollingLabel's own slot-machine roll (MatchSelector/LevelSelector/
    SortSelect's collapsed forms) used to live here as roll-out-up/roll-in-up
    keyframes — removed once RollingLabel.tsx migrated to Motion

@@ -1,22 +1,33 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import type { LevelKey } from "@/lib/konomi/types";
 import { ActionButton } from "./ActionButton";
-import { CloseIcon, LockClosedIcon, LockOpenIcon } from "./icons";
+import { CloseIcon, ExistingIcon, LockClosedIcon, LockOpenIcon, NewIcon } from "./icons";
 import { IconButton } from "./IconButton";
 import { ResultsFilterButton } from "./ResultsFilterButton";
 
 interface ResultsHeaderProps {
   hasResults: boolean;
-  // Result-set metadata shown left-aligned in this row (results state only).
-  // resultCount drives the "N results" readout; lockedCount (how many of those
-  // results are currently locked) gates + labels the unlock-all affordance —
-  // it appears only when > 0. onUnlockAll clears every lock at once (UNLOCK_ALL
-  // in useKonomi).
-  resultCount: number;
+  // Left-aligned result-set metadata, three icon+count readouts (results state
+  // only): LOCKED (how many current results are locked), NEW (fresh this batch),
+  // EXISTING (were in the previous batch and came back). The three partition the
+  // result set: locked + new + existing === total. lockedCount also drives the
+  // unlock-all affordance (glow on hover, click clears all via onUnlockAll →
+  // UNLOCK_ALL). Counts are computed in KonomiApp from results/locked/
+  // prevResultTitles.
   lockedCount: number;
+  newCount: number;
+  existingCount: number;
   onUnlockAll: () => void;
   onClearRecs: () => void;
   onLevelChange: (level: LevelKey) => void;
 }
+
+// How long the "unlocked" confirmation shows after clicking unlock-all before
+// the readout settles back to the (now 0) locked count. A brief beat, matching
+// the app's other quick state-change feedbacks.
+const UNLOCKED_FEEDBACK_MS = 1100;
 
 // Results-state chrome only: the Clear ✕ button and the Filter popover,
 // right-aligned. There is NO "Recommendations" title text anymore (dropped to
@@ -38,7 +49,29 @@ interface ResultsHeaderProps {
 // (reported); always-reserving removes that whole mechanism AND the jump.
 // Cards also can't jump on Clear anymore because the row is simply always here,
 // not held up for the exit and then dropped.
-export function ResultsHeader({ hasResults, resultCount, lockedCount, onUnlockAll, onClearRecs, onLevelChange }: ResultsHeaderProps) {
+export function ResultsHeader({ hasResults, lockedCount, newCount, existingCount, onUnlockAll, onClearRecs, onLevelChange }: ResultsHeaderProps) {
+  // Transient "unlocked" confirmation after a click: the locked readout flips to
+  // an open lock + the word "unlocked" for a beat, then settles back to the
+  // closed lock + its (now 0) count. Timer ref so a rapid re-click resets it.
+  const [justUnlocked, setJustUnlocked] = useState(false);
+  const unlockTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (unlockTimer.current) clearTimeout(unlockTimer.current); }, []);
+  const handleUnlockAll = () => {
+    onUnlockAll();
+    setJustUnlocked(true);
+    if (unlockTimer.current) clearTimeout(unlockTimer.current);
+    unlockTimer.current = setTimeout(() => setJustUnlocked(false), UNLOCKED_FEEDBACK_MS);
+  };
+  // The locked readout is interactive (glow + click-to-unlock) only when there
+  // is actually something locked; at 0 it's a plain static indicator.
+  const lockInteractive = lockedCount > 0;
+  // Shared look for the three metadata readouts (mono, small, lowercase — the
+  // uppercase treatment was dropped per request; tabular-nums so counts don't
+  // jitter width).
+  const metaBase = "inline-flex items-center gap-[var(--space-xs)] font-mono text-[length:var(--text-2xs)] tracking-[var(--tracking-lg)] lowercase shrink-0";
+  const iconBox = "inline-flex items-center justify-center w-[15px] h-[15px] shrink-0";
+  // Thin vertical divider between readouts.
+  const divider = <span aria-hidden className="w-px h-[13px] bg-[var(--muted)] shrink-0" />;
   return (
     // Always flex-row, never flex-col — this row must never wrap to two
     // lines: wrapping would push the card row's own spawn position down,
@@ -64,42 +97,54 @@ export function ResultsHeader({ hasResults, resultCount, lockedCount, onUnlockAl
     // hasResults, so the empty state leaves the row visually empty (its height
     // still always reserved, above).
     <div className="flex flex-row items-center justify-between min-h-[30px] gap-x-[var(--space-lg)] mb-[var(--space-lg)]">
-      {/* LEFT: result-set metadata. Order is [locked] then [results] — the
-          locked readout sits to the LEFT of the results count (requested), and
-          only exists when something is locked. Both are compact mono labels;
-          the locked one is the unlock-all button, the results one is inert. */}
+      {/* LEFT: result-set metadata — three icon+count readouts, divider-
+          separated: LOCKED · NEW · EXISTING. Locked leftmost (it owns the
+          unlock-all interaction), then the two results buckets. locked + new +
+          existing === total results. All three always show while hasResults
+          (locked shows 0 too, so unlock-all can settle to 🔒 0). */}
       {hasResults && (
-        <div className="flex items-center gap-[var(--space-md)] min-w-0">
-          {lockedCount > 0 && (
-            // Compact unlock-all affordance: 🔒 + count. On hover the closed
-            // lock cross-fades to an OPEN lock (both glyphs stacked, toggled by
-            // group-hover) to signal the click UNLOCKS; click clears every lock
-            // (onUnlockAll → UNLOCK_ALL). --primary so the "held" cards read as
-            // active, distinct from the muted results count beside it. title +
-            // aria-label carry the "Unlock all" text (a richer floating hint /
-            // touch-tap reveal is a planned follow-up). tabular-nums so the
-            // count doesn't jitter width as it changes.
-            <button
-              type="button"
-              onClick={onUnlockAll}
-              title="Unlock all"
-              aria-label={`Unlock all ${lockedCount} locked ${lockedCount === 1 ? "card" : "cards"}`}
-              className="group/unlock inline-flex items-center gap-[var(--space-xs)] shrink-0 cursor-pointer font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase text-[var(--primary)]"
-            >
-              <span className="relative inline-flex items-center justify-center w-[15px] h-[15px]">
-                <LockClosedIcon className="text-[var(--primary)] transition-opacity group-hover/unlock:opacity-0" />
-                <LockOpenIcon className="absolute inset-0 text-[var(--primary)] opacity-0 transition-opacity group-hover/unlock:opacity-100" />
-              </span>
-              <span className="tabular-nums">{lockedCount}</span>
-            </button>
-          )}
-          {/* Results count — inert metadata, muted (--subtext) so it reads as
-              info, not a control, and clearly distinct from the --primary
-              locked readout. The word "results" drops below 400px to protect
-              the row's no-wrap invariant; the number always shows. */}
-          <span className="shrink-0 whitespace-nowrap font-mono text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase text-[var(--subtext)] tabular-nums">
-            {resultCount}
-            <span className="hidden min-[400px]:inline"> {resultCount === 1 ? "result" : "results"}</span>
+        <div className="flex items-center gap-[var(--space-sm)] min-w-0">
+          {/* LOCKED — the unlock-all affordance. Interactive only when > 0:
+              .unlock-btn enables the hover/focus glow (globals.css, the same
+              bloom the MixerBar grip uses, in --primary), and the click clears
+              every lock, then flashes "unlocked" (open lock + word) for a beat
+              before settling to a closed lock + 0. --primary throughout so the
+              held cards read as active vs the muted new/existing counts. */}
+          <button
+            type="button"
+            onClick={lockInteractive ? handleUnlockAll : undefined}
+            title={lockInteractive ? "unlock all" : undefined}
+            aria-label={
+              lockInteractive
+                ? `unlock all ${lockedCount} locked ${lockedCount === 1 ? "card" : "cards"}`
+                : `${lockedCount} locked`
+            }
+            className={`${metaBase} text-[var(--primary)] ${lockInteractive ? "unlock-btn cursor-pointer" : "cursor-default"}`}
+          >
+            <span className={iconBox}>
+              {justUnlocked ? (
+                <LockOpenIcon className="lock-glow text-[var(--primary)]" />
+              ) : (
+                <LockClosedIcon className="lock-glow text-[var(--primary)]" />
+              )}
+            </span>
+            {justUnlocked ? <span>unlocked</span> : <span className="tabular-nums">{lockedCount}</span>}
+          </button>
+          {divider}
+          {/* NEW — fresh picks this batch (not in the previous batch). */}
+          <span className={`${metaBase} text-[var(--ink)]`} title="new">
+            <span className={iconBox}>
+              <NewIcon />
+            </span>
+            <span className="tabular-nums">{newCount}</span>
+          </span>
+          {divider}
+          {/* EXISTING — results carried/re-appearing from the previous batch. */}
+          <span className={`${metaBase} text-[var(--subtext)]`} title="existing">
+            <span className={iconBox}>
+              <ExistingIcon />
+            </span>
+            <span className="tabular-nums">{existingCount}</span>
           </span>
         </div>
       )}
