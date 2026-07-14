@@ -4,7 +4,7 @@ import { scoreSeries } from "@/lib/konomi/scoring";
 import { isTagVisibleAtLevel, sortTags } from "@/lib/konomi/tagPool";
 import type { LevelKey, ResultEntry, SortKey, TagInfo } from "@/lib/konomi/types";
 import { useAnimationDebugValues } from "./animationDebugStore";
-import { DiceIcon, LockClosedIcon, LockOpenIcon } from "./icons";
+import { ArrowsShuffleIcon, LockClosedIcon, LockOpenIcon } from "./icons";
 import { IconButton } from "./IconButton";
 import { RatingBadge } from "./RatingBadge";
 import { ERROR_MESSAGE } from "./RecommendButton";
@@ -243,7 +243,7 @@ export function ResultCard({
       // Confirmed live (real device logs): every lock tap correctly set
       // hoveredIcon to "lock", then this listener immediately cleared it
       // right back, ~1ms later, every single time — swap never showed
-      // this since its own icon (DiceIcon) never swaps out. composedPath()
+      // this since its own icon (ArrowsShuffleIcon) never swaps out. composedPath()
       // is captured at dispatch time, before any DOM mutation, so it stays
       // valid regardless of what React unmounts afterward.
       if (e.composedPath().includes(iconRowRef.current)) return;
@@ -868,7 +868,7 @@ export function ResultCard({
                 shadow
                 visuallyDisabled={swapDisabled}
               >
-                <DiceIcon />
+                <ArrowsShuffleIcon />
               </IconButton>
               {/* In-flow, not absolute — a normal third flex item sitting to
                   the right of the two icons in the same row (items-center

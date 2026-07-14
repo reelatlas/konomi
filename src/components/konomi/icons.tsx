@@ -92,6 +92,29 @@ export function LockOpenIcon({ className }: IconProps) {
   );
 }
 
+// Tabler "arrows-shuffle" — two right-pointing arrows fed by crossing paths,
+// the shuffle/swap glyph. Replaces DiceIcon on the ResultCard swap button.
+export function ArrowsShuffleIcon({ className }: IconProps) {
+  return (
+    <svg
+      className={className}
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M18 4l3 3l-3 3" />
+      <path d="M18 20l3 -3l-3 -3" />
+      <path d="M3 7h3a5 5 0 0 1 5 5a5 5 0 0 0 5 5h5" />
+      <path d="M21 7h-5a4.978 4.978 0 0 0 -3 1m-4 8a4.984 4.984 0 0 1 -3 1h-3" />
+    </svg>
+  );
+}
+
 export function DiceIcon({ className }: IconProps) {
   return (
     <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinejoin="round">
