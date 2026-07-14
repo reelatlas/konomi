@@ -757,7 +757,7 @@ Tapping an *empty* slot or the "+ Tag Pool — tap to add tags" affordance (rend
 
 ### Results-header metadata: three categorized counts (locked / new / existing) + an "unlock all" affordance
 
-The results header (`ResultsHeader.tsx`) went from `justify-end` (controls only, right) to `justify-between`: **result-set metadata is left-aligned**, the Filter/Clear controls stay right. The metadata is **three icon+count readouts**, divider-separated (thin vertical rules), all lowercase, all gated on `hasResults` (empty state shows none, though the row's 30px height is still always reserved — see that row's own comment). They **partition the result set** — `locked + new + existing === results.length`:
+The results header (`ResultsHeader.tsx`) went from `justify-end` (controls only, right) to `justify-between`: **result-set metadata is left-aligned**, the Filter/Clear controls stay right. The metadata is **three icon+count readouts**, gap-separated (`gap-lg` ≈ the old `gap-sm + divider + gap-sm` — the divider lines were removed on request, the spacing kept), all lowercase, all gated on `hasResults` (empty state shows none, though the row's 30px height is still always reserved — see that row's own comment). They **partition the result set** — `locked + new + existing === results.length`:
 
 Order left→right is **`🔒 locked` · `♻ existing` · `✨ new`** (existing before new, per request):
 - **`🔒 {n}`** (leftmost) — how many current results are held; icon+count only (no text label). Also the **unlock-all affordance** (below). Shown even at 0 (so a click can settle it to `🔒 0`).

@@ -85,8 +85,6 @@ export function ResultsHeader({ hasResults, lockedCount, newCount, existingCount
   // The locked readout follows the same rule; its hover glow (globals.css) is a
   // separate accent layered on top when interactive.
   const metaColor = (n: number) => (n > 0 ? "text-[var(--primary)]" : "text-[var(--muted)]");
-  // Thin vertical divider between readouts.
-  const divider = <span aria-hidden className="w-px h-[16px] bg-[var(--muted)] shrink-0" />;
   return (
     // Always flex-row, never flex-col — this row must never wrap to two
     // lines: wrapping would push the card row's own spawn position down,
@@ -112,13 +110,13 @@ export function ResultsHeader({ hasResults, lockedCount, newCount, existingCount
     // hasResults, so the empty state leaves the row visually empty (its height
     // still always reserved, above).
     <div className="flex flex-row items-center justify-between min-h-[30px] gap-x-[var(--space-lg)] mb-[var(--space-lg)]">
-      {/* LEFT: result-set metadata — three icon+count readouts, divider-
-          separated: LOCKED · EXISTING · NEW (existing before new, requested).
-          Locked leftmost (it owns the unlock-all interaction), then the two
-          results buckets. locked + new + existing === total results. All three
-          always show while hasResults (locked shows 0 too, so unlock-all can
-          settle to 🔒 0). Only `new` carries a text label right now; locked and
-          existing are icon+count only. */}
+      {/* LEFT: result-set metadata — three icon+count readouts, gap-separated
+          (no divider lines): LOCKED · EXISTING · NEW (existing before new,
+          requested). Locked leftmost (it owns the unlock-all interaction), then
+          the two results buckets. locked + new + existing === total results. All
+          three always show while hasResults (locked shows 0 too, so unlock-all
+          can settle to 🔒 0). Only `new` carries a text label right now; locked
+          and existing are icon+count only. */}
       {/* relative z-[var(--z-raised)]: WITHOUT this, real clicks (and hover)
           on the metadata never landed — the results carousel's own invisible
           pt/pb-40px flip-bulge padding (RecommendationsBody) geometrically
@@ -128,7 +126,12 @@ export function ResultsHeader({ hasResults, lockedCount, newCount, existingCount
           button's own z-raised in this file (see its comment). Reported live as
           "clicking the lock does nothing." */}
       {hasResults && (
-        <div className="relative z-[var(--z-raised)] flex items-center gap-[var(--space-sm)] min-w-0">
+        // gap-lg (12px) between readouts: the divider lines were removed
+        // (requested); this gap keeps roughly the SAME between-item spacing the
+        // gap-sm + 1px divider + gap-sm used to occupy (~13px), while staying
+        // clearly wider than each readout's own internal gap-xs so the three
+        // still read as separate groups.
+        <div className="relative z-[var(--z-raised)] flex items-center gap-[var(--space-lg)] min-w-0">
           {/* LOCKED — the unlock-all affordance. Interactive only when > 0:
               .glow-host enables the shared hover/focus glow (globals.css, the
               SAME --subtext bloom the MixerBar grip uses), and the click clears
@@ -157,7 +160,6 @@ export function ResultsHeader({ hasResults, lockedCount, newCount, existingCount
             </span>
             {justUnlocked ? <span>unlocked</span> : <span className="tabular-nums">{lockedCount}</span>}
           </button>
-          {divider}
           {/* EXISTING — results re-appearing from the previous batch (recycle
               glyph). Now BEFORE new (order swapped, requested) and icon+count
               ONLY — its "existing" text label was removed for now (kept just on
@@ -168,7 +170,6 @@ export function ResultsHeader({ hasResults, lockedCount, newCount, existingCount
             </span>
             <span className="tabular-nums">{existingCount}</span>
           </span>
-          {divider}
           {/* NEW — fresh picks this batch (not in the previous batch). Keeps its
               "new" text label in front of the sparkles icon + count. */}
           <span className={`${metaBase} ${metaColor(newCount)}`} title="new">
