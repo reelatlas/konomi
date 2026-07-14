@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { scoreSeries } from "@/lib/konomi/scoring";
 import { isTagVisibleAtLevel, sortTags } from "@/lib/konomi/tagPool";
@@ -89,7 +89,10 @@ interface ResultCardProps {
   layoutDependency?: unknown;
 }
 
-export function ResultCard({
+// PATH 2 PROTOTYPE: forwardRef so AnimatePresence mode="popLayout" can inject
+// its ref onto the motion.article and pin it out of flow on exit (without this
+// the pop silently no-ops and the exit just fades in place, no sibling slide).
+export const ResultCard = forwardRef<HTMLElement, ResultCardProps>(function ResultCard({
   entry,
   selectedTags,
   filledCount,
@@ -107,11 +110,10 @@ export function ResultCard({
   sort,
   startWithSwapHint,
   isEntering,
-  isExiting,
   animationDelayMs,
   layoutSlide,
   layoutDependency,
-}: ResultCardProps) {
+}: ResultCardProps, ref) {
   // Live-tweakable via AnimationDebugPanel.tsx — see animationDebugStore.ts's
   // own top-of-file comment for why (a temporary tuning aid, remove once
   // settled). Defaults to cardAnimTuning.ts's own original values.
@@ -289,19 +291,44 @@ export function ResultCard({
   // (a card removed by a Clear ✕ on the very render it also would have entered
   // must exit, not enter). ease is the shipped default cubic-bezier(0,0,.2,1)
   // (== the store's "easeOut") for both; only duration/delay/distance are live.
-  const cardAnimClass = isExiting ? "animate-card-exit" : isEntering ? "animate-card-enter" : "";
-  const cardAnimStyle =
-    isEntering || isExiting
-      ? {
-          ["--card-anim-distance" as string]: `${animationDebug.cardDistancePx}px`,
-          animationDuration: `${animationDebug.cardDurationMs}ms`,
-          animationDelay: `${animationDelayMs ?? 0}ms`,
-          animationTimingFunction: "cubic-bezier(0, 0, 0.2, 1)",
-        }
-      : undefined;
+  // PATH 2 PROTOTYPE: exit is Motion (on the article) now, so this CSS class is
+  // enter-only; isExiting is no longer wired from RecommendationsBody.
+  const cardAnimClass = isEntering ? "animate-card-enter" : "";
+  const cardAnimStyle = isEntering
+    ? {
+        ["--card-anim-distance" as string]: `${animationDebug.cardDistancePx}px`,
+        animationDuration: `${animationDebug.cardDurationMs}ms`,
+        animationDelay: `${animationDelayMs ?? 0}ms`,
+        animationTimingFunction: "cubic-bezier(0, 0, 0.2, 1)",
+      }
+    : undefined;
 
   return (
-    <article
+    // PATH 2 PROTOTYPE (throwaway branch): the reorder slide (layout) + the
+    // exit both live on the article now, and the card map is wrapped in
+    // AnimatePresence mode="popLayout" (RecommendationsBody) so a departing card
+    // is pinned out of flow the instant it's removed — the survivors slide left
+    // WHILE it dissolves (one overlapping beat), instead of fade-then-slide.
+    // Enter stays CSS (initial={false} + cardAnimClass on the wrapper). NOTE:
+    // this puts a transform on the <article> (the carousel snap box), which the
+    // shipped code deliberately avoids on iOS — acceptable for a desktop feel
+    // comparison only; a production version would nest the exit/layout transform
+    // one level in.
+    <motion.article
+      ref={ref}
+      layout={layoutSlide && !prefersReduced ? "position" : false}
+      layoutDependency={layoutDependency}
+      initial={false}
+      exit={
+        prefersReduced
+          ? { opacity: 0, transition: { duration: 0 } }
+          : {
+              opacity: 0,
+              y: -animationDebug.cardDistancePx,
+              transition: { duration: animationDebug.cardDurationMs / 1000, ease: [0, 0, 0.2, 1] },
+            }
+      }
+      transition={{ layout: { duration: animationDebug.cardDurationMs / 1000, ease: [0, 0, 0.2, 1] } }}
       data-title={series.title}
       // data-result-card: lets MixerBar's click-outside-closes-edit-mode
       // listener allowlist this whole card (body, the lock/dice icon
@@ -448,27 +475,10 @@ export function ResultCard({
           is needed here. This wrapper (not the article) carries the animation
           for the same reason it always did — the article is the carousel's
           snap/gesture box and must stay transform-free on iOS. */}
-      {/* Motion `layout="position"` FLIP-slides this wrapper from its old grid
-          slot to its new one when the row reorders (locked cards compacting to
-          the front) — position only, so the card never morphs its size. The
-          transform Motion writes lands HERE, on the perspective wrapper (never
-          the article — the carousel's snap/gesture box, kept transform-free on
-          iOS), the same element the enter/exit translateY already safely uses,
-          and only transiently during the slide. Enabled only on the grid tier
-          (layoutSlide) and off under reduced motion; layoutDependency gates
-          re-measurement to real reorders (see the props' own comments). Timing
-          matches the card enter/exit (cardDurationMs, cubic-bezier(0,0,.2,1))
-          so the slide reads as one motion with the rest of the sweep. A new
-          card mounting here has no prior box, so Motion doesn't FLIP it — it
-          just lands and plays its CSS enter, so the two mechanisms never fight
-          on the same element. */}
-      <motion.div
-        layout={layoutSlide && !prefersReduced ? "position" : false}
-        layoutDependency={layoutDependency}
-        transition={{ layout: { duration: animationDebug.cardDurationMs / 1000, ease: [0, 0, 0.2, 1] } }}
-        className={["relative w-full h-full [perspective:1100px]", cardAnimClass].join(" ")}
-        style={cardAnimStyle}
-      >
+      {/* PATH 2 PROTOTYPE: the layout FLIP + exit moved UP to the motion.article
+          (so popLayout can pin it out of flow on exit). This wrapper is back to a
+          plain div carrying only the CSS ENTER keyframe (cardAnimClass). */}
+      <div className={["relative w-full h-full [perspective:1100px]", cardAnimClass].join(" ")} style={cardAnimStyle}>
       <div
         // No rotateY(0deg) at rest — same trap as the perspective move onto
         // the wrapper above (this element's own comment): a non-none
@@ -1386,7 +1396,7 @@ export function ResultCard({
           </div>
         </div>
       </div>
-      </motion.div>
-    </article>
+      </div>
+    </motion.article>
   );
-}
+});
