@@ -30,6 +30,29 @@ const HOVER_GLYPH: Record<ThemeKey, string> = {
 export function ThemeSwitcher({ value, onChange, subtextPlacement = "bottom" }: ThemeSwitcherProps) {
   const [hovered, setHovered] = useState<ThemeKey | null>(null);
 
+  // Narrow-collapsed tooltip horizontal anchor, PER hovered swatch — the
+  // tooltip aligns to whichever swatch it describes rather than always
+  // hugging the group's right edge (requested). The swatch group is a
+  // `relative` flex-row of three 32px swatches with a --space-sm (6px) gap, so
+  // relative to that box: Konomi (default, leftmost) aligns its own left edge
+  // (left-0), Tide (dark, middle) aligns its left edge (32px + one gap), and
+  // Newsprint (third, rightmost) aligns its right edge (right-0, flush to the
+  // group's right border box). Only meaningful in the max-[456px] tooltip mode
+  // (below), so every class here is media-gated; it's inert in the wider
+  // left-of-swatches placement and in the expanded bottom hint. Base placement
+  // sets `right-full` (right:100%), so the left-anchored cases must also reset
+  // right to auto or they'd stretch between both edges. Falls back to the
+  // Konomi/left-0 case when nothing is hovered (tooltip is invisible then, so
+  // the exact anchor is moot — this just avoids an empty branch).
+  const tooltipX =
+    subtextPlacement !== "left"
+      ? ""
+      : hovered === "third"
+        ? "max-[456px]:right-0"
+        : hovered === "dark"
+          ? "max-[456px]:right-auto max-[456px]:left-[calc(32px_+_var(--space-sm))]"
+          : "max-[456px]:right-auto max-[456px]:left-0";
+
   return (
     // data-theme-switcher: lets MixerBar's click-outside-closes-edit-mode
     // listener allowlist the swatch buttons via a single closest() check —
@@ -72,12 +95,43 @@ export function ThemeSwitcher({ value, onChange, subtextPlacement = "bottom" }: 
           own comment above): below the swatches by default, or to their
           left — vertically centered against the row via top-1/2
           -translate-y-1/2, matching the row's own items-center — for
-          Masthead's condensed sticky header. */}
+          Masthead's condensed sticky header.
+
+          COLLAPSED narrow-width override (the "left" placement only): the
+          leftward subtext is whitespace-nowrap and un-chromed, so on a
+          narrow collapsed row it paints straight over the KONOMI/ミックス
+          wordmark to its left, unreadably (reported on mobile). Below a
+          single fixed viewport breakpoint (max-[456px]) it flips to a BELOW
+          tooltip instead — dropped top-full so it clears the wordmark
+          entirely, horizontally anchored per-swatch (see tooltipX above), and
+          given the SAME chrome as ResultCard's icon hints (surface bg, thin
+          ink border, elev-1, mono text-2xs, sm/xs padding) so it stays legible
+          over whatever page content has scrolled beneath this sticky row —
+          which is exactly the objection that made "below" unusable WITHOUT
+          chrome (see subtextPlacement's comment). The breakpoint is a single
+          value (all three swatches flip together, not per-name) gauged off the
+          LONGEST hint, "Newsprint ░". CDP-measured collapsed geometry: that
+          hint keeps a full 12px clearance from the wordmark down to ~456px,
+          and overlap begins just below it — so 456 is the strict no-overlap
+          trigger, the widest point at which the tooltip is actually needed
+          (shorter names like Konomi/Tide still have room here, but the
+          breakpoint is single/worst-case by design). A looser 420 was tried to
+          keep the left placement across more widths, then reverted to 456.
+          Collapsed geometry is fixed except for viewport width (wordmark +
+          swatches are fixed-size at progress 1, justify-between), so this
+          reduces cleanly to one media query with no runtime measurement.
+          Applies ONLY in this collapsed "left" mode — the expanded bottom hint
+          is untouched. Bisected via CDP against "Newsprint ░"; re-check on-device. */}
       <span
         aria-hidden={!hovered}
         className={[
-          "absolute whitespace-nowrap font-mono text-[length:var(--text-xs)] text-[var(--subtext)] transition-opacity duration-150",
-          subtextPlacement === "left" ? "right-full top-1/2 -translate-y-1/2 mr-[var(--space-xs)]" : "top-full left-0 mt-[var(--space-xs)]",
+          "absolute whitespace-nowrap font-mono transition-opacity duration-150",
+          subtextPlacement === "left"
+            ? "right-full top-1/2 -translate-y-1/2 mr-[var(--space-xs)] text-[length:var(--text-xs)] text-[var(--subtext)] " +
+              "max-[456px]:top-full max-[456px]:translate-y-0 max-[456px]:mr-0 max-[456px]:mt-[var(--space-xs)] " +
+              "max-[456px]:bg-[var(--surface)] max-[456px]:border-[length:var(--border-thin)] max-[456px]:border-[var(--ink)] max-[456px]:shadow-[var(--elev-1)] max-[456px]:px-[var(--space-sm)] max-[456px]:py-[var(--space-xs)] max-[456px]:text-[length:var(--text-2xs)] max-[456px]:text-[var(--ink)]"
+            : "top-full left-0 mt-[var(--space-xs)] text-[length:var(--text-xs)] text-[var(--subtext)]",
+          tooltipX,
           hovered ? "opacity-100" : "opacity-0",
         ].join(" ")}
       >
