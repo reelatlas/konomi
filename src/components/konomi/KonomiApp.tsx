@@ -4,6 +4,7 @@ import { animate, useMotionValue, type AnimationPlaybackControls } from "motion/
 import { useEffect, useRef, useState } from "react";
 import { visiblePoolTagNames } from "@/lib/konomi/tagPool";
 import { isThemeKey, THEME_STORAGE_KEY } from "@/lib/konomi/themes";
+import { THEME_TRANSITION } from "@/lib/konomi/themeTransitionTuning";
 import type { LevelKey, Series, TagInfo } from "@/lib/konomi/types";
 import { useKonomi } from "@/lib/konomi/useKonomi";
 import { Masthead } from "./Masthead";
@@ -332,6 +333,8 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
   // ever mirrors/persists a k.theme value it knows is either already
   // correct or has nothing to restore over.
   const didRestoreTheme = useRef(false);
+  const lastAppliedTheme = useRef<string | null>(null);
+  const themeSwitchSeq = useRef(0);
   const { theme, setTheme } = k;
   useEffect(() => {
     if (!didRestoreTheme.current) {
@@ -342,7 +345,59 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
         return;
       }
     }
-    document.documentElement.setAttribute("data-theme", theme);
+    // Theme-switch cross-fade — GRADUATED from sandbox A v5 (tag
+    // sandbox:theme-transition/A-v5; tuning in themeTransitionTuning.ts, register
+    // + drift log in SANDBOX_GRADUATIONS.md). Animate only on a real USER switch —
+    // a previous applied theme exists and differs (mount/StrictMode-safe via
+    // lastAppliedTheme) — and not under reduced motion.
+    //
+    // Mechanism: the View Transitions API. Wrapping the data-theme change in
+    // startViewTransition() lets WebKit snapshot the page and cross-fade old→new
+    // on the compositor (GPU) — one composited dissolve, no per-element colour
+    // transition. The earlier CSS-class approach painted the whole tree every
+    // frame and stalled at the tail on mobile WebKit; this doesn't. Engines
+    // without the API fall back to an instant swap.
+    const prevTheme = lastAppliedTheme.current;
+    lastAppliedTheme.current = theme;
+    const animateThemeSwitch =
+      prevTheme !== null && prevTheme !== theme && !prefersReducedMotion();
+
+    const applyTheme = () => {
+      document.documentElement.setAttribute("data-theme", theme);
+    };
+
+    const doc = document as Document & {
+      startViewTransition?: (callback: () => void) => { finished?: Promise<unknown> };
+    };
+    if (animateThemeSwitch && typeof doc.startViewTransition === "function") {
+      const root = document.documentElement;
+      root.style.setProperty("--theme-switch-dur", `${THEME_TRANSITION.durMs}ms`);
+      root.style.setProperty("--theme-switch-ease", THEME_TRANSITION.ease);
+      // Freeze looping CSS animations (e.g. the RecommendButton kono-spin star)
+      // for the dissolve, then resume. The View Transition cross-fades a frozen
+      // snapshot of the old page while the live DOM keeps animating underneath,
+      // so anything looping would reappear advanced by the transition length
+      // when the snapshot lifts. animation-play-state holds it at the current
+      // frame and resumes from it (see globals.css `.theme-transitioning`).
+      root.classList.add("theme-transitioning");
+      // Token-guard the unfreeze: a rapid re-switch interrupts this transition
+      // (its `.finished` rejects) — without the guard, that stale cleanup would
+      // strip `theme-transitioning` while the NEW transition is mid-dissolve and
+      // unfreeze the star early. Only the latest switch may unfreeze.
+      const seq = ++themeSwitchSeq.current;
+      const unfreeze = () => {
+        if (themeSwitchSeq.current === seq) root.classList.remove("theme-transitioning");
+      };
+      const finished = doc.startViewTransition(applyTheme)?.finished;
+      if (finished && typeof finished.then === "function") {
+        finished.then(unfreeze, unfreeze);
+      }
+      // Backstop so animations never stay frozen if `.finished` never fires.
+      window.setTimeout(unfreeze, THEME_TRANSITION.durMs + 200);
+    } else {
+      applyTheme();
+    }
+
     try {
       localStorage.setItem(THEME_STORAGE_KEY, theme);
     } catch {

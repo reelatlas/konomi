@@ -885,3 +885,46 @@
    MotionConfig reducedMotion="user" (app/layout.tsx), not a per-component
    media-query override. See ResultCard.tsx/RecommendationsBody.tsx's own
    comments and DESIGN_SYSTEM.md for the full migration writeup. */
+
+/* ── Theme-switch cross-fade (View Transitions API) ──────────────────────────
+   GRADUATED from sandbox A v5 (tag sandbox:theme-transition/A-v5; values in
+   src/lib/konomi/themeTransitionTuning.ts, register + drift log in
+   SANDBOX_GRADUATIONS.md).
+
+   Keeps A v5's LOOK (a plain uniform whole-app colour cross-fade) but drifted to
+   Concept B's MECHANISM: the platform View Transitions API. KonomiApp wraps the
+   data-theme change in document.startViewTransition() on a real USER switch, so
+   WebKit snapshots the page and cross-fades old→new on the compositor (GPU) —
+   one composited dissolve, with NO per-element colour transition.
+
+   Why the change: the earlier `html.theme-switching *` approach transitioned
+   colour on every node, so mobile WebKit repainted the whole tree each frame and
+   stalled at the tail (dropping box-shadow and going linear didn't fix it — the
+   per-element paint was the wall). A single composited snapshot has no such cost.
+   Unsupported engines fall back to an instant swap (feature-detected in JS);
+   reduced motion skips the transition in JS, with the CSS backstop below. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--theme-switch-dur, 320ms);
+  animation-timing-function: var(--theme-switch-ease, linear);
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) { animation: none; }
+}
+
+/* Freeze looping CSS animations for the theme dissolve so they don't "jump
+   ahead". A View Transition cross-fades a FROZEN snapshot of the old page while
+   the live DOM keeps animating underneath, so a continuously-running animation
+   (e.g. RecommendButton's kono-spin star) reappears advanced by the transition's
+   length the moment the snapshot lifts. Pausing holds it at the current frame
+   and resumes from it (animation-play-state freezes in place — no angle
+   tracking; RecommendButton relies on the same trick for its error state).
+   KonomiApp adds/removes `theme-transitioning` around the transition. play-state
+   only: no paint/layout cost. Does NOT touch ::view-transition-* pseudos (they
+   need explicit selectors), so the dissolve itself keeps animating. */
+html.theme-transitioning *,
+html.theme-transitioning *::before,
+html.theme-transitioning *::after {
+  animation-play-state: paused !important;
+}

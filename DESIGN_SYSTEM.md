@@ -6,6 +6,16 @@ Human-readable reference for the token set defined in [`src/lib/konomi/tokens.ts
 
 Every color is a **role**, not a hue, so the same class (`bg-[var(--surface)]`, `text-[var(--ink)]`, etc.) works unchanged across all three themes. Switching themes is just changing the `data-theme` attribute on the app root.
 
+### Theme-switch transition — cross-fade via View Transitions (and why there's no card pop)
+
+Changing `data-theme` used to snap. It now **cross-fades the whole page**: `KonomiApp` wraps the `data-theme` change in `document.startViewTransition()` (feature-detected — unsupported engines snap, reduced motion snaps), so WebKit snapshots the page and dissolves old→new on the **compositor (GPU)**. Duration/easing live in [`themeTransitionTuning.ts`](src/lib/konomi/themeTransitionTuning.ts) (`THEME_TRANSITION` — 320ms `linear`), fed to `::view-transition-old/new(root)` in `globals.css`.
+
+**Why View Transitions and not a CSS transition** (documented so it isn't re-tried): the first cut was `html.theme-switching * { transition: background-color/… }` — a per-element colour transition on every node. Clean in Chrome, but it **stalled at the tail on mobile WebKit**. Dropping `box-shadow` (Safari's box-shadow interpolation is paint-janky) and switching the easing to `linear` (a decelerating ease's flat tail steps on 8-bit colour) each helped but didn't fix it — the real cost was **painting the whole element tree every frame**. A single composited snapshot has no per-element paint, so it dissolves smoothly. This is sandbox A v5's *look* re-mechanised as Concept B's View Transitions (provenance: [`SANDBOX_GRADUATIONS.md`](SANDBOX_GRADUATIONS.md), tag `sandbox:theme-transition/A-v5`).
+
+**Looping animations freeze during the dissolve.** The transition shows a *frozen snapshot* of the old page while the live DOM keeps animating underneath — so a continuously-running animation (RecommendButton's `kono-spin` star) would reappear advanced by the transition's length when the snapshot lifts (a visible "jump-ahead"). `KonomiApp` adds a short-lived `theme-transitioning` class (token-guarded against rapid re-switches) that pauses looping CSS animations via `animation-play-state`; they resume in place. `play-state` is free (no paint) and doesn't touch the `::view-transition-*` pseudos, so the dissolve is unaffected.
+
+**No card pop — explored and REVERTED.** A v5's other half was a spring "pop" on the result cards after the dissolve. Three variants were built and tested on-device off test branches — a subtle ease-out settle, a full bounce-0.67 spring, and a radial ripple staggered from the switcher. **All were dropped:** animating the result cards on a frequent, non-primary action (theme switch) read as *unwanted motion*, not delight, in every variant. The cross-fade alone is the shipped product. Mechanics kept for a possible revisit: pop the perspective wrapper's independent `scale`/`translate` (which compose with Motion's FLIP `transform`), never the flip div — it's on the iOS scroll-gesture path. See the REVERTED entry in `SANDBOX_GRADUATIONS.md`.
+
 | Role | Default ("Konomi") | Dark ("Tide") | Third ("Newsprint") |
 |---|---|---|---|
 | `bg` | `#EFE7F8` | `#12181C` | `#F3EDE1` |
