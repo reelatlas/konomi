@@ -366,13 +366,26 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
     };
 
     const doc = document as Document & {
-      startViewTransition?: (callback: () => void) => unknown;
+      startViewTransition?: (callback: () => void) => { finished?: Promise<unknown> };
     };
     if (animateThemeSwitch && typeof doc.startViewTransition === "function") {
       const root = document.documentElement;
       root.style.setProperty("--theme-switch-dur", `${THEME_TRANSITION.durMs}ms`);
       root.style.setProperty("--theme-switch-ease", THEME_TRANSITION.ease);
-      doc.startViewTransition(applyTheme);
+      // Freeze looping CSS animations (e.g. the RecommendButton kono-spin star)
+      // for the dissolve, then resume. The View Transition cross-fades a frozen
+      // snapshot of the old page while the live DOM keeps animating underneath,
+      // so anything looping would reappear advanced by the transition length
+      // when the snapshot lifts. animation-play-state holds it at the current
+      // frame and resumes from it (see globals.css `.theme-transitioning`).
+      root.classList.add("theme-transitioning");
+      const unfreeze = () => root.classList.remove("theme-transitioning");
+      const finished = doc.startViewTransition(applyTheme)?.finished;
+      if (finished && typeof finished.then === "function") {
+        finished.then(unfreeze, unfreeze);
+      }
+      // Backstop so animations never stay frozen if `.finished` never fires.
+      window.setTimeout(unfreeze, THEME_TRANSITION.durMs + 200);
     } else {
       applyTheme();
     }

@@ -912,3 +912,19 @@
   ::view-transition-old(root),
   ::view-transition-new(root) { animation: none; }
 }
+
+/* Freeze looping CSS animations for the theme dissolve so they don't "jump
+   ahead". A View Transition cross-fades a FROZEN snapshot of the old page while
+   the live DOM keeps animating underneath, so a continuously-running animation
+   (e.g. RecommendButton's kono-spin star) reappears advanced by the transition's
+   length the moment the snapshot lifts. Pausing holds it at the current frame
+   and resumes from it (animation-play-state freezes in place — no angle
+   tracking; RecommendButton relies on the same trick for its error state).
+   KonomiApp adds/removes `theme-transitioning` around the transition. play-state
+   only: no paint/layout cost. Does NOT touch ::view-transition-* pseudos (they
+   need explicit selectors), so the dissolve itself keeps animating. */
+html.theme-transitioning *,
+html.theme-transitioning *::before,
+html.theme-transitioning *::after {
+  animation-play-state: paused !important;
+}
