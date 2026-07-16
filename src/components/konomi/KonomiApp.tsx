@@ -334,6 +334,7 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
   // correct or has nothing to restore over.
   const didRestoreTheme = useRef(false);
   const lastAppliedTheme = useRef<string | null>(null);
+  const themeSwitchSeq = useRef(0);
   const { theme, setTheme } = k;
   useEffect(() => {
     if (!didRestoreTheme.current) {
@@ -379,7 +380,14 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
       // when the snapshot lifts. animation-play-state holds it at the current
       // frame and resumes from it (see globals.css `.theme-transitioning`).
       root.classList.add("theme-transitioning");
-      const unfreeze = () => root.classList.remove("theme-transitioning");
+      // Token-guard the unfreeze: a rapid re-switch interrupts this transition
+      // (its `.finished` rejects) — without the guard, that stale cleanup would
+      // strip `theme-transitioning` while the NEW transition is mid-dissolve and
+      // unfreeze the star early. Only the latest switch may unfreeze.
+      const seq = ++themeSwitchSeq.current;
+      const unfreeze = () => {
+        if (themeSwitchSeq.current === seq) root.classList.remove("theme-transitioning");
+      };
       const finished = doc.startViewTransition(applyTheme)?.finished;
       if (finished && typeof finished.then === "function") {
         finished.then(unfreeze, unfreeze);
