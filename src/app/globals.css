@@ -893,7 +893,14 @@
    duration (then removes it) on a USER theme change, so the whole app colour-
    cross-fades instead of snapping. Uniform — the sandbox's radial-stagger of
    every element doesn't scale app-wide. The class is short-lived, so these
-   transitions exist only during the switch and don't affect normal interaction. */
+   transitions exist only during the switch and don't affect normal interaction.
+
+   box-shadow is deliberately NOT transitioned: on-device (mobile WebKit) the
+   fade stalled/stepped in its last few frames — Safari's box-shadow
+   interpolation is paint-bound and janky at a decelerating tail, across every
+   manga offset-shadow at once. Shadows snap to the new theme instantly while
+   colours fade (imperceptible for hard offset shadows) and the tail-stall goes
+   away. fill/stroke stay in: small, cheap icon repaints, and cohesive. */
 html.theme-switching *,
 html.theme-switching *::before,
 html.theme-switching *::after {
@@ -901,7 +908,6 @@ html.theme-switching *::after {
     background-color var(--theme-switch-dur, 320ms) var(--theme-switch-ease, ease),
     color var(--theme-switch-dur, 320ms) var(--theme-switch-ease, ease),
     border-color var(--theme-switch-dur, 320ms) var(--theme-switch-ease, ease),
-    box-shadow var(--theme-switch-dur, 320ms) var(--theme-switch-ease, ease),
     fill var(--theme-switch-dur, 320ms) var(--theme-switch-ease, ease),
     stroke var(--theme-switch-dur, 320ms) var(--theme-switch-ease, ease) !important;
 }
