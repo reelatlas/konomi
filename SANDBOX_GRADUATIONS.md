@@ -1,0 +1,11 @@
+# Sandbox → code graduations
+
+Committed register of ideas that graduated from `_sandbox/` (exploratory, gitignored)
+into real `src/` code. **Newest first.** Each row carries a **provenance tag** — grep it
+to find the code site, this row, and (while it still exists) the sandbox batch's
+`notes.md`. See the graduation-provenance protocol in
+`.claude/skills/_shared/sandbox-framework.md`.
+
+| Date | Provenance tag | From (sandbox batch) | Concept | To (code) | What / why |
+| ---- | -------------- | -------------------- | ------- | --------- | ---------- |
+| 2026-07-16 | `sandbox:theme-transition/A-v5` | `_sandbox/animation/2026-07-15-theme-transition` | A v5 | `src/lib/konomi/themeTransitionTuning.ts` + theme-switch effect (KonomiApp) + `globals.css` | Theme-switch **cross-fade** (uniform, whole-app) + **spring-pop** on result cards — a floaty low-damping spring, tuned live in the Tier-2 playground. |

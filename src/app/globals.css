@@ -885,3 +885,28 @@
    MotionConfig reducedMotion="user" (app/layout.tsx), not a per-component
    media-query override. See ResultCard.tsx/RecommendationsBody.tsx's own
    comments and DESIGN_SYSTEM.md for the full migration writeup. */
+
+/* ── Theme-switch cross-fade ─────────────────────────────────────────────────
+   GRADUATED from sandbox A v5 (tag sandbox:theme-transition/A-v5; values in
+   src/lib/konomi/themeTransitionTuning.ts, register in SANDBOX_GRADUATIONS.md).
+   KonomiApp's data-theme effect adds `theme-switching` on <html> for the tuned
+   duration (then removes it) on a USER theme change, so the whole app colour-
+   cross-fades instead of snapping. Uniform — the sandbox's radial-stagger of
+   every element doesn't scale app-wide. The class is short-lived, so these
+   transitions exist only during the switch and don't affect normal interaction. */
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition:
+    background-color var(--theme-switch-dur, 320ms) var(--theme-switch-ease, ease),
+    color var(--theme-switch-dur, 320ms) var(--theme-switch-ease, ease),
+    border-color var(--theme-switch-dur, 320ms) var(--theme-switch-ease, ease),
+    box-shadow var(--theme-switch-dur, 320ms) var(--theme-switch-ease, ease),
+    fill var(--theme-switch-dur, 320ms) var(--theme-switch-ease, ease),
+    stroke var(--theme-switch-dur, 320ms) var(--theme-switch-ease, ease) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  html.theme-switching *,
+  html.theme-switching *::before,
+  html.theme-switching *::after { transition: none !important; }
+}

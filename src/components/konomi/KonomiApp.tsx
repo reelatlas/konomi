@@ -4,6 +4,7 @@ import { animate, useMotionValue, type AnimationPlaybackControls } from "motion/
 import { useEffect, useRef, useState } from "react";
 import { visiblePoolTagNames } from "@/lib/konomi/tagPool";
 import { isThemeKey, THEME_STORAGE_KEY } from "@/lib/konomi/themes";
+import { THEME_TRANSITION } from "@/lib/konomi/themeTransitionTuning";
 import type { LevelKey, Series, TagInfo } from "@/lib/konomi/types";
 import { useKonomi } from "@/lib/konomi/useKonomi";
 import { Masthead } from "./Masthead";
@@ -332,6 +333,7 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
   // ever mirrors/persists a k.theme value it knows is either already
   // correct or has nothing to restore over.
   const didRestoreTheme = useRef(false);
+  const lastAppliedTheme = useRef<string | null>(null);
   const { theme, setTheme } = k;
   useEffect(() => {
     if (!didRestoreTheme.current) {
@@ -349,6 +351,23 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
       // Storage unavailable (private-browsing quota, disabled storage) —
       // <html>'s data-theme is still set above, theme switching still
       // works for the session, it just won't survive a refresh.
+    }
+
+    // Theme-switch cross-fade — GRADUATED from sandbox A v5
+    // (tag sandbox:theme-transition/A-v5; tuning in themeTransitionTuning.ts,
+    // register in SANDBOX_GRADUATIONS.md). Play only on a real USER switch — a
+    // previous applied theme exists and differs (also mount/StrictMode-safe via
+    // lastAppliedTheme) — and not under reduced motion. A short-lived
+    // `theme-switching` class on <html> turns on the whole-app colour cross-fade
+    // (globals.css) for the tuned duration, then removes itself.
+    const prevTheme = lastAppliedTheme.current;
+    lastAppliedTheme.current = theme;
+    if (prevTheme !== null && prevTheme !== theme && !prefersReducedMotion()) {
+      const root = document.documentElement;
+      root.style.setProperty("--theme-switch-dur", `${THEME_TRANSITION.durMs}ms`);
+      root.style.setProperty("--theme-switch-ease", THEME_TRANSITION.ease);
+      root.classList.add("theme-switching");
+      window.setTimeout(() => root.classList.remove("theme-switching"), THEME_TRANSITION.durMs + 80);
     }
   }, [theme, setTheme]);
 
