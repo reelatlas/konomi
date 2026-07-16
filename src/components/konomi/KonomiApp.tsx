@@ -344,30 +344,45 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
         return;
       }
     }
-    document.documentElement.setAttribute("data-theme", theme);
+    // Theme-switch cross-fade — GRADUATED from sandbox A v5 (tag
+    // sandbox:theme-transition/A-v5; tuning in themeTransitionTuning.ts, register
+    // + drift log in SANDBOX_GRADUATIONS.md). Animate only on a real USER switch —
+    // a previous applied theme exists and differs (mount/StrictMode-safe via
+    // lastAppliedTheme) — and not under reduced motion.
+    //
+    // Mechanism: the View Transitions API. Wrapping the data-theme change in
+    // startViewTransition() lets WebKit snapshot the page and cross-fade old→new
+    // on the compositor (GPU) — one composited dissolve, no per-element colour
+    // transition. The earlier CSS-class approach painted the whole tree every
+    // frame and stalled at the tail on mobile WebKit; this doesn't. Engines
+    // without the API fall back to an instant swap.
+    const prevTheme = lastAppliedTheme.current;
+    lastAppliedTheme.current = theme;
+    const animateThemeSwitch =
+      prevTheme !== null && prevTheme !== theme && !prefersReducedMotion();
+
+    const applyTheme = () => {
+      document.documentElement.setAttribute("data-theme", theme);
+    };
+
+    const doc = document as Document & {
+      startViewTransition?: (callback: () => void) => unknown;
+    };
+    if (animateThemeSwitch && typeof doc.startViewTransition === "function") {
+      const root = document.documentElement;
+      root.style.setProperty("--theme-switch-dur", `${THEME_TRANSITION.durMs}ms`);
+      root.style.setProperty("--theme-switch-ease", THEME_TRANSITION.ease);
+      doc.startViewTransition(applyTheme);
+    } else {
+      applyTheme();
+    }
+
     try {
       localStorage.setItem(THEME_STORAGE_KEY, theme);
     } catch {
       // Storage unavailable (private-browsing quota, disabled storage) —
       // <html>'s data-theme is still set above, theme switching still
       // works for the session, it just won't survive a refresh.
-    }
-
-    // Theme-switch cross-fade — GRADUATED from sandbox A v5
-    // (tag sandbox:theme-transition/A-v5; tuning in themeTransitionTuning.ts,
-    // register in SANDBOX_GRADUATIONS.md). Play only on a real USER switch — a
-    // previous applied theme exists and differs (also mount/StrictMode-safe via
-    // lastAppliedTheme) — and not under reduced motion. A short-lived
-    // `theme-switching` class on <html> turns on the whole-app colour cross-fade
-    // (globals.css) for the tuned duration, then removes itself.
-    const prevTheme = lastAppliedTheme.current;
-    lastAppliedTheme.current = theme;
-    if (prevTheme !== null && prevTheme !== theme && !prefersReducedMotion()) {
-      const root = document.documentElement;
-      root.style.setProperty("--theme-switch-dur", `${THEME_TRANSITION.durMs}ms`);
-      root.style.setProperty("--theme-switch-ease", THEME_TRANSITION.ease);
-      root.classList.add("theme-switching");
-      window.setTimeout(() => root.classList.remove("theme-switching"), THEME_TRANSITION.durMs + 80);
     }
   }, [theme, setTheme]);
 
