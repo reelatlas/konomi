@@ -1367,46 +1367,6 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "space",
-   "section": "Locations",
-   "count": 177,
-   "members": [
-    "space",
-    "outer space",
-    "space travel",
-    "space mission",
-    "space exploration",
-    "space adventure",
-    "deep space",
-    "space colony",
-    "space sci-fi",
-    "trapped in space",
-    "space battle",
-    "space station",
-    "space western",
-    "space pirate",
-    "galaxy",
-    "asteroid",
-    "cosmos",
-    "universe",
-    "saturn",
-    "lunar mission",
-    "space walk",
-    "spacewalk",
-    "space suit",
-    "spaceman",
-    "black hole",
-    "wormhole",
-    "gravity",
-    "comet",
-    "meteor",
-    "meteorite",
-    "sun",
-    "cosmic"
-   ],
-   "pillar": "Setting"
-  },
-  {
    "canonical": "small town",
    "section": "Locations",
    "count": 155,
@@ -1437,39 +1397,6 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "countryside",
-   "pillar": "Setting",
-   "section": "Locations",
-   "count": 117,
-   "members": [
-    "countryside",
-    "rural area",
-    "rural setting",
-    "rural",
-    "isolated farmhouse",
-    "backwoods",
-    "country life",
-    "provincial life",
-    "windmill",
-    "moor (terrain)",
-    "well"
-   ]
-  },
-  {
-   "canonical": "island",
-   "section": "Locations",
-   "count": 110,
-   "members": [
-    "island",
-    "exotic island",
-    "tropical island",
-    "deserted island",
-    "isolated island"
-   ],
-   "from_board": true,
-   "pillar": "Setting"
-  },
-  {
    "canonical": "hotel",
    "section": "Locations",
    "count": 109,
@@ -1482,21 +1409,6 @@
     "hotel manager",
     "inn",
     "guest"
-   ],
-   "from_board": true,
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "forest",
-   "section": "Locations",
-   "count": 108,
-   "members": [
-    "forest",
-    "woods",
-    "lost in the woods",
-    "forest fire",
-    "tree",
-    "woodcutter"
    ],
    "from_board": true,
    "pillar": "Setting"
@@ -1539,34 +1451,6 @@
     "chinese restaurant",
     "fine dining",
     "bars and restaurants"
-   ],
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "desert",
-   "section": "Locations",
-   "count": 82,
-   "members": [
-    "desert",
-    "sahara desert",
-    "sand dune",
-    "sand"
-   ],
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "mountain",
-   "section": "Locations",
-   "count": 78,
-   "members": [
-    "mountain",
-    "cliff",
-    "mountain climbing",
-    "himalaya mountain range",
-    "alps mountains",
-    "rocky mountains",
-    "andes mountains",
-    "summit"
    ],
    "pillar": "Setting"
   },
@@ -1620,22 +1504,6 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "sea",
-   "section": "Locations",
-   "count": 64,
-   "members": [
-    "deep sea",
-    "lost at sea",
-    "sea",
-    "sea battle",
-    "sea voyage",
-    "survival at sea",
-    "voyage",
-    "seaside"
-   ],
-   "pillar": "Setting"
-  },
-  {
    "canonical": "church",
    "section": "Locations",
    "count": 60,
@@ -1677,30 +1545,6 @@
     "tower"
    ],
    "from_board": true,
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "beach",
-   "section": "Locations",
-   "count": 57,
-   "members": [
-    "beach",
-    "boardwalk"
-   ],
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "jungle",
-   "section": "Locations",
-   "count": 56,
-   "members": [
-    "jungle",
-    "rainforest",
-    "jungle adventure",
-    "amazon rainforest",
-    "tarzan",
-    "amazon river"
-   ],
    "pillar": "Setting"
   },
   {
@@ -1760,21 +1604,6 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "planet",
-   "section": "Locations",
-   "count": 48,
-   "members": [
-    "planet",
-    "planet mars",
-    "destruction of planet",
-    "save the planet",
-    "planet earth",
-    "planet invasion",
-    "earth"
-   ],
-   "pillar": "Setting"
-  },
-  {
    "canonical": "park",
    "section": "Locations",
    "count": 48,
@@ -1804,22 +1633,6 @@
    ]
   },
   {
-   "canonical": "ocean",
-   "pillar": "Setting",
-   "section": "Locations",
-   "count": 47,
-   "members": [
-    "ocean",
-    "atlantic ocean",
-    "north atlantic",
-    "coral reef",
-    "deepsea",
-    "pacific",
-    "wave",
-    "water"
-   ]
-  },
-  {
    "canonical": "bar",
    "section": "Locations",
    "count": 46,
@@ -1845,17 +1658,6 @@
     "secret room",
     "locker room",
     "locked room mystery"
-   ],
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "river",
-   "section": "Locations",
-   "count": 45,
-   "members": [
-    "river",
-    "mississippi river",
-    "rapids"
    ],
    "pillar": "Setting"
   },
@@ -1992,15 +1794,6 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "wilderness",
-   "section": "Locations",
-   "count": 30,
-   "members": [
-    "wilderness"
-   ],
-   "pillar": "Setting"
-  },
-  {
    "canonical": "amusement park",
    "section": "Locations",
    "count": 30,
@@ -2010,18 +1803,6 @@
     "carousel",
     "ferris wheel",
     "roller coaster / rollercoaster"
-   ],
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "cave",
-   "section": "Locations",
-   "count": 30,
-   "members": [
-    "cave",
-    "cave painting",
-    "subterranean",
-    "underground world"
    ],
    "pillar": "Setting"
   },
@@ -2145,25 +1926,6 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "swamp",
-   "section": "Locations",
-   "count": 18,
-   "members": [
-    "swamp"
-   ],
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "lake",
-   "section": "Locations",
-   "count": 18,
-   "members": [
-    "lake",
-    "pond"
-   ],
-   "pillar": "Setting"
-  },
-  {
    "canonical": "office",
    "section": "Locations",
    "count": 17,
@@ -2270,16 +2032,6 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "waterfall",
-   "pillar": "Setting",
-   "section": "Locations",
-   "count": 11,
-   "members": [
-    "waterfall",
-    "niagara falls"
-   ]
-  },
-  {
    "canonical": "morgue",
    "section": "Locations",
    "count": 10,
@@ -2373,6 +2125,267 @@
     "frontier"
    ],
    "pillar": "Setting"
+  },
+  {
+   "canonical": "space",
+   "section": "Natural World",
+   "count": 177,
+   "members": [
+    "space",
+    "outer space",
+    "space travel",
+    "space mission",
+    "space exploration",
+    "space adventure",
+    "deep space",
+    "space colony",
+    "space sci-fi",
+    "trapped in space",
+    "space battle",
+    "space station",
+    "space western",
+    "space pirate",
+    "galaxy",
+    "asteroid",
+    "cosmos",
+    "universe",
+    "saturn",
+    "lunar mission",
+    "space walk",
+    "spacewalk",
+    "space suit",
+    "spaceman",
+    "black hole",
+    "wormhole",
+    "gravity",
+    "comet",
+    "meteor",
+    "meteorite",
+    "sun",
+    "cosmic"
+   ],
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "countryside",
+   "pillar": "Setting",
+   "section": "Natural World",
+   "count": 117,
+   "members": [
+    "countryside",
+    "rural area",
+    "rural setting",
+    "rural",
+    "isolated farmhouse",
+    "backwoods",
+    "country life",
+    "provincial life",
+    "windmill",
+    "moor (terrain)",
+    "well"
+   ]
+  },
+  {
+   "canonical": "island",
+   "section": "Natural World",
+   "count": 110,
+   "members": [
+    "island",
+    "exotic island",
+    "tropical island",
+    "deserted island",
+    "isolated island"
+   ],
+   "from_board": true,
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "forest",
+   "section": "Natural World",
+   "count": 108,
+   "members": [
+    "forest",
+    "woods",
+    "lost in the woods",
+    "forest fire",
+    "tree",
+    "woodcutter"
+   ],
+   "from_board": true,
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "desert",
+   "section": "Natural World",
+   "count": 82,
+   "members": [
+    "desert",
+    "sahara desert",
+    "sand dune",
+    "sand"
+   ],
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "mountain",
+   "section": "Natural World",
+   "count": 78,
+   "members": [
+    "mountain",
+    "cliff",
+    "mountain climbing",
+    "himalaya mountain range",
+    "alps mountains",
+    "rocky mountains",
+    "andes mountains",
+    "summit"
+   ],
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "sea",
+   "section": "Natural World",
+   "count": 64,
+   "members": [
+    "deep sea",
+    "lost at sea",
+    "sea",
+    "sea battle",
+    "sea voyage",
+    "survival at sea",
+    "voyage",
+    "seaside"
+   ],
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "beach",
+   "section": "Natural World",
+   "count": 57,
+   "members": [
+    "beach",
+    "boardwalk"
+   ],
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "jungle",
+   "section": "Natural World",
+   "count": 56,
+   "members": [
+    "jungle",
+    "rainforest",
+    "jungle adventure",
+    "amazon rainforest",
+    "tarzan",
+    "amazon river"
+   ],
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "planet",
+   "section": "Natural World",
+   "count": 48,
+   "members": [
+    "planet",
+    "planet mars",
+    "destruction of planet",
+    "save the planet",
+    "planet earth",
+    "planet invasion",
+    "earth"
+   ],
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "ocean",
+   "pillar": "Setting",
+   "section": "Natural World",
+   "count": 47,
+   "members": [
+    "ocean",
+    "atlantic ocean",
+    "north atlantic",
+    "coral reef",
+    "deepsea",
+    "pacific",
+    "wave",
+    "water"
+   ]
+  },
+  {
+   "canonical": "river",
+   "section": "Natural World",
+   "count": 45,
+   "members": [
+    "river",
+    "mississippi river",
+    "rapids"
+   ],
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "wilderness",
+   "section": "Natural World",
+   "count": 30,
+   "members": [
+    "wilderness"
+   ],
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "cave",
+   "section": "Natural World",
+   "count": 30,
+   "members": [
+    "cave",
+    "cave painting",
+    "subterranean",
+    "underground world"
+   ],
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "swamp",
+   "section": "Natural World",
+   "count": 18,
+   "members": [
+    "swamp"
+   ],
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "lake",
+   "section": "Natural World",
+   "count": 18,
+   "members": [
+    "lake",
+    "pond"
+   ],
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "arctic",
+   "section": "Natural World",
+   "count": 14,
+   "members": [
+    "arctic",
+    "arctic polar circle region",
+    "antarctica",
+    "iceberg"
+   ],
+   "pillar": "Setting",
+   "note": "Regions -> Natural World per user 2026-07-24 (natural-vs-manmade distinction wins over the named-region reading); holds antarctica + polar strings"
+  },
+  {
+   "canonical": "waterfall",
+   "pillar": "Setting",
+   "section": "Natural World",
+   "count": 11,
+   "members": [
+    "waterfall",
+    "niagara falls"
+   ]
   },
   {
    "canonical": "new york",
@@ -3882,19 +3895,6 @@
     "south america"
    ],
    "pillar": "Setting"
-  },
-  {
-   "canonical": "arctic",
-   "section": "Regions",
-   "count": 14,
-   "members": [
-    "arctic",
-    "arctic polar circle region",
-    "antarctica",
-    "iceberg"
-   ],
-   "pillar": "Setting",
-   "note": "moved Locations -> Regions per user (2026-07-24); holds antarctica + polar strings"
   },
   {
    "canonical": "new england",
@@ -16843,6 +16843,11 @@
    "name": "wave-3b-amendment-arctic",
    "date": "2026-07-24",
    "note": "user amendment: arctic -> Setting/Regions (was Locations terrain reading). Regions now 23 tags."
+  },
+  {
+   "name": "rethink-natural-world-banked",
+   "date": "2026-07-24",
+   "note": "NEW SECTION Setting/Natural World (user Option A): desert, mountain, jungle, forest, island, sea, ocean, beach, river, lake, swamp, wilderness, cave, waterfall, countryside (user: in), space + planet (user: in — after the split Locations reads human-built, space is not that), arctic (user: moved BACK from Regions — natural-vs-manmade wins). 18 tags. Locations is now coherently the HUMAN-BUILT world (settlements + structures, ~67). Setting grain: Era=periods · Seasons & Holidays=time of year · Regions=named areas · Place=political units · Natural World=nature+cosmos · Locations=built places · Vehicles=vessels. RULED STAY (user confirmed the reasoning): courtroom (justice process, F&I) · theater (performing arts, Pursuits) · heaven/hell/dystopia/fantasy world/alternate reality (Worlds & Lore = the SPECULATIVE setting shelf, two-tier design kept) · nature/storm/forces of nature (A&N = imagery + events, not where-you-are). Moon stays Place (proper noun)."
   }
  ],
  "unassigned": [],
@@ -16949,7 +16954,8 @@
    "Locations",
    "Seasons & Holidays",
    "Vehicles",
-   "Regions"
+   "Regions",
+   "Natural World"
   ],
   "Story": [
    "Characters",
