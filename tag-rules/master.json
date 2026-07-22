@@ -796,7 +796,7 @@
   {
    "canonical": "world war",
    "section": "Era",
-   "count": 256,
+   "count": 258,
    "members": [
     "world war",
     "world war i",
@@ -817,7 +817,8 @@
     "barbed wire",
     "no man's land",
     "allies",
-    "liberation"
+    "liberation",
+    "second sino-japanese war (1937-45)"
    ],
    "pillar": "Setting"
   },
@@ -1001,6 +1002,30 @@
    "pillar": "Setting"
   },
   {
+   "canonical": "japanese epoch",
+   "section": "Era",
+   "count": 64,
+   "members": [
+    "feudal japan",
+    "shōwa era (1926-89)",
+    "taisho period",
+    "edo period",
+    "sengoku period",
+    "meiji period",
+    "imperial japan",
+    "heisei",
+    "ancient japan",
+    "shogun",
+    "shogunate",
+    "jidaigeki",
+    "bakumatsu",
+    "shinsengumi",
+    "ishin shishi",
+    "post war japan"
+   ],
+   "pillar": "Setting"
+  },
+  {
    "canonical": "modern war",
    "section": "Era",
    "count": 59,
@@ -1048,29 +1073,6 @@
     "jazz age"
    ],
    "from_board": true,
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "japanese epoch",
-   "section": "Era",
-   "count": 54,
-   "members": [
-    "feudal japan",
-    "shōwa era (1926-89)",
-    "taisho period",
-    "edo period",
-    "sengoku period",
-    "meiji period",
-    "imperial japan",
-    "heisei",
-    "ancient japan",
-    "shogun",
-    "shogunate",
-    "jidaigeki",
-    "bakumatsu",
-    "shinsengumi",
-    "ishin shishi"
-   ],
    "pillar": "Setting"
   },
   {
@@ -4990,7 +4992,7 @@
   {
    "canonical": "gangster",
    "section": "Characters",
-   "count": 331,
+   "count": 334,
    "members": [
     "gangster",
     "organized crime",
@@ -5013,7 +5015,8 @@
     "crime syndicate",
     "hoodlum",
     "cholo",
-    "hooligan"
+    "hooligan",
+    "gang warfare"
    ],
    "pillar": "Story"
   },
@@ -7582,7 +7585,7 @@
   {
    "canonical": "surveillance",
    "section": "Events & Actions",
-   "count": 92,
+   "count": 93,
    "members": [
     "surveillance",
     "surveillance state",
@@ -7599,7 +7602,8 @@
     "tracking device",
     "tape recorder",
     "audio tape",
-    "observer"
+    "observer",
+    "fbi surveillance"
    ],
    "pillar": "Story"
   },
@@ -7625,6 +7629,23 @@
     "fireworks",
     "ceremony"
    ]
+  },
+  {
+   "canonical": "undercover",
+   "section": "Events & Actions",
+   "count": 91,
+   "members": [
+    "undercover",
+    "infiltration",
+    "sting operation",
+    "covert operation",
+    "covert operations",
+    "safe house",
+    "undercover operation",
+    "black ops"
+   ],
+   "from_board": true,
+   "pillar": "Story"
   },
   {
    "canonical": "missing person",
@@ -7707,21 +7728,6 @@
    ]
   },
   {
-   "canonical": "undercover",
-   "section": "Events & Actions",
-   "count": 79,
-   "members": [
-    "undercover",
-    "infiltration",
-    "sting operation",
-    "covert operation",
-    "covert operations",
-    "safe house"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
    "canonical": "falsely accused",
    "pillar": "Story",
    "section": "Events & Actions",
@@ -7761,6 +7767,23 @@
     "showdown",
     "mexican standoff"
    ]
+  },
+  {
+   "canonical": "fraud",
+   "section": "Events & Actions",
+   "count": 60,
+   "members": [
+    "fraud",
+    "insurance fraud",
+    "credit card fraud",
+    "embezzlement",
+    "ponzi scheme",
+    "money laundering",
+    "counterfeit money",
+    "counterfeit",
+    "forgery"
+   ],
+   "pillar": "Story"
   },
   {
    "canonical": "blackmail",
@@ -7856,17 +7879,14 @@
    ]
   },
   {
-   "canonical": "fraud",
+   "canonical": "espionage",
    "section": "Events & Actions",
-   "count": 47,
+   "count": 49,
    "members": [
-    "fraud",
-    "insurance fraud",
-    "credit card fraud",
-    "embezzlement",
-    "ponzi scheme",
-    "money laundering"
+    "espionage",
+    "international espionage"
    ],
+   "from_board": true,
    "pillar": "Story"
   },
   {
@@ -7879,16 +7899,6 @@
     "break in",
     "intruder"
    ]
-  },
-  {
-   "canonical": "espionage",
-   "section": "Events & Actions",
-   "count": 46,
-   "members": [
-    "espionage"
-   ],
-   "from_board": true,
-   "pillar": "Story"
   },
   {
    "canonical": "smuggling",
@@ -8135,16 +8145,6 @@
    ]
   },
   {
-   "canonical": "coup d'etat",
-   "section": "Events & Actions",
-   "count": 16,
-   "members": [
-    "coup d'etat",
-    "military coup"
-   ],
-   "pillar": "Story"
-  },
-  {
    "canonical": "prom",
    "pillar": "Story",
    "section": "Events & Actions",
@@ -8177,47 +8177,6 @@
    ]
   },
   {
-   "canonical": "counterfeit money",
-   "section": "Events & Actions",
-   "count": 14,
-   "members": [
-    "counterfeit money",
-    "counterfeit",
-    "forgery"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "bribery",
-   "section": "Events & Actions",
-   "count": 12,
-   "members": [
-    "bribery",
-    "bribe"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "undercover operation",
-   "section": "Events & Actions",
-   "count": 10,
-   "members": [
-    "undercover operation"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "black ops",
-   "section": "Events & Actions",
-   "count": 8,
-   "members": [
-    "black ops"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
    "canonical": "lockdown",
    "pillar": "Story",
    "section": "Events & Actions",
@@ -8226,46 +8185,6 @@
     "lockdown"
    ],
    "note": "user: can refer to shootings, not only pandemic"
-  },
-  {
-   "canonical": "fbi operation",
-   "section": "Events & Actions",
-   "count": 5,
-   "members": [
-    "fbi operation"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "military operation",
-   "section": "Events & Actions",
-   "count": 4,
-   "members": [
-    "military operation"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "international espionage",
-   "section": "Events & Actions",
-   "count": 4,
-   "members": [
-    "international espionage"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "fbi surveillance",
-   "section": "Events & Actions",
-   "count": 2,
-   "members": [
-    "fbi surveillance"
-   ],
-   "from_board": true,
-   "pillar": "Story"
   },
   {
    "canonical": "religion",
@@ -8467,7 +8386,8 @@
     "camorra",
     "sicilian",
     "godfather",
-    "kingpin"
+    "kingpin",
+    "mafia war"
    ],
    "pillar": "Story"
   },
@@ -8540,24 +8460,27 @@
    "note": "custom label (user); movie business + hollywood industry cluster"
   },
   {
-   "canonical": "fbi",
+   "canonical": "corruption",
    "section": "Forces & Institutions",
-   "count": 104,
+   "count": 114,
    "members": [
-    "fbi"
+    "corruption",
+    "corrupt officials",
+    "corrupt government",
+    "corrupt official",
+    "bribery",
+    "bribe"
    ],
    "from_board": true,
    "pillar": "Story"
   },
   {
-   "canonical": "corruption",
+   "canonical": "fbi",
    "section": "Forces & Institutions",
-   "count": 104,
+   "count": 106,
    "members": [
-    "corruption",
-    "corrupt officials",
-    "corrupt government",
-    "corrupt official"
+    "fbi",
+    "fbi operation"
    ],
    "from_board": true,
    "pillar": "Story"
@@ -9451,6 +9374,21 @@
    "pillar": "Story"
   },
   {
+   "canonical": "slavery",
+   "section": "Identity & Society",
+   "count": 45,
+   "members": [
+    "slavery",
+    "slave",
+    "sold into slavery",
+    "slave trade",
+    "slave labor",
+    "slave owner"
+   ],
+   "pillar": "Story",
+   "note": "shifted War & Conflict -> Identity & Society (rethink wave 5): a system of domination, not a war"
+  },
+  {
    "canonical": "discrimination",
    "section": "Identity & Society",
    "count": 39,
@@ -9548,6 +9486,19 @@
    "members": [
     "homophobia"
    ]
+  },
+  {
+   "canonical": "colonialism",
+   "section": "Identity & Society",
+   "count": 23,
+   "members": [
+    "colonialism",
+    "french colonialism",
+    "colonisation",
+    "colony"
+   ],
+   "pillar": "Story",
+   "note": "shifted War & Conflict -> Identity & Society (rethink wave 5): a system of domination, not a war"
   },
   {
    "canonical": "refugee",
@@ -9754,6 +9705,17 @@
    ],
    "note": "nationality/identity word routed out of Place",
    "pillar": "Story"
+  },
+  {
+   "canonical": "apartheid",
+   "section": "Identity & Society",
+   "count": 6,
+   "members": [
+    "apartheid"
+   ],
+   "from_board": true,
+   "pillar": "Story",
+   "note": "shifted War & Conflict -> Identity & Society (rethink wave 5): a system of domination, not a war"
   },
   {
    "canonical": "korean",
@@ -10767,7 +10729,7 @@
   {
    "canonical": "drugs",
    "section": "Pursuits",
-   "count": 247,
+   "count": 248,
    "members": [
     "drugs",
     "cocaine",
@@ -10788,7 +10750,8 @@
     "drug scene",
     "syringe",
     "pill",
-    "pills"
+    "pills",
+    "drug war"
    ],
    "pillar": "Story"
   },
@@ -13090,6 +13053,20 @@
    ]
   },
   {
+   "canonical": "national history",
+   "section": "Themes",
+   "count": 28,
+   "members": [
+    "usa history",
+    "british history",
+    "italian history",
+    "american history",
+    "african american history"
+   ],
+   "pillar": "Story",
+   "note": "shifted War & Conflict -> Themes (rethink wave 5): a history subject, not a war"
+  },
+  {
    "canonical": "disillusionment",
    "section": "Themes",
    "count": 23,
@@ -13235,36 +13212,9 @@
    "pillar": "Story"
   },
   {
-   "canonical": "war atrocity",
-   "section": "War & Conflict",
-   "count": 81,
-   "members": [
-    "genocide",
-    "holocaust (shoah)",
-    "concentration camp",
-    "children in wartime",
-    "war criminal",
-    "war crimes",
-    "atrocity",
-    "rwandan genocide",
-    "mass grave",
-    "holocaust (shoah) survivor",
-    "concentration camp prisoner",
-    "ethnic cleansing",
-    "labor camp",
-    "internment camp",
-    "palestinian genocide",
-    "israeli war crimes",
-    "settler genocide",
-    "colonial genocide",
-    "indonesian genocide"
-   ],
-   "pillar": "Story"
-  },
-  {
    "canonical": "warfare",
    "section": "War & Conflict",
-   "count": 69,
+   "count": 84,
    "members": [
     "ancient warfare",
     "biological warfare",
@@ -13285,8 +13235,58 @@
     "urban warfare",
     "warfare",
     "weapon of mass destruction",
-    "behind enemy lines"
+    "behind enemy lines",
+    "war zone",
+    "casualty of war",
+    "war injury",
+    "military operation"
    ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "war atrocity",
+   "section": "War & Conflict",
+   "count": 83,
+   "members": [
+    "genocide",
+    "holocaust (shoah)",
+    "concentration camp",
+    "children in wartime",
+    "war criminal",
+    "war crimes",
+    "atrocity",
+    "rwandan genocide",
+    "mass grave",
+    "holocaust (shoah) survivor",
+    "concentration camp prisoner",
+    "ethnic cleansing",
+    "labor camp",
+    "internment camp",
+    "palestinian genocide",
+    "israeli war crimes",
+    "settler genocide",
+    "colonial genocide",
+    "indonesian genocide",
+    "pogrom"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "revolution",
+   "section": "War & Conflict",
+   "count": 58,
+   "members": [
+    "revolution",
+    "independence",
+    "struggle for independence",
+    "french revolution",
+    "american revolution",
+    "mexican revolution",
+    "cuban revolution",
+    "cultural revolution",
+    "russian revolution (1917)"
+   ],
+   "from_board": true,
    "pillar": "Story"
   },
   {
@@ -13309,15 +13309,32 @@
   {
    "canonical": "civil war",
    "section": "War & Conflict",
-   "count": 54,
+   "count": 56,
    "members": [
     "civil war",
     "american civil war",
     "spanish civil war (1936-39)",
     "chinese civil war",
     "irish civil war (1922-23)",
-    "confederate"
+    "confederate",
+    "post spanish civil war"
    ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "rebellion",
+   "section": "War & Conflict",
+   "count": 51,
+   "members": [
+    "rebellion",
+    "mutiny",
+    "fighting the system",
+    "revolt",
+    "insurgence",
+    "uprising",
+    "gwangju uprising"
+   ],
+   "from_board": true,
    "pillar": "Story"
   },
   {
@@ -13355,20 +13372,6 @@
    "note": "shifted Themes -> War & Conflict (rethink wave 4): a world, not a theme"
   },
   {
-   "canonical": "slavery",
-   "section": "War & Conflict",
-   "count": 45,
-   "members": [
-    "slavery",
-    "slave",
-    "sold into slavery",
-    "slave trade",
-    "slave labor",
-    "slave owner"
-   ],
-   "pillar": "Story"
-  },
-  {
    "canonical": "resistance",
    "pillar": "Story",
    "section": "War & Conflict",
@@ -13396,43 +13399,6 @@
    "pillar": "Story"
   },
   {
-   "canonical": "revolution",
-   "section": "War & Conflict",
-   "count": 35,
-   "members": [
-    "revolution",
-    "independence",
-    "struggle for independence"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "rebellion",
-   "section": "War & Conflict",
-   "count": 30,
-   "members": [
-    "rebellion",
-    "mutiny",
-    "fighting the system"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "national history",
-   "section": "War & Conflict",
-   "count": 28,
-   "members": [
-    "usa history",
-    "british history",
-    "italian history",
-    "american history",
-    "african american history"
-   ],
-   "pillar": "Story"
-  },
-  {
    "canonical": "military occupation",
    "section": "War & Conflict",
    "count": 24,
@@ -13444,14 +13410,25 @@
    "pillar": "Story"
   },
   {
-   "canonical": "colonialism",
+   "canonical": "wartime",
    "section": "War & Conflict",
-   "count": 23,
+   "count": 21,
    "members": [
-    "colonialism",
-    "french colonialism",
-    "colonisation",
-    "colony"
+    "wartime",
+    "pre-war",
+    "post war",
+    "life during wartime"
+   ],
+   "from_board": true,
+   "pillar": "Story"
+  },
+  {
+   "canonical": "coup d'etat",
+   "section": "War & Conflict",
+   "count": 16,
+   "members": [
+    "coup d'etat",
+    "military coup"
    ],
    "pillar": "Story"
   },
@@ -13461,36 +13438,6 @@
    "count": 16,
    "members": [
     "fictional war"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "post war japan",
-   "section": "War & Conflict",
-   "count": 11,
-   "members": [
-    "post war japan"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "uprising",
-   "section": "War & Conflict",
-   "count": 10,
-   "members": [
-    "uprising",
-    "gwangju uprising"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "post war",
-   "section": "War & Conflict",
-   "count": 9,
-   "members": [
-    "post war"
    ],
    "from_board": true,
    "pillar": "Story"
@@ -13506,112 +13453,11 @@
    "pillar": "Story"
   },
   {
-   "canonical": "insurgence",
-   "section": "War & Conflict",
-   "count": 8,
-   "members": [
-    "insurgence"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "wartime",
-   "section": "War & Conflict",
-   "count": 8,
-   "members": [
-    "wartime"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "apartheid",
-   "section": "War & Conflict",
-   "count": 6,
-   "members": [
-    "apartheid"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "french revolution",
-   "section": "War & Conflict",
-   "count": 6,
-   "members": [
-    "french revolution"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "revolt",
-   "section": "War & Conflict",
-   "count": 6,
-   "members": [
-    "revolt"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "gang warfare",
-   "section": "War & Conflict",
-   "count": 6,
-   "members": [
-    "gang warfare"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "russian revolution (1917)",
-   "section": "War & Conflict",
-   "count": 5,
-   "members": [
-    "russian revolution (1917)"
-   ],
-   "from_board": true,
-   "note": "board label was the short form \"russian revolution\"",
-   "pillar": "Story"
-  },
-  {
-   "canonical": "war injury",
-   "section": "War & Conflict",
-   "count": 5,
-   "members": [
-    "war injury"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "cultural revolution",
-   "section": "War & Conflict",
-   "count": 4,
-   "members": [
-    "cultural revolution"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
    "canonical": "revolutionary war",
    "section": "War & Conflict",
    "count": 4,
    "members": [
     "revolutionary war"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "casualty of war",
-   "section": "War & Conflict",
-   "count": 4,
-   "members": [
-    "casualty of war"
    ],
    "from_board": true,
    "pillar": "Story"
@@ -13623,137 +13469,6 @@
    "members": [
     "independence movement"
    ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "american revolution",
-   "section": "War & Conflict",
-   "count": 3,
-   "members": [
-    "american revolution"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "mexican revolution",
-   "section": "War & Conflict",
-   "count": 3,
-   "members": [
-    "mexican revolution"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "cuban revolution",
-   "section": "War & Conflict",
-   "count": 3,
-   "members": [
-    "cuban revolution"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "pre-war",
-   "section": "War & Conflict",
-   "count": 3,
-   "members": [
-    "pre-war"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "post spanish civil war",
-   "section": "War & Conflict",
-   "count": 3,
-   "members": [
-    "post spanish civil war"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "pogrom",
-   "section": "War & Conflict",
-   "count": 2,
-   "members": [
-    "pogrom"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "life during wartime",
-   "section": "War & Conflict",
-   "count": 2,
-   "members": [
-    "life during wartime"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "drug war",
-   "section": "War & Conflict",
-   "count": 2,
-   "members": [
-    "drug war"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "mafia war",
-   "section": "War & Conflict",
-   "count": 2,
-   "members": [
-    "mafia war"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "war zone",
-   "section": "War & Conflict",
-   "count": 2,
-   "members": [
-    "war zone"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "war epic",
-   "section": "War & Conflict",
-   "count": 2,
-   "members": [
-    "war epic"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "trojan war",
-   "section": "War & Conflict",
-   "count": 2,
-   "members": [
-    "trojan war"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "second sino-japanese war (1937-45)",
-   "section": "War & Conflict",
-   "count": 2,
-   "members": [
-    "second sino-japanese war (1937-45)"
-   ],
-   "from_board": true,
-   "note": "board label was the short form \"second sino-japanese war\"",
    "pillar": "Story"
   },
   {
@@ -14986,25 +14701,26 @@
    ]
   },
   {
+   "canonical": "epic",
+   "section": "Sub-genres & Styles",
+   "count": 28,
+   "members": [
+    "epic",
+    "epic battle",
+    "epic fantasy",
+    "epic sci-fi",
+    "biblical epic",
+    "war epic"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
    "canonical": "screwball",
    "section": "Sub-genres & Styles",
    "count": 27,
    "members": [
     "screwball",
     "screwball comedy"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "epic",
-   "section": "Sub-genres & Styles",
-   "count": 26,
-   "members": [
-    "epic",
-    "epic battle",
-    "epic fantasy",
-    "epic sci-fi",
-    "biblical epic"
    ],
    "pillar": "Style & Format"
   },
@@ -15791,7 +15507,8 @@
     "hades",
     "poseidon",
     "zeus",
-    "odyssey"
+    "odyssey",
+    "trojan war"
    ],
    "pillar": "Style & Format"
   },
@@ -16829,6 +16546,11 @@
    "name": "rethink-wave-4-banked",
    "date": "2026-07-24",
    "note": "RETHINK WAVE 4 (abstract trio: Themes+Mind & Health+Identity & Society, 127 tags) BANKED per user: military life -> War & Conflict (a world, not a theme) · government secrets DISSOLVED -> conspiracy · deception DISSOLVED -> dishonesty (one lying-register tag; manipulation + betrayal stay distinct) · teenage rebellion DISSOLVED -> juvenile delinquent. RULED KEEP: witch hunt (distinct persecution flavor) · beauty (Themes, aesthetic theme). All three section shapes HOLD; no renames — grain already true (Themes abstract nouns, M&H condition-nouns, I&S identity-nouns; depression/depressing cross-pillar pair correct by design). SETTING AMENDMENT: turkey label RENAMED türkiye (proper naming, user)."
+  },
+  {
+   "name": "rethink-wave-5-banked",
+   "date": "2026-07-24",
+   "note": "RETHINK WAVE 5 (Events & Actions + War & Conflict, 114 tags) BANKED per user, all proposals confirmed: SHIFTS slavery+colonialism+apartheid -> Identity & Society (systems of domination, not wars) · coup detat E&A -> W&C · national history -> Themes. 32 MICRO-TAG DISSOLVES (all member strings carried, dedup-union verified clean): 6 named revolutions -> revolution · revolt+insurgence+uprising(+gwangju) -> rebellion · pre-war+post war+life during wartime -> wartime · post spanish civil war -> civil war · post war japan -> japanese epoch [Era] · war zone+casualty of war+war injury -> warfare · pogrom -> war atrocity · war epic -> epic [Sub-genres] · mafia war -> mafia · drug war -> drugs · gang warfare -> gangster (its gang-war string twin) · trojan war -> mythology · second sino-japanese war -> world war [Era] · undercover operation+black ops -> undercover · international espionage -> espionage · fbi surveillance -> surveillance · fbi operation -> fbi · military operation -> warfare · counterfeit money -> fraud · bribery -> corruption. RULED KEEP: cat and mouse · abuse-family boundary (condition M&H vs act E&A) · prom · fictional war · future war. W&C now ~24 strong tags."
   }
  ],
  "unassigned": [],
