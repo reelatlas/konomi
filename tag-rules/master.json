@@ -1096,17 +1096,6 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "vacation",
-   "pillar": "Setting",
-   "section": "Era",
-   "count": 48,
-   "members": [
-    "interrupted vacation",
-    "summer vacation",
-    "vacation"
-   ]
-  },
-  {
    "canonical": "1910s",
    "section": "Era",
    "count": 39,
@@ -1433,36 +1422,6 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "ship",
-   "section": "Locations",
-   "count": 133,
-   "members": [
-    "boat",
-    "boat chase",
-    "canoe",
-    "cargo ship",
-    "cruise",
-    "cruise ship",
-    "fishing boat",
-    "ghost ship",
-    "gondola",
-    "houseboat",
-    "ocean liner",
-    "pirate ship",
-    "riverboat",
-    "rowboat",
-    "sailboat",
-    "sailing ship",
-    "ship",
-    "steamboat",
-    "war ship",
-    "whaling ship",
-    "titanic"
-   ],
-   "from_board": true,
-   "pillar": "Setting"
-  },
-  {
    "canonical": "hospital",
    "section": "Locations",
    "count": 123,
@@ -1543,25 +1502,6 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "airplane",
-   "pillar": "Setting",
-   "section": "Locations",
-   "count": 101,
-   "members": [
-    "aircraft",
-    "airplane",
-    "airplane flight",
-    "airplane trip",
-    "airship",
-    "aviation",
-    "flight",
-    "flight attendant",
-    "parachute",
-    "stewardess",
-    "turbulence"
-   ]
-  },
-  {
    "canonical": "college",
    "pillar": "Setting",
    "section": "Locations",
@@ -1583,32 +1523,6 @@
     "medical school"
    ],
    "note": "split out of school (rethink wave 1, user 2026-07-24); ambiguous school-words (dormitory, scholarship, graduation, exam…) stayed in school per user"
-  },
-  {
-   "canonical": "car",
-   "pillar": "Setting",
-   "section": "Locations",
-   "count": 99,
-   "members": [
-    "armored car",
-    "bumper car",
-    "car",
-    "car dealer",
-    "car journey",
-    "cars",
-    "child driving car",
-    "convertible",
-    "limousine",
-    "sports car",
-    "van",
-    "flying car",
-    "ford mustang",
-    "mini cooper",
-    "ferrari",
-    "automobile",
-    "traffic jam",
-    "parking garage"
-   ]
   },
   {
    "canonical": "restaurant",
@@ -1655,19 +1569,6 @@
     "summit"
    ],
    "pillar": "Setting"
-  },
-  {
-   "canonical": "train",
-   "pillar": "Setting",
-   "section": "Locations",
-   "count": 74,
-   "members": [
-    "runaway train",
-    "steam locomotive",
-    "train",
-    "train travel",
-    "trains"
-   ]
   },
   {
    "canonical": "cemetery",
@@ -1959,27 +1860,6 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "motorcycle",
-   "pillar": "Setting",
-   "section": "Locations",
-   "count": 44,
-   "members": [
-    "biker",
-    "motorcycle",
-    "motorcycle chase"
-   ]
-  },
-  {
-   "canonical": "helicopter",
-   "pillar": "Setting",
-   "section": "Locations",
-   "count": 43,
-   "members": [
-    "helicopter",
-    "helicopter chase"
-   ]
-  },
-  {
    "canonical": "store",
    "section": "Locations",
    "count": 41,
@@ -2074,17 +1954,6 @@
     "motel",
     "motel room"
    ],
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "submarine",
-   "section": "Locations",
-   "count": 33,
-   "members": [
-    "submarine",
-    "sonar"
-   ],
-   "from_board": true,
    "pillar": "Setting"
   },
   {
@@ -2201,18 +2070,6 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "truck",
-   "pillar": "Setting",
-   "section": "Locations",
-   "count": 26,
-   "members": [
-    "ice cream truck",
-    "pickup truck",
-    "truck",
-    "convoy"
-   ]
-  },
-  {
    "canonical": "airport",
    "section": "Locations",
    "count": 25,
@@ -2256,15 +2113,6 @@
     "border",
     "usa–mexico border",
     "border crossing"
-   ]
-  },
-  {
-   "canonical": "taxi",
-   "pillar": "Setting",
-   "section": "Locations",
-   "count": 21,
-   "members": [
-    "taxi"
    ]
   },
   {
@@ -2341,17 +2189,6 @@
    "members": [
     "monastery",
     "convent (nunnery)"
-   ],
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "city life",
-   "section": "Locations",
-   "count": 16,
-   "members": [
-    "city life",
-    "moving to a city",
-    "city country contrast"
    ],
    "pillar": "Setting"
   },
@@ -2464,15 +2301,6 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "bus",
-   "pillar": "Setting",
-   "section": "Locations",
-   "count": 10,
-   "members": [
-    "bus"
-   ]
-  },
-  {
    "canonical": "lighthouse",
    "section": "Locations",
    "count": 9,
@@ -2493,16 +2321,6 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "bicycle",
-   "pillar": "Setting",
-   "section": "Locations",
-   "count": 9,
-   "members": [
-    "bicycle",
-    "riding a bicycle"
-   ]
-  },
-  {
    "canonical": "dam",
    "pillar": "Setting",
    "section": "Locations",
@@ -2519,15 +2337,6 @@
     "ghost town"
    ],
    "pillar": "Setting"
-  },
-  {
-   "canonical": "ambulance",
-   "pillar": "Setting",
-   "section": "Locations",
-   "count": 8,
-   "members": [
-    "ambulance"
-   ]
   },
   {
    "canonical": "arcade",
@@ -2800,29 +2609,6 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "american west",
-   "section": "Place",
-   "count": 54,
-   "members": [
-    "american west",
-    "wild west",
-    "indian territory",
-    "arizona territory",
-    "stagecoach",
-    "old west",
-    "ok corral",
-    "wyatt earp",
-    "doc holliday",
-    "stetson",
-    "mining town",
-    "prospector",
-    "settler",
-    "gold rush"
-   ],
-   "note": "region tag — grouping RESOLVED 2026-07-22: regions stay own Place tags, no umbrella",
-   "pillar": "Setting"
-  },
-  {
    "canonical": "massachusetts",
    "section": "Place",
    "count": 53,
@@ -2845,33 +2631,6 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "africa",
-   "section": "Place",
-   "count": 51,
-   "members": [
-    "africa",
-    "uganda",
-    "djazair"
-   ],
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "southern usa",
-   "section": "Place",
-   "count": 48,
-   "members": [
-    "southern usa",
-    "deep south",
-    "southern belle",
-    "bayou",
-    "cajun",
-    "hillbilly",
-    "redneck"
-   ],
-   "note": "region tag — grouping RESOLVED 2026-07-22: regions stay own Place tags, no umbrella",
-   "pillar": "Setting"
-  },
-  {
    "canonical": "nevada",
    "section": "Place",
    "count": 45,
@@ -2880,19 +2639,6 @@
     "las vegas"
    ],
    "pillar": "Setting"
-  },
-  {
-   "canonical": "europe",
-   "pillar": "Setting",
-   "section": "Place",
-   "count": 45,
-   "members": [
-    "europe",
-    "scandinavia",
-    "czechoslovakia",
-    "yugoslavia",
-    "mediterranean"
-   ]
   },
   {
    "canonical": "louisiana",
@@ -3052,20 +2798,6 @@
    "note": "the STATE, plain label per user 2026-07-24 (washington dc is its own tag; no conflict)"
   },
   {
-   "canonical": "middle east",
-   "pillar": "Setting",
-   "section": "Place",
-   "count": 27,
-   "members": [
-    "middle east",
-    "kuwait",
-    "arabian",
-    "arab",
-    "sheik",
-    "baghdad"
-   ]
-  },
-  {
    "canonical": "greece",
    "section": "Place",
    "count": 25,
@@ -3160,18 +2892,6 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "caribbean",
-   "pillar": "Setting",
-   "section": "Place",
-   "count": 22,
-   "members": [
-    "caribbean sea",
-    "bahamas",
-    "puerto rico",
-    "dominican republic"
-   ]
-  },
-  {
    "canonical": "georgia",
    "section": "Place",
    "count": 21,
@@ -3245,15 +2965,6 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "south america",
-   "section": "Place",
-   "count": 17,
-   "members": [
-    "south america"
-   ],
-   "pillar": "Setting"
-  },
-  {
    "canonical": "israel",
    "section": "Place",
    "count": 17,
@@ -3295,15 +3006,6 @@
    ],
    "from_board": true,
    "pillar": "Setting"
-  },
-  {
-   "canonical": "new england",
-   "pillar": "Setting",
-   "section": "Place",
-   "count": 14,
-   "members": [
-    "new england"
-   ]
   },
   {
    "canonical": "afghanistan",
@@ -3452,16 +3154,6 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "northern england",
-   "section": "Place",
-   "count": 11,
-   "members": [
-    "northern england"
-   ],
-   "note": "region tag — grouping RESOLVED 2026-07-22: regions stay own Place tags, no umbrella",
-   "pillar": "Setting"
-  },
-  {
    "canonical": "usa",
    "section": "Place",
    "count": 10,
@@ -3510,16 +3202,6 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "southern france",
-   "section": "Place",
-   "count": 10,
-   "members": [
-    "southern france"
-   ],
-   "note": "region tag — grouping RESOLVED 2026-07-22: regions stay own Place tags, no umbrella",
-   "pillar": "Setting"
-  },
-  {
    "canonical": "new hampshire",
    "pillar": "Setting",
    "section": "Place",
@@ -3527,17 +3209,6 @@
    "members": [
     "new hampshire"
    ]
-  },
-  {
-   "canonical": "australian outback",
-   "section": "Place",
-   "count": 10,
-   "members": [
-    "australian outback",
-    "outback"
-   ],
-   "note": "region tag — grouping RESOLVED 2026-07-22: regions stay own Place tags, no umbrella",
-   "pillar": "Setting"
   },
   {
    "canonical": "chile",
@@ -3575,26 +3246,6 @@
     "argentina"
    ],
    "pillar": "Setting"
-  },
-  {
-   "canonical": "asia",
-   "pillar": "Setting",
-   "section": "Place",
-   "count": 9,
-   "members": [
-    "asia"
-   ]
-  },
-  {
-   "canonical": "polynesia",
-   "pillar": "Setting",
-   "section": "Place",
-   "count": 9,
-   "members": [
-    "polynesia",
-    "tahiti",
-    "south pacific"
-   ]
   },
   {
    "canonical": "peru",
@@ -3671,16 +3322,6 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "french riviera",
-   "section": "Place",
-   "count": 7,
-   "members": [
-    "french riviera"
-   ],
-   "note": "region tag — grouping RESOLVED 2026-07-22: regions stay own Place tags, no umbrella",
-   "pillar": "Setting"
-  },
-  {
    "canonical": "jamaica",
    "section": "Place",
    "count": 6,
@@ -3726,35 +3367,6 @@
    "members": [
     "idaho"
    ],
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "central and south america",
-   "section": "Place",
-   "count": 6,
-   "members": [
-    "central and south america"
-   ],
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "florida keys",
-   "section": "Place",
-   "count": 6,
-   "members": [
-    "florida keys"
-   ],
-   "note": "region tag — grouping RESOLVED 2026-07-22: regions stay own Place tags, no umbrella",
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "eastern europe",
-   "section": "Place",
-   "count": 5,
-   "members": [
-    "eastern europe"
-   ],
-   "from_board": true,
    "pillar": "Setting"
   },
   {
@@ -3839,15 +3451,6 @@
    "count": 5,
    "members": [
     "wales"
-   ],
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "central america",
-   "section": "Place",
-   "count": 5,
-   "members": [
-    "central america"
    ],
    "pillar": "Setting"
   },
@@ -3975,15 +3578,6 @@
    "count": 4,
    "members": [
     "kentucky"
-   ],
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "west africa",
-   "section": "Place",
-   "count": 4,
-   "members": [
-    "west africa"
    ],
    "pillar": "Setting"
   },
@@ -4125,15 +3719,6 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "north africa",
-   "section": "Place",
-   "count": 3,
-   "members": [
-    "north africa"
-   ],
-   "pillar": "Setting"
-  },
-  {
    "canonical": "rhode island",
    "section": "Place",
    "count": 3,
@@ -4141,24 +3726,6 @@
     "rhode island"
    ],
    "pillar": "Setting"
-  },
-  {
-   "canonical": "appalachia",
-   "pillar": "Setting",
-   "section": "Place",
-   "count": 3,
-   "members": [
-    "appalachia"
-   ]
-  },
-  {
-   "canonical": "american midwest",
-   "pillar": "Setting",
-   "section": "Place",
-   "count": 3,
-   "members": [
-    "american midwest"
-   ]
   },
   {
    "canonical": "nepal",
@@ -4229,6 +3796,248 @@
    ],
    "from_board": true,
    "pillar": "Setting"
+  },
+  {
+   "canonical": "american west",
+   "section": "Regions",
+   "count": 54,
+   "members": [
+    "american west",
+    "wild west",
+    "indian territory",
+    "arizona territory",
+    "stagecoach",
+    "old west",
+    "ok corral",
+    "wyatt earp",
+    "doc holliday",
+    "stetson",
+    "mining town",
+    "prospector",
+    "settler",
+    "gold rush"
+   ],
+   "note": "region tag — grouping RESOLVED 2026-07-22: regions stay own Place tags, no umbrella",
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "africa",
+   "section": "Regions",
+   "count": 51,
+   "members": [
+    "africa",
+    "uganda",
+    "djazair"
+   ],
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "southern usa",
+   "section": "Regions",
+   "count": 48,
+   "members": [
+    "southern usa",
+    "deep south",
+    "southern belle",
+    "bayou",
+    "cajun",
+    "hillbilly",
+    "redneck"
+   ],
+   "note": "region tag — grouping RESOLVED 2026-07-22: regions stay own Place tags, no umbrella",
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "europe",
+   "pillar": "Setting",
+   "section": "Regions",
+   "count": 45,
+   "members": [
+    "europe",
+    "scandinavia",
+    "czechoslovakia",
+    "yugoslavia",
+    "mediterranean"
+   ]
+  },
+  {
+   "canonical": "middle east",
+   "pillar": "Setting",
+   "section": "Regions",
+   "count": 27,
+   "members": [
+    "middle east",
+    "kuwait",
+    "arabian",
+    "arab",
+    "sheik",
+    "baghdad"
+   ]
+  },
+  {
+   "canonical": "caribbean",
+   "pillar": "Setting",
+   "section": "Regions",
+   "count": 22,
+   "members": [
+    "caribbean sea",
+    "bahamas",
+    "puerto rico",
+    "dominican republic"
+   ]
+  },
+  {
+   "canonical": "south america",
+   "section": "Regions",
+   "count": 17,
+   "members": [
+    "south america"
+   ],
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "new england",
+   "pillar": "Setting",
+   "section": "Regions",
+   "count": 14,
+   "members": [
+    "new england"
+   ]
+  },
+  {
+   "canonical": "northern england",
+   "section": "Regions",
+   "count": 11,
+   "members": [
+    "northern england"
+   ],
+   "note": "region tag — grouping RESOLVED 2026-07-22: regions stay own Place tags, no umbrella",
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "southern france",
+   "section": "Regions",
+   "count": 10,
+   "members": [
+    "southern france"
+   ],
+   "note": "region tag — grouping RESOLVED 2026-07-22: regions stay own Place tags, no umbrella",
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "australian outback",
+   "section": "Regions",
+   "count": 10,
+   "members": [
+    "australian outback",
+    "outback"
+   ],
+   "note": "region tag — grouping RESOLVED 2026-07-22: regions stay own Place tags, no umbrella",
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "asia",
+   "pillar": "Setting",
+   "section": "Regions",
+   "count": 9,
+   "members": [
+    "asia"
+   ]
+  },
+  {
+   "canonical": "polynesia",
+   "pillar": "Setting",
+   "section": "Regions",
+   "count": 9,
+   "members": [
+    "polynesia",
+    "tahiti",
+    "south pacific"
+   ]
+  },
+  {
+   "canonical": "french riviera",
+   "section": "Regions",
+   "count": 7,
+   "members": [
+    "french riviera"
+   ],
+   "note": "region tag — grouping RESOLVED 2026-07-22: regions stay own Place tags, no umbrella",
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "central and south america",
+   "section": "Regions",
+   "count": 6,
+   "members": [
+    "central and south america"
+   ],
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "florida keys",
+   "section": "Regions",
+   "count": 6,
+   "members": [
+    "florida keys"
+   ],
+   "note": "region tag — grouping RESOLVED 2026-07-22: regions stay own Place tags, no umbrella",
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "eastern europe",
+   "section": "Regions",
+   "count": 5,
+   "members": [
+    "eastern europe"
+   ],
+   "from_board": true,
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "central america",
+   "section": "Regions",
+   "count": 5,
+   "members": [
+    "central america"
+   ],
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "west africa",
+   "section": "Regions",
+   "count": 4,
+   "members": [
+    "west africa"
+   ],
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "north africa",
+   "section": "Regions",
+   "count": 3,
+   "members": [
+    "north africa"
+   ],
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "appalachia",
+   "pillar": "Setting",
+   "section": "Regions",
+   "count": 3,
+   "members": [
+    "appalachia"
+   ]
+  },
+  {
+   "canonical": "american midwest",
+   "pillar": "Setting",
+   "section": "Regions",
+   "count": 3,
+   "members": [
+    "american midwest"
+   ]
   },
   {
    "canonical": "christmas",
@@ -4372,6 +4181,175 @@
     "easter bunny"
    ],
    "pillar": "Setting"
+  },
+  {
+   "canonical": "ship",
+   "section": "Vehicles",
+   "count": 133,
+   "members": [
+    "boat",
+    "boat chase",
+    "canoe",
+    "cargo ship",
+    "cruise",
+    "cruise ship",
+    "fishing boat",
+    "ghost ship",
+    "gondola",
+    "houseboat",
+    "ocean liner",
+    "pirate ship",
+    "riverboat",
+    "rowboat",
+    "sailboat",
+    "sailing ship",
+    "ship",
+    "steamboat",
+    "war ship",
+    "whaling ship",
+    "titanic"
+   ],
+   "from_board": true,
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "airplane",
+   "pillar": "Setting",
+   "section": "Vehicles",
+   "count": 101,
+   "members": [
+    "aircraft",
+    "airplane",
+    "airplane flight",
+    "airplane trip",
+    "airship",
+    "aviation",
+    "flight",
+    "flight attendant",
+    "parachute",
+    "stewardess",
+    "turbulence"
+   ]
+  },
+  {
+   "canonical": "car",
+   "pillar": "Setting",
+   "section": "Vehicles",
+   "count": 99,
+   "members": [
+    "armored car",
+    "bumper car",
+    "car",
+    "car dealer",
+    "car journey",
+    "cars",
+    "child driving car",
+    "convertible",
+    "limousine",
+    "sports car",
+    "van",
+    "flying car",
+    "ford mustang",
+    "mini cooper",
+    "ferrari",
+    "automobile",
+    "traffic jam",
+    "parking garage"
+   ]
+  },
+  {
+   "canonical": "train",
+   "pillar": "Setting",
+   "section": "Vehicles",
+   "count": 74,
+   "members": [
+    "runaway train",
+    "steam locomotive",
+    "train",
+    "train travel",
+    "trains"
+   ]
+  },
+  {
+   "canonical": "motorcycle",
+   "pillar": "Setting",
+   "section": "Vehicles",
+   "count": 44,
+   "members": [
+    "biker",
+    "motorcycle",
+    "motorcycle chase"
+   ]
+  },
+  {
+   "canonical": "helicopter",
+   "pillar": "Setting",
+   "section": "Vehicles",
+   "count": 43,
+   "members": [
+    "helicopter",
+    "helicopter chase"
+   ]
+  },
+  {
+   "canonical": "submarine",
+   "section": "Vehicles",
+   "count": 33,
+   "members": [
+    "submarine",
+    "sonar"
+   ],
+   "from_board": true,
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "truck",
+   "pillar": "Setting",
+   "section": "Vehicles",
+   "count": 26,
+   "members": [
+    "ice cream truck",
+    "pickup truck",
+    "truck",
+    "convoy"
+   ]
+  },
+  {
+   "canonical": "taxi",
+   "pillar": "Setting",
+   "section": "Vehicles",
+   "count": 21,
+   "members": [
+    "taxi"
+   ]
+  },
+  {
+   "canonical": "bus",
+   "pillar": "Setting",
+   "section": "Vehicles",
+   "count": 10,
+   "members": [
+    "bus"
+   ]
+  },
+  {
+   "canonical": "bicycle",
+   "pillar": "Setting",
+   "section": "Vehicles",
+   "count": 9,
+   "members": [
+    "bicycle",
+    "riding a bicycle"
+   ]
+  },
+  {
+   "canonical": "ambulance",
+   "pillar": "Setting",
+   "section": "Vehicles",
+   "count": 8,
+   "members": [
+    "ambulance"
+   ]
   },
   {
    "canonical": "animals",
@@ -10983,7 +10961,7 @@
    "canonical": "travel",
    "pillar": "Story",
    "section": "Pursuits",
-   "count": 114,
+   "count": 110,
    "members": [
     "travel",
     "tourist",
@@ -10995,7 +10973,6 @@
     "passport",
     "cross country trip",
     "around the world",
-    "weekend getaway",
     "american abroad",
     "passenger",
     "suitcase",
@@ -11133,6 +11110,19 @@
     "discipline",
     "rookie"
    ]
+  },
+  {
+   "canonical": "vacation",
+   "pillar": "Story",
+   "section": "Pursuits",
+   "count": 52,
+   "members": [
+    "interrupted vacation",
+    "summer vacation",
+    "vacation",
+    "weekend getaway"
+   ],
+   "note": "moved Setting/Era -> Story/Pursuits (rethink wave 3b, user): a leisure pursuit, not a time; absorbed weekend getaway from travel"
   },
   {
    "canonical": "fashion",
@@ -14634,6 +14624,30 @@
    "pillar": "Style & Format"
   },
   {
+   "canonical": "slice of life",
+   "pillar": "Style & Format",
+   "section": "Sub-genres & Styles",
+   "count": 91,
+   "members": [
+    "slice of life",
+    "day in a life",
+    "routine",
+    "daily routine",
+    "repetition",
+    "urban life",
+    "domestic life",
+    "boredom",
+    "small talk",
+    "talking",
+    "way of life",
+    "life",
+    "modernity",
+    "city life",
+    "moving to a city",
+    "city country contrast"
+   ]
+  },
+  {
    "canonical": "anthropomorphic",
    "pillar": "Style & Format",
    "section": "Sub-genres & Styles",
@@ -14719,27 +14733,6 @@
     "gag"
    ],
    "pillar": "Style & Format"
-  },
-  {
-   "canonical": "slice of life",
-   "pillar": "Style & Format",
-   "section": "Sub-genres & Styles",
-   "count": 75,
-   "members": [
-    "slice of life",
-    "day in a life",
-    "routine",
-    "daily routine",
-    "repetition",
-    "urban life",
-    "domestic life",
-    "boredom",
-    "small talk",
-    "talking",
-    "way of life",
-    "life",
-    "modernity"
-   ]
   },
   {
    "canonical": "anthology",
@@ -16839,6 +16832,11 @@
    "name": "rethink-wave-3-setting-banked",
    "date": "2026-07-24",
    "note": "RETHINK WAVE 3 (Setting, 302 tags) BANKED per user: NEW SECTION Setting/Seasons & Holidays (christmas, holiday, winter, halloween, summer, new year's eve, valentine's day, thanksgiving, spring, autumn, easter — 11 tags out of Era; Era now true periods only; vacation PENDING a better-home ruling). GRAIN SHIFTS Place->Locations: small town, island, hotel, forest, church, castle (Place=proper nouns, Locations=kinds of places; moon stays Place). FOLDS: washington-state+washington MERGED under plain label `washington` (user pref; no dc conflict) · suburbia->suburb · britain->england (england holds the UK catch-alls, noted) · korea->south korea · manchuria->china (was an Era stray) · dynasty->legacy (user: generic dynasty = legacy concept, not Setting) · korean dynasty (goryeo)->historic empire · feudal lord->royalty. real estate -> Story/Forces & Institutions (a business, not a place). OPEN (wave 3b): vacation best home · city life best home · vehicles-in-Locations rule re-evaluation (user reopened) · possible Regions section for Setting."
+  },
+  {
+   "name": "rethink-wave-3b-banked",
+   "date": "2026-07-24",
+   "note": "RETHINK WAVE 3B BANKED per user: vacation -> Story/Pursuits as own tag (+weekend getaway pulled from travel; was an Era stray via the seasons cluster) · city life DISSOLVED -> slice of life (which already held urban life/domestic life; consistent with way-of-life rulings) · NEW SECTION Setting/Vehicles (12 tags: ship, airplane, car, train, motorcycle, helicopter, submarine, truck, taxi, bus, bicycle, ambulance; railway stays Locations — stations are places; the old vehicles=Locations blur resolved, vehicles=Setting logic made explicit) · NEW SECTION Setting/Regions BROAD shape (22 tags: flavor regions + continents + supra-national — american west, southern usa, new england, appalachia, american midwest, northern england, southern france, french riviera, australian outback, florida keys, middle east, caribbean, polynesia, eastern europe, central america, south america, central and south america, europe, africa, asia, west africa, north africa; Place is now purely countries/states/cities; arctic stays Locations as terrain). Setting = Era, Seasons & Holidays, Regions, Place, Locations, Vehicles."
   }
  ],
  "unassigned": [],
@@ -16943,7 +16941,9 @@
    "Era",
    "Place",
    "Locations",
-   "Seasons & Holidays"
+   "Seasons & Holidays",
+   "Vehicles",
+   "Regions"
   ],
   "Story": [
    "Characters",
