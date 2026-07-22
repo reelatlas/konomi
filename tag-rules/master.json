@@ -2213,18 +2213,6 @@
    ]
   },
   {
-   "canonical": "arctic",
-   "section": "Locations",
-   "count": 14,
-   "members": [
-    "arctic",
-    "arctic polar circle region",
-    "antarctica",
-    "iceberg"
-   ],
-   "pillar": "Setting"
-  },
-  {
    "canonical": "shopping mall",
    "section": "Locations",
    "count": 13,
@@ -3894,6 +3882,19 @@
     "south america"
    ],
    "pillar": "Setting"
+  },
+  {
+   "canonical": "arctic",
+   "section": "Regions",
+   "count": 14,
+   "members": [
+    "arctic",
+    "arctic polar circle region",
+    "antarctica",
+    "iceberg"
+   ],
+   "pillar": "Setting",
+   "note": "moved Locations -> Regions per user (2026-07-24); holds antarctica + polar strings"
   },
   {
    "canonical": "new england",
@@ -16837,6 +16838,11 @@
    "name": "rethink-wave-3b-banked",
    "date": "2026-07-24",
    "note": "RETHINK WAVE 3B BANKED per user: vacation -> Story/Pursuits as own tag (+weekend getaway pulled from travel; was an Era stray via the seasons cluster) · city life DISSOLVED -> slice of life (which already held urban life/domestic life; consistent with way-of-life rulings) · NEW SECTION Setting/Vehicles (12 tags: ship, airplane, car, train, motorcycle, helicopter, submarine, truck, taxi, bus, bicycle, ambulance; railway stays Locations — stations are places; the old vehicles=Locations blur resolved, vehicles=Setting logic made explicit) · NEW SECTION Setting/Regions BROAD shape (22 tags: flavor regions + continents + supra-national — american west, southern usa, new england, appalachia, american midwest, northern england, southern france, french riviera, australian outback, florida keys, middle east, caribbean, polynesia, eastern europe, central america, south america, central and south america, europe, africa, asia, west africa, north africa; Place is now purely countries/states/cities; arctic stays Locations as terrain). Setting = Era, Seasons & Holidays, Regions, Place, Locations, Vehicles."
+  },
+  {
+   "name": "wave-3b-amendment-arctic",
+   "date": "2026-07-24",
+   "note": "user amendment: arctic -> Setting/Regions (was Locations terrain reading). Regions now 23 tags."
   }
  ],
  "unassigned": [],

@@ -826,7 +826,17 @@ genre names drop; genre-adjacent keywords with signal are kept (romantic comedy�
 hero→hero, horror spoof→parody…); sub-genres never roll up. 1,207 canonicals.** ④ the
 COMPREHENSIVE RETHINK — the user's "deep dive": full-master
 re-org analysis, rethink groupings, break-outs under new names, best-fit check on every
-assignment. **WAVE 1 ✅ BANKED (2026-07-24, sweeps `rethink-wave-1-banked`): school SPLIT →
+assignment. **WAVES 2–3 ✅ BANKED: Feel (insanity+paranoia→Mind & Health, baffled→Mood,
+affectation→arrogant, unsociability→loner; Mood/Disposition split holds, grain adjective-true).
+Setting COMPLETE (Era 29 · NEW Seasons & Holidays 11 · NEW Regions 23 broad incl. arctic · Place
+132 pure political units · Locations 85 · NEW Vehicles 12 — vehicles rule re-evaluated and made
+explicit; washington plain label; britain→england; dynasty→legacy; vacation→Pursuits
++weekend getaway; city life→slice of life). WAVE 4 ⏳ AWAITING RULINGS (c3f4e8e9
+`rethink-wave-4-abstract-trio`): Themes+M&H+I&S — military life→War & Conflict · government
+secrets→conspiracy · deception→dishonesty · teenage rebellion→juvenile delinquent · witch
+hunt + beauty keep-defaults. REMAINING WAVES: Characters (157, parts) · Events & Actions 73 +
+War & Conflict 43 · F&I 65 + R&F 58 · Pursuits 50 + A&N 40 + O&W 24 · Style & Format (216).**
+**WAVE 1 ✅ BANKED (2026-07-24, sweeps `rethink-wave-1-banked`): school SPLIT →
 college 100f + high school 203f (ambiguous words stay in school 196f per user) · athlete
 DISSOLVED (players→their sports; motorsport+f1→racing; driving range→golf) · career DISSOLVED
 into workplace RENAMED `worklife` 180f (custom label, user) · activism RENAMED `protest` · NEW
