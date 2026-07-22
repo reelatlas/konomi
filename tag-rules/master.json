@@ -1442,74 +1442,6 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "school",
-   "section": "Locations",
-   "count": 444,
-   "members": [
-    "approved school",
-    "ballet school",
-    "boarding school",
-    "boys' boarding school",
-    "campus",
-    "college",
-    "college campus",
-    "dance school",
-    "dormitory",
-    "elementary school",
-    "girls' boarding school",
-    "girls' school",
-    "graduation",
-    "harvard university",
-    "high school",
-    "high school classmates",
-    "high school graduation",
-    "high school reunion",
-    "high school romance",
-    "high school sports",
-    "japanese high school",
-    "japanese junior high schooler",
-    "junior high school",
-    "law school",
-    "medical school",
-    "middle school",
-    "music school",
-    "pre-school",
-    "preparatory school",
-    "private school",
-    "reform school",
-    "school",
-    "school bus",
-    "school club",
-    "school dance",
-    "school friend",
-    "school life",
-    "school party",
-    "school performance",
-    "school shooting",
-    "university",
-    "education",
-    "scholarship",
-    "athletic scholarship",
-    "dean",
-    "classroom",
-    "fraternity",
-    "exam",
-    "sorority",
-    "college freshman",
-    "kindergarten",
-    "daycare",
-    "detention",
-    "homeschooling",
-    "academia",
-    "college applications",
-    "college graduate",
-    "popular girl",
-    "bukatsu",
-    "clique"
-   ],
-   "pillar": "Setting"
-  },
-  {
    "canonical": "prison",
    "section": "Locations",
    "count": 240,
@@ -1548,6 +1480,70 @@
     "guantanamo bay"
    ],
    "pillar": "Setting"
+  },
+  {
+   "canonical": "high school",
+   "pillar": "Setting",
+   "section": "Locations",
+   "count": 203,
+   "members": [
+    "high school",
+    "high school classmates",
+    "high school graduation",
+    "high school reunion",
+    "high school romance",
+    "high school sports",
+    "japanese high school",
+    "japanese junior high schooler",
+    "junior high school",
+    "middle school",
+    "popular girl",
+    "clique",
+    "bukatsu",
+    "school dance",
+    "detention",
+    "school club",
+    "school party",
+    "school performance"
+   ],
+   "note": "split out of school (rethink wave 1, user 2026-07-24)"
+  },
+  {
+   "canonical": "school",
+   "section": "Locations",
+   "count": 196,
+   "members": [
+    "approved school",
+    "ballet school",
+    "boarding school",
+    "boys' boarding school",
+    "dance school",
+    "dormitory",
+    "elementary school",
+    "girls' boarding school",
+    "girls' school",
+    "graduation",
+    "music school",
+    "pre-school",
+    "preparatory school",
+    "private school",
+    "reform school",
+    "school",
+    "school bus",
+    "school friend",
+    "school life",
+    "school shooting",
+    "education",
+    "scholarship",
+    "athletic scholarship",
+    "classroom",
+    "exam",
+    "kindergarten",
+    "daycare",
+    "homeschooling"
+   ],
+   "pillar": "Setting",
+   "note": "rethink wave 1 (2026-07-24): college + high school split out; school keeps generic + elementary/kindergarten + boarding-school family + the ambiguous school-words per user"
   },
   {
    "canonical": "house",
@@ -1720,6 +1716,29 @@
     "stewardess",
     "turbulence"
    ]
+  },
+  {
+   "canonical": "college",
+   "pillar": "Setting",
+   "section": "Locations",
+   "count": 100,
+   "members": [
+    "college",
+    "university",
+    "campus",
+    "college campus",
+    "harvard university",
+    "fraternity",
+    "sorority",
+    "college freshman",
+    "college applications",
+    "college graduate",
+    "academia",
+    "dean",
+    "law school",
+    "medical school"
+   ],
+   "note": "split out of school (rethink wave 1, user 2026-07-24); ambiguous school-words (dormitory, scholarship, graduation, exam…) stayed in school per user"
   },
   {
    "canonical": "car",
@@ -5342,6 +5361,50 @@
    "pillar": "Story"
   },
   {
+   "canonical": "worklife",
+   "section": "Characters",
+   "count": 180,
+   "members": [
+    "workplace",
+    "workplace comedy",
+    "workplace drama",
+    "boss",
+    "bad boss",
+    "employee",
+    "worker",
+    "manager",
+    "co-workers relationship",
+    "employer employee relationship",
+    "workplace romance",
+    "secretary",
+    "receptionist",
+    "intern",
+    "clerk",
+    "salesclerk",
+    "assistant",
+    "internship",
+    "personal assistant",
+    "colleague",
+    "janitor",
+    "taskmaster",
+    "conference",
+    "workshop",
+    "work",
+    "briefcase",
+    "assignment",
+    "career",
+    "job interview",
+    "life and career",
+    "new job",
+    "summer job",
+    "career woman",
+    "job",
+    "job promotion"
+   ],
+   "pillar": "Story",
+   "note": "custom label (user 2026-07-24): renamed from workplace after absorbing the career tag — one work-world home (office people + job-arc strings)"
+  },
+  {
    "canonical": "politician",
    "section": "Characters",
    "count": 178,
@@ -5565,41 +5628,6 @@
     "sadistic psychopath",
     "psycho",
     "female psychopath"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "workplace",
-   "section": "Characters",
-   "count": 134,
-   "members": [
-    "workplace",
-    "workplace comedy",
-    "workplace drama",
-    "boss",
-    "bad boss",
-    "employee",
-    "worker",
-    "manager",
-    "co-workers relationship",
-    "employer employee relationship",
-    "workplace romance",
-    "secretary",
-    "receptionist",
-    "intern",
-    "clerk",
-    "salesclerk",
-    "assistant",
-    "internship",
-    "personal assistant",
-    "colleague",
-    "janitor",
-    "taskmaster",
-    "conference",
-    "workshop",
-    "work",
-    "briefcase",
-    "assignment"
    ],
    "pillar": "Story"
   },
@@ -6110,22 +6138,6 @@
     "buddy",
     "partner",
     "partnership"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "career",
-   "section": "Characters",
-   "count": 52,
-   "members": [
-    "career",
-    "job interview",
-    "life and career",
-    "new job",
-    "summer job",
-    "career woman",
-    "job",
-    "job promotion"
    ],
    "pillar": "Story"
   },
@@ -6951,17 +6963,6 @@
     "blonde",
     "dumb blonde"
    ]
-  },
-  {
-   "canonical": "athlete",
-   "section": "Characters",
-   "count": 14,
-   "members": [
-    "athlete",
-    "basketball player",
-    "baseball player"
-   ],
-   "pillar": "Story"
   },
   {
    "canonical": "witness",
@@ -8037,7 +8038,7 @@
    "pillar": "Story"
   },
   {
-   "canonical": "activism",
+   "canonical": "protest",
    "section": "Events & Actions",
    "count": 44,
    "members": [
@@ -8052,7 +8053,8 @@
     "hunger strike",
     "candlelight vigil"
    ],
-   "pillar": "Story"
+   "pillar": "Story",
+   "note": "renamed from activism (rethink wave 1, user): protest is the concrete dominant word; members unchanged"
   },
   {
    "canonical": "trapped",
@@ -10809,7 +10811,7 @@
   {
    "canonical": "sports",
    "section": "Pursuits",
-   "count": 255,
+   "count": 253,
    "members": [
     "sports",
     "sport",
@@ -10840,13 +10842,12 @@
     "mascot",
     "cyclist",
     "skateboarder",
-    "motorsport",
-    "formula one (f1)",
     "adrenaline junkie",
-    "driving range"
+    "athlete"
    ],
    "from_board": true,
-   "pillar": "Story"
+   "pillar": "Story",
+   "note": "the umbrella for generic strings + 3-8f micro-sports; big sports are own tags; athlete tag dissolved in (rethink wave 1)"
   },
   {
    "canonical": "drugs",
@@ -11122,7 +11123,7 @@
   {
    "canonical": "racing",
    "section": "Pursuits",
-   "count": 72,
+   "count": 74,
    "members": [
     "car race",
     "horse race",
@@ -11134,7 +11135,9 @@
     "racing",
     "street race",
     "race",
-    "speed"
+    "speed",
+    "motorsport",
+    "formula one (f1)"
    ],
    "pillar": "Story"
   },
@@ -11239,6 +11242,17 @@
    "pillar": "Story"
   },
   {
+   "canonical": "baseball",
+   "section": "Pursuits",
+   "count": 35,
+   "members": [
+    "baseball",
+    "baseball bat",
+    "baseball player"
+   ],
+   "pillar": "Story"
+  },
+  {
    "canonical": "boxing",
    "section": "Pursuits",
    "count": 34,
@@ -11262,6 +11276,18 @@
    ]
   },
   {
+   "canonical": "basketball",
+   "section": "Pursuits",
+   "count": 34,
+   "members": [
+    "basketball",
+    "national basketball association (nba)",
+    "basketball team",
+    "basketball player"
+   ],
+   "pillar": "Story"
+  },
+  {
    "canonical": "band",
    "section": "Pursuits",
    "count": 33,
@@ -11272,27 +11298,6 @@
     "punk band",
     "pop band",
     "orchestra"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "baseball",
-   "section": "Pursuits",
-   "count": 32,
-   "members": [
-    "baseball",
-    "baseball bat"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "basketball",
-   "section": "Pursuits",
-   "count": 32,
-   "members": [
-    "basketball",
-    "national basketball association (nba)",
-    "basketball team"
    ],
    "pillar": "Story"
   },
@@ -11476,10 +11481,11 @@
   {
    "canonical": "golf",
    "section": "Pursuits",
-   "count": 13,
+   "count": 14,
    "members": [
     "golf",
-    "golf club"
+    "golf club",
+    "driving range"
    ],
    "pillar": "Story"
   },
@@ -14339,6 +14345,142 @@
    ]
   },
   {
+   "canonical": "found footage",
+   "section": "Narrative Devices",
+   "count": 119,
+   "members": [
+    "found footage",
+    "found footage adjacent",
+    "handheld camera",
+    "hidden camera",
+    "photographic evidence",
+    "subjective camera",
+    "video tape",
+    "home video",
+    "camcorder",
+    "super 8mm footage",
+    "videotape",
+    "vhs"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "flashback",
+   "pillar": "Style & Format",
+   "section": "Narrative Devices",
+   "count": 114,
+   "members": [
+    "flashback",
+    "told in flashback"
+   ]
+  },
+  {
+   "canonical": "film in film",
+   "pillar": "Style & Format",
+   "section": "Narrative Devices",
+   "count": 51,
+   "members": [
+    "cinema on cinema",
+    "film in film",
+    "film within a film",
+    "story within the story",
+    "tv show in film"
+   ],
+   "note": "meta device — may join a Narrative Devices grouping later"
+  },
+  {
+   "canonical": "nonlinear",
+   "section": "Narrative Devices",
+   "count": 43,
+   "members": [
+    "nonlinear timeline",
+    "nonlinear narrative",
+    "flash forward",
+    "reverse chronology",
+    "time jump",
+    "time skip",
+    "rashomon effect",
+    "non linear",
+    "montage"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "multiple storylines",
+   "pillar": "Style & Format",
+   "section": "Narrative Devices",
+   "count": 35,
+   "members": [
+    "multiple storylines",
+    "multiple perspectives"
+   ]
+  },
+  {
+   "canonical": "meta",
+   "pillar": "Style & Format",
+   "section": "Narrative Devices",
+   "count": 34,
+   "members": [
+    "meta",
+    "self-referential",
+    "pastiche",
+    "unreliable narrator",
+    "dual role"
+   ]
+  },
+  {
+   "canonical": "breaking the fourth wall",
+   "pillar": "Style & Format",
+   "section": "Narrative Devices",
+   "count": 29,
+   "members": [
+    "breaking the fourth wall"
+   ]
+  },
+  {
+   "canonical": "plot twist",
+   "pillar": "Style & Format",
+   "section": "Narrative Devices",
+   "count": 21,
+   "members": [
+    "plot twist",
+    "surprise-ending",
+    "revelation",
+    "twist"
+   ]
+  },
+  {
+   "canonical": "storytelling",
+   "pillar": "Style & Format",
+   "section": "Narrative Devices",
+   "count": 16,
+   "members": [
+    "storytelling",
+    "story teller",
+    "bedtime story"
+   ]
+  },
+  {
+   "canonical": "pov",
+   "pillar": "Style & Format",
+   "section": "Narrative Devices",
+   "count": 16,
+   "members": [
+    "pov (point of view)",
+    "pov"
+   ]
+  },
+  {
+   "canonical": "real time",
+   "section": "Narrative Devices",
+   "count": 6,
+   "members": [
+    "real time"
+   ],
+   "from_board": true,
+   "pillar": "Style & Format"
+  },
+  {
    "canonical": "gore",
    "section": "Sub-genres & Styles",
    "count": 242,
@@ -14436,26 +14578,6 @@
    "pillar": "Style & Format"
   },
   {
-   "canonical": "found footage",
-   "section": "Sub-genres & Styles",
-   "count": 119,
-   "members": [
-    "found footage",
-    "found footage adjacent",
-    "handheld camera",
-    "hidden camera",
-    "photographic evidence",
-    "subjective camera",
-    "video tape",
-    "home video",
-    "camcorder",
-    "super 8mm footage",
-    "videotape",
-    "vhs"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
    "canonical": "slasher",
    "section": "Sub-genres & Styles",
    "count": 117,
@@ -14466,16 +14588,6 @@
     "leatherface"
    ],
    "pillar": "Style & Format"
-  },
-  {
-   "canonical": "flashback",
-   "pillar": "Style & Format",
-   "section": "Sub-genres & Styles",
-   "count": 114,
-   "members": [
-    "flashback",
-    "told in flashback"
-   ]
   },
   {
    "canonical": "satire",
@@ -14786,20 +14898,6 @@
    "pillar": "Style & Format"
   },
   {
-   "canonical": "film in film",
-   "pillar": "Style & Format",
-   "section": "Sub-genres & Styles",
-   "count": 51,
-   "members": [
-    "cinema on cinema",
-    "film in film",
-    "film within a film",
-    "story within the story",
-    "tv show in film"
-   ],
-   "note": "meta device — may join a Narrative Devices grouping later"
-  },
-  {
    "canonical": "cyberpunk",
    "section": "Sub-genres & Styles",
    "count": 47,
@@ -14858,23 +14956,6 @@
    "pillar": "Style & Format"
   },
   {
-   "canonical": "nonlinear",
-   "section": "Sub-genres & Styles",
-   "count": 43,
-   "members": [
-    "nonlinear timeline",
-    "nonlinear narrative",
-    "flash forward",
-    "reverse chronology",
-    "time jump",
-    "time skip",
-    "rashomon effect",
-    "non linear",
-    "montage"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
    "canonical": "buddy comedy",
    "section": "Sub-genres & Styles",
    "count": 40,
@@ -14904,29 +14985,6 @@
    ],
    "from_board": true,
    "pillar": "Style & Format"
-  },
-  {
-   "canonical": "multiple storylines",
-   "pillar": "Style & Format",
-   "section": "Sub-genres & Styles",
-   "count": 35,
-   "members": [
-    "multiple storylines",
-    "multiple perspectives"
-   ]
-  },
-  {
-   "canonical": "meta",
-   "pillar": "Style & Format",
-   "section": "Sub-genres & Styles",
-   "count": 34,
-   "members": [
-    "meta",
-    "self-referential",
-    "pastiche",
-    "unreliable narrator",
-    "dual role"
-   ]
   },
   {
    "canonical": "space opera",
@@ -15001,15 +15059,6 @@
    "pillar": "Style & Format"
   },
   {
-   "canonical": "breaking the fourth wall",
-   "pillar": "Style & Format",
-   "section": "Sub-genres & Styles",
-   "count": 29,
-   "members": [
-    "breaking the fourth wall"
-   ]
-  },
-  {
    "canonical": "lovecraftian",
    "pillar": "Style & Format",
    "section": "Sub-genres & Styles",
@@ -15074,18 +15123,6 @@
    "count": 22,
    "members": [
     "folk horror"
-   ]
-  },
-  {
-   "canonical": "plot twist",
-   "pillar": "Style & Format",
-   "section": "Sub-genres & Styles",
-   "count": 21,
-   "members": [
-    "plot twist",
-    "surprise-ending",
-    "revelation",
-    "twist"
    ]
   },
   {
@@ -15183,27 +15220,6 @@
     "neo-western",
     "revisionist western",
     "asian western"
-   ]
-  },
-  {
-   "canonical": "storytelling",
-   "pillar": "Style & Format",
-   "section": "Sub-genres & Styles",
-   "count": 16,
-   "members": [
-    "storytelling",
-    "story teller",
-    "bedtime story"
-   ]
-  },
-  {
-   "canonical": "pov",
-   "pillar": "Style & Format",
-   "section": "Sub-genres & Styles",
-   "count": 16,
-   "members": [
-    "pov (point of view)",
-    "pov"
    ]
   },
   {
@@ -15340,16 +15356,6 @@
    "members": [
     "peplum"
    ]
-  },
-  {
-   "canonical": "real time",
-   "section": "Sub-genres & Styles",
-   "count": 6,
-   "members": [
-    "real time"
-   ],
-   "from_board": true,
-   "pillar": "Style & Format"
   },
   {
    "canonical": "sword and sandal",
@@ -16883,6 +16889,11 @@
    "name": "placement-review-1-banked",
    "date": "2026-07-24",
    "note": "PLACEMENT REVIEW (roadmap step 3) BANKED — all 12 flags ruled by user. MOVES: morality+ethics+conscience self-discovery->moral dilemma (user note; word-concept: moral-reasoning register) · dragon/fairy(+fairies)/mermaid/elves pulled out of mythical creature as own Worlds & Lore tags (40/28/18/18 solo films; shelf keeps the scatter) · rich man poor woman + rich woman poor man social class->forbidden love (romance premises; class differences/rich vs poor stay) · stock market tag Locations->Forces & Institutions + absorbed `securities, stocks and bonds` board tag (user addition) · idol group Pursuits->Characters (performer, beside singer/musician/dj). CLOSED AS KEEP: game in Pursuits · Events premise cluster (secret identity/mistaken identity/transformation/death game) · weather family in Animals & Nature · desire to have children in fertility · rock star (musician) vs pop star (singer) registers · animal horror beside creature feature · the three weak fits stand w/ notes (approach->dating, culture->culture clash, affectation->cliche). STALE FLAGS CLEARED: scientist + radio notes (science practices + radio dj long since placed); housekeeper/recovery/vision/k-pop flags were already resolved by later tags. GENRE CONFIRMATION (user): only the 15 BARE genre names are dropped; genre-adjacent keywords with signal are kept and placed (romantic comedy->romcom, action hero->hero, horror spoof->parody, space western->space, historical drama->historical fiction); sub-genres never roll up. NEXT: step 4 comprehensive rethink — queued: school 444f/60kw · sports 255f vs athlete 14f breakouts · career 52f · activism 44f · Narrative-Devices section idea."
+  },
+  {
+   "name": "rethink-wave-1-banked",
+   "date": "2026-07-24",
+   "note": "COMPREHENSIVE RETHINK wave 1 BANKED (user rulings, all 5): R1 school SPLIT -> NEW college (14kw) + NEW high school (18kw) in Setting/Locations; ALL ambiguous words (dormitory, scholarship, athletic scholarship, graduation, exam, classroom, music/dance/ballet school, school shooting) stay in school per user. R2 athlete DISSOLVED (athlete->sports, basketball player->basketball, baseball player->baseball) + motorsport+formula one->racing + driving range->golf; sports stays the umbrella for generics + micro-sports. R3 career DISSOLVED into workplace, then workplace RENAMED worklife (custom label, user) — one work-world home. R4 activism RENAMED protest (members unchanged). R5 NEW SECTION Style & Format/Narrative Devices — 11 device tags moved out of Sub-genres & Styles (flashback, found footage, pov, meta, breaking the fourth wall, film in film, nonlinear, multiple storylines, plot twist, real time, storytelling); maybes (anthology, horror anthology, anthropomorphic, mockumentary) stay in Sub-genres per user. METHOD FOR REMAINING RETHINK (user): GROUP-AT-A-TIME x FULL-LINEUP — take one group, scan it against the entire master for shifts/merges/creations/dissolutions (big groups in parts), PLUS the NAMING-GRAIN lens: per group note the dominant part-of-speech/suffix pattern (-ism/-ty/noun/adjective/verb) and propose gentle alignment renames — never forced, no over-correction."
   }
  ],
  "unassigned": [],
@@ -17005,7 +17016,8 @@
    "Sub-genres & Styles",
    "Format & Medium",
    "Worlds & Lore",
-   "Based On & Franchise"
+   "Based On & Franchise",
+   "Narrative Devices"
   ]
  }
 }

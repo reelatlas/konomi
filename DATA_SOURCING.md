@@ -826,10 +826,20 @@ genre names drop; genre-adjacent keywords with signal are kept (romantic comedy�
 hero→hero, horror spoof→parody…); sub-genres never roll up. 1,207 canonicals.** ④ the
 COMPREHENSIVE RETHINK — the user's "deep dive": full-master
 re-org analysis, rethink groupings, break-outs under new names, best-fit check on every
-assignment. **QUEUED for ④ (user notes, 2026-07-24): school 444f/60kw may be too broad ·
-sports 255f broad-vs-breakouts (basketball/baseball…) + athlete 14f beside it · career 52f may
-be too broad · activism 44f too broad / split into or absorb other chunks · Narrative-Devices
-section idea (anthropomorphic + film-in-film notes; flashback/pov/meta/fourth-wall family)** ⑤
+assignment. **WAVE 1 ✅ BANKED (2026-07-24, sweeps `rethink-wave-1-banked`): school SPLIT →
+college 100f + high school 203f (ambiguous words stay in school 196f per user) · athlete
+DISSOLVED (players→their sports; motorsport+f1→racing; driving range→golf) · career DISSOLVED
+into workplace RENAMED `worklife` 180f (custom label, user) · activism RENAMED `protest` · NEW
+SECTION Style & Format/Narrative Devices (11 device tags moved from Sub-genres & Styles; maybes
+anthology/horror anthology/anthropomorphic/mockumentary stay per user).**
+**⏭️ REMAINING-RETHINK METHOD (user, 2026-07-24): GROUP-AT-A-TIME × FULL-LINEUP — take one
+group and scan every tag in it against the ENTIRE master for shifts, merges, new creations,
+dissolutions (groups with too many sections done in parts — the point is fuller group context,
+incl. whether the grouping itself still makes sense). PLUS the NAMING-GRAIN lens: per group,
+note the dominant reading (noun vs adjective vs verb) and suffix families (-ism, -ty…);
+propose gentle renames toward the group's grain where natural — never forced, no
+over-correction. Proposed wave order: Feel (Mood+Disposition) → Setting (Era · Place ·
+Locations) → Story section-by-section (big ones in parts) → Style & Format.** ⑤
 ADAPTER WORK (per-section display floors; franchise shelf from TMDB belongs_to_collection).
 
 **LANDMARK — DECLINED (2026-07-23, user):** no landmark tag for now; strings stay in their place/
