@@ -1,0 +1,981 @@
+{
+  "section": "People (Professions · Archetypes · Roles)",
+  "swept": "2026-07-21",
+  "floor": ">=3",
+  "sweep": "love-people",
+  "summary": {
+    "canonicals": 88,
+    "aliases": 340,
+    "boxes": 25,
+    "note": "Professions and Roles/Archetypes were merged into one People domain, resolving the deferred §9 question. Subsections: Professions, Archetypes, Roles."
+  },
+  "decisions": [
+    "Professions and Archetypes were swept as ONE domain — 43 keywords collided across the two (priest is both a job and an archetype), so sweeping them apart kept stealing keywords.",
+    "The 94-keyword \"age & gender framing\" box produced only 2 canonicals of its own; everything else routed into a base tag via the gender-variant rule.",
+    "`woman director` (319) is deliberately UNASSIGNED — it describes the filmmaker, not the film. Likely Format or a credits facet later.",
+    "`female protagonist` (135) folded into a new `protagonist` canonical rather than left loose — unlike woman director it has a real base tag.",
+    "Field words fold into the person (`architecture`→architect, `anthropology`→scientist); plot devices route out (`genetic engineering`→Fantasy & Sci-Fi).",
+    "Two canonicals were homed in Setting · Place, not People: `high school` and `college` (pulled early from the unswept Place domain), plus `laboratory`.",
+    "Eight canonicals are marked `backfill: true` — they did not exist in master.json at all and were created because this sweep needed them as parents."
+  ],
+  "canonicals": [
+    {
+      "canonical": "villain",
+      "section": "People · Archetypes",
+      "count": 315,
+      "members": [
+        "villain",
+        "antagonistic",
+        "super villain",
+        "female villain",
+        "villainess",
+        "villain arrested",
+        "anti villain",
+        "tragic villain",
+        "masked villain"
+      ]
+    },
+    {
+      "canonical": "hero",
+      "section": "People · Archetypes",
+      "count": 259,
+      "members": [
+        "hero",
+        "action hero",
+        "anti hero",
+        "war hero",
+        "tragic hero",
+        "heroine",
+        "teenage hero",
+        "hero's journey",
+        "folk hero",
+        "dark hero",
+        "reluctant hero",
+        "female hero",
+        "origin of hero",
+        "child hero"
+      ]
+    },
+    {
+      "canonical": "teenager",
+      "section": "People · Archetypes",
+      "count": 175,
+      "members": [
+        "teenage girl",
+        "teenager",
+        "teenage boy",
+        "teen angst",
+        "troubled teen",
+        "pre-teen",
+        "runaway teen",
+        "disturbed teenager"
+      ]
+    },
+    {
+      "canonical": "writer",
+      "section": "People · Professions",
+      "count": 159,
+      "members": [
+        "writer",
+        "author",
+        "novelist",
+        "screenwriter",
+        "poet",
+        "playwright",
+        "writer's block",
+        "aspiring writer",
+        "travel writer",
+        "mystery writer",
+        "crime fiction writer",
+        "female writer"
+      ]
+    },
+    {
+      "canonical": "protagonist",
+      "section": "People · Archetypes",
+      "count": 156,
+      "members": [
+        "female protagonist",
+        "teenage protagonist",
+        "child protagonist"
+      ]
+    },
+    {
+      "canonical": "scientist",
+      "section": "People · Professions",
+      "count": 137,
+      "members": [
+        "scientist",
+        "mad scientist",
+        "astronomer",
+        "anthropologist",
+        "researcher",
+        "chemist",
+        "biologist",
+        "computer scientist",
+        "marine biologist",
+        "anthropology"
+      ]
+    },
+    {
+      "canonical": "journalist",
+      "section": "People · Professions",
+      "count": 133,
+      "members": [
+        "journalist",
+        "reporter",
+        "news reporter",
+        "tv reporter",
+        "newspaper reporter",
+        "editor-in-chief",
+        "newspaper editor",
+        "publisher",
+        "investigative journalism",
+        "newspaper man"
+      ]
+    },
+    {
+      "canonical": "doctor",
+      "section": "People · Professions",
+      "count": 123,
+      "members": [
+        "doctor",
+        "surgeon",
+        "plastic surgeon",
+        "emergency doctor",
+        "neurosurgeon",
+        "dentist",
+        "paramedic",
+        "doctor patient relationship",
+        "caregiver patient relationship"
+      ]
+    },
+    {
+      "canonical": "lawyer",
+      "section": "People · Professions",
+      "count": 121,
+      "members": [
+        "lawyer",
+        "crooked lawyer",
+        "divorce lawyer",
+        "prosecutor",
+        "defense attorney",
+        "district attorney",
+        "law firm"
+      ]
+    },
+    {
+      "canonical": "teacher",
+      "section": "People · Professions",
+      "count": 118,
+      "members": [
+        "teacher",
+        "music teacher",
+        "school teacher",
+        "high school teacher",
+        "tutor",
+        "female teacher",
+        "dance teacher",
+        "teacher student relationship"
+      ]
+    },
+    {
+      "canonical": "singer",
+      "section": "People · Professions",
+      "count": 104,
+      "members": [
+        "singer",
+        "jazz singer or musician",
+        "singer-songwriter",
+        "opera singer",
+        "aspiring singer",
+        "pop singer",
+        "women singer",
+        "nightclub singer",
+        "rock singer",
+        "boy band"
+      ]
+    },
+    {
+      "canonical": "workplace",
+      "section": "People · Professions",
+      "count": 85,
+      "members": [
+        "workplace",
+        "workplace comedy",
+        "workplace drama",
+        "boss",
+        "bad boss",
+        "employee",
+        "worker",
+        "manager",
+        "hotel manager",
+        "co-workers relationship",
+        "employer employee relationship",
+        "workplace romance",
+        "secretary",
+        "receptionist",
+        "intern"
+      ]
+    },
+    {
+      "canonical": "therapist",
+      "section": "People · Professions",
+      "count": 83,
+      "members": [
+        "psychiatrist",
+        "therapist",
+        "psychologist",
+        "psychotherapist"
+      ]
+    },
+    {
+      "canonical": "artist",
+      "section": "People · Professions",
+      "count": 71,
+      "members": [
+        "artist",
+        "painter",
+        "portrait of an artist",
+        "sculptor",
+        "painter as artist",
+        "struggling artist",
+        "street artist",
+        "female artist",
+        "aspiring artist"
+      ]
+    },
+    {
+      "canonical": "businessman",
+      "section": "People · Professions",
+      "count": 68,
+      "members": [
+        "businessman",
+        "corrupt businessman",
+        "entrepreneur",
+        "advertising executive",
+        "ceo",
+        "executive",
+        "business woman",
+        "accountant",
+        "salesman"
+      ]
+    },
+    {
+      "canonical": "student",
+      "section": "People · Professions",
+      "count": 63,
+      "members": [
+        "high school student",
+        "college student",
+        "student",
+        "medical student",
+        "law student",
+        "exchange student"
+      ]
+    },
+    {
+      "canonical": "priest",
+      "section": "People · Professions",
+      "count": 61,
+      "members": [
+        "priest",
+        "pastor",
+        "preacher",
+        "ex-priest"
+      ]
+    },
+    {
+      "canonical": "baby",
+      "section": "People · Archetypes",
+      "count": 59,
+      "members": [
+        "baby",
+        "baby-snatching",
+        "newborn baby",
+        "infant",
+        "abandoned baby"
+      ]
+    },
+    {
+      "canonical": "unemployment",
+      "section": "People · Professions",
+      "count": 57,
+      "members": [
+        "unemployment",
+        "unemployed",
+        "loss of job",
+        "fired from the job",
+        "quitting a job",
+        "job hunting",
+        "job seeking",
+        "job-hopping"
+      ]
+    },
+    {
+      "canonical": "actor",
+      "section": "People · Professions",
+      "count": 56,
+      "members": [
+        "actor",
+        "actress",
+        "aspiring actor",
+        "aging actor",
+        "struggling actor",
+        "porn actor",
+        "famous actor",
+        "aspiring actress"
+      ]
+    },
+    {
+      "canonical": "driver",
+      "section": "People · Professions",
+      "count": 54,
+      "members": [
+        "taxi driver",
+        "truck driver",
+        "driver",
+        "bus driver",
+        "race car driver"
+      ]
+    },
+    {
+      "canonical": "buddy",
+      "section": "People · Archetypes",
+      "count": 53,
+      "members": [
+        "buddy",
+        "partner",
+        "partnership"
+      ]
+    },
+    {
+      "canonical": "career",
+      "section": "People · Professions",
+      "count": 52,
+      "members": [
+        "career",
+        "job interview",
+        "life and career",
+        "new job",
+        "summer job",
+        "career woman",
+        "job",
+        "job promotion"
+      ]
+    },
+    {
+      "canonical": "child",
+      "section": "People · Archetypes",
+      "count": 52,
+      "members": [
+        "little boy",
+        "young boy",
+        "little girl",
+        "boy",
+        "young girl"
+      ]
+    },
+    {
+      "canonical": "professor",
+      "section": "People · Professions",
+      "count": 51,
+      "members": [
+        "professor",
+        "college professor",
+        "literature professor"
+      ]
+    },
+    {
+      "canonical": "musician",
+      "section": "People · Professions",
+      "count": 49,
+      "members": [
+        "musician",
+        "composer",
+        "struggling musician",
+        "street musician"
+      ]
+    },
+    {
+      "canonical": "bodyguard",
+      "section": "People · Professions",
+      "count": 49,
+      "members": [
+        "bodyguard",
+        "security guard"
+      ]
+    },
+    {
+      "canonical": "dancer",
+      "section": "People · Professions",
+      "count": 48,
+      "members": [
+        "dancer",
+        "ballet dancer",
+        "ballerina",
+        "exotic dancer",
+        "cabaret dancer",
+        "go-go dancer",
+        "burlesque dancer",
+        "stripper",
+        "female stripping",
+        "dancing master"
+      ]
+    },
+    {
+      "canonical": "photographer",
+      "section": "People · Professions",
+      "count": 47,
+      "members": [
+        "photographer",
+        "war photographer",
+        "fashion photographer"
+      ]
+    },
+    {
+      "canonical": "warrior",
+      "section": "People · Roles",
+      "count": 46,
+      "members": [
+        "warrior",
+        "female warrior",
+        "warrior woman"
+      ],
+      "backfill": true
+    },
+    {
+      "canonical": "pilot",
+      "section": "People · Professions",
+      "count": 44,
+      "members": [
+        "pilot",
+        "airplane pilot",
+        "helicopter pilot",
+        "test pilot"
+      ]
+    },
+    {
+      "canonical": "mentor",
+      "section": "People · Professions",
+      "count": 39,
+      "members": [
+        "mentor",
+        "apprentice",
+        "mentor protégé relationship"
+      ]
+    },
+    {
+      "canonical": "female empowerment",
+      "section": "People · Archetypes",
+      "count": 37,
+      "members": [
+        "strong woman",
+        "female empowerment",
+        "girl power",
+        "one woman army",
+        "women and society"
+      ]
+    },
+    {
+      "canonical": "nanny",
+      "section": "People · Professions",
+      "count": 34,
+      "members": [
+        "nanny",
+        "babysitter"
+      ]
+    },
+    {
+      "canonical": "nurse",
+      "section": "People · Professions",
+      "count": 32,
+      "members": [
+        "nurse"
+      ]
+    },
+    {
+      "canonical": "inventor",
+      "section": "People · Professions",
+      "count": 32,
+      "members": [
+        "inventor"
+      ]
+    },
+    {
+      "canonical": "hacker",
+      "section": "People · Professions",
+      "count": 32,
+      "members": [
+        "hacker",
+        "computer hacker"
+      ]
+    },
+    {
+      "canonical": "astronaut",
+      "section": "People · Professions",
+      "count": 32,
+      "members": [
+        "astronaut"
+      ]
+    },
+    {
+      "canonical": "bounty hunter",
+      "section": "People · Professions",
+      "count": 32,
+      "members": [
+        "bounty hunter",
+        "tracker"
+      ]
+    },
+    {
+      "canonical": "boxer",
+      "section": "People · Professions",
+      "count": 31,
+      "members": [
+        "boxer",
+        "boxing trainer",
+        "pro wrestlers"
+      ]
+    },
+    {
+      "canonical": "waitress",
+      "section": "People · Professions",
+      "count": 29,
+      "members": [
+        "waitress"
+      ]
+    },
+    {
+      "canonical": "chef",
+      "section": "People · Professions",
+      "count": 29,
+      "members": [
+        "chef",
+        "baker",
+        "butcher",
+        "bakery"
+      ]
+    },
+    {
+      "canonical": "elderly",
+      "section": "People · Archetypes",
+      "count": 29,
+      "members": [
+        "old man",
+        "elderly man",
+        "old woman",
+        "elderly woman",
+        "aging man"
+      ]
+    },
+    {
+      "canonical": "knight",
+      "section": "People · Roles",
+      "count": 28,
+      "members": [
+        "knight"
+      ],
+      "backfill": true
+    },
+    {
+      "canonical": "architect",
+      "section": "People · Professions",
+      "count": 27,
+      "members": [
+        "architect",
+        "architecture"
+      ]
+    },
+    {
+      "canonical": "nun",
+      "section": "People · Professions",
+      "count": 27,
+      "members": [
+        "nun",
+        "mother superior"
+      ]
+    },
+    {
+      "canonical": "director",
+      "section": "People · Professions",
+      "count": 26,
+      "members": [
+        "film director",
+        "director",
+        "theater director",
+        "portrait of a filmmaker"
+      ]
+    },
+    {
+      "canonical": "coach",
+      "section": "People · Professions",
+      "count": 26,
+      "members": [
+        "coach",
+        "trainer",
+        "american football coach"
+      ]
+    },
+    {
+      "canonical": "mechanic",
+      "section": "People · Professions",
+      "count": 26,
+      "members": [
+        "mechanic",
+        "car mechanic",
+        "plumber",
+        "carpenter",
+        "blacksmith"
+      ]
+    },
+    {
+      "canonical": "sailor",
+      "section": "People · Professions",
+      "count": 26,
+      "members": [
+        "sailor",
+        "fisherman"
+      ]
+    },
+    {
+      "canonical": "drifter",
+      "section": "People · Archetypes",
+      "count": 25,
+      "members": [
+        "drifter",
+        "stranger",
+        "mysterious stranger"
+      ]
+    },
+    {
+      "canonical": "femme fatale",
+      "section": "People · Archetypes",
+      "count": 25,
+      "members": [
+        "femme fatale"
+      ]
+    },
+    {
+      "canonical": "underdog",
+      "section": "People · Archetypes",
+      "count": 25,
+      "members": [
+        "underdog"
+      ]
+    },
+    {
+      "canonical": "archaeologist",
+      "section": "People · Professions",
+      "count": 24,
+      "members": [
+        "archaeologist",
+        "archaeological dig"
+      ]
+    },
+    {
+      "canonical": "clown",
+      "section": "People · Professions",
+      "count": 24,
+      "members": [
+        "clown",
+        "killer clown",
+        "evil clown"
+      ]
+    },
+    {
+      "canonical": "manual labor",
+      "section": "People · Professions",
+      "count": 24,
+      "members": [
+        "factory worker",
+        "construction worker",
+        "miner"
+      ]
+    },
+    {
+      "canonical": "producer",
+      "section": "People · Professions",
+      "count": 22,
+      "members": [
+        "television producer",
+        "record producer",
+        "producer"
+      ]
+    },
+    {
+      "canonical": "banker",
+      "section": "People · Professions",
+      "count": 22,
+      "members": [
+        "banker",
+        "stockbroker",
+        "bank manager",
+        "investment banker"
+      ]
+    },
+    {
+      "canonical": "rebel",
+      "section": "People · Archetypes",
+      "count": 21,
+      "members": [
+        "rebel",
+        "teen rebel"
+      ]
+    },
+    {
+      "canonical": "loner",
+      "section": "People · Archetypes",
+      "count": 20,
+      "members": [
+        "loner",
+        "misfit",
+        "outsider"
+      ]
+    },
+    {
+      "canonical": "hairdresser",
+      "section": "People · Professions",
+      "count": 19,
+      "members": [
+        "hairdresser",
+        "barber",
+        "barbershop"
+      ]
+    },
+    {
+      "canonical": "monk",
+      "section": "People · Professions",
+      "count": 19,
+      "members": [
+        "monk",
+        "shaolin monk"
+      ]
+    },
+    {
+      "canonical": "farmer",
+      "section": "People · Professions",
+      "count": 19,
+      "members": [
+        "farmer"
+      ]
+    },
+    {
+      "canonical": "roommates",
+      "section": "People · Archetypes",
+      "count": 18,
+      "members": [
+        "roommates"
+      ]
+    },
+    {
+      "canonical": "victim",
+      "section": "People · Archetypes",
+      "count": 18,
+      "members": [
+        "victim",
+        "burn victim"
+      ]
+    },
+    {
+      "canonical": "labor union",
+      "section": "People · Professions",
+      "count": 17,
+      "members": [
+        "labor union",
+        "union",
+        "labor strike",
+        "labor organizer",
+        "worker's rights",
+        "labor rights"
+      ]
+    },
+    {
+      "canonical": "comedian",
+      "section": "People · Professions",
+      "count": 17,
+      "members": [
+        "comedian"
+      ]
+    },
+    {
+      "canonical": "stuntman",
+      "section": "People · Professions",
+      "count": 17,
+      "members": [
+        "stuntman"
+      ]
+    },
+    {
+      "canonical": "model",
+      "section": "People · Professions",
+      "count": 17,
+      "members": [
+        "model",
+        "fashion model",
+        "advertising model"
+      ]
+    },
+    {
+      "canonical": "hunter",
+      "section": "People · Professions",
+      "count": 16,
+      "members": [
+        "hunter"
+      ]
+    },
+    {
+      "canonical": "nerd",
+      "section": "People · Archetypes",
+      "count": 16,
+      "members": [
+        "nerd",
+        "geek"
+      ]
+    },
+    {
+      "canonical": "servant",
+      "section": "People · Professions",
+      "count": 15,
+      "members": [
+        "servant",
+        "master servant relationship"
+      ]
+    },
+    {
+      "canonical": "housewife",
+      "section": "People · Professions",
+      "count": 15,
+      "members": [
+        "housewife"
+      ]
+    },
+    {
+      "canonical": "peasant",
+      "section": "People · Archetypes",
+      "count": 15,
+      "members": [
+        "peasant"
+      ]
+    },
+    {
+      "canonical": "firefighter",
+      "section": "People · Professions",
+      "count": 14,
+      "members": [
+        "firefighter"
+      ]
+    },
+    {
+      "canonical": "witness",
+      "section": "People · Archetypes",
+      "count": 14,
+      "members": [
+        "witness"
+      ]
+    },
+    {
+      "canonical": "athlete",
+      "section": "People · Professions",
+      "count": 13,
+      "members": [
+        "basketball player",
+        "baseball player"
+      ]
+    },
+    {
+      "canonical": "veterinarian",
+      "section": "People · Professions",
+      "count": 12,
+      "members": [
+        "veterinarian"
+      ]
+    },
+    {
+      "canonical": "aristocrat",
+      "section": "People · Archetypes",
+      "count": 12,
+      "members": [
+        "aristocrat",
+        "gentleman"
+      ]
+    },
+    {
+      "canonical": "engineer",
+      "section": "People · Professions",
+      "count": 11,
+      "members": [
+        "engineer",
+        "engineering"
+      ]
+    },
+    {
+      "canonical": "postman",
+      "section": "People · Professions",
+      "count": 11,
+      "members": [
+        "postman",
+        "delivery service",
+        "money delivery"
+      ]
+    },
+    {
+      "canonical": "social worker",
+      "section": "People · Professions",
+      "count": 10,
+      "members": [
+        "social worker"
+      ]
+    },
+    {
+      "canonical": "bartender",
+      "section": "People · Professions",
+      "count": 10,
+      "members": [
+        "bartender"
+      ]
+    },
+    {
+      "canonical": "eccentric",
+      "section": "People · Archetypes",
+      "count": 10,
+      "members": [
+        "eccentric man",
+        "eccentric woman"
+      ]
+    },
+    {
+      "canonical": "damsel in distress",
+      "section": "People · Archetypes",
+      "count": 9,
+      "members": [
+        "damsel in distress"
+      ]
+    },
+    {
+      "canonical": "principal",
+      "section": "People · Professions",
+      "count": 8,
+      "members": [
+        "principal"
+      ]
+    },
+    {
+      "canonical": "sidekick",
+      "section": "People · Archetypes",
+      "count": 8,
+      "members": [
+        "sidekick",
+        "animal sidekick"
+      ]
+    },
+    {
+      "canonical": "impostor",
+      "section": "People · Archetypes",
+      "count": 7,
+      "members": [
+        "impostor"
+      ]
+    }
+  ]
+}

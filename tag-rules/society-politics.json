@@ -1,0 +1,701 @@
+{
+  "section": "Society & Identity + Politics & Power",
+  "status": "done (this pass)",
+  "documented": "2026-07-20",
+  "corpus": "8531 films, snapshot 2026-07-17",
+  "note": "Society was never folded before this pass (all new). Politics: 60 keywords were already folded in §9 (see DATA_SOURCING §9 Theme/Politics+Roles) and were EXCLUDED here; this file only adds the un-folded remainder + a few new anchors. Splits chosen for precision: LGBTQ (gay/lesbian/bisexual/transgender/coming out + lgbt umbrella), religion (per-faith), mental-health (trauma/depression/anxiety/self-harm/eating disorder + mental illness umbrella), abuse (bullying/child/domestic/abuse). Left loose on purpose: euthanasia, identity, abuse of power, power abuse, state of emergency, blind date(noise).",
+  "canonicals": [
+    {
+      "canonical": "coming of age",
+      "count": 208,
+      "section": "Society & Identity",
+      "members": [
+        "coming of age",
+        "adolescence",
+        "puberty"
+      ]
+    },
+    {
+      "canonical": "lgbt",
+      "count": 163,
+      "section": "Society & Identity",
+      "members": [
+        "lgbt",
+        "lgbt teen",
+        "black lgbt",
+        "queer",
+        "queer loneliness",
+        "sexual identity",
+        "drag queen"
+      ]
+    },
+    {
+      "canonical": "alcoholism",
+      "count": 161,
+      "section": "Society & Identity",
+      "members": [
+        "alcoholic",
+        "alcoholism",
+        "alcohol",
+        "alcohol abuse",
+        "alcohol problems",
+        "alcoholics anonymous",
+        "alcoholic father"
+      ]
+    },
+    {
+      "canonical": "gay",
+      "count": 148,
+      "section": "Society & Identity",
+      "members": [
+        "gay theme",
+        "male homosexuality",
+        "gay relationship",
+        "gay romance",
+        "gay interest",
+        "gay club",
+        "gay parent",
+        "gay artist",
+        "gay history",
+        "closeted homosexual",
+        "homosexuality"
+      ]
+    },
+    {
+      "canonical": "politician",
+      "count": 148,
+      "section": "People · Authority",
+      "members": [
+        "politician",
+        "corrupt politician",
+        "president",
+        "usa president",
+        "vice president",
+        "ex president",
+        "russian president",
+        "congressman",
+        "senate",
+        "congress",
+        "member of parliament",
+        "presidential candidate",
+        "senator",
+        "u.s. senator",
+        "u.s. congress",
+        "prime minister",
+        "british prime minister",
+        "governance"
+      ]
+    },
+    {
+      "canonical": "trauma",
+      "count": 106,
+      "section": "Society & Identity",
+      "members": [
+        "trauma",
+        "post-traumatic stress disorder (ptsd)",
+        "childhood trauma",
+        "traumatic childhood",
+        "war trauma",
+        "repressed trauma",
+        "traumatized woman",
+        "traumatized man",
+        "traumatic experience"
+      ]
+    },
+    {
+      "canonical": "religion",
+      "count": 105,
+      "section": "Society & Identity",
+      "members": [
+        "religion",
+        "faith",
+        "belief in god",
+        "crisis of faith",
+        "loss of faith"
+      ]
+    },
+    {
+      "canonical": "addiction",
+      "count": 99,
+      "section": "Society & Identity",
+      "members": [
+        "addiction",
+        "sex addiction",
+        "drug addiction",
+        "drug abuse",
+        "substance abuse"
+      ]
+    },
+    {
+      "canonical": "loneliness",
+      "count": 98,
+      "section": "Society & Identity",
+      "members": [
+        "loneliness",
+        "isolation",
+        "social isolation",
+        "alienation"
+      ]
+    },
+    {
+      "canonical": "conspiracy",
+      "count": 97,
+      "section": "Politics & Power",
+      "members": [
+        "conspiracy",
+        "government conspiracy",
+        "government cover-up",
+        "conspiracy theory"
+      ]
+    },
+    {
+      "canonical": "orphan",
+      "count": 90,
+      "section": "Society & Identity",
+      "members": [
+        "orphan",
+        "orphanage",
+        "orphan siblings"
+      ]
+    },
+    {
+      "canonical": "racism",
+      "count": 87,
+      "section": "Society & Identity",
+      "members": [
+        "racism",
+        "hate crime",
+        "racial segregation",
+        "racial tension",
+        "racial slur",
+        "racial prejudice",
+        "racial issues"
+      ]
+    },
+    {
+      "canonical": "mental illness",
+      "count": 78,
+      "section": "Society & Identity",
+      "members": [
+        "mental illness",
+        "mental health"
+      ]
+    },
+    {
+      "canonical": "monarchy",
+      "count": 71,
+      "section": "People · Authority",
+      "members": [
+        "monarchy",
+        "king",
+        "queen",
+        "king of england",
+        "british monarchy",
+        "royal family",
+        "evil queen",
+        "evil king",
+        "king of france"
+      ]
+    },
+    {
+      "canonical": "bullying",
+      "count": 70,
+      "section": "Society & Identity",
+      "members": [
+        "bullying",
+        "school bullying"
+      ]
+    },
+    {
+      "canonical": "catholicism",
+      "count": 66,
+      "section": "Society & Identity",
+      "members": [
+        "catholic",
+        "catholicism",
+        "roman catholic church",
+        "catholic priest",
+        "catholic school"
+      ]
+    },
+    {
+      "canonical": "child abuse",
+      "count": 60,
+      "section": "Society & Identity",
+      "members": [
+        "child abuse",
+        "child sexual abuse",
+        "childhood sexual abuse",
+        "abused child",
+        "female child abuser"
+      ]
+    },
+    {
+      "canonical": "surveillance",
+      "count": 56,
+      "section": "Politics & Power",
+      "members": [
+        "surveillance",
+        "surveillance state",
+        "mass surveillance",
+        "video surveillance",
+        "surveillance camera",
+        "high tech surveillance"
+      ]
+    },
+    {
+      "canonical": "depression",
+      "count": 53,
+      "section": "Society & Identity",
+      "members": [
+        "depression"
+      ]
+    },
+    {
+      "canonical": "cult",
+      "count": 52,
+      "section": "Society & Identity",
+      "members": [
+        "cult",
+        "satanic cult",
+        "religious cult",
+        "cult leader"
+      ]
+    },
+    {
+      "canonical": "immigrant",
+      "count": 49,
+      "section": "Society & Identity",
+      "members": [
+        "immigrant",
+        "undocumented immigrant",
+        "immigration",
+        "illegal immigration",
+        "assimilation",
+        "chinese immigrant"
+      ]
+    },
+    {
+      "canonical": "aging",
+      "count": 49,
+      "section": "Society & Identity",
+      "members": [
+        "aging",
+        "midlife crisis",
+        "generation gap"
+      ]
+    },
+    {
+      "canonical": "disability",
+      "count": 48,
+      "section": "Society & Identity",
+      "members": [
+        "disability",
+        "disabled",
+        "disabled person",
+        "bodily disabled person",
+        "mentally disabled",
+        "physical disability"
+      ]
+    },
+    {
+      "canonical": "christianity",
+      "count": 47,
+      "section": "Society & Identity",
+      "members": [
+        "christianity",
+        "christian",
+        "christian faith"
+      ]
+    },
+    {
+      "canonical": "interracial",
+      "count": 46,
+      "section": "Society & Identity",
+      "members": [
+        "interracial relationship",
+        "interracial romance",
+        "interracial marriage",
+        "interracial friendship",
+        "race relations"
+      ]
+    },
+    {
+      "canonical": "slavery",
+      "count": 45,
+      "section": "Society & Identity",
+      "members": [
+        "slavery",
+        "slave",
+        "sold into slavery",
+        "slave trade",
+        "slave labor",
+        "slave owner"
+      ]
+    },
+    {
+      "canonical": "adoption",
+      "count": 40,
+      "section": "Society & Identity",
+      "members": [
+        "adoption",
+        "foster child",
+        "foster family",
+        "foster parents"
+      ]
+    },
+    {
+      "canonical": "government",
+      "count": 40,
+      "section": "Politics & Power",
+      "members": [
+        "government",
+        "bureaucracy"
+      ]
+    },
+    {
+      "canonical": "blindness",
+      "count": 38,
+      "section": "Society & Identity",
+      "members": [
+        "blind",
+        "blindness",
+        "blindness and impaired vision",
+        "blind man",
+        "blind woman",
+        "blind girl"
+      ]
+    },
+    {
+      "canonical": "tyranny",
+      "count": 38,
+      "section": "Politics & Power",
+      "members": [
+        "authoritarian",
+        "authoritarian regime",
+        "totalitarian",
+        "totalitarian regime",
+        "tyranny",
+        "totalitarianism"
+      ]
+    },
+    {
+      "canonical": "poverty",
+      "count": 35,
+      "section": "Society & Identity",
+      "members": [
+        "poverty"
+      ]
+    },
+    {
+      "canonical": "domestic abuse",
+      "count": 34,
+      "section": "Society & Identity",
+      "members": [
+        "domestic violence",
+        "domestic abuse",
+        "abused woman"
+      ]
+    },
+    {
+      "canonical": "abuse",
+      "count": 33,
+      "section": "Society & Identity",
+      "members": [
+        "abuse",
+        "physical abuse",
+        "verbal abuse",
+        "emotional abuse",
+        "psychological abuse",
+        "animal abuse"
+      ]
+    },
+    {
+      "canonical": "social class",
+      "count": 32,
+      "section": "Society & Identity",
+      "members": [
+        "working class",
+        "social class",
+        "inequality",
+        "social inequality",
+        "wealth inequality"
+      ]
+    },
+    {
+      "canonical": "lesbian",
+      "count": 31,
+      "section": "Society & Identity",
+      "members": [
+        "lesbian",
+        "lesbian relationship",
+        "lesbian sex"
+      ]
+    },
+    {
+      "canonical": "discrimination",
+      "count": 27,
+      "section": "Society & Identity",
+      "members": [
+        "discrimination",
+        "prejudice",
+        "ostracism",
+        "social prejudice",
+        "class prejudice"
+      ]
+    },
+    {
+      "canonical": "homelessness",
+      "count": 27,
+      "section": "Society & Identity",
+      "members": [
+        "homeless person",
+        "homelessness",
+        "homeless",
+        "homeless man"
+      ]
+    },
+    {
+      "canonical": "sexism",
+      "count": 25,
+      "section": "Society & Identity",
+      "members": [
+        "sexism",
+        "misogyny",
+        "misogynist"
+      ]
+    },
+    {
+      "canonical": "bisexual",
+      "count": 20,
+      "section": "Society & Identity",
+      "members": [
+        "bisexuality",
+        "bisexual man"
+      ]
+    },
+    {
+      "canonical": "deafness",
+      "count": 18,
+      "section": "Society & Identity",
+      "members": [
+        "deaf",
+        "deaf-mute"
+      ]
+    },
+    {
+      "canonical": "autism",
+      "count": 18,
+      "section": "Society & Identity",
+      "members": [
+        "autism"
+      ]
+    },
+    {
+      "canonical": "single parent",
+      "count": 18,
+      "section": "Society & Identity",
+      "members": [
+        "single parent"
+      ]
+    },
+    {
+      "canonical": "scandal",
+      "count": 18,
+      "section": "Politics & Power",
+      "members": [
+        "scandal",
+        "sex scandal",
+        "social scandal"
+      ]
+    },
+    {
+      "canonical": "feminism",
+      "count": 15,
+      "section": "Society & Identity",
+      "members": [
+        "feminism",
+        "feminist"
+      ]
+    },
+    {
+      "canonical": "self-harm",
+      "count": 14,
+      "section": "Society & Identity",
+      "members": [
+        "self-harm"
+      ]
+    },
+    {
+      "canonical": "abortion",
+      "count": 13,
+      "section": "Society & Identity",
+      "members": [
+        "abortion"
+      ]
+    },
+    {
+      "canonical": "colonialism",
+      "count": 13,
+      "section": "History & Conflict",
+      "members": [
+        "colonialism",
+        "french colonialism"
+      ]
+    },
+    {
+      "canonical": "coming out",
+      "count": 12,
+      "section": "Society & Identity",
+      "members": [
+        "coming out"
+      ]
+    },
+    {
+      "canonical": "diplomacy",
+      "count": 12,
+      "section": "Politics & Power",
+      "members": [
+        "ambassador",
+        "diplomat",
+        "diplomacy"
+      ]
+    },
+    {
+      "canonical": "buddhism",
+      "count": 11,
+      "section": "Society & Identity",
+      "members": [
+        "buddhism",
+        "buddhist monk"
+      ]
+    },
+    {
+      "canonical": "nuclear weapons",
+      "count": 11,
+      "section": "Politics & Power",
+      "members": [
+        "nuclear weapons"
+      ]
+    },
+    {
+      "canonical": "spirituality",
+      "count": 10,
+      "section": "Society & Identity",
+      "members": [
+        "spirituality",
+        "spiritual journey",
+        "spiritualism"
+      ]
+    },
+    {
+      "canonical": "anxiety",
+      "count": 9,
+      "section": "Society & Identity",
+      "members": [
+        "anxiety",
+        "social anxiety"
+      ]
+    },
+    {
+      "canonical": "body image",
+      "count": 8,
+      "section": "Society & Identity",
+      "members": [
+        "body image",
+        "beauty standards"
+      ]
+    },
+    {
+      "canonical": "whistleblower",
+      "count": 8,
+      "section": "Politics & Power",
+      "members": [
+        "whistleblower"
+      ]
+    },
+    {
+      "canonical": "dictatorship",
+      "count": 8,
+      "section": "History & Conflict",
+      "members": [
+        "dictatorship",
+        "franco regime (francoism)"
+      ]
+    },
+    {
+      "canonical": "civil rights",
+      "count": 7,
+      "section": "Society & Identity",
+      "members": [
+        "civil rights",
+        "martin luther king"
+      ]
+    },
+    {
+      "canonical": "gender roles",
+      "count": 7,
+      "section": "Society & Identity",
+      "members": [
+        "gender roles",
+        "gender disguise"
+      ]
+    },
+    {
+      "canonical": "eating disorder",
+      "count": 6,
+      "section": "Society & Identity",
+      "members": [
+        "eating disorder"
+      ]
+    },
+    {
+      "canonical": "exile",
+      "count": 6,
+      "section": "Politics & Power",
+      "members": [
+        "exile"
+      ]
+    },
+    {
+      "canonical": "transgender",
+      "count": 5,
+      "section": "Society & Identity",
+      "members": [
+        "transgender"
+      ]
+    },
+    {
+      "canonical": "atheism",
+      "count": 5,
+      "section": "Society & Identity",
+      "members": [
+        "atheist"
+      ]
+    },
+    {
+      "canonical": "islam",
+      "count": 4,
+      "section": "Society & Identity",
+      "members": [
+        "islam"
+      ]
+    },
+    {
+      "canonical": "judaism",
+      "count": 4,
+      "section": "Society & Identity",
+      "members": [
+        "judaism"
+      ]
+    },
+    {
+      "canonical": "independence movement",
+      "count": 3,
+      "section": "Politics & Power",
+      "members": [
+        "independence movement"
+      ]
+    }
+  ]
+}

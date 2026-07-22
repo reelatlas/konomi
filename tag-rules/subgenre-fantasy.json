@@ -1,0 +1,918 @@
+{
+  "section": "Sub-genre & Style + Fantasy & Sci-Fi",
+  "status": "done (this pass)",
+  "documented": "2026-07-20",
+  "corpus": "8531 films, snapshot 2026-07-17",
+  "principle": "Two layers: the TMDB genre field is the COARSE layer (wt-100); these keyword canonicals are the FINE layer (sub-genre / fantasy-scifi subject). Never fold a sub-genre up into its parent genre; merge only true synonyms sideways. Counts = deduped film unions.",
+  "canonicals": [
+    {
+      "canonical": "superhero",
+      "count": 235,
+      "section": "Fantasy & Sci-Fi",
+      "members": [
+        "superhero",
+        "superhero team",
+        "teen superhero",
+        "masked superhero",
+        "superhero teamup"
+      ]
+    },
+    {
+      "canonical": "alien",
+      "count": 231,
+      "section": "Creatures",
+      "routed": "→Creatures",
+      "members": [
+        "alien",
+        "alien invasion",
+        "alien attack",
+        "alien contact",
+        "alien encounter",
+        "alien infection",
+        "human vs alien",
+        "space invasion",
+        "evil alien",
+        "alien monster",
+        "alien race",
+        "aliens",
+        "humanoid alien",
+        "alien creature",
+        "alien parasites",
+        "shape shifting alien",
+        "extraterrestrial",
+        "extraterrestrial life form",
+        "alien dna",
+        "alien abduction",
+        "alien technology",
+        "alien language",
+        "alien friendship",
+        "alien life-form",
+        "extraterrestrial technology",
+        "ufo",
+        "alien planet"
+      ]
+    },
+    {
+      "canonical": "martial arts",
+      "count": 226,
+      "section": "Sub-genre & Style",
+      "members": [
+        "martial arts",
+        "mixed martial arts (mma)",
+        "martial arts tournament",
+        "martial arts master",
+        "martial arts training"
+      ]
+    },
+    {
+      "canonical": "supernatural",
+      "count": 224,
+      "section": "Fantasy & Sci-Fi",
+      "members": [
+        "supernatural",
+        "supernatural power",
+        "supernatural creature",
+        "supernatural being",
+        "supernatural drama",
+        "fighting supernatural",
+        "religion and supernatural"
+      ]
+    },
+    {
+      "canonical": "magic",
+      "count": 220,
+      "section": "Fantasy & Sci-Fi",
+      "members": [
+        "magic",
+        "black magic",
+        "magic lamp",
+        "magical object",
+        "magic land",
+        "magic realism",
+        "magical girl",
+        "potion"
+      ]
+    },
+    {
+      "canonical": "neo-noir",
+      "count": 154,
+      "section": "Sub-genre & Style",
+      "members": [
+        "neo-noir",
+        "tech noir",
+        "future noir"
+      ]
+    },
+    {
+      "canonical": "monster",
+      "count": 152,
+      "section": "Creatures",
+      "routed": "→Creatures",
+      "members": [
+        "monster",
+        "monsters",
+        "giant monster",
+        "sea monster",
+        "water monster",
+        "monster island"
+      ]
+    },
+    {
+      "canonical": "space",
+      "count": 136,
+      "section": "Setting · Place",
+      "members": [
+        "space",
+        "outer space",
+        "space travel",
+        "space mission",
+        "space exploration",
+        "space adventure",
+        "deep space",
+        "space colony",
+        "space sci-fi",
+        "trapped in space",
+        "space battle",
+        "space station",
+        "space western",
+        "space pirate"
+      ],
+      "routed": "→Setting·Place (moved from Fantasy; revisit)"
+    },
+    {
+      "canonical": "time travel",
+      "count": 130,
+      "section": "Fantasy & Sci-Fi",
+      "members": [
+        "time travel",
+        "time loop",
+        "time machine",
+        "alternate timeline"
+      ]
+    },
+    {
+      "canonical": "super power",
+      "count": 127,
+      "section": "Fantasy & Sci-Fi",
+      "members": [
+        "super power"
+      ]
+    },
+    {
+      "canonical": "road trip",
+      "count": 123,
+      "section": "Sub-genre & Style",
+      "members": [
+        "road trip",
+        "road movie"
+      ]
+    },
+    {
+      "canonical": "post-apocalyptic",
+      "count": 121,
+      "section": "Fantasy & Sci-Fi",
+      "members": [
+        "post-apocalyptic",
+        "post-apocalyptic future",
+        "apocalypse",
+        "apocalyptic vision",
+        "doomsday",
+        "doomsday clock",
+        "end of the world"
+      ]
+    },
+    {
+      "canonical": "slasher",
+      "count": 117,
+      "section": "Sub-genre & Style",
+      "members": [
+        "slasher",
+        "slasher horror",
+        "proto-slasher"
+      ]
+    },
+    {
+      "canonical": "satire",
+      "count": 111,
+      "section": "Sub-genre & Style",
+      "members": [
+        "satire",
+        "social satire",
+        "political satire"
+      ]
+    },
+    {
+      "canonical": "demon",
+      "count": 111,
+      "section": "Fantasy & Sci-Fi",
+      "members": [
+        "demon",
+        "demonic",
+        "demonic possession",
+        "demon hunter"
+      ]
+    },
+    {
+      "canonical": "witch",
+      "count": 108,
+      "section": "Fantasy & Sci-Fi",
+      "members": [
+        "witch",
+        "witchcraft",
+        "school of witchcraft",
+        "evil witch",
+        "witch burning",
+        "sorceress"
+      ]
+    },
+    {
+      "canonical": "parody",
+      "count": 97,
+      "section": "Sub-genre & Style",
+      "members": [
+        "parody",
+        "spoof",
+        "james bond spoof",
+        "military spoof",
+        "horror spoof",
+        "horror parody"
+      ]
+    },
+    {
+      "canonical": "romcom",
+      "count": 94,
+      "section": "Sub-genre & Style",
+      "members": [
+        "romcom",
+        "romantic comedy"
+      ]
+    },
+    {
+      "canonical": "gothic",
+      "count": 89,
+      "section": "Sub-genre & Style",
+      "members": [
+        "gothic",
+        "gothic horror",
+        "urban gothic",
+        "southern gothic",
+        "suburban gothic",
+        "gothic romance"
+      ]
+    },
+    {
+      "canonical": "film noir",
+      "count": 87,
+      "section": "Sub-genre & Style",
+      "members": [
+        "film noir",
+        "french noir"
+      ]
+    },
+    {
+      "canonical": "zombie",
+      "count": 84,
+      "section": "Creatures",
+      "routed": "→Creatures",
+      "members": [
+        "zombie",
+        "zombie apocalypse"
+      ]
+    },
+    {
+      "canonical": "period drama",
+      "count": 80,
+      "section": "Sub-genre & Style",
+      "members": [
+        "period drama",
+        "period piece",
+        "costume drama"
+      ]
+    },
+    {
+      "canonical": "haunting",
+      "count": 79,
+      "section": "Fantasy & Sci-Fi",
+      "members": [
+        "haunting",
+        "haunted",
+        "haunted house",
+        "evil spirit"
+      ]
+    },
+    {
+      "canonical": "found footage",
+      "count": 74,
+      "section": "Sub-genre & Style",
+      "members": [
+        "found footage",
+        "found footage adjacent"
+      ]
+    },
+    {
+      "canonical": "spaceship",
+      "count": 70,
+      "section": "Fantasy & Sci-Fi",
+      "members": [
+        "spaceship",
+        "spacecraft",
+        "alien spaceship",
+        "alien space craft"
+      ]
+    },
+    {
+      "canonical": "fairy tale",
+      "count": 63,
+      "section": "Fantasy & Sci-Fi",
+      "members": [
+        "fairy tale",
+        "fairytale",
+        "modern fairy tale",
+        "dark fairy tale",
+        "fairy godmother"
+      ]
+    },
+    {
+      "canonical": "slapstick",
+      "count": 59,
+      "section": "Sub-genre & Style",
+      "members": [
+        "slapstick",
+        "slapstick comedy"
+      ]
+    },
+    {
+      "canonical": "mutant",
+      "count": 57,
+      "section": "Fantasy & Sci-Fi",
+      "members": [
+        "mutant",
+        "mutants",
+        "mutation",
+        "genetic mutation"
+      ]
+    },
+    {
+      "canonical": "mythology",
+      "count": 57,
+      "section": "Fantasy & Sci-Fi",
+      "members": [
+        "mythology",
+        "greek mythology",
+        "norse mythology",
+        "japanese mythology",
+        "nordic mythology",
+        "egyptian mythology",
+        "myth"
+      ]
+    },
+    {
+      "canonical": "melodrama",
+      "count": 57,
+      "section": "Sub-genre & Style",
+      "members": [
+        "melodrama",
+        "melodramatic"
+      ]
+    },
+    {
+      "canonical": "wizard",
+      "count": 56,
+      "section": "Fantasy & Sci-Fi",
+      "members": [
+        "wizard",
+        "sorcerer",
+        "magician",
+        "sorcery"
+      ]
+    },
+    {
+      "canonical": "curse",
+      "count": 55,
+      "section": "Fantasy & Sci-Fi",
+      "members": [
+        "curse",
+        "cursed town"
+      ]
+    },
+    {
+      "canonical": "kung fu",
+      "count": 52,
+      "section": "Sub-genre & Style",
+      "members": [
+        "kung fu",
+        "kung fu master"
+      ]
+    },
+    {
+      "canonical": "possession",
+      "count": 51,
+      "section": "Fantasy & Sci-Fi",
+      "members": [
+        "possession",
+        "possessed",
+        "possessed doll"
+      ]
+    },
+    {
+      "canonical": "psychic",
+      "count": 43,
+      "section": "Fantasy & Sci-Fi",
+      "members": [
+        "psychic",
+        "psychic power",
+        "telepathy",
+        "telekinesis"
+      ]
+    },
+    {
+      "canonical": "folklore",
+      "count": 43,
+      "section": "Fantasy & Sci-Fi",
+      "members": [
+        "folklore",
+        "japanese folklore",
+        "norwegian folklore",
+        "urban legend",
+        "legend",
+        "fable"
+      ]
+    },
+    {
+      "canonical": "enchantment",
+      "count": 41,
+      "section": "Fantasy & Sci-Fi",
+      "members": [
+        "enchant",
+        "enchantment"
+      ]
+    },
+    {
+      "canonical": "alternate reality",
+      "count": 41,
+      "section": "Fantasy & Sci-Fi",
+      "members": [
+        "parallel universe",
+        "multiverse",
+        "alternate universe",
+        "alternate dimension",
+        "another dimension",
+        "other dimension"
+      ]
+    },
+    {
+      "canonical": "werewolf",
+      "count": 41,
+      "section": "Creatures",
+      "routed": "→Creatures",
+      "members": [
+        "werewolf",
+        "werewolf child"
+      ]
+    },
+    {
+      "canonical": "buddy comedy",
+      "count": 40,
+      "section": "Sub-genre & Style",
+      "members": [
+        "buddy comedy",
+        "buddy movie",
+        "buddy film"
+      ]
+    },
+    {
+      "canonical": "android",
+      "count": 34,
+      "section": "Fantasy & Sci-Fi",
+      "members": [
+        "android",
+        "human android relationship"
+      ]
+    },
+    {
+      "canonical": "kaiju",
+      "count": 34,
+      "section": "Creatures",
+      "routed": "→Creatures",
+      "members": [
+        "kaiju"
+      ]
+    },
+    {
+      "canonical": "giant robot",
+      "count": 32,
+      "section": "Creatures",
+      "routed": "→Creatures",
+      "members": [
+        "giant robot",
+        "humanoid robot",
+        "robot fighting"
+      ]
+    },
+    {
+      "canonical": "virtual reality",
+      "count": 31,
+      "section": "Fantasy & Sci-Fi",
+      "members": [
+        "virtual reality",
+        "simulated reality"
+      ]
+    },
+    {
+      "canonical": "exorcism",
+      "count": 30,
+      "section": "Fantasy & Sci-Fi",
+      "members": [
+        "exorcism",
+        "exorcist"
+      ]
+    },
+    {
+      "canonical": "screwball",
+      "count": 27,
+      "section": "Sub-genre & Style",
+      "members": [
+        "screwball",
+        "screwball comedy"
+      ]
+    },
+    {
+      "canonical": "cyborg",
+      "count": 27,
+      "section": "Fantasy & Sci-Fi",
+      "members": [
+        "cyborg",
+        "female cyborg"
+      ]
+    },
+    {
+      "canonical": "prophecy",
+      "count": 27,
+      "section": "Fantasy & Sci-Fi",
+      "routed": "→Fantasy trope",
+      "members": [
+        "prophecy"
+      ]
+    },
+    {
+      "canonical": "epic",
+      "count": 26,
+      "section": "Sub-genre & Style",
+      "members": [
+        "epic",
+        "epic battle",
+        "epic fantasy",
+        "epic sci-fi",
+        "biblical epic"
+      ]
+    },
+    {
+      "canonical": "angel",
+      "count": 24,
+      "section": "Fantasy & Sci-Fi",
+      "members": [
+        "angel",
+        "guardian angel",
+        "fallen angel"
+      ]
+    },
+    {
+      "canonical": "clone",
+      "count": 23,
+      "section": "Fantasy & Sci-Fi",
+      "members": [
+        "clone",
+        "human clone"
+      ]
+    },
+    {
+      "canonical": "nonlinear",
+      "count": 20,
+      "section": "Sub-genre & Style",
+      "members": [
+        "nonlinear timeline",
+        "nonlinear narrative"
+      ]
+    },
+    {
+      "canonical": "chosen one",
+      "count": 16,
+      "section": "Fantasy & Sci-Fi",
+      "routed": "→Fantasy trope",
+      "members": [
+        "chosen one"
+      ]
+    },
+    {
+      "canonical": "creature feature",
+      "count": 14,
+      "section": "Sub-genre & Style",
+      "members": [
+        "creature feature",
+        "monster movie"
+      ]
+    },
+    {
+      "canonical": "dramedy",
+      "count": 14,
+      "section": "Sub-genre & Style",
+      "members": [
+        "dramedy",
+        "romantic dramedy"
+      ]
+    },
+    {
+      "canonical": "giallo",
+      "count": 12,
+      "section": "Sub-genre & Style",
+      "members": [
+        "giallo",
+        "american giallo"
+      ]
+    },
+    {
+      "canonical": "magical creature",
+      "count": 12,
+      "section": "Creatures",
+      "routed": "→Creatures",
+      "members": [
+        "magical creature"
+      ]
+    },
+    {
+      "canonical": "comic book",
+      "count": 9,
+      "section": "Fantasy & Sci-Fi",
+      "members": [
+        "comic book",
+        "comic book shop"
+      ]
+    },
+    {
+      "canonical": "mythical creature",
+      "count": 9,
+      "section": "Creatures",
+      "routed": "→Creatures",
+      "members": [
+        "mythical creature"
+      ]
+    },
+    {
+      "canonical": "santa's elves",
+      "count": 4,
+      "section": "Setting · Period (christmas)",
+      "routed": "→Christmas",
+      "members": [
+        "santa's elves"
+      ]
+    }
+  ],
+  "kept_distinct": [
+    {
+      "tag": "dystopia",
+      "count": 212,
+      "section": "Fantasy & Sci-Fi"
+    },
+    {
+      "tag": "dark comedy",
+      "count": 143,
+      "section": "Sub-genre & Style"
+    },
+    {
+      "tag": "gore",
+      "count": 119,
+      "section": "Sub-genre & Style"
+    },
+    {
+      "tag": "supernatural horror",
+      "count": 94,
+      "section": "Sub-genre & Style"
+    },
+    {
+      "tag": "psychological thriller",
+      "count": 81,
+      "section": "Sub-genre & Style"
+    },
+    {
+      "tag": "artificial intelligence (a.i.)",
+      "count": 67,
+      "section": "Fantasy & Sci-Fi"
+    },
+    {
+      "tag": "anthology",
+      "count": 58,
+      "section": "Sub-genre & Style"
+    },
+    {
+      "tag": "survival horror",
+      "count": 54,
+      "section": "Sub-genre & Style"
+    },
+    {
+      "tag": "psychological horror",
+      "count": 52,
+      "section": "Sub-genre & Style"
+    },
+    {
+      "tag": "cyberpunk",
+      "count": 40,
+      "section": "Sub-genre & Style"
+    },
+    {
+      "tag": "steampunk",
+      "count": 40,
+      "section": "Sub-genre & Style"
+    },
+    {
+      "tag": "body horror",
+      "count": 38,
+      "section": "Sub-genre & Style"
+    },
+    {
+      "tag": "space opera",
+      "count": 33,
+      "section": "Sub-genre & Style"
+    },
+    {
+      "tag": "immortality",
+      "count": 32,
+      "section": "Fantasy & Sci-Fi"
+    },
+    {
+      "tag": "afterlife",
+      "count": 31,
+      "section": "Fantasy & Sci-Fi"
+    },
+    {
+      "tag": "sword and sorcery",
+      "count": 30,
+      "section": "Sub-genre & Style"
+    },
+    {
+      "tag": "sex comedy",
+      "count": 29,
+      "section": "Sub-genre & Style"
+    },
+    {
+      "tag": "fairy",
+      "count": 28,
+      "section": "Fantasy & Sci-Fi"
+    },
+    {
+      "tag": "spirit",
+      "count": 27,
+      "section": "Fantasy & Sci-Fi"
+    },
+    {
+      "tag": "disaster movie",
+      "count": 24,
+      "section": "Sub-genre & Style"
+    },
+    {
+      "tag": "resurrection",
+      "count": 21,
+      "section": "Fantasy & Sci-Fi"
+    },
+    {
+      "tag": "reincarnation",
+      "count": 19,
+      "section": "Fantasy & Sci-Fi"
+    },
+    {
+      "tag": "telepathy",
+      "count": 19,
+      "section": "Fantasy & Sci-Fi"
+    },
+    {
+      "tag": "mockumentary",
+      "count": 19,
+      "section": "Sub-genre & Style"
+    },
+    {
+      "tag": "horror anthology",
+      "count": 18,
+      "section": "Sub-genre & Style"
+    },
+    {
+      "tag": "swashbuckler",
+      "count": 18,
+      "section": "Sub-genre & Style"
+    },
+    {
+      "tag": "hell",
+      "count": 18,
+      "section": "Fantasy & Sci-Fi"
+    },
+    {
+      "tag": "elves",
+      "count": 18,
+      "section": "Fantasy & Sci-Fi"
+    },
+    {
+      "tag": "mermaid",
+      "count": 18,
+      "section": "Fantasy & Sci-Fi"
+    },
+    {
+      "tag": "telekinesis",
+      "count": 15,
+      "section": "Fantasy & Sci-Fi"
+    },
+    {
+      "tag": "dwarf",
+      "count": 15,
+      "section": "Fantasy & Sci-Fi"
+    },
+    {
+      "tag": "spaghetti western",
+      "count": 14,
+      "section": "Sub-genre & Style"
+    },
+    {
+      "tag": "teleportation",
+      "count": 14,
+      "section": "Fantasy & Sci-Fi"
+    },
+    {
+      "tag": "android horror",
+      "count": 10,
+      "section": "Sub-genre & Style"
+    },
+    {
+      "tag": "utopia",
+      "count": 10,
+      "section": "Fantasy & Sci-Fi"
+    },
+    {
+      "tag": "undead",
+      "count": 9,
+      "section": "Fantasy & Sci-Fi"
+    },
+    {
+      "tag": "portal",
+      "count": 9,
+      "section": "Fantasy & Sci-Fi"
+    },
+    {
+      "tag": "genetic engineering",
+      "count": 9,
+      "section": "Fantasy & Sci-Fi"
+    },
+    {
+      "tag": "heaven",
+      "count": 8,
+      "section": "Fantasy & Sci-Fi"
+    },
+    {
+      "tag": "genie",
+      "count": 8,
+      "section": "Fantasy & Sci-Fi"
+    },
+    {
+      "tag": "space war",
+      "count": 6,
+      "section": "Fantasy & Sci-Fi"
+    },
+    {
+      "tag": "unicorn",
+      "count": 6,
+      "section": "Fantasy & Sci-Fi"
+    },
+    {
+      "tag": "real time",
+      "count": 6,
+      "section": "Sub-genre & Style"
+    },
+    {
+      "tag": "sword and sandal",
+      "count": 5,
+      "section": "Sub-genre & Style"
+    },
+    {
+      "tag": "purgatory",
+      "count": 5,
+      "section": "Fantasy & Sci-Fi"
+    },
+    {
+      "tag": "cryogenics",
+      "count": 5,
+      "section": "Fantasy & Sci-Fi"
+    },
+    {
+      "tag": "nanotechnology",
+      "count": 5,
+      "section": "Fantasy & Sci-Fi"
+    },
+    {
+      "tag": "cryonics",
+      "count": 4,
+      "section": "Fantasy & Sci-Fi"
+    }
+  ],
+  "routes": [
+    "alien, giant robot, zombie, monster, werewolf, kaiju, magical creature, mythical creature -> Creatures group",
+    "prophecy, chosen one -> Fantasy & Sci-Fi (tropes)",
+    "santa's elves -> christmas (Setting)",
+    "comic book -> Superhero (kept in Fantasy); could alternatively be Source(based-on-comic)"
+  ]
+}

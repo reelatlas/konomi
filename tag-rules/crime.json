@@ -1,0 +1,785 @@
+{
+  "section": "Crime & Justice",
+  "status": "in-progress consolidation (≥3 floor)",
+  "corpus": "8531 films, snapshot 2026-07-17T09:03:54Z",
+  "documented": "2026-07-19",
+  "rule_note": "Each canonical = a fold rule the adapter will apply at promote (raw untouched). count = distinct films carrying ANY member (deduped union). Direct-alias vs pattern decided later per-canonical; massacre-style tails are pattern candidates.",
+  "canonicals": [
+    {
+      "canonical": "murder",
+      "count": 684,
+      "home": "Crime & Justice",
+      "members": [
+        "murder",
+        "killer",
+        "murderer",
+        "killing",
+        "mass killing",
+        "murdered",
+        "mission of murder",
+        "murder suspect",
+        "murder case",
+        "cold blooded killer",
+        "murder hunt",
+        "escaped killer",
+        "accused of murder",
+        "murder plot",
+        "forced to kill",
+        "teenage killer",
+        "woman murder",
+        "masked killer",
+        "strangle",
+        "murder mystery",
+        "killed during sex",
+        "father murder",
+        "murder by gunshot",
+        "rape and murder",
+        "axe murder",
+        "child murder",
+        "killer robot",
+        "killer toys",
+        "sexual murder",
+        "multiple stabbings",
+        "ritual murder",
+        "killed",
+        "killer fish"
+      ]
+    },
+    {
+      "canonical": "police",
+      "count": 448,
+      "home": "Crime & Justice",
+      "note": "absorbs police corruption (was in Politics) + undercover cop (was in People)",
+      "members": [
+        "police",
+        "sheriff",
+        "buddy cop",
+        "police brutality",
+        "police corruption",
+        "cop",
+        "police chase",
+        "undercover cop",
+        "dirty cop",
+        "ex-cop",
+        "police operation",
+        "police chief",
+        "police station",
+        "rookie cop",
+        "corrupt cop",
+        "police academy",
+        "french police",
+        "small town sheriff",
+        "bad cop",
+        "cops",
+        "police shootout",
+        "tough cop",
+        "police impersonator",
+        "police arrest",
+        "police surveillance",
+        "police procedural",
+        "deputy sheriff",
+        "police training",
+        "running from police",
+        "police vigilantism",
+        "police stakeout",
+        "police raid",
+        "law enforcement",
+        "police state",
+        "good cop bad cop",
+        "police headquarter",
+        "robot cop",
+        "female cop",
+        "police dog",
+        "corrupt sheriff",
+        "maverick cop",
+        "narcotics cop"
+      ]
+    },
+    {
+      "canonical": "revenge",
+      "count": 323,
+      "home": "Crime & Justice",
+      "members": [
+        "revenge",
+        "vengeance",
+        "revenge thriller",
+        "revenge motive",
+        "rape and revenge"
+      ]
+    },
+    {
+      "canonical": "gangster",
+      "count": 309,
+      "home": "Crime & Justice",
+      "members": [
+        "gangster",
+        "organized crime",
+        "gang",
+        "street gang",
+        "crime boss",
+        "gang war",
+        "motorcycle gang",
+        "criminal gang",
+        "loan shark",
+        "angry mob",
+        "gang rape",
+        "gang leader",
+        "thug",
+        "gang member",
+        "youth gang",
+        "crime lord",
+        "gang violence",
+        "rival gang",
+        "crime syndicate"
+      ]
+    },
+    {
+      "canonical": "prison",
+      "count": 244,
+      "home": "Setting · Place",
+      "note": "merged into the existing place-type prison (one tag, not two)",
+      "members": [
+        "prison",
+        "prison escape",
+        "imprisonment",
+        "prison cell",
+        "prison guard",
+        "prison break",
+        "liberation of prisoners",
+        "women's prison",
+        "release from prison",
+        "solitary confinement",
+        "parole",
+        "jail cell",
+        "death row",
+        "prison sentence",
+        "prison brutality",
+        "prison fight",
+        "prison riot",
+        "innocent in jail",
+        "wrongful imprisonment",
+        "alcatraz prison",
+        "prison warden",
+        "penitentiary",
+        "prison drama",
+        "prison visit",
+        "prisoner transport",
+        "prison camp",
+        "prisoner escort",
+        "juvenile prison",
+        "jail"
+      ]
+    },
+    {
+      "canonical": "detective",
+      "count": 242,
+      "home": "Crime & Justice",
+      "note": "canonical lives in People · Spy/Law roles (a person-type), not Crime",
+      "members": [
+        "detective",
+        "police detective",
+        "police inspector",
+        "private detective",
+        "private investigator",
+        "investigator",
+        "bumbling detective",
+        "amateur detective",
+        "detective comedy",
+        "private eye",
+        "detective inspector",
+        "female detective",
+        "homicide detective",
+        "narcotics detective"
+      ]
+    },
+    {
+      "canonical": "serial killer",
+      "count": 227,
+      "home": "Crime & Justice",
+      "members": [
+        "serial killer",
+        "mass murder",
+        "series of murders",
+        "killing spree",
+        "multiple murder",
+        "murder spree",
+        "psycho killer",
+        "killing a dog",
+        "animal killing",
+        "sadistic killer"
+      ]
+    },
+    {
+      "canonical": "robbery",
+      "count": 216,
+      "home": "Crime & Justice",
+      "members": [
+        "robbery",
+        "bank robbery",
+        "bank robber",
+        "armed robbery",
+        "hold-up robbery",
+        "botched robbery",
+        "train robbery",
+        "armored car robbery",
+        "jewel robbery",
+        "mugging",
+        "carjacking",
+        "burglary",
+        "burglar",
+        "burglars",
+        "grave robber",
+        "robber",
+        "cops and robbers",
+        "robbery crew",
+        "robbery gang"
+      ]
+    },
+    {
+      "canonical": "kidnapping",
+      "count": 190,
+      "home": "Crime & Justice",
+      "members": [
+        "kidnapping",
+        "child kidnapping",
+        "abduction",
+        "held captive",
+        "child abduction",
+        "captivity"
+      ]
+    },
+    {
+      "canonical": "courtroom",
+      "count": 188,
+      "home": "Crime & Justice",
+      "members": [
+        "courtroom",
+        "trial",
+        "murder trial",
+        "court",
+        "court case",
+        "courtroom drama",
+        "judge",
+        "legal thriller",
+        "prosecution",
+        "legal drama",
+        "district attorney",
+        "wrongful conviction",
+        "arbitrary law",
+        "defense attorney",
+        "testimony",
+        "jury trial",
+        "jury",
+        "supreme court",
+        "prosecutor",
+        "law firm"
+      ]
+    },
+    {
+      "canonical": "drugs",
+      "count": 187,
+      "home": "Activities & Pursuits",
+      "note": "merged into Activities drugs; absorbs drug-crime keywords too",
+      "members": [
+        "drugs",
+        "cocaine",
+        "drug trafficking",
+        "heroin",
+        "meth lab",
+        "drug crime"
+      ]
+    },
+    {
+      "canonical": "investigation",
+      "count": 173,
+      "home": "Crime & Justice",
+      "members": [
+        "investigation",
+        "police investigation",
+        "crime scene",
+        "crime investigation",
+        "investigative journalism",
+        "criminal investigation",
+        "insurance investigator",
+        "covered investigation"
+      ]
+    },
+    {
+      "canonical": "terrorism",
+      "count": 164,
+      "home": "Crime & Justice",
+      "members": [
+        "terrorism",
+        "terrorist plot",
+        "bomb",
+        "bombing",
+        "terrorist group",
+        "car bomb",
+        "terrorist attack",
+        "terrorist threat",
+        "terrorist bombing",
+        "mass shooting",
+        "counterterrorism",
+        "domestic terrorism",
+        "bomb attack",
+        "bomb explosion",
+        "plo terrorist group"
+      ]
+    },
+    {
+      "canonical": "mafia",
+      "count": 153,
+      "home": "Crime & Justice",
+      "members": [
+        "mafia",
+        "mobster",
+        "bratva (russian mafia)",
+        "yakuza",
+        "criminal underworld",
+        "mafia boss",
+        "triad",
+        "sicilian mafia",
+        "chinese mafia",
+        "mob boss",
+        "irish mob",
+        "mob",
+        "mob hit",
+        "anti-mafia",
+        "crime family"
+      ]
+    },
+    {
+      "canonical": "assassin",
+      "count": 150,
+      "home": "Crime & Justice",
+      "members": [
+        "assassin",
+        "assassination",
+        "assassination attempt",
+        "female assassin",
+        "political assassination",
+        "professional assassin",
+        "assassination of president",
+        "assassination team",
+        "government assassin"
+      ]
+    },
+    {
+      "canonical": "thief",
+      "count": 148,
+      "home": "Crime & Justice",
+      "members": [
+        "thief",
+        "master thief",
+        "theft",
+        "professional thief",
+        "gentleman thief",
+        "art thief",
+        "art theft",
+        "car theft",
+        "diamond theft",
+        "jewel thief",
+        "stealing",
+        "identity theft",
+        "pickpocket",
+        "shoplifting",
+        "drug stealing",
+        "looting",
+        "gang of thieves",
+        "cat burglar"
+      ]
+    },
+    {
+      "canonical": "prostitute",
+      "count": 123,
+      "home": "Crime & Justice",
+      "members": [
+        "prostitute",
+        "prostitution",
+        "illegal prostitution",
+        "male prostitution",
+        "child prostitution",
+        "forced prostitution"
+      ]
+    },
+    {
+      "canonical": "heist",
+      "count": 116,
+      "home": "Crime & Justice",
+      "members": [
+        "heist",
+        "bank heist",
+        "diamond heist",
+        "jewelry heist",
+        "money heist",
+        "heist gone wrong",
+        "getaway",
+        "getaway driver"
+      ]
+    },
+    {
+      "canonical": "homicide",
+      "count": 115,
+      "home": "Crime & Justice",
+      "members": [
+        "manslaughter",
+        "suspicion of murder",
+        "attempted murder",
+        "homicide",
+        "homicide investigation",
+        "murder investigation",
+        "witness to murder",
+        "framed for murder",
+        "copycat killer"
+      ]
+    },
+    {
+      "canonical": "criminal",
+      "count": 107,
+      "home": "Crime & Justice",
+      "members": [
+        "criminal",
+        "criminal mastermind",
+        "crime spree",
+        "criminal organization",
+        "crime horror",
+        "crime",
+        "crime thriller",
+        "true crime"
+      ]
+    },
+    {
+      "canonical": "on the run",
+      "count": 96,
+      "home": "Crime & Justice",
+      "members": [
+        "on the run",
+        "fugitive",
+        "fugitive lovers",
+        "wanted man",
+        "man on the run",
+        "love on the run"
+      ]
+    },
+    {
+      "canonical": "shootout",
+      "count": 90,
+      "home": "Crime & Justice",
+      "members": [
+        "shootout",
+        "street shootout"
+      ]
+    },
+    {
+      "canonical": "hitman",
+      "count": 87,
+      "home": "Crime & Justice",
+      "members": [
+        "hitman",
+        "contract killer",
+        "hired killer"
+      ]
+    },
+    {
+      "canonical": "hostage",
+      "count": 85,
+      "home": "Crime & Justice",
+      "members": [
+        "hostage",
+        "hostage-taking",
+        "hostage situation",
+        "hostages",
+        "liberation of hostage",
+        "held hostage",
+        "hostage negotiator"
+      ]
+    },
+    {
+      "canonical": "prisoner",
+      "count": 78,
+      "home": "Crime & Justice",
+      "members": [
+        "prisoner",
+        "captive",
+        "convict",
+        "escaped convict",
+        "inmate",
+        "escaped prisoner",
+        "female prisoner",
+        "prisoner abuse"
+      ]
+    },
+    {
+      "canonical": "vigilante",
+      "count": 68,
+      "home": "Crime & Justice",
+      "members": [
+        "vigilante",
+        "vigilante justice",
+        "masked vigilante",
+        "crime fighter"
+      ]
+    },
+    {
+      "canonical": "drug dealer",
+      "count": 68,
+      "home": "Crime & Justice",
+      "members": [
+        "drug dealer",
+        "drug lord"
+      ]
+    },
+    {
+      "canonical": "blackmail",
+      "count": 59,
+      "home": "Crime & Justice",
+      "members": [
+        "extortion",
+        "blackmail"
+      ]
+    },
+    {
+      "canonical": "stalker",
+      "count": 48,
+      "home": "Crime & Justice",
+      "members": [
+        "stalker",
+        "stalking"
+      ]
+    },
+    {
+      "canonical": "con artist",
+      "count": 45,
+      "home": "Crime & Justice",
+      "members": [
+        "con artist",
+        "con man",
+        "scam",
+        "scam artist",
+        "swindle"
+      ]
+    },
+    {
+      "canonical": "fraud",
+      "count": 37,
+      "home": "Crime & Justice",
+      "members": [
+        "fraud",
+        "insurance fraud",
+        "credit card fraud",
+        "embezzlement",
+        "ponzi scheme"
+      ]
+    },
+    {
+      "canonical": "smuggling",
+      "count": 35,
+      "home": "Crime & Justice",
+      "members": [
+        "smuggling (contraband)",
+        "drug smuggling"
+      ]
+    },
+    {
+      "canonical": "trafficking",
+      "count": 27,
+      "home": "Crime & Justice",
+      "members": [
+        "arms dealer",
+        "human trafficking",
+        "organ trafficking",
+        "sex trafficking"
+      ]
+    },
+    {
+      "canonical": "cartel",
+      "count": 26,
+      "home": "Crime & Justice",
+      "members": [
+        "drug cartel",
+        "mexican cartel",
+        "cartel"
+      ]
+    },
+    {
+      "canonical": "ransom",
+      "count": 25,
+      "home": "Crime & Justice",
+      "members": [
+        "ransom",
+        "ransom demand"
+      ]
+    },
+    {
+      "canonical": "hijacking",
+      "count": 17,
+      "home": "Crime & Justice",
+      "members": [
+        "hijacking",
+        "airplane hijacking",
+        "train hijacking"
+      ]
+    },
+    {
+      "canonical": "counterfeit money",
+      "count": 14,
+      "home": "Crime & Justice",
+      "members": [
+        "counterfeit money",
+        "counterfeit",
+        "forgery"
+      ]
+    },
+    {
+      "canonical": "bribery",
+      "count": 12,
+      "home": "Crime & Justice",
+      "members": [
+        "bribery",
+        "bribe"
+      ]
+    }
+  ],
+  "still_loose": [
+    {
+      "keyword": "whodunit",
+      "count": 63,
+      "bucket": "Detective / Investigation"
+    },
+    {
+      "keyword": "home invasion",
+      "count": 40,
+      "bucket": "Terror / Bombing / Mass violence"
+    },
+    {
+      "keyword": "atomic bomb",
+      "count": 17,
+      "bucket": "Terror / Bombing / Mass violence"
+    },
+    {
+      "keyword": "stabbing",
+      "count": 14,
+      "bucket": "Murder / Killing"
+    },
+    {
+      "keyword": "arson",
+      "count": 13,
+      "bucket": "Terror / Bombing / Mass violence"
+    },
+    {
+      "keyword": "witness protection",
+      "count": 12,
+      "bucket": "Detective / Investigation"
+    },
+    {
+      "keyword": "vandalism",
+      "count": 11,
+      "bucket": "Terror / Bombing / Mass violence"
+    },
+    {
+      "keyword": "riot",
+      "count": 11,
+      "bucket": "Terror / Bombing / Mass violence"
+    },
+    {
+      "keyword": "money laundering",
+      "count": 10,
+      "bucket": "Fraud / White-collar"
+    },
+    {
+      "keyword": "paranormal investigation",
+      "count": 8,
+      "bucket": "Detective / Investigation"
+    },
+    {
+      "keyword": "gun violence",
+      "count": 8,
+      "bucket": "Terror / Bombing / Mass violence"
+    },
+    {
+      "keyword": "informant",
+      "count": 7,
+      "bucket": "Police / Cop"
+    },
+    {
+      "keyword": "lynch mob",
+      "count": 5,
+      "bucket": "Gangs / Organized crime"
+    },
+    {
+      "keyword": "bomb shelter",
+      "count": 5,
+      "bucket": "Terror / Bombing / Mass violence"
+    },
+    {
+      "keyword": "martial law",
+      "count": 4,
+      "bucket": "Law / Court / Trial"
+    },
+    {
+      "keyword": "atomic bomb test",
+      "count": 4,
+      "bucket": "Terror / Bombing / Mass violence"
+    },
+    {
+      "keyword": "time bomb",
+      "count": 4,
+      "bucket": "Terror / Bombing / Mass violence"
+    },
+    {
+      "keyword": "hate crime",
+      "count": 4,
+      "bucket": "General criminal"
+    },
+    {
+      "keyword": "hooligan",
+      "count": 3,
+      "bucket": "Gangs / Organized crime"
+    },
+    {
+      "keyword": "underworld",
+      "count": 3,
+      "bucket": "Gangs / Organized crime"
+    },
+    {
+      "keyword": "pirate gang",
+      "count": 3,
+      "bucket": "Gangs / Organized crime"
+    },
+    {
+      "keyword": "immigration law",
+      "count": 3,
+      "bucket": "Law / Court / Trial"
+    },
+    {
+      "keyword": "cyber terrorism",
+      "count": 3,
+      "bucket": "Terror / Bombing / Mass violence"
+    },
+    {
+      "keyword": "perfect crime",
+      "count": 3,
+      "bucket": "General criminal"
+    },
+    {
+      "keyword": "framed for a crime",
+      "count": 3,
+      "bucket": "General criminal"
+    },
+    {
+      "keyword": "crime of passion",
+      "count": 3,
+      "bucket": "General criminal"
+    },
+    {
+      "keyword": "crime fiction writer",
+      "count": 3,
+      "bucket": "General criminal"
+    }
+  ],
+  "overlaps_to_reconcile": [
+    "detective: canonical placed in People · Spy/Law; bare detective removed from there",
+    "undercover cop: folded into police (Crime); removed from People · Spy/Law",
+    "police corruption: folded into police (Crime); removed from Politics"
+  ]
+}

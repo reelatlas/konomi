@@ -1,0 +1,43 @@
+{
+  "section": "Genre-synonyms",
+  "status": "done",
+  "documented": "2026-07-19",
+  "principle": "The TMDB genre field is authoritative (every film has genres, weight-100). A keyword that merely duplicates a genre name adds no specificity over the field and is a sparse, arbitrary subset of it, so it is DROPPED at promote (never becomes a tag). Keywords that share a genre's name but carry distinct meaning, or have no matching genre field, are KEPT.",
+  "genre_field": {
+    "Drama": 3832, "Comedy": 2911, "Thriller": 2019, "Action": 1897, "Adventure": 1381,
+    "Romance": 1379, "Crime": 1328, "Horror": 1076, "Science Fiction": 1008, "Fantasy": 980,
+    "Family": 917, "Animation": 842, "Mystery": 725, "History": 440, "War": 321,
+    "Music": 278, "Documentary": 214, "Western": 157, "TV Movie": 146
+  },
+  "dropped": [
+    { "keyword": "romance", "count": 100, "duplicates_genre": "Romance" },
+    { "keyword": "romantic", "count": 100, "duplicates_genre": "Romance" },
+    { "keyword": "horror", "count": 35, "duplicates_genre": "Horror" },
+    { "keyword": "war", "count": 34, "duplicates_genre": "War", "note": "was on the drag board (Conflict); removed" },
+    { "keyword": "adventure", "count": 32, "duplicates_genre": "Adventure" },
+    { "keyword": "historical", "count": 19, "duplicates_genre": "History" },
+    { "keyword": "fantasy", "count": 17, "duplicates_genre": "Fantasy" },
+    { "keyword": "mystery", "count": 17, "duplicates_genre": "Mystery" },
+    { "keyword": "comedy", "count": 13, "duplicates_genre": "Comedy" },
+    { "keyword": "music", "count": 13, "duplicates_genre": "Music" },
+    { "keyword": "animation", "count": 9, "duplicates_genre": "Animation" },
+    { "keyword": "action", "count": 8, "duplicates_genre": "Action" },
+    { "keyword": "science fiction", "count": 8, "duplicates_genre": "Science Fiction" },
+    { "keyword": "crime", "count": 5, "duplicates_genre": "Crime" },
+    { "keyword": "thriller", "count": 5, "duplicates_genre": "Thriller" },
+    { "keyword": "documentary", "count": 5, "duplicates_genre": "Documentary" },
+    { "keyword": "western", "count": 4, "duplicates_genre": "Western" }
+  ],
+  "kept": [
+    { "keyword": "biography", "count": 253, "reason": "Based-on source type, not the History genre", "home": "Source · Based on" },
+    { "keyword": "superhero", "count": 228, "reason": "sub-genre, no matching genre field", "home": "Fantasy & Sci-Fi" },
+    { "keyword": "musical", "count": 208, "reason": "format; there is no Musical genre (only Music)", "home": "Genre & Style · Format" },
+    { "keyword": "family", "count": 179, "reason": "family-relationships theme; distinct from the all-ages Family genre", "home": "Love & Relationships" },
+    { "keyword": "spy", "count": 116, "reason": "People canonical; no Spy genre", "home": "People · Spy/Law" },
+    { "keyword": "slasher", "count": 114, "reason": "sub-genre, no matching genre field", "home": "Genre & Style · Sub-genre" },
+    { "keyword": "disaster", "count": 45, "reason": "sub-genre, no matching genre field", "home": "Genre & Style · Sub-genre (loose)" }
+  ],
+  "folds": [
+    { "canonical": "biography", "members": ["biopic"], "note": "biopic (4) folds into the biography Based-on tag" }
+  ]
+}

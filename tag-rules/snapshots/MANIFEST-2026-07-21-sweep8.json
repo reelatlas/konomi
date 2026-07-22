@@ -1,0 +1,52 @@
+{
+  "checkpoint": "2026-07-21 sweep-8 (Tone/Emotion/Death fully bucketed)",
+  "sha256_12": "868d8a6590bb",
+  "canonicals": 885,
+  "aliases": 3455,
+  "unassigned": 332,
+  "sections": {
+    "Creatures": 22,
+    "Crime & Justice": 37,
+    "Fantasy & Sci-Fi": 54,
+    "History & Conflict": 41,
+    "Intelligence & Espionage": 24,
+    "Military & Forces": 16,
+    "People \u00b7 Authority": 3,
+    "People \u00b7 Roles": 9,
+    "Politics & Power": 38,
+    "Setting \u00b7 Period": 40,
+    "Setting \u00b7 Place": 158,
+    "Society & Identity": 68,
+    "Source \u00b7 Based on": 15,
+    "Sub-genre & Style": 42,
+    "Character Disposition": 19,
+    "Tone": 22,
+    "Love & Relationships": 50,
+    "UNHOMED \u2014 home deferred": 1,
+    "People \u00b7 Professions": 62,
+    "People \u00b7 Archetypes": 36,
+    "Format": 14,
+    "Franchise": 5,
+    "Activities & Pursuits": 27,
+    "Setting \u00b7 Location": 68,
+    "Thematic Anchor": 9,
+    "Subject & Event": 5
+  },
+  "sweeps": [
+    "love-people",
+    "based-on/format/franchise",
+    "place-geography",
+    "setting-location",
+    "activities",
+    "tone-bucket-1",
+    "tone-bucket-2",
+    "tone-bucket-4",
+    "tone-bucket-5"
+  ],
+  "artifacts": {
+    "drag_board": "cc16cb4a-8fa8-49d7-baa4-9245c84d46b9",
+    "bucket_view": "15f8e86f-1a93-4073-a816-96f8b3117a19",
+    "raw_inventory": "7b6193b0-9dd8-4250-b5d2-d7ed910ee1bc"
+  },
+  "restore": "cp tag-rules/snapshots/master-2026-07-21-sweep8-checkpoint.json tag-rules/master.json"
+}

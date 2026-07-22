@@ -1,0 +1,780 @@
+{
+  "section": "Love & Relationships",
+  "swept": "2026-07-21",
+  "floor": ">=3",
+  "sweep": "love-people",
+  "summary": {
+    "canonicals": 50,
+    "aliases": 408,
+    "boxes": 10,
+    "note": "Ten navigation boxes: falling in love, dating, marriage, divorce, infidelity, sex, relationship shapes, parents & children, extended family, friendship."
+  },
+  "decisions": [
+    "TMDB dyads (\"father son relationship\") were NOT kept as separate tags — all four parent-child dyads rolled into `parent & child`; brothers/sisters/twins rolled into `siblings`.",
+    "`husband wife relationship` (168) folded into `marriage` — same concept in dyad form.",
+    "Gender-qualifier variants fold into their base canonical (`female lover`→lovers, `male friendship`→friendship). Applied sweep-wide.",
+    "`ex-partner` is a new canonical invented here: TMDB scattered the same idea across seven ex-* keywords in three boxes.",
+    "Sub-genre labels (romantic drama/thriller, sex comedy, erotic thriller, teen movie family) were NOT folded — they are the fine layer and belong with `romcom` in Sub-genre & Style.",
+    "`betrayal` is banked with its section deliberately UNHOMED — it drives crime/war/spy films as much as love."
+  ],
+  "canonicals": [
+    {
+      "canonical": "friendship",
+      "section": "Love & Relationships",
+      "count": 587,
+      "members": [
+        "friendship",
+        "friends",
+        "best friend",
+        "male friendship",
+        "female friendship",
+        "group of friends",
+        "unlikely friendship",
+        "best friends",
+        "old friends",
+        "high school friends",
+        "college friends",
+        "death of best friend",
+        "reunited friends",
+        "male bonding",
+        "male female friendship",
+        "former best friend",
+        "friendship bracelet",
+        "childhood friends",
+        "bromance",
+        "platonic love",
+        "male camaraderie"
+      ]
+    },
+    {
+      "canonical": "parent & child",
+      "section": "Love & Relationships",
+      "count": 566,
+      "members": [
+        "parent child relationship",
+        "parenting",
+        "parenthood",
+        "parents",
+        "dead parents",
+        "death of parents",
+        "disapproving parent",
+        "grieving parents",
+        "death of parent",
+        "missing parent",
+        "overprotective parent",
+        "father daughter relationship",
+        "father daughter conflict",
+        "father daughter reunion",
+        "father and daughter",
+        "father son relationship",
+        "father son conflict",
+        "father son reunion",
+        "mother daughter relationship",
+        "mother daughter reunion",
+        "mother and daughter",
+        "mother son relationship"
+      ]
+    },
+    {
+      "canonical": "love",
+      "section": "Love & Relationships",
+      "count": 413,
+      "members": [
+        "love",
+        "falling in love",
+        "love of one's life",
+        "new love",
+        "true love",
+        "love story",
+        "passion and romance",
+        "power of love",
+        "lost love",
+        "searching for love",
+        "unfulfilled love",
+        "love letter"
+      ]
+    },
+    {
+      "canonical": "siblings",
+      "section": "Love & Relationships",
+      "count": 411,
+      "members": [
+        "sibling relationship",
+        "brother sister relationship",
+        "sibling rivalry",
+        "brother sister",
+        "sibling",
+        "half-brother",
+        "brother and sister",
+        "half sister",
+        "long lost sibling",
+        "favorite sibling",
+        "brother",
+        "brothers",
+        "brother brother relationship",
+        "brotherhood",
+        "death of brother",
+        "brother against brother",
+        "sister",
+        "sisters",
+        "sister sister relationship",
+        "death of sister",
+        "sisterhood",
+        "four sisters",
+        "twins",
+        "twin brother",
+        "twin sister",
+        "conjoined twins",
+        "identical twin",
+        "stepsister",
+        "stepbrother"
+      ]
+    },
+    {
+      "canonical": "marriage",
+      "section": "Love & Relationships",
+      "count": 371,
+      "members": [
+        "marriage",
+        "husband wife relationship",
+        "married couple",
+        "wife",
+        "husband",
+        "married woman",
+        "married man",
+        "just married",
+        "long-married couple",
+        "marriage crisis",
+        "unhappy marriage",
+        "dysfunctional marriage",
+        "troubled marriage",
+        "failing marriage",
+        "marriage problems",
+        "sexless marriage",
+        "husband wife estrangement",
+        "estranged wife",
+        "marriage counselling",
+        "arranged marriage",
+        "marriage of convenience",
+        "remarriage",
+        "comedy of remarriage"
+      ]
+    },
+    {
+      "canonical": "infidelity",
+      "section": "Love & Relationships",
+      "count": 253,
+      "members": [
+        "infidelity",
+        "adultery",
+        "extramarital affair",
+        "mistress",
+        "affair",
+        "suspicion of adultery",
+        "adulterous wife",
+        "unfaithful wife",
+        "deceived husband",
+        "cheating husband",
+        "cuckolded husband",
+        "scheming wife",
+        "unfaithful boyfriend",
+        "love affair"
+      ]
+    },
+    {
+      "canonical": "family",
+      "section": "Love & Relationships",
+      "count": 194,
+      "members": [
+        "family relationships",
+        "family vacation",
+        "family holiday",
+        "family's daily life",
+        "big family",
+        "family man",
+        "family dinner",
+        "family life",
+        "family dynamics",
+        "family gathering",
+        "large family",
+        "family clan",
+        "blended family",
+        "reunion",
+        "family reunion",
+        "found family",
+        "family business"
+      ]
+    },
+    {
+      "canonical": "mother",
+      "section": "Love & Relationships",
+      "count": 171,
+      "members": [
+        "mother",
+        "single mother",
+        "death of mother",
+        "motherhood",
+        "abusive mother",
+        "overbearing mother",
+        "dead mother",
+        "loss of mother",
+        "mother role",
+        "domineering mother",
+        "expectant mother",
+        "sick mother",
+        "stepmother",
+        "evil stepmother",
+        "motherly love"
+      ]
+    },
+    {
+      "canonical": "father",
+      "section": "Love & Relationships",
+      "count": 170,
+      "members": [
+        "father",
+        "single father",
+        "death of father",
+        "father figure",
+        "abusive father",
+        "protective father",
+        "adoptive father",
+        "dead father",
+        "absent father",
+        "unknown father",
+        "grieving father",
+        "avenging father",
+        "overbearing father",
+        "overprotective father",
+        "stepfather",
+        "abusive stepfather",
+        "fatherhood"
+      ]
+    },
+    {
+      "canonical": "wedding",
+      "section": "Love & Relationships",
+      "count": 154,
+      "members": [
+        "wedding",
+        "honeymoon",
+        "bride",
+        "newlywed",
+        "imminent wedding",
+        "wedding reception",
+        "wedding ceremony",
+        "wedding party",
+        "wedding dress",
+        "wedding planner",
+        "destination wedding",
+        "wedding vows",
+        "wedding ring",
+        "bridegroom",
+        "vegas wedding",
+        "daughter's wedding",
+        "bridesmaid",
+        "bride and groom",
+        "maid of honor",
+        "best man"
+      ]
+    },
+    {
+      "canonical": "widow",
+      "section": "Love & Relationships",
+      "count": 122,
+      "members": [
+        "widow",
+        "widower",
+        "grieving widower",
+        "widower with daughter",
+        "death of husband",
+        "death of wife",
+        "loss of wife"
+      ]
+    },
+    {
+      "canonical": "eroticism",
+      "section": "Love & Relationships",
+      "count": 121,
+      "members": [
+        "eroticism",
+        "erotic movie",
+        "kiss",
+        "first kiss",
+        "sex",
+        "group sex",
+        "casual sex",
+        "sexual awakening",
+        "homoeroticism",
+        "sex shop",
+        "sex tape",
+        "blow job",
+        "male masturbation"
+      ]
+    },
+    {
+      "canonical": "dysfunctional family",
+      "section": "Love & Relationships",
+      "count": 109,
+      "members": [
+        "dysfunctional family",
+        "family conflict",
+        "family feud",
+        "broken family",
+        "family issues",
+        "family disapproval",
+        "family abandonment",
+        "eccentric family",
+        "family tragedy",
+        "family under threat",
+        "threat to family"
+      ]
+    },
+    {
+      "canonical": "pregnancy",
+      "section": "Love & Relationships",
+      "count": 109,
+      "members": [
+        "pregnancy",
+        "pregnant woman",
+        "pregnant wife",
+        "teenage pregnancy",
+        "unwillingly pregnant",
+        "unwanted pregnancy",
+        "death in childbirth",
+        "unplanned pregnancy",
+        "desire to have children"
+      ]
+    },
+    {
+      "canonical": "jealousy",
+      "section": "Love & Relationships",
+      "count": 105,
+      "members": [
+        "jealousy",
+        "jealous husband"
+      ]
+    },
+    {
+      "canonical": "divorce",
+      "section": "Love & Relationships",
+      "count": 104,
+      "members": [
+        "divorce",
+        "divorcee",
+        "divorced parents",
+        "divorced couple",
+        "divorced",
+        "divorced father",
+        "divorced man",
+        "divorced woman",
+        "marital separation",
+        "separation"
+      ]
+    },
+    {
+      "canonical": "first love",
+      "section": "Love & Relationships",
+      "count": 101,
+      "members": [
+        "first love",
+        "teenage crush",
+        "teenage romance",
+        "young love",
+        "teenage love",
+        "crush",
+        "childhood crush"
+      ]
+    },
+    {
+      "canonical": "daughter",
+      "section": "Love & Relationships",
+      "count": 100,
+      "members": [
+        "daughter",
+        "teenage daughter",
+        "rebellious daughter"
+      ]
+    },
+    {
+      "canonical": "dating",
+      "section": "Love & Relationships",
+      "count": 88,
+      "members": [
+        "dating",
+        "online dating",
+        "blind date",
+        "first date",
+        "dating woes",
+        "courtship",
+        "boyfriend girlfriend relationship",
+        "girlfriend",
+        "devoted girlfriend"
+      ]
+    },
+    {
+      "canonical": "love triangle",
+      "section": "Love & Relationships",
+      "count": 87,
+      "members": [
+        "love triangle",
+        "romantic rivalry",
+        "romantic triangle",
+        "friends love same woman",
+        "woman between two men",
+        "man between two women"
+      ]
+    },
+    {
+      "canonical": "forbidden love",
+      "section": "Love & Relationships",
+      "count": 87,
+      "members": [
+        "forbidden love",
+        "secret love",
+        "in love with enemy",
+        "impossible love",
+        "star crossed lovers"
+      ]
+    },
+    {
+      "canonical": "ex-partner",
+      "section": "Love & Relationships",
+      "count": 83,
+      "members": [
+        "ex-girlfriend",
+        "ex-boyfriend",
+        "ex-boyfriend ex-girlfriend relationship",
+        "ex-husband ex-wife relationship",
+        "ex-wife",
+        "ex husband",
+        "ex-lover"
+      ]
+    },
+    {
+      "canonical": "neighbor",
+      "section": "Love & Relationships",
+      "count": 78,
+      "members": [
+        "neighbor",
+        "new neighbor",
+        "next door neighbor",
+        "creepy neighbor",
+        "nosy neighbor",
+        "neighbor feud",
+        "neighbor neighbor relationship"
+      ]
+    },
+    {
+      "canonical": "rivalry",
+      "section": "Love & Relationships",
+      "count": 74,
+      "members": [
+        "rivalry",
+        "business rivalry",
+        "high school rivalry",
+        "rivals"
+      ]
+    },
+    {
+      "canonical": "lovers",
+      "section": "Love & Relationships",
+      "count": 63,
+      "members": [
+        "lovers",
+        "lover",
+        "female lover",
+        "young lovers",
+        "enemies to lovers"
+      ]
+    },
+    {
+      "canonical": "age-gap relationship",
+      "section": "Love & Relationships",
+      "count": 60,
+      "members": [
+        "older man younger woman relationship",
+        "older woman younger man relationship",
+        "age-gap relationship",
+        "older woman younger woman relationship",
+        "older husband",
+        "older woman seduces younger guy"
+      ]
+    },
+    {
+      "canonical": "engagement",
+      "section": "Love & Relationships",
+      "count": 54,
+      "members": [
+        "engagement",
+        "broken engagement",
+        "marriage engagement",
+        "fiancé fiancée relationship",
+        "engaged couple",
+        "engaged woman",
+        "marriage proposal"
+      ]
+    },
+    {
+      "canonical": "child in peril",
+      "section": "Love & Relationships",
+      "count": 52,
+      "members": [
+        "missing child",
+        "child in peril",
+        "children in danger",
+        "missing daughter",
+        "lost child",
+        "child rescue",
+        "search for child",
+        "missing children",
+        "missing son",
+        "abandoned child"
+      ]
+    },
+    {
+      "canonical": "desire",
+      "section": "Love & Relationships",
+      "count": 51,
+      "members": [
+        "lust",
+        "desire",
+        "sexual desire",
+        "sexual frustration",
+        "sexual attraction",
+        "sexual tension",
+        "man of one's dreams"
+      ]
+    },
+    {
+      "canonical": "grandparent",
+      "section": "Love & Relationships",
+      "count": 51,
+      "members": [
+        "grandparent grandchild relationship",
+        "grandmother",
+        "grandfather",
+        "grandmother grandson relationship",
+        "grandfather grandson relationship",
+        "grandmother granddaughter relationship",
+        "grandparents"
+      ]
+    },
+    {
+      "canonical": "uncle & aunt",
+      "section": "Love & Relationships",
+      "count": 49,
+      "members": [
+        "uncle",
+        "uncle nephew relationship",
+        "uncle niece relationship",
+        "aunt",
+        "aunt niece relationship",
+        "niece"
+      ]
+    },
+    {
+      "canonical": "seduction",
+      "section": "Love & Relationships",
+      "count": 45,
+      "members": [
+        "seduction",
+        "flirt",
+        "flirting"
+      ]
+    },
+    {
+      "canonical": "troubled relationship",
+      "section": "Love & Relationships",
+      "count": 43,
+      "members": [
+        "relationship problems",
+        "toxic relationship",
+        "dysfunctional relationship",
+        "relationship sabotage",
+        "abusive relationship",
+        "complex relationship"
+      ]
+    },
+    {
+      "canonical": "human–animal bond",
+      "section": "Love & Relationships",
+      "count": 39,
+      "members": [
+        "human animal relationship",
+        "animal human friendship",
+        "boy and dog"
+      ]
+    },
+    {
+      "canonical": "couple",
+      "section": "Love & Relationships",
+      "count": 37,
+      "members": [
+        "couple",
+        "young couple",
+        "elderly couple",
+        "crook couple",
+        "runaway couple",
+        "odd couple"
+      ]
+    },
+    {
+      "canonical": "break-up",
+      "section": "Love & Relationships",
+      "count": 35,
+      "members": [
+        "break-up",
+        "heartbreak"
+      ]
+    },
+    {
+      "canonical": "child prodigy",
+      "section": "Love & Relationships",
+      "count": 35,
+      "members": [
+        "child prodigy",
+        "precocious child",
+        "boy genius",
+        "math genius"
+      ]
+    },
+    {
+      "canonical": "evil child",
+      "section": "Love & Relationships",
+      "count": 34,
+      "members": [
+        "evil child",
+        "ghost child",
+        "child vampire",
+        "feral child",
+        "evil little girl"
+      ]
+    },
+    {
+      "canonical": "death of a child",
+      "section": "Love & Relationships",
+      "count": 33,
+      "members": [
+        "death of a child",
+        "death of daughter",
+        "loss of child",
+        "death of son",
+        "dead children",
+        "loss of son"
+      ]
+    },
+    {
+      "canonical": "family secrets",
+      "section": "Love & Relationships",
+      "count": 32,
+      "members": [
+        "family secrets",
+        "family history",
+        "family legacy"
+      ]
+    },
+    {
+      "canonical": "family estrangement",
+      "section": "Love & Relationships",
+      "count": 29,
+      "members": [
+        "estranged father",
+        "estranged son",
+        "estranged daughter",
+        "estranged sister",
+        "mother daughter estrangement",
+        "father daughter estrangement"
+      ]
+    },
+    {
+      "canonical": "unrequited love",
+      "section": "Love & Relationships",
+      "count": 27,
+      "members": [
+        "unrequited love",
+        "one-sided love"
+      ]
+    },
+    {
+      "canonical": "love at first sight",
+      "section": "Love & Relationships",
+      "count": 26,
+      "members": [
+        "love at first sight",
+        "whirlwind romance"
+      ]
+    },
+    {
+      "canonical": "in-laws",
+      "section": "Love & Relationships",
+      "count": 26,
+      "members": [
+        "father-in-law",
+        "brother-in-law",
+        "parents-in-law",
+        "mother-in-law",
+        "parent-in-law child-in-law relationship"
+      ]
+    },
+    {
+      "canonical": "son",
+      "section": "Love & Relationships",
+      "count": 21,
+      "members": [
+        "son",
+        "illegitimate son",
+        "devil's son",
+        "adopted son"
+      ]
+    },
+    {
+      "canonical": "mischievous child",
+      "section": "Love & Relationships",
+      "count": 18,
+      "members": [
+        "mischievous child",
+        "spoiled child",
+        "mischievous children",
+        "child outsmarts adult"
+      ]
+    },
+    {
+      "canonical": "tragic love",
+      "section": "Love & Relationships",
+      "count": 17,
+      "members": [
+        "tragic love",
+        "tragic romance"
+      ]
+    },
+    {
+      "canonical": "child custody",
+      "section": "Love & Relationships",
+      "count": 15,
+      "members": [
+        "child custody",
+        "adopted child"
+      ]
+    },
+    {
+      "canonical": "obsessive love",
+      "section": "Love & Relationships",
+      "count": 13,
+      "members": [
+        "obsessive love",
+        "dark romance",
+        "obsessed with a man"
+      ]
+    },
+    {
+      "canonical": "cousin",
+      "section": "Love & Relationships",
+      "count": 13,
+      "members": [
+        "cousin",
+        "cousin relationship"
+      ]
+    }
+  ]
+}
