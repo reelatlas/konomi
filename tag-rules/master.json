@@ -100,36 +100,19 @@
    "pillar": "Feel"
   },
   {
-   "canonical": "insanity",
+   "canonical": "arrogant",
    "section": "Disposition",
-   "count": 132,
+   "count": 137,
    "members": [
-    "insanity",
-    "madness",
-    "psychosis",
-    "delusion",
-    "psychotic",
-    "maniac",
-    "madman",
-    "lunatic",
-    "descent into madness",
-    "psychological disintegration",
-    "crazy"
-   ],
-   "pillar": "Feel"
-  },
-  {
-   "canonical": "paranoia",
-   "section": "Disposition",
-   "count": 125,
-   "members": [
-    "paranoia",
-    "paranoid",
-    "suspicion",
-    "suspicious",
-    "distrust",
-    "mass hysteria",
-    "town in panic"
+    "arrogant",
+    "arrogance",
+    "conceited",
+    "egotistical",
+    "narcissism",
+    "pride",
+    "snob",
+    "pretentious",
+    "affectation"
    ],
    "pillar": "Feel"
   },
@@ -182,30 +165,16 @@
    "pillar": "Feel"
   },
   {
-   "canonical": "baffled",
-   "section": "Disposition",
-   "count": 110,
-   "members": [
-    "baffled",
-    "bewildered",
-    "confusion",
-    "misunderstanding",
-    "incredulous"
-   ],
-   "pillar": "Feel"
-  },
-  {
    "canonical": "apathetic",
    "section": "Disposition",
-   "count": 105,
+   "count": 83,
    "members": [
     "apathetic",
     "indifferent",
     "detached",
     "impartial",
     "callous",
-    "mean spirited",
-    "unsociability"
+    "mean spirited"
    ],
    "pillar": "Feel"
   },
@@ -235,22 +204,6 @@
     "understated",
     "serious",
     "human dignity"
-   ],
-   "pillar": "Feel"
-  },
-  {
-   "canonical": "arrogant",
-   "section": "Disposition",
-   "count": 69,
-   "members": [
-    "arrogant",
-    "arrogance",
-    "conceited",
-    "egotistical",
-    "narcissism",
-    "pride",
-    "snob",
-    "pretentious"
    ],
    "pillar": "Feel"
   },
@@ -507,19 +460,6 @@
    "pillar": "Feel"
   },
   {
-   "canonical": "cliché",
-   "pillar": "Feel",
-   "section": "Mood",
-   "count": 163,
-   "members": [
-    "cliché",
-    "familiar",
-    "affectation",
-    "stereotype"
-   ],
-   "note": "user 2026-07-23: affectation placed here — may not be the best placement but okay for now"
-  },
-  {
    "canonical": "shocking",
    "section": "Mood",
    "count": 151,
@@ -669,6 +609,19 @@
    ]
   },
   {
+   "canonical": "baffled",
+   "section": "Mood",
+   "count": 110,
+   "members": [
+    "baffled",
+    "bewildered",
+    "confusion",
+    "misunderstanding",
+    "incredulous"
+   ],
+   "pillar": "Feel"
+  },
+  {
    "canonical": "contemplative",
    "pillar": "Feel",
    "section": "Mood",
@@ -681,6 +634,17 @@
     "slow burn",
     "mature",
     "reflection"
+   ]
+  },
+  {
+   "canonical": "cliché",
+   "pillar": "Feel",
+   "section": "Mood",
+   "count": 101,
+   "members": [
+    "cliché",
+    "familiar",
+    "stereotype"
    ]
   },
   {
@@ -6037,6 +6001,21 @@
    "pillar": "Story"
   },
   {
+   "canonical": "loner",
+   "section": "Characters",
+   "count": 62,
+   "members": [
+    "loner",
+    "misfit",
+    "outsider",
+    "lone wolf",
+    "hermit",
+    "spinster",
+    "unsociability"
+   ],
+   "pillar": "Story"
+  },
+  {
    "canonical": "con artist",
    "section": "Characters",
    "count": 59,
@@ -6253,20 +6232,6 @@
     "invention",
     "inventor",
     "gadget"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "loner",
-   "section": "Characters",
-   "count": 39,
-   "members": [
-    "loner",
-    "misfit",
-    "outsider",
-    "lone wolf",
-    "hermit",
-    "spinster"
    ],
    "pillar": "Story"
   },
@@ -10030,6 +9995,26 @@
    "pillar": "Story"
   },
   {
+   "canonical": "insanity",
+   "section": "Mind & Health",
+   "count": 132,
+   "members": [
+    "insanity",
+    "madness",
+    "psychosis",
+    "delusion",
+    "psychotic",
+    "maniac",
+    "madman",
+    "lunatic",
+    "descent into madness",
+    "psychological disintegration",
+    "crazy"
+   ],
+   "pillar": "Story",
+   "note": "shifted Feel/Disposition -> Mind & Health (rethink wave 2, user): a psychological state — content, not stance"
+  },
+  {
    "canonical": "alcoholism",
    "section": "Mind & Health",
    "count": 130,
@@ -10043,6 +10028,22 @@
     "drunkard"
    ],
    "pillar": "Story"
+  },
+  {
+   "canonical": "paranoia",
+   "section": "Mind & Health",
+   "count": 125,
+   "members": [
+    "paranoia",
+    "paranoid",
+    "suspicion",
+    "suspicious",
+    "distrust",
+    "mass hysteria",
+    "town in panic"
+   ],
+   "pillar": "Story",
+   "note": "shifted Feel/Disposition -> Mind & Health (rethink wave 2, user): a psychological state — content, not stance"
   },
   {
    "canonical": "virus",
@@ -16894,6 +16895,11 @@
    "name": "rethink-wave-1-banked",
    "date": "2026-07-24",
    "note": "COMPREHENSIVE RETHINK wave 1 BANKED (user rulings, all 5): R1 school SPLIT -> NEW college (14kw) + NEW high school (18kw) in Setting/Locations; ALL ambiguous words (dormitory, scholarship, athletic scholarship, graduation, exam, classroom, music/dance/ballet school, school shooting) stay in school per user. R2 athlete DISSOLVED (athlete->sports, basketball player->basketball, baseball player->baseball) + motorsport+formula one->racing + driving range->golf; sports stays the umbrella for generics + micro-sports. R3 career DISSOLVED into workplace, then workplace RENAMED worklife (custom label, user) — one work-world home. R4 activism RENAMED protest (members unchanged). R5 NEW SECTION Style & Format/Narrative Devices — 11 device tags moved out of Sub-genres & Styles (flashback, found footage, pov, meta, breaking the fourth wall, film in film, nonlinear, multiple storylines, plot twist, real time, storytelling); maybes (anthology, horror anthology, anthropomorphic, mockumentary) stay in Sub-genres per user. METHOD FOR REMAINING RETHINK (user): GROUP-AT-A-TIME x FULL-LINEUP — take one group, scan it against the entire master for shifts/merges/creations/dissolutions (big groups in parts), PLUS the NAMING-GRAIN lens: per group note the dominant part-of-speech/suffix pattern (-ism/-ty/noun/adjective/verb) and propose gentle alignment renames — never forced, no over-correction."
+  },
+  {
+   "name": "rethink-wave-2-feel-banked",
+   "date": "2026-07-24",
+   "note": "RETHINK WAVE 2 (Feel, 56 tags) BANKED per user: SHIFTS insanity 132f + paranoia 125f Feel/Disposition -> Story/Mind & Health (psychological states = content not stance; naming grain agreed — the 2 noun outliers in an adjective section) · baffled 110f Disposition -> Mood (felt reaction). STRING MOVES: affectation cliché -> arrogant (pretentious/conceited family; clears the 2026-07-23 note) · unsociability apathetic -> loner. RULED KEEP: hostile/aggressive stay separate (cold menace vs hot anger) · envy stays in bitter · nihilism stays in hopeless · cliché label unchanged. Group verdict: Mood/Disposition split HOLDS (weather vs stance). Grain after wave: Mood 35/36 adjective (cliché the accepted exception), Disposition 15/15. Feel now 34 Mood + 15 Disposition."
   }
  ],
  "unassigned": [],
