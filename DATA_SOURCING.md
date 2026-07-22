@@ -828,14 +828,27 @@ COMPREHENSIVE RETHINK — the user's "deep dive": full-master
 re-org analysis, rethink groupings, break-outs under new names, best-fit check on every
 assignment. **WAVES 2–3 ✅ BANKED: Feel (insanity+paranoia→Mind & Health, baffled→Mood,
 affectation→arrogant, unsociability→loner; Mood/Disposition split holds, grain adjective-true).
-Setting COMPLETE (Era 29 · NEW Seasons & Holidays 11 · NEW Regions 23 broad incl. arctic · Place
-132 pure political units · Locations 85 · NEW Vehicles 12 — vehicles rule re-evaluated and made
-explicit; washington plain label; britain→england; dynasty→legacy; vacation→Pursuits
-+weekend getaway; city life→slice of life). WAVE 4 ⏳ AWAITING RULINGS (c3f4e8e9
-`rethink-wave-4-abstract-trio`): Themes+M&H+I&S — military life→War & Conflict · government
-secrets→conspiracy · deception→dishonesty · teenage rebellion→juvenile delinquent · witch
-hunt + beauty keep-defaults. REMAINING WAVES: Characters (157, parts) · Events & Actions 73 +
-War & Conflict 43 · F&I 65 + R&F 58 · Pursuits 50 + A&N 40 + O&W 24 · Style & Format (216).**
+Setting COMPLETE — 7 sections w/ one-line grains: Era 29=periods · Seasons & Holidays 11=time
+of year · Regions 22=named areas · Place=political units (türkiye renamed per user) · NEW
+Natural World 18=nature+cosmos (incl. countryside/space/planet/arctic; Option A, user) ·
+Locations=built places · Vehicles 12=vessels. WAVE 4 ✅ (abstract trio): military life→W&C ·
+government secrets→conspiracy · deception→dishonesty 129f · teenage rebellion→juvenile
+delinquent. WAVE 5 ✅ (Events+War): slavery/colonialism/apartheid→I&S · coup d'etat→W&C ·
+national history→Themes · 32 micro-dissolves (named revolutions→revolution 58f ·
+revolt/insurgence/uprising→rebellion 51f · around-war→wartime · war toll→warfare 84f · spy-op
+dust→undercover/espionage/surveillance/fbi · bribery→corruption · counterfeit money→fraud);
+W&C now ~24 strong. WAVE 6 ✅ (Characters 157, healthiest giant): unemployment→worklife 234f ·
+labor union→F&I · female empowerment→I&S · roommates→R&F · federal-agent dust→spy 243f + fbi ·
+7 micro-people folds (roman→historic empire etc). WAVE 6B ✅: police DIVIDED (NEW buddy cop
+45f Sub-genres · NEW sheriff 80f lawman shelf · police state→dystopia · police keeps 456f) ·
+HISTORIC-FIGURE RULE: figures fold to their most specific WORLD shelf; ancient/imperial =
+historic empire 112f (pharaoh, cleopatra, napoleon bonaparte, sparta greece + floor-waived
+caesar/genghis khan/alexander/marie antoinette); billy the kid+jesse james→american west ·
+mozart→musician. WAVE 7 ⏳ AWAITING RULINGS (c3f4e8e9 `rethink-wave-7`): F&I 66 + R&F 59 —
+genius→Characters (person in R&F!) · evil/mischievous child→Characters · pornography→F&I ⚑ ·
+-ism dust 10 folds · government/secret-org 4 folds · military→army ⚑ · scotland
+yard+interpol→police ⚑ · atheism→religion ⚑ · empire→historic empire ⚑. REMAINING: Pursuits
+50 + A&N 40 + O&W 24 · Style & Format (~216).**
 **WAVE 1 ✅ BANKED (2026-07-24, sweeps `rethink-wave-1-banked`): school SPLIT →
 college 100f + high school 203f (ambiguous words stay in school 196f per user) · athlete
 DISSOLVED (players→their sports; motorsport+f1→racing; driving range→golf) · career DISSOLVED
