@@ -3175,14 +3175,15 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "turkey",
+   "canonical": "türkiye",
    "section": "Place",
    "count": 10,
    "members": [
     "istanbul, turkey",
     "turkey"
    ],
-   "pillar": "Setting"
+   "pillar": "Setting",
+   "note": "label modernized to proper naming per user 2026-07-24; corpus strings (turkey, istanbul...) unchanged"
   },
   {
    "canonical": "north carolina",
@@ -6320,6 +6321,18 @@
    ]
   },
   {
+   "canonical": "juvenile delinquent",
+   "pillar": "Story",
+   "section": "Characters",
+   "count": 32,
+   "members": [
+    "juvenile delinquent",
+    "delinquency",
+    "delinquent",
+    "teenage rebellion"
+   ]
+  },
+  {
    "canonical": "boxer",
    "section": "Characters",
    "count": 31,
@@ -6445,17 +6458,6 @@
     "free love",
     "commune",
     "bohemian"
-   ]
-  },
-  {
-   "canonical": "juvenile delinquent",
-   "pillar": "Story",
-   "section": "Characters",
-   "count": 28,
-   "members": [
-    "juvenile delinquent",
-    "delinquency",
-    "delinquent"
    ]
   },
   {
@@ -12714,6 +12716,23 @@
    "pillar": "Story"
   },
   {
+   "canonical": "dishonesty",
+   "pillar": "Story",
+   "section": "Themes",
+   "count": 129,
+   "members": [
+    "lie",
+    "liar",
+    "lying",
+    "lies",
+    "dishonesty",
+    "cheating",
+    "truth",
+    "deception",
+    "deceit"
+   ]
+  },
+  {
    "canonical": "isolation",
    "section": "Themes",
    "count": 125,
@@ -12734,13 +12753,14 @@
   {
    "canonical": "conspiracy",
    "section": "Themes",
-   "count": 113,
+   "count": 114,
    "members": [
     "conspiracy",
     "government conspiracy",
     "government cover-up",
     "conspiracy theory",
-    "cover-up"
+    "cover-up",
+    "government secrets"
    ],
    "pillar": "Story"
   },
@@ -12796,21 +12816,6 @@
     "confession"
    ],
    "pillar": "Story"
-  },
-  {
-   "canonical": "dishonesty",
-   "pillar": "Story",
-   "section": "Themes",
-   "count": 89,
-   "members": [
-    "lie",
-    "liar",
-    "lying",
-    "lies",
-    "dishonesty",
-    "cheating",
-    "truth"
-   ]
   },
   {
    "canonical": "good versus evil",
@@ -13000,39 +13005,6 @@
    "pillar": "Story"
   },
   {
-   "canonical": "military life",
-   "section": "Themes",
-   "count": 47,
-   "members": [
-    "boot camp",
-    "platoon",
-    "army life",
-    "military life",
-    "army training",
-    "military training",
-    "army cadet",
-    "military school",
-    "military court",
-    "military law",
-    "military prison",
-    "military police",
-    "army base",
-    "military service",
-    "military base",
-    "recruit",
-    "court martial",
-    "basic training",
-    "barracks",
-    "west point",
-    "cadet",
-    "draft dodger",
-    "new recruit",
-    "military draft",
-    "ucmj - military law"
-   ],
-   "pillar": "Story"
-  },
-  {
    "canonical": "voyeurism",
    "pillar": "Story",
    "section": "Themes",
@@ -13078,16 +13050,6 @@
     "individuality",
     "autonomy",
     "individual"
-   ]
-  },
-  {
-   "canonical": "deception",
-   "pillar": "Story",
-   "section": "Themes",
-   "count": 42,
-   "members": [
-    "deception",
-    "deceit"
    ]
   },
   {
@@ -13251,26 +13213,6 @@
    "pillar": "Story"
   },
   {
-   "canonical": "teenage rebellion",
-   "section": "Themes",
-   "count": 4,
-   "members": [
-    "teenage rebellion"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "government secrets",
-   "section": "Themes",
-   "count": 3,
-   "members": [
-    "government secrets"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
    "canonical": "nazi",
    "section": "War & Conflict",
    "count": 115,
@@ -13377,6 +13319,40 @@
     "confederate"
    ],
    "pillar": "Story"
+  },
+  {
+   "canonical": "military life",
+   "section": "War & Conflict",
+   "count": 47,
+   "members": [
+    "boot camp",
+    "platoon",
+    "army life",
+    "military life",
+    "army training",
+    "military training",
+    "army cadet",
+    "military school",
+    "military court",
+    "military law",
+    "military prison",
+    "military police",
+    "army base",
+    "military service",
+    "military base",
+    "recruit",
+    "court martial",
+    "basic training",
+    "barracks",
+    "west point",
+    "cadet",
+    "draft dodger",
+    "new recruit",
+    "military draft",
+    "ucmj - military law"
+   ],
+   "pillar": "Story",
+   "note": "shifted Themes -> War & Conflict (rethink wave 4): a world, not a theme"
   },
   {
    "canonical": "slavery",
@@ -16848,6 +16824,11 @@
    "name": "rethink-natural-world-banked",
    "date": "2026-07-24",
    "note": "NEW SECTION Setting/Natural World (user Option A): desert, mountain, jungle, forest, island, sea, ocean, beach, river, lake, swamp, wilderness, cave, waterfall, countryside (user: in), space + planet (user: in — after the split Locations reads human-built, space is not that), arctic (user: moved BACK from Regions — natural-vs-manmade wins). 18 tags. Locations is now coherently the HUMAN-BUILT world (settlements + structures, ~67). Setting grain: Era=periods · Seasons & Holidays=time of year · Regions=named areas · Place=political units · Natural World=nature+cosmos · Locations=built places · Vehicles=vessels. RULED STAY (user confirmed the reasoning): courtroom (justice process, F&I) · theater (performing arts, Pursuits) · heaven/hell/dystopia/fantasy world/alternate reality (Worlds & Lore = the SPECULATIVE setting shelf, two-tier design kept) · nature/storm/forces of nature (A&N = imagery + events, not where-you-are). Moon stays Place (proper noun)."
+  },
+  {
+   "name": "rethink-wave-4-banked",
+   "date": "2026-07-24",
+   "note": "RETHINK WAVE 4 (abstract trio: Themes+Mind & Health+Identity & Society, 127 tags) BANKED per user: military life -> War & Conflict (a world, not a theme) · government secrets DISSOLVED -> conspiracy · deception DISSOLVED -> dishonesty (one lying-register tag; manipulation + betrayal stay distinct) · teenage rebellion DISSOLVED -> juvenile delinquent. RULED KEEP: witch hunt (distinct persecution flavor) · beauty (Themes, aesthetic theme). All three section shapes HOLD; no renames — grain already true (Themes abstract nouns, M&H condition-nouns, I&S identity-nouns; depression/depressing cross-pillar pair correct by design). SETTING AMENDMENT: turkey label RENAMED türkiye (proper naming, user)."
   }
  ],
  "unassigned": [],
