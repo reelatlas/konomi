@@ -822,30 +822,6 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "christmas",
-   "section": "Era",
-   "count": 186,
-   "members": [
-    "christmas",
-    "christmas eve",
-    "christmas party",
-    "christmas tree",
-    "christmas music",
-    "christmas spirit",
-    "christmas special",
-    "christmastime",
-    "saving christmas",
-    "christmas horror",
-    "christmas romance",
-    "santa's elves",
-    "santa claus",
-    "north pole",
-    "sleigh",
-    "cinepanettone"
-   ],
-   "pillar": "Setting"
-  },
-  {
    "canonical": "age of progress",
    "section": "Era",
    "count": 164,
@@ -863,22 +839,6 @@
     "turn of the century"
    ],
    "pillar": "Setting"
-  },
-  {
-   "canonical": "holiday",
-   "pillar": "Setting",
-   "section": "Era",
-   "count": 139,
-   "members": [
-    "holiday",
-    "holiday comedy",
-    "holiday horror",
-    "holiday season",
-    "holidays",
-    "fourth of july",
-    "day of the dead"
-   ],
-   "note": "absorbed the holiday season canonical"
   },
   {
    "canonical": "1980s",
@@ -922,28 +882,9 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "winter",
-   "pillar": "Setting",
-   "section": "Era",
-   "count": 101,
-   "members": [
-    "winter",
-    "snow",
-    "snowstorm",
-    "blizzard",
-    "snowed in",
-    "snowman",
-    "frozen",
-    "ice",
-    "hypothermia",
-    "cold",
-    "hibernation"
-   ]
-  },
-  {
    "canonical": "historic empire",
    "section": "Era",
-   "count": 99,
+   "count": 100,
    "members": [
     "medieval italy",
     "imperial russia",
@@ -965,7 +906,8 @@
     "maya civilization",
     "napoleonic wars",
     "civilization",
-    "orient"
+    "orient",
+    "goryeo dynasty"
    ],
    "pillar": "Setting"
   },
@@ -1005,20 +947,6 @@
     "1950s"
    ],
    "from_board": true,
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "halloween",
-   "section": "Era",
-   "count": 87,
-   "members": [
-    "halloween",
-    "halloween party",
-    "halloween night",
-    "halloween costume",
-    "trick or treating",
-    "pumpkin"
-   ],
    "pillar": "Setting"
   },
   {
@@ -1189,26 +1117,6 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "summer",
-   "pillar": "Setting",
-   "section": "Era",
-   "count": 38,
-   "members": [
-    "summer",
-    "sunlight"
-   ]
-  },
-  {
-   "canonical": "new year's eve",
-   "section": "Era",
-   "count": 33,
-   "members": [
-    "new year's eve",
-    "new year"
-   ],
-   "pillar": "Setting"
-  },
-  {
    "canonical": "renaissance",
    "section": "Era",
    "count": 29,
@@ -1252,16 +1160,6 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "valentine's day",
-   "section": "Era",
-   "count": 20,
-   "members": [
-    "valentine's day"
-   ],
-   "from_board": true,
-   "pillar": "Setting"
-  },
-  {
    "canonical": "2010s",
    "section": "Era",
    "count": 18,
@@ -1281,16 +1179,6 @@
     "23rd century",
     "24th century"
    ],
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "thanksgiving",
-   "section": "Era",
-   "count": 17,
-   "members": [
-    "thanksgiving"
-   ],
-   "from_board": true,
    "pillar": "Setting"
   },
   {
@@ -1317,61 +1205,11 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "spring",
-   "pillar": "Setting",
-   "section": "Era",
-   "count": 11,
-   "members": [
-    "spring",
-    "spring break"
-   ]
-  },
-  {
-   "canonical": "autumn",
-   "pillar": "Setting",
-   "section": "Era",
-   "count": 10,
-   "members": [
-    "autumn",
-    "fall"
-   ]
-  },
-  {
    "canonical": "2020s",
    "section": "Era",
    "count": 8,
    "members": [
     "2020s"
-   ],
-   "from_board": true,
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "easter",
-   "section": "Era",
-   "count": 5,
-   "members": [
-    "easter",
-    "easter bunny"
-   ],
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "feudal lord",
-   "section": "Era",
-   "count": 4,
-   "members": [
-    "feudal lord"
-   ],
-   "from_board": true,
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "dynasty",
-   "section": "Era",
-   "count": 3,
-   "members": [
-    "dynasty"
    ],
    "from_board": true,
    "pillar": "Setting"
@@ -1384,25 +1222,6 @@
     "century"
    ],
    "from_board": true,
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "manchuria",
-   "section": "Era",
-   "count": 2,
-   "members": [
-    "manchuria"
-   ],
-   "from_board": true,
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "korean dynasty",
-   "section": "Era",
-   "count": 1,
-   "members": [
-    "goryeo dynasty"
-   ],
    "pillar": "Setting"
   },
   {
@@ -1599,6 +1418,21 @@
    "pillar": "Setting"
   },
   {
+   "canonical": "small town",
+   "section": "Locations",
+   "count": 155,
+   "members": [
+    "small town",
+    "seaside town",
+    "little town",
+    "old town",
+    "town",
+    "frontier town"
+   ],
+   "from_board": true,
+   "pillar": "Setting"
+  },
+  {
    "canonical": "ship",
    "section": "Locations",
    "count": 133,
@@ -1661,6 +1495,52 @@
     "moor (terrain)",
     "well"
    ]
+  },
+  {
+   "canonical": "island",
+   "section": "Locations",
+   "count": 110,
+   "members": [
+    "island",
+    "exotic island",
+    "tropical island",
+    "deserted island",
+    "isolated island"
+   ],
+   "from_board": true,
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "hotel",
+   "section": "Locations",
+   "count": 109,
+   "members": [
+    "hotel",
+    "hotel room",
+    "luxury hotel",
+    "continental hotel",
+    "resort",
+    "hotel manager",
+    "inn",
+    "guest"
+   ],
+   "from_board": true,
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "forest",
+   "section": "Locations",
+   "count": 108,
+   "members": [
+    "forest",
+    "woods",
+    "lost in the woods",
+    "forest fire",
+    "tree",
+    "woodcutter"
+   ],
+   "from_board": true,
+   "pillar": "Setting"
   },
   {
    "canonical": "airplane",
@@ -1855,6 +1735,18 @@
    "pillar": "Setting"
   },
   {
+   "canonical": "church",
+   "section": "Locations",
+   "count": 60,
+   "members": [
+    "church",
+    "cathedral",
+    "church choir"
+   ],
+   "from_board": true,
+   "pillar": "Setting"
+  },
+  {
    "canonical": "asylum",
    "section": "Locations",
    "count": 58,
@@ -1871,6 +1763,19 @@
     "mental patient",
     "psychiatric ward"
    ],
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "castle",
+   "section": "Locations",
+   "count": 58,
+   "members": [
+    "castle",
+    "fortress",
+    "walled city",
+    "tower"
+   ],
+   "from_board": true,
    "pillar": "Setting"
   },
   {
@@ -2152,6 +2057,16 @@
    "pillar": "Setting"
   },
   {
+   "canonical": "suburb",
+   "section": "Locations",
+   "count": 35,
+   "members": [
+    "suburb",
+    "suburbia"
+   ],
+   "pillar": "Setting"
+  },
+  {
    "canonical": "motel",
    "section": "Locations",
    "count": 34,
@@ -2344,15 +2259,6 @@
    ]
   },
   {
-   "canonical": "suburb",
-   "section": "Locations",
-   "count": 21,
-   "members": [
-    "suburb"
-   ],
-   "pillar": "Setting"
-  },
-  {
    "canonical": "taxi",
    "pillar": "Setting",
    "section": "Locations",
@@ -2410,18 +2316,6 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "real estate",
-   "section": "Locations",
-   "count": 18,
-   "members": [
-    "real estate",
-    "real estate agent",
-    "estate agent",
-    "realtor"
-   ],
-   "pillar": "Setting"
-  },
-  {
    "canonical": "office",
    "section": "Locations",
    "count": 17,
@@ -2470,15 +2364,6 @@
     "shrine"
    ],
    "pillar": "Setting"
-  },
-  {
-   "canonical": "suburbia",
-   "pillar": "Setting",
-   "section": "Locations",
-   "count": 15,
-   "members": [
-    "suburbia"
-   ]
   },
   {
    "canonical": "skyscraper",
@@ -2764,7 +2649,7 @@
   {
    "canonical": "england",
    "section": "Place",
-   "count": 251,
+   "count": 260,
    "members": [
     "england",
     "london, england",
@@ -2776,9 +2661,12 @@
     "northumberland",
     "nottingham",
     "channel islands",
-    "hadrian’s wall"
+    "hadrian’s wall",
+    "great britain",
+    "britain"
    ],
-   "pillar": "Setting"
+   "pillar": "Setting",
+   "note": "holds the united kingdom + britain catch-all strings per user (imprecision accepted; scotland/wales/ireland stay own)"
   },
   {
    "canonical": "italy",
@@ -2801,21 +2689,6 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "small town",
-   "section": "Place",
-   "count": 155,
-   "members": [
-    "small town",
-    "seaside town",
-    "little town",
-    "old town",
-    "town",
-    "frontier town"
-   ],
-   "from_board": true,
-   "pillar": "Setting"
-  },
-  {
    "canonical": "japan",
    "section": "Place",
    "count": 152,
@@ -2830,52 +2703,6 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "island",
-   "section": "Place",
-   "count": 110,
-   "members": [
-    "island",
-    "exotic island",
-    "tropical island",
-    "deserted island",
-    "isolated island"
-   ],
-   "from_board": true,
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "hotel",
-   "section": "Place",
-   "count": 109,
-   "members": [
-    "hotel",
-    "hotel room",
-    "luxury hotel",
-    "continental hotel",
-    "resort",
-    "hotel manager",
-    "inn",
-    "guest"
-   ],
-   "from_board": true,
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "forest",
-   "section": "Place",
-   "count": 108,
-   "members": [
-    "forest",
-    "woods",
-    "lost in the woods",
-    "forest fire",
-    "tree",
-    "woodcutter"
-   ],
-   "from_board": true,
-   "pillar": "Setting"
-  },
-  {
    "canonical": "china",
    "section": "Place",
    "count": 83,
@@ -2884,7 +2711,8 @@
     "beijing, china",
     "china",
     "hong kong",
-    "great wall of china"
+    "great wall of china",
+    "manchuria"
    ],
    "pillar": "Setting"
   },
@@ -2957,31 +2785,6 @@
     "mexico city, mexico",
     "mexico"
    ],
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "church",
-   "section": "Place",
-   "count": 60,
-   "members": [
-    "church",
-    "cathedral",
-    "church choir"
-   ],
-   "from_board": true,
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "castle",
-   "section": "Place",
-   "count": 58,
-   "members": [
-    "castle",
-    "fortress",
-    "walled city",
-    "tower"
-   ],
-   "from_board": true,
    "pillar": "Setting"
   },
   {
@@ -3184,6 +2987,19 @@
    "pillar": "Setting"
   },
   {
+   "canonical": "south korea",
+   "section": "Place",
+   "count": 37,
+   "members": [
+    "seoul, south korea",
+    "busan, south korea",
+    "south korea",
+    "inter-korean relations",
+    "korea"
+   ],
+   "pillar": "Setting"
+  },
+  {
    "canonical": "egypt",
    "section": "Place",
    "count": 36,
@@ -3195,18 +3011,6 @@
     "cleopatra"
    ],
    "note": "ancient egypt / ancient greece deliberately remain in `historic empire` — confirmed 2026-07-21",
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "south korea",
-   "section": "Place",
-   "count": 34,
-   "members": [
-    "seoul, south korea",
-    "busan, south korea",
-    "south korea",
-    "inter-korean relations"
-   ],
    "pillar": "Setting"
   },
   {
@@ -3236,14 +3040,16 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "washington state",
+   "canonical": "washington",
    "section": "Place",
-   "count": 27,
+   "count": 30,
    "members": [
     "seattle, washington",
-    "washington state"
+    "washington state",
+    "washington"
    ],
-   "pillar": "Setting"
+   "pillar": "Setting",
+   "note": "the STATE, plain label per user 2026-07-24 (washington dc is its own tag; no conflict)"
   },
   {
    "canonical": "middle east",
@@ -3476,16 +3282,6 @@
    "members": [
     "copenhagen, denmark",
     "denmark"
-   ],
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "britain",
-   "section": "Place",
-   "count": 15,
-   "members": [
-    "great britain",
-    "britain"
    ],
    "pillar": "Setting"
   },
@@ -4096,16 +3892,6 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "korea",
-   "section": "Place",
-   "count": 4,
-   "members": [
-    "korea"
-   ],
-   "from_board": true,
-   "pillar": "Setting"
-  },
-  {
    "canonical": "burma",
    "section": "Place",
    "count": 4,
@@ -4375,16 +4161,6 @@
    ]
   },
   {
-   "canonical": "washington",
-   "pillar": "Setting",
-   "section": "Place",
-   "count": 3,
-   "members": [
-    "washington"
-   ],
-   "note": "the STATE (birdwatching corpus), not the president"
-  },
-  {
    "canonical": "nepal",
    "section": "Place",
    "count": 2,
@@ -4452,6 +4228,149 @@
     "ecuador"
    ],
    "from_board": true,
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "christmas",
+   "section": "Seasons & Holidays",
+   "count": 186,
+   "members": [
+    "christmas",
+    "christmas eve",
+    "christmas party",
+    "christmas tree",
+    "christmas music",
+    "christmas spirit",
+    "christmas special",
+    "christmastime",
+    "saving christmas",
+    "christmas horror",
+    "christmas romance",
+    "santa's elves",
+    "santa claus",
+    "north pole",
+    "sleigh",
+    "cinepanettone"
+   ],
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "holiday",
+   "pillar": "Setting",
+   "section": "Seasons & Holidays",
+   "count": 139,
+   "members": [
+    "holiday",
+    "holiday comedy",
+    "holiday horror",
+    "holiday season",
+    "holidays",
+    "fourth of july",
+    "day of the dead"
+   ],
+   "note": "absorbed the holiday season canonical"
+  },
+  {
+   "canonical": "winter",
+   "pillar": "Setting",
+   "section": "Seasons & Holidays",
+   "count": 101,
+   "members": [
+    "winter",
+    "snow",
+    "snowstorm",
+    "blizzard",
+    "snowed in",
+    "snowman",
+    "frozen",
+    "ice",
+    "hypothermia",
+    "cold",
+    "hibernation"
+   ]
+  },
+  {
+   "canonical": "halloween",
+   "section": "Seasons & Holidays",
+   "count": 87,
+   "members": [
+    "halloween",
+    "halloween party",
+    "halloween night",
+    "halloween costume",
+    "trick or treating",
+    "pumpkin"
+   ],
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "summer",
+   "pillar": "Setting",
+   "section": "Seasons & Holidays",
+   "count": 38,
+   "members": [
+    "summer",
+    "sunlight"
+   ]
+  },
+  {
+   "canonical": "new year's eve",
+   "section": "Seasons & Holidays",
+   "count": 33,
+   "members": [
+    "new year's eve",
+    "new year"
+   ],
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "valentine's day",
+   "section": "Seasons & Holidays",
+   "count": 20,
+   "members": [
+    "valentine's day"
+   ],
+   "from_board": true,
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "thanksgiving",
+   "section": "Seasons & Holidays",
+   "count": 17,
+   "members": [
+    "thanksgiving"
+   ],
+   "from_board": true,
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "spring",
+   "pillar": "Setting",
+   "section": "Seasons & Holidays",
+   "count": 11,
+   "members": [
+    "spring",
+    "spring break"
+   ]
+  },
+  {
+   "canonical": "autumn",
+   "pillar": "Setting",
+   "section": "Seasons & Holidays",
+   "count": 10,
+   "members": [
+    "autumn",
+    "fall"
+   ]
+  },
+  {
+   "canonical": "easter",
+   "section": "Seasons & Holidays",
+   "count": 5,
+   "members": [
+    "easter",
+    "easter bunny"
+   ],
    "pillar": "Setting"
   },
   {
@@ -5246,7 +5165,7 @@
   {
    "canonical": "royalty",
    "section": "Characters",
-   "count": 189,
+   "count": 191,
    "members": [
     "monarchy",
     "king",
@@ -5268,7 +5187,8 @@
     "royal court",
     "concubine",
     "chinese emperor",
-    "czar / tsar / tzar"
+    "czar / tsar / tzar",
+    "feudal lord"
    ],
    "pillar": "Story",
    "note": "renamed from monarchy 2026-07-21 — people-dominant members, kept in Characters; monarchy/british monarchy stay as members"
@@ -9045,6 +8965,19 @@
     "government corruption"
    ],
    "pillar": "Story"
+  },
+  {
+   "canonical": "real estate",
+   "section": "Forces & Institutions",
+   "count": 18,
+   "members": [
+    "real estate",
+    "real estate agent",
+    "estate agent",
+    "realtor"
+   ],
+   "pillar": "Story",
+   "note": "moved Setting/Locations -> Forces & Institutions (rethink wave 3): a business, not a place"
   },
   {
    "canonical": "censorship",
@@ -13217,6 +13150,18 @@
    "pillar": "Story"
   },
   {
+   "canonical": "legacy",
+   "pillar": "Story",
+   "section": "Themes",
+   "count": 23,
+   "members": [
+    "legacy",
+    "history and legacy",
+    "institution",
+    "dynasty"
+   ]
+  },
+  {
    "canonical": "patriotism",
    "section": "Themes",
    "count": 22,
@@ -13270,17 +13215,6 @@
     "return to birthplace",
     "homecoming",
     "return"
-   ]
-  },
-  {
-   "canonical": "legacy",
-   "pillar": "Story",
-   "section": "Themes",
-   "count": 20,
-   "members": [
-    "legacy",
-    "history and legacy",
-    "institution"
    ]
   },
   {
@@ -16900,6 +16834,11 @@
    "name": "rethink-wave-2-feel-banked",
    "date": "2026-07-24",
    "note": "RETHINK WAVE 2 (Feel, 56 tags) BANKED per user: SHIFTS insanity 132f + paranoia 125f Feel/Disposition -> Story/Mind & Health (psychological states = content not stance; naming grain agreed — the 2 noun outliers in an adjective section) · baffled 110f Disposition -> Mood (felt reaction). STRING MOVES: affectation cliché -> arrogant (pretentious/conceited family; clears the 2026-07-23 note) · unsociability apathetic -> loner. RULED KEEP: hostile/aggressive stay separate (cold menace vs hot anger) · envy stays in bitter · nihilism stays in hopeless · cliché label unchanged. Group verdict: Mood/Disposition split HOLDS (weather vs stance). Grain after wave: Mood 35/36 adjective (cliché the accepted exception), Disposition 15/15. Feel now 34 Mood + 15 Disposition."
+  },
+  {
+   "name": "rethink-wave-3-setting-banked",
+   "date": "2026-07-24",
+   "note": "RETHINK WAVE 3 (Setting, 302 tags) BANKED per user: NEW SECTION Setting/Seasons & Holidays (christmas, holiday, winter, halloween, summer, new year's eve, valentine's day, thanksgiving, spring, autumn, easter — 11 tags out of Era; Era now true periods only; vacation PENDING a better-home ruling). GRAIN SHIFTS Place->Locations: small town, island, hotel, forest, church, castle (Place=proper nouns, Locations=kinds of places; moon stays Place). FOLDS: washington-state+washington MERGED under plain label `washington` (user pref; no dc conflict) · suburbia->suburb · britain->england (england holds the UK catch-alls, noted) · korea->south korea · manchuria->china (was an Era stray) · dynasty->legacy (user: generic dynasty = legacy concept, not Setting) · korean dynasty (goryeo)->historic empire · feudal lord->royalty. real estate -> Story/Forces & Institutions (a business, not a place). OPEN (wave 3b): vacation best home · city life best home · vehicles-in-Locations rule re-evaluation (user reopened) · possible Regions section for Setting."
   }
  ],
  "unassigned": [],
@@ -17003,7 +16942,8 @@
   "Setting": [
    "Era",
    "Place",
-   "Locations"
+   "Locations",
+   "Seasons & Holidays"
   ],
   "Story": [
    "Characters",
