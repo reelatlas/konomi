@@ -797,24 +797,69 @@ existing category. Finish the current artifact's buckets FIRST, then revisit.
 Artifact: https://claude.ai/code/artifact/15f8e86f-1a93-4073-a816-96f8b3117a19
 
 
-## ⏸️ RESUME HERE — SESSION CHECKPOINT (2026-07-23 · CONSOLIDATION COMPLETE · the roadmap below is current)
+## ⏸️ RESUME HERE — SESSION CHECKPOINT (2026-07-24 · ZERO LOOSE + ZERO HOLD · the roadmap below is current)
 
-**State:** `tag-rules/master.json` = **1,155 canonicals / 5,703 member strings / 358 loose (each
-with a reason note) / ~500 pool residue (floor-protected)**. 40 sweeps[] records. COMMITTED to git
-as of this checkpoint. Corpus pinned 8,531 films (snapshot 2026-07-17).
+**State:** `tag-rules/master.json` = **1,204 canonicals / 6,561 member strings / 0 loose / 0 on
+hold** (excluded.json ledger EMPTY — kept as a shell). ~47 sweeps[] records. Corpus pinned 8,531
+films (snapshot 2026-07-17). Every keyword ≥3 is a canonical member EXCEPT the 15 bare genre
+words (romance 100 · romantic 100 · horror 35 · war 34 · adventure 32 · historical 19 · fantasy 17
+· mystery 17 · comedy 13 · animation 9 · action 8 · science fiction 8 · thriller 5 · documentary 5
+· western 4) — the long-standing genre-synonym drop, redundant with TMDB's structured `genres`
+field. **⏭️ OPEN DECISION: keep that drop (recommended — genres arrive via the genre field, the
+keyword copies are duplicates) or fold them at face value like everything else. USER TO RULE.**
 
-**⏭️ THE ROADMAP (user-defined, 2026-07-23):** ① KEEP RE-ORGANIZING the residue (358 loose + ~500
-pool) in review waves until EVERYTHING has an assignment — the user wants zero lingering, not a
-permanent residue ② then FINAL SWEEPS to catch any missed ≥3 keywords ③ then PLACEMENT REVIEW
-(all accumulated flags) ④ then the COMPREHENSIVE RETHINK (full-master re-org analysis) ⑤ then
-ADAPTER WORK (per-section display floors; franchise shelf from TMDB belongs_to_collection).
+**⏭️ THE ROADMAP (user-defined, 2026-07-23):** ① ✅ DONE re-organize residue to zero lingering
+(loose = 0, hold = 0, zero exclusions achieved 2026-07-24) ② ✅ DONE final missed-≥3 sweep (only
+the 15 genre words above remain — ruling pending) ③ PLACEMENT REVIEW (all accumulated flags —
+the flag list lives further down: game/Pursuits, identity trio, k-pop→idol group, weather+forces
+of nature in A&N, mythical-creature pull-outs, housekeeper umbrella, recovery candidate,
+vision/psychic, pop-star-vs-rock-star, self-referential note, stock-market-in-Locations, romance
+premises→forbidden love?, desire to have children in fertility, approach→dating + culture→culture
+clash weak fits, affectation-in-cliché note, Franchise-in-Pursuits `video game`) ④ the
+COMPREHENSIVE RETHINK — the user's "deep dive": full-master re-org analysis, rethink groupings,
+break-outs under new names, best-fit check on every assignment ⑤ ADAPTER WORK (per-section
+display floors; franchise shelf from TMDB belongs_to_collection).
 
 **LANDMARK — DECLINED (2026-07-23, user):** no landmark tag for now; strings stay in their place/
 concept homes; the 35-string/145f measurement is preserved below for any future revisit.
 
-**RESIDUE WAVE 1 — BANKED (2026-07-23, user-approved + 18 deltas). ZERO LINGERING ACHIEVED:
-every keyword ≥3 in the corpus is now a canonical member, an excluded.json rule, or the single
-held string `affectation` (pending user pick).** State: 1,180 canonicals / 5,934 member strings /
+**THE GREAT RE-INTEGRATION — BANKED + COMMITTED 90b9ecb (2026-07-23, user directive: exclusion
+RULES DISSOLVED; every string placed at face value; subjectivity welcomed as product voice; dedup
+protects counts; pollution risk accepted + re-evaluable).** State: **1,196 canonicals / 6,448
+member strings / 0 loose / 113 on-hold** (excluded.json repurposed as the ON-HOLD ledger — no
+blanket rules, just strings individually without a confident home yet, revisit any time).
+~500 face-value folds (transporter→driver, governor→politician, twist→plot twist, robin→animals,
+titanic→ship, groundhog day→time travel, future→near future, editorial words→nearest moods,
+tea+candy→food…) + 16 NEW tags: secrets 65 · honor 28 · conflict 32 · determined (Disposition) ·
+body 30 · blonde 15 · future city 14 · film formats 28 · charity · moving house · landlord ·
+insurance · horror comedy · **ethnicity generalization per user: asian (asian/chinese/japanese
+woman+family strings), irish, romani (respectful label for gypsy)** · scarecrow→farm +
+lecture→professor. Every ≥3 keyword: canonical member or on-hold-by-name.
+**STATUS UPDATE (2026-07-23): re-integration REVIEWED — ~60 user amendments + 17 question rulings
+BANKED (committed). 1,202 canonicals. New since review: futuristic 115 (dissolved future city +
+vision/seeing the future; +future/futuristic/hoverboard) · washington (the STATE) · hotel staff
+(ex-concierge +doorman) · rope [+noose: not always execution, sometimes self harm] · accident
+[+mistake] · artificial · lockdown [can mean shootings] · balloon · legacy · plan · clock · crude
+(ex-crude humor) · battle 133/fight 260 grew (destroy-family, conquest, versus pair, street war,
+battle assignment, battle for power). **FINAL HOLD PASS BANKED (73 placements + user amendments:
+rookie→training, taipei→taiwan [user overruled sensitivity], NEW slacker, power dynamics→forbidden
+love…). THEN THE FINAL 40 BANKED (2026-07-24, sweeps `final-40-word-first`) — hold ledger EMPTY.**
+Placed on WORD-CONCEPT logic (STANDING RULE, user: place by what the word means, never by
+movie/corpus association; corpus shared only as context, or when the string has no word meaning —
+parker→heist + tuwaderalit→space opera are the two corpus-by-necessity cases). User rulings:
+ceremony→party (a gathering/celebration; party holds `celebration`) · institution→legacy
+(foundational/enduring) · horror for children→dark fantasy (genre register) · early america→age of
+reason (colonial read) · orient→historic empire (era-of-Asia read) · NEW vibrant [Feel/Mood] 86f ·
+violence against women→abuse · battle of the sexes→feminism (override approved). Word-first
+corrections that came out of the rule: vertigo→anxious (dizziness/fear, NOT the film) · action
+horror→survival horror (fight-the-threat, not monster) · chewing gum→food · modernity→slice of
+life. After ruling: final missed-≥3 sweeps → placement review → COMPREHENSIVE RETHINK → adapter. (superseded status: re-integration banked but UNDER USER REVIEW** — I folded without the usual
+propose-first pass (process miss, acknowledged); review surface published at artifact c3f4e8e9
+(label reintegration-review): 15 new tags + ~435 folds by section + 113 on-hold, every placement
+revertible. User walks it and issues vetoes/redirects as amendments before we proceed.
+**⏭️ THEN: final missed-≥3 sweeps → placement review (all flags) → COMPREHENSIVE RETHINK →
+adapter work.** Superseded record: (was: RESIDUE WAVE 1 — BANKED (2026-07-23, user-approved + 18 deltas). ZERO LINGERING ACHIEVED:
+every keyword ≥3 in the corpus is now a canonical member, an excluded.json rule, or an excluded.json rule. **LOOSE = ZERO** (affectation → cliché w/ may-not-be-best note).** State: 1,180 canonicals / 5,934 member strings /
 1 loose / 626 excluded-by-rule (tag-rules/excluded.json, 10 categories). Deltas honored: amused 226
 + harsh 30 own Mood tags · 1930s dissolved→great depression 93 · mature→excluded (mindset) ·
 concierge NEW [concierge,valet] · fossil fuels 22 + energy 10 split · jewelry 25 own · suppressed
