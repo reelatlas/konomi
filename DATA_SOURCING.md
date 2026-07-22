@@ -816,12 +816,15 @@ the flag list lives further down: game/Pursuits, identity trio, k-pop→idol gro
 of nature in A&N, mythical-creature pull-outs, housekeeper umbrella, recovery candidate,
 vision/psychic, pop-star-vs-rock-star, self-referential note, stock-market-in-Locations, romance
 premises→forbidden love?, desire to have children in fertility, approach→dating + culture→culture
-clash weak fits, affectation-in-cliché note, Franchise-in-Pursuits `video game`) — **⏳ IN
-REVIEW: artifact c3f4e8e9 label `placement-review-1` (2026-07-24) — 12 flag boxes with data +
-recs (4 moves proposed: morality/ethics/conscience→moral dilemma [user note] · pull dragon/fairy/
-mermaid/elves out of mythical creature · rich-man-poor-woman pair→forbidden love · stock market
-tag→Forces & Institutions · idol group→Characters; 7-8 close as KEEP; stale-flag note cleanup
-listed) — AWAITING RULINGS** ④ the COMPREHENSIVE RETHINK — the user's "deep dive": full-master
+clash weak fits, affectation-in-cliché note, Franchise-in-Pursuits `video game`) — **✅ DONE
+(2026-07-24, sweeps `placement-review-1-banked`): all 12 flags ruled. Moves: morality trio→moral
+dilemma · dragon 40/fairy 29/mermaid 18/elves 18 pulled out of mythical creature (shelf keeps
+the scatter at 71f) · rich-man-poor-woman pair→forbidden love · stock market→Forces &
+Institutions (+absorbed `securities, stocks and bonds` per user) · idol group→Characters. Rest
+closed as KEEP; scientist+radio stale notes cleared. GENRE CONFIRMATION (user): only the 15 bare
+genre names drop; genre-adjacent keywords with signal are kept (romantic comedy→romcom, action
+hero→hero, horror spoof→parody…); sub-genres never roll up. 1,207 canonicals.** ④ the
+COMPREHENSIVE RETHINK — the user's "deep dive": full-master
 re-org analysis, rethink groupings, break-outs under new names, best-fit check on every
 assignment. **QUEUED for ④ (user notes, 2026-07-24): school 444f/60kw may be too broad ·
 sports 255f broad-vs-breakouts (basketball/baseball…) + athlete 14f beside it · career 52f may
