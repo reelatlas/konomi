@@ -873,19 +873,9 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "1940s",
-   "section": "Era",
-   "count": 111,
-   "members": [
-    "1940s"
-   ],
-   "from_board": true,
-   "pillar": "Setting"
-  },
-  {
    "canonical": "historic empire",
    "section": "Era",
-   "count": 102,
+   "count": 112,
    "members": [
     "medieval italy",
     "imperial russia",
@@ -909,8 +899,26 @@
     "civilization",
     "orient",
     "goryeo dynasty",
-    "roman"
+    "roman",
+    "pharaoh",
+    "cleopatra",
+    "sparta greece",
+    "napoleon bonaparte",
+    "julius caesar",
+    "genghis khan",
+    "alexander the great",
+    "marie antoinette"
    ],
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "1940s",
+   "section": "Era",
+   "count": 111,
+   "members": [
+    "1940s"
+   ],
+   "from_board": true,
    "pillar": "Setting"
   },
   {
@@ -2441,7 +2449,7 @@
   {
    "canonical": "france",
    "section": "Place",
-   "count": 276,
+   "count": 271,
    "members": [
     "france",
     "paris, france",
@@ -2455,8 +2463,7 @@
     "montmartre",
     "seine",
     "provence",
-    "notre dame cathedral",
-    "napoleon bonaparte"
+    "notre dame cathedral"
    ],
    "pillar": "Setting"
   },
@@ -2753,13 +2760,12 @@
   {
    "canonical": "egypt",
    "section": "Place",
-   "count": 36,
+   "count": 35,
    "members": [
     "egypt",
     "pyramid",
     "cairo",
-    "nile",
-    "cleopatra"
+    "nile"
    ],
    "note": "ancient egypt / ancient greece deliberately remain in `historic empire` — confirmed 2026-07-21",
    "pillar": "Setting"
@@ -2801,18 +2807,6 @@
    ],
    "pillar": "Setting",
    "note": "the STATE, plain label per user 2026-07-24 (washington dc is its own tag; no conflict)"
-  },
-  {
-   "canonical": "greece",
-   "section": "Place",
-   "count": 25,
-   "members": [
-    "greece",
-    "sparta greece",
-    "greek island"
-   ],
-   "note": "ancient egypt / ancient greece deliberately remain in `historic empire` — confirmed 2026-07-21",
-   "pillar": "Setting"
   },
   {
    "canonical": "arizona",
@@ -2863,6 +2857,17 @@
     "ohio",
     "cincinnati"
    ],
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "greece",
+   "section": "Place",
+   "count": 22,
+   "members": [
+    "greece",
+    "greek island"
+   ],
+   "note": "ancient egypt / ancient greece deliberately remain in `historic empire` — confirmed 2026-07-21",
    "pillar": "Setting"
   },
   {
@@ -3806,7 +3811,7 @@
   {
    "canonical": "american west",
    "section": "Regions",
-   "count": 54,
+   "count": 56,
    "members": [
     "american west",
     "wild west",
@@ -3821,7 +3826,9 @@
     "mining town",
     "prospector",
     "settler",
-    "gold rush"
+    "gold rush",
+    "billy the kid",
+    "jesse james"
    ],
    "note": "region tag — grouping RESOLVED 2026-07-22: regions stay own Place tags, no umbrella",
    "pillar": "Setting"
@@ -4906,11 +4913,9 @@
   {
    "canonical": "police",
    "section": "Characters",
-   "count": 541,
+   "count": 456,
    "members": [
     "police",
-    "sheriff",
-    "buddy cop",
     "police brutality",
     "police corruption",
     "cop",
@@ -4925,7 +4930,6 @@
     "corrupt cop",
     "police academy",
     "french police",
-    "small town sheriff",
     "bad cop",
     "cops",
     "police shootout",
@@ -4934,27 +4938,21 @@
     "police arrest",
     "police surveillance",
     "police procedural",
-    "deputy sheriff",
     "police training",
     "running from police",
     "police vigilantism",
     "police stakeout",
     "police raid",
     "law enforcement",
-    "police state",
     "good cop bad cop",
     "police headquarter",
     "robot cop",
     "female cop",
     "police dog",
-    "corrupt sheriff",
     "maverick cop",
     "narcotics cop",
     "female police officer",
-    "texas ranger",
     "police officer",
-    "u.s. marshal",
-    "marshal",
     "internal affairs",
     "lapd",
     "policeman",
@@ -5470,7 +5468,8 @@
     "rapper",
     "songwriting",
     "rocker",
-    "busker"
+    "busker",
+    "mozart"
    ],
    "pillar": "Story"
   },
@@ -5817,6 +5816,22 @@
     "naval flight officer"
    ],
    "pillar": "Story"
+  },
+  {
+   "canonical": "sheriff",
+   "pillar": "Story",
+   "section": "Characters",
+   "count": 80,
+   "members": [
+    "sheriff",
+    "small town sheriff",
+    "deputy sheriff",
+    "corrupt sheriff",
+    "u.s. marshal",
+    "marshal",
+    "texas ranger"
+   ],
+   "note": "the western-lawman shelf pulled out of police (rethink wave 6b), beside cowboy/gunslinger/outlaw"
   },
   {
    "canonical": "photographer",
@@ -6971,16 +6986,6 @@
    "members": [
     "caretaker"
    ]
-  },
-  {
-   "canonical": "pharaoh",
-   "section": "Characters",
-   "count": 6,
-   "members": [
-    "pharaoh"
-   ],
-   "from_board": true,
-   "pillar": "Story"
   },
   {
    "canonical": "small person",
@@ -14419,6 +14424,16 @@
    ]
   },
   {
+   "canonical": "buddy cop",
+   "pillar": "Style & Format",
+   "section": "Sub-genres & Styles",
+   "count": 45,
+   "members": [
+    "buddy cop"
+   ],
+   "note": "pulled out of police (rethink wave 6b): a genre flavor, not a kind of person; police procedural stays IN police per user"
+  },
+  {
    "canonical": "allegory",
    "pillar": "Style & Format",
    "section": "Sub-genres & Styles",
@@ -15010,7 +15025,7 @@
   {
    "canonical": "dystopia",
    "section": "Worlds & Lore",
-   "count": 225,
+   "count": 226,
    "members": [
     "dystopia",
     "dark future",
@@ -15020,7 +15035,8 @@
     "urban decay",
     "social decay",
     "curfew",
-    "purge"
+    "purge",
+    "police state"
    ],
    "from_board": true,
    "pillar": "Style & Format"
@@ -16425,6 +16441,11 @@
    "name": "rethink-wave-6-banked",
    "date": "2026-07-24",
    "note": "RETHINK WAVE 6 (Characters, 157 tags) BANKED per user: STRAYS unemployment DISSOLVED->worklife · labor union->F&I · female empowerment->I&S · roommates->R&F. FEDERAL-AGENT DUST: fbi agent->fbi · cia agent+cia analyst+ex-cia agent+nsa agent+u.s. secret service agent+federal agent->spy · dea agent->police (user confirmed). MICRO-PEOPLE: roman->historic empire · barbarian->warrior · war correspondent->journalist · impostor->con artist · principal->school · witness->courtroom. pharaoh->egypt HELD: user raised the historic-figure question (era figures -> historic empire?) — resolved next record. Person-vs-event pairs + protagonist/victim/blonde/small person/slacker/retirement/midlife/caveman all KEEP. ~140 clean."
+  },
+  {
+   "name": "rethink-wave-6b-banked",
+   "date": "2026-07-24",
+   "note": "WAVE 6B (police division + historic figures) BANKED per user: POLICE DIVIDED — NEW buddy cop [Sub-genres] 45f (genre flavor) · NEW sheriff [Characters] (7 lawman strings: sheriff/marshals/texas ranger, ~80f western-lawman shelf) · police state->dystopia · police procedural STAYS in police per user · police keeps the big cop-world (~470f). HISTORIC-FIGURE RULE (user): a figure folds to their most specific WORLD shelf (hitler->nazi, earp->american west, lincoln->politician, arthur->knight all stand). Ancient/imperial figures world = historic empire: pharaoh (dissolved) + cleopatra (ex-egypt) + sparta greece (ex-greece) + napoleon bonaparte (ex-france; rejoins napoleonic wars — split pair fixed) + FLOOR-WAIVED sub-3 unambiguous figures per user: julius caesar, genghis khan, alexander the great, marie antoinette. billy the kid + jesse james (floor-waived) -> american west · mozart (floor-waived) -> musician."
   }
  ],
  "unassigned": [],
