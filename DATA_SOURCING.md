@@ -809,7 +809,36 @@ permanent residue ② then FINAL SWEEPS to catch any missed ≥3 keywords ③ th
 (all accumulated flags) ④ then the COMPREHENSIVE RETHINK (full-master re-org analysis) ⑤ then
 ADAPTER WORK (per-section display floors; franchise shelf from TMDB belongs_to_collection).
 
-**OPEN DECISION — LANDMARK TAG:** 35 candidate strings measured, 145f dedup if all pulled (list in
+**LANDMARK — DECLINED (2026-07-23, user):** no landmark tag for now; strings stay in their place/
+concept homes; the 35-string/145f measurement is preserved below for any future revisit.
+
+**RESIDUE WAVE 1 — BANKED (2026-07-23, user-approved + 18 deltas). ZERO LINGERING ACHIEVED:
+every keyword ≥3 in the corpus is now a canonical member, an excluded.json rule, or the single
+held string `affectation` (pending user pick).** State: 1,180 canonicals / 5,934 member strings /
+1 loose / 626 excluded-by-rule (tag-rules/excluded.json, 10 categories). Deltas honored: amused 226
++ harsh 30 own Mood tags · 1930s dissolved→great depression 93 · mature→excluded (mindset) ·
+concierge NEW [concierge,valet] · fossil fuels 22 + energy 10 split · jewelry 25 own · suppressed
+past→amnesia · allies/liberation/invasion/stupidity→excluded (too broad) · neighborhood 13 own
+Locations · comeback→ambition · retirement 30 own (+retiree/retired from elderly) · caretaker own ·
+puppet moved→Objects & Weapons · superstition→supernatural. genius 54 rename resolved the fork.
+**⏭️ NEXT (user-confirmed): walk the ENTIRE exclusion ledger (626) once more attempting
+section/tag placements before it locks — then final missed-≥3 sweeps → placement review →
+comprehensive rethink → adapter work.** SUPERSEDED wave record below: (was: BUILT, AWAITING RULINGS (artifact c3f4e8e9 label residue-wave-1; map
+= scratchpad residue-map.json; renderer .residuerender.py): ZERO UNRESOLVED.** 18 NEW tags
+(complex ~130 · contemplative ~90 [the philosophical pull-outs get their own home] · cliché ·
+memory ~70 · culture clash · insecurity ~30 · sleep · housekeeper [user umbrella word] · wardrobe
+· energy industry [resolves the oil family] · codebreaking · homecoming · gossip · midlife · dj ·
+astronomy · evolution · great depression 21) + RENAME child prodigy→genius (+mathematics/
+mathematician — resolves the genius fork) + 148 folds (amused→cheerful, cheating→dishonesty,
+gold rush→american west, riddle→game, superstition+omen→paranormal, martyrdom family→sacrifice,
+seppuku→samurai, exploitation-cinema family→grindhouse…) + **THE EXCLUSION LEDGER: proposed
+tag-rules/excluded.json — 623 strings in 10 documented categories** (editorial-reactions, glue
+words, elemental/object glue, body parts, crude, demographic descriptors, ethnicity adjectives,
+film-name pollution, genre combos, process labels, held-decisions-respected) — extending the
+genre-synonyms drop mechanism so an exclusion is an ASSIGNMENT-BY-RULE that re-applies on every
+import. Many ⚑ flags overturn prior holds (hover anchors in the artifact). Bank on user rulings.
+
+**OPEN DECISION (superseded) — LANDMARK TAG:** 35 candidate strings measured, 145f dedup if all pulled (list in
 sweeps[] + the final-sort artifact): the white house 27 (washington dc), pyramid 10 (egypt), eiffel
 tower 9 (france), mount fuji 6, empire state 6, golden gate 6, griffith observatory 6, world trade
 center 6 (terrorism), great wall 5, area 51 5 (alien), alcatraz 5 (prison), + sub-floor scatter
