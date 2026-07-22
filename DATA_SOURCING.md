@@ -804,9 +804,10 @@ hold** (excluded.json ledger EMPTY — kept as a shell). ~47 sweeps[] records. C
 films (snapshot 2026-07-17). Every keyword ≥3 is a canonical member EXCEPT the 15 bare genre
 words (romance 100 · romantic 100 · horror 35 · war 34 · adventure 32 · historical 19 · fantasy 17
 · mystery 17 · comedy 13 · animation 9 · action 8 · science fiction 8 · thriller 5 · documentary 5
-· western 4) — the long-standing genre-synonym drop, redundant with TMDB's structured `genres`
-field. **⏭️ OPEN DECISION: keep that drop (recommended — genres arrive via the genre field, the
-keyword copies are duplicates) or fold them at face value like everything else. USER TO RULE.**
+· western 4). **✅ RESOLVED (user, 2026-07-24): the genre-synonym DROP STAYS — sweeps record
+`genre-drop-reaffirmed`. Scope clarification: the zero-exclusions rule bans arbitrary
+fit-judgment restrictions on incoming keywords; it does NOT touch the settled initial rule set
+(the genre-vs-keyword layer split and its keep-vs-drop rulings remain in effect).**
 
 **⏭️ THE ROADMAP (user-defined, 2026-07-23):** ① ✅ DONE re-organize residue to zero lingering
 (loose = 0, hold = 0, zero exclusions achieved 2026-07-24) ② ✅ DONE final missed-≥3 sweep (only
@@ -815,10 +816,18 @@ the flag list lives further down: game/Pursuits, identity trio, k-pop→idol gro
 of nature in A&N, mythical-creature pull-outs, housekeeper umbrella, recovery candidate,
 vision/psychic, pop-star-vs-rock-star, self-referential note, stock-market-in-Locations, romance
 premises→forbidden love?, desire to have children in fertility, approach→dating + culture→culture
-clash weak fits, affectation-in-cliché note, Franchise-in-Pursuits `video game`) ④ the
-COMPREHENSIVE RETHINK — the user's "deep dive": full-master re-org analysis, rethink groupings,
-break-outs under new names, best-fit check on every assignment ⑤ ADAPTER WORK (per-section
-display floors; franchise shelf from TMDB belongs_to_collection).
+clash weak fits, affectation-in-cliché note, Franchise-in-Pursuits `video game`) — **⏳ IN
+REVIEW: artifact c3f4e8e9 label `placement-review-1` (2026-07-24) — 12 flag boxes with data +
+recs (4 moves proposed: morality/ethics/conscience→moral dilemma [user note] · pull dragon/fairy/
+mermaid/elves out of mythical creature · rich-man-poor-woman pair→forbidden love · stock market
+tag→Forces & Institutions · idol group→Characters; 7-8 close as KEEP; stale-flag note cleanup
+listed) — AWAITING RULINGS** ④ the COMPREHENSIVE RETHINK — the user's "deep dive": full-master
+re-org analysis, rethink groupings, break-outs under new names, best-fit check on every
+assignment. **QUEUED for ④ (user notes, 2026-07-24): school 444f/60kw may be too broad ·
+sports 255f broad-vs-breakouts (basketball/baseball…) + athlete 14f beside it · career 52f may
+be too broad · activism 44f too broad / split into or absorb other chunks · Narrative-Devices
+section idea (anthropomorphic + film-in-film notes; flashback/pov/meta/fourth-wall family)** ⑤
+ADAPTER WORK (per-section display floors; franchise shelf from TMDB belongs_to_collection).
 
 **LANDMARK — DECLINED (2026-07-23, user):** no landmark tag for now; strings stay in their place/
 concept homes; the 35-string/145f measurement is preserved below for any future revisit.
