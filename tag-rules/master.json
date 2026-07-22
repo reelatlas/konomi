@@ -885,7 +885,7 @@
   {
    "canonical": "historic empire",
    "section": "Era",
-   "count": 100,
+   "count": 102,
    "members": [
     "medieval italy",
     "imperial russia",
@@ -908,7 +908,8 @@
     "napoleonic wars",
     "civilization",
     "orient",
-    "goryeo dynasty"
+    "goryeo dynasty",
+    "roman"
    ],
    "pillar": "Setting"
   },
@@ -1285,7 +1286,7 @@
   {
    "canonical": "school",
    "section": "Locations",
-   "count": 196,
+   "count": 200,
    "members": [
     "approved school",
     "ballet school",
@@ -1314,7 +1315,8 @@
     "exam",
     "kindergarten",
     "daycare",
-    "homeschooling"
+    "homeschooling",
+    "principal"
    ],
    "pillar": "Setting",
    "note": "rethink wave 1 (2026-07-24): college + high school split out; school keeps generic + elementary/kindergarten + boarding-school family + the ambiguous school-words per user"
@@ -4904,7 +4906,7 @@
   {
    "canonical": "police",
    "section": "Characters",
-   "count": 536,
+   "count": 541,
    "members": [
     "police",
     "sheriff",
@@ -4961,7 +4963,8 @@
     "policewoman",
     "s.w.a.t.",
     "gendarmerie",
-    "arrested"
+    "arrested",
+    "dea agent"
    ],
    "pillar": "Story"
   },
@@ -5073,29 +5076,9 @@
    "pillar": "Story"
   },
   {
-   "canonical": "serial killer",
-   "section": "Characters",
-   "count": 230,
-   "members": [
-    "serial killer",
-    "mass murder",
-    "series of murders",
-    "killing spree",
-    "multiple murder",
-    "murder spree",
-    "psycho killer",
-    "killing a dog",
-    "animal killing",
-    "sadistic killer",
-    "jack the ripper",
-    "hannibal lecter"
-   ],
-   "pillar": "Story"
-  },
-  {
    "canonical": "spy",
    "section": "Characters",
-   "count": 229,
+   "count": 243,
    "members": [
     "spy",
     "government agent",
@@ -5120,7 +5103,88 @@
     "jason bourne",
     "operative",
     "mole",
-    "spycraft"
+    "spycraft",
+    "cia agent",
+    "cia analyst",
+    "ex-cia agent",
+    "nsa agent",
+    "u.s. secret service agent",
+    "federal agent"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "worklife",
+   "section": "Characters",
+   "count": 234,
+   "members": [
+    "workplace",
+    "workplace comedy",
+    "workplace drama",
+    "boss",
+    "bad boss",
+    "employee",
+    "worker",
+    "manager",
+    "co-workers relationship",
+    "employer employee relationship",
+    "workplace romance",
+    "secretary",
+    "receptionist",
+    "intern",
+    "clerk",
+    "salesclerk",
+    "assistant",
+    "internship",
+    "personal assistant",
+    "colleague",
+    "janitor",
+    "taskmaster",
+    "conference",
+    "workshop",
+    "work",
+    "briefcase",
+    "assignment",
+    "career",
+    "job interview",
+    "life and career",
+    "new job",
+    "summer job",
+    "career woman",
+    "job",
+    "job promotion",
+    "unemployment",
+    "unemployed",
+    "loss of job",
+    "fired from the job",
+    "quitting a job",
+    "job hunting",
+    "job seeking",
+    "job-hopping",
+    "downsizing",
+    "laid off",
+    "forced retirement"
+   ],
+   "pillar": "Story",
+   "note": "custom label (user 2026-07-24): renamed from workplace after absorbing the career tag — one work-world home (office people + job-arc strings)"
+  },
+  {
+   "canonical": "serial killer",
+   "section": "Characters",
+   "count": 230,
+   "members": [
+    "serial killer",
+    "mass murder",
+    "series of murders",
+    "killing spree",
+    "multiple murder",
+    "murder spree",
+    "psycho killer",
+    "killing a dog",
+    "animal killing",
+    "sadistic killer",
+    "jack the ripper",
+    "hannibal lecter"
    ],
    "pillar": "Story"
   },
@@ -5205,7 +5269,7 @@
   {
    "canonical": "journalist",
    "section": "Characters",
-   "count": 181,
+   "count": 185,
    "members": [
     "editor-in-chief",
     "interview",
@@ -5223,53 +5287,10 @@
     "tv reporter",
     "news",
     "news report",
-    "newswoman"
+    "newswoman",
+    "war correspondent"
    ],
    "pillar": "Story"
-  },
-  {
-   "canonical": "worklife",
-   "section": "Characters",
-   "count": 180,
-   "members": [
-    "workplace",
-    "workplace comedy",
-    "workplace drama",
-    "boss",
-    "bad boss",
-    "employee",
-    "worker",
-    "manager",
-    "co-workers relationship",
-    "employer employee relationship",
-    "workplace romance",
-    "secretary",
-    "receptionist",
-    "intern",
-    "clerk",
-    "salesclerk",
-    "assistant",
-    "internship",
-    "personal assistant",
-    "colleague",
-    "janitor",
-    "taskmaster",
-    "conference",
-    "workshop",
-    "work",
-    "briefcase",
-    "assignment",
-    "career",
-    "job interview",
-    "life and career",
-    "new job",
-    "summer job",
-    "career woman",
-    "job",
-    "job promotion"
-   ],
-   "pillar": "Story",
-   "note": "custom label (user 2026-07-24): renamed from workplace after absorbing the career tag — one work-world home (office people + job-arc strings)"
   },
   {
    "canonical": "politician",
@@ -5885,21 +5906,22 @@
    "pillar": "Story"
   },
   {
-   "canonical": "unemployment",
+   "canonical": "con artist",
    "section": "Characters",
-   "count": 64,
+   "count": 66,
    "members": [
-    "unemployment",
-    "unemployed",
-    "loss of job",
-    "fired from the job",
-    "quitting a job",
-    "job hunting",
-    "job seeking",
-    "job-hopping",
-    "downsizing",
-    "laid off",
-    "forced retirement"
+    "con artist",
+    "con man",
+    "scam",
+    "scam artist",
+    "swindle",
+    "grifter",
+    "con",
+    "con game",
+    "small time crook",
+    "crook",
+    "opportunist",
+    "impostor"
    ],
    "pillar": "Story"
   },
@@ -5915,25 +5937,6 @@
     "hermit",
     "spinster",
     "unsociability"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "con artist",
-   "section": "Characters",
-   "count": 59,
-   "members": [
-    "con artist",
-    "con man",
-    "scam",
-    "scam artist",
-    "swindle",
-    "grifter",
-    "con",
-    "con game",
-    "small time crook",
-    "crook",
-    "opportunist"
    ],
    "pillar": "Story"
   },
@@ -6066,18 +6069,16 @@
    "pillar": "Story"
   },
   {
-   "canonical": "female empowerment",
+   "canonical": "warrior",
    "section": "Characters",
-   "count": 46,
+   "count": 47,
    "members": [
-    "strong woman",
-    "female empowerment",
-    "girl power",
-    "one woman army",
-    "women and society",
-    "tough girl",
-    "empowerment"
+    "warrior",
+    "female warrior",
+    "warrior woman",
+    "barbarian"
    ],
+   "backfill": true,
    "pillar": "Story"
   },
   {
@@ -6090,18 +6091,6 @@
    ],
    "pillar": "Story",
    "note": "user rule: comedian takes stand-up comedy"
-  },
-  {
-   "canonical": "warrior",
-   "section": "Characters",
-   "count": 46,
-   "members": [
-    "warrior",
-    "female warrior",
-    "warrior woman"
-   ],
-   "backfill": true,
-   "pillar": "Story"
   },
   {
    "canonical": "pilot",
@@ -6593,17 +6582,6 @@
    "pillar": "Story"
   },
   {
-   "canonical": "roommates",
-   "section": "Characters",
-   "count": 23,
-   "members": [
-    "roommates",
-    "lodger",
-    "cohabitant"
-   ],
-   "pillar": "Story"
-  },
-  {
    "canonical": "hairdresser",
    "section": "Characters",
    "count": 23,
@@ -6627,16 +6605,6 @@
    "pillar": "Story"
   },
   {
-   "canonical": "fbi agent",
-   "section": "Characters",
-   "count": 22,
-   "members": [
-    "fbi agent"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
    "canonical": "rebel",
    "section": "Characters",
    "count": 21,
@@ -6654,21 +6622,6 @@
     "prisoner of war"
    ],
    "backfill": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "labor union",
-   "section": "Characters",
-   "count": 21,
-   "members": [
-    "labor union",
-    "union",
-    "labor strike",
-    "labor organizer",
-    "worker's rights",
-    "labor rights",
-    "strike"
-   ],
    "pillar": "Story"
   },
   {
@@ -6834,15 +6787,6 @@
    ]
   },
   {
-   "canonical": "witness",
-   "section": "Characters",
-   "count": 14,
-   "members": [
-    "witness"
-   ],
-   "pillar": "Story"
-  },
-  {
    "canonical": "caveman",
    "section": "Characters",
    "count": 12,
@@ -6990,15 +6934,6 @@
    "pillar": "Story"
   },
   {
-   "canonical": "principal",
-   "section": "Characters",
-   "count": 8,
-   "members": [
-    "principal"
-   ],
-   "pillar": "Story"
-  },
-  {
    "canonical": "sidekick",
    "section": "Characters",
    "count": 8,
@@ -7006,16 +6941,6 @@
     "sidekick",
     "animal sidekick"
    ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "dea agent",
-   "section": "Characters",
-   "count": 8,
-   "members": [
-    "dea agent"
-   ],
-   "from_board": true,
    "pillar": "Story"
   },
   {
@@ -7029,50 +6954,11 @@
    ]
   },
   {
-   "canonical": "impostor",
-   "section": "Characters",
-   "count": 7,
-   "members": [
-    "impostor"
-   ],
-   "pillar": "Story"
-  },
-  {
    "canonical": "gladiator",
    "section": "Characters",
    "count": 7,
    "members": [
     "gladiator"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "roman",
-   "section": "Characters",
-   "count": 7,
-   "members": [
-    "roman"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "u.s. secret service agent",
-   "section": "Characters",
-   "count": 7,
-   "members": [
-    "u.s. secret service agent"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "war correspondent",
-   "section": "Characters",
-   "count": 7,
-   "members": [
-    "war correspondent"
    ],
    "from_board": true,
    "pillar": "Story"
@@ -7097,16 +6983,6 @@
    "pillar": "Story"
   },
   {
-   "canonical": "ex-cia agent",
-   "section": "Characters",
-   "count": 6,
-   "members": [
-    "ex-cia agent"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
    "canonical": "small person",
    "pillar": "Story",
    "section": "Characters",
@@ -7115,56 +6991,6 @@
     "small person",
     "midget"
    ]
-  },
-  {
-   "canonical": "cia agent",
-   "section": "Characters",
-   "count": 5,
-   "members": [
-    "cia agent"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "cia analyst",
-   "section": "Characters",
-   "count": 5,
-   "members": [
-    "cia analyst"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "barbarian",
-   "section": "Characters",
-   "count": 4,
-   "members": [
-    "barbarian"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "nsa agent",
-   "section": "Characters",
-   "count": 3,
-   "members": [
-    "nsa agent"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "federal agent",
-   "section": "Characters",
-   "count": 2,
-   "members": [
-    "federal agent"
-   ],
-   "from_board": true,
-   "pillar": "Story"
   },
   {
    "canonical": "murder",
@@ -8221,6 +8047,37 @@
    "pillar": "Story"
   },
   {
+   "canonical": "courtroom",
+   "section": "Forces & Institutions",
+   "count": 198,
+   "members": [
+    "courtroom",
+    "trial",
+    "murder trial",
+    "court",
+    "court case",
+    "courtroom drama",
+    "judge",
+    "legal thriller",
+    "prosecution",
+    "legal drama",
+    "wrongful conviction",
+    "arbitrary law",
+    "testimony",
+    "jury trial",
+    "jury",
+    "supreme court",
+    "principal witness",
+    "courthouse",
+    "jurors",
+    "lawsuit",
+    "judiciary",
+    "sentence",
+    "witness"
+   ],
+   "pillar": "Story"
+  },
+  {
    "canonical": "elite force",
    "section": "Forces & Institutions",
    "count": 193,
@@ -8261,36 +8118,6 @@
     "female mercenary",
     "marine sniper",
     "two man army"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "courtroom",
-   "section": "Forces & Institutions",
-   "count": 187,
-   "members": [
-    "courtroom",
-    "trial",
-    "murder trial",
-    "court",
-    "court case",
-    "courtroom drama",
-    "judge",
-    "legal thriller",
-    "prosecution",
-    "legal drama",
-    "wrongful conviction",
-    "arbitrary law",
-    "testimony",
-    "jury trial",
-    "jury",
-    "supreme court",
-    "principal witness",
-    "courthouse",
-    "jurors",
-    "lawsuit",
-    "judiciary",
-    "sentence"
    ],
    "pillar": "Story"
   },
@@ -8460,6 +8287,18 @@
    "note": "custom label (user); movie business + hollywood industry cluster"
   },
   {
+   "canonical": "fbi",
+   "section": "Forces & Institutions",
+   "count": 117,
+   "members": [
+    "fbi",
+    "fbi operation",
+    "fbi agent"
+   ],
+   "from_board": true,
+   "pillar": "Story"
+  },
+  {
    "canonical": "corruption",
    "section": "Forces & Institutions",
    "count": 114,
@@ -8470,17 +8309,6 @@
     "corrupt official",
     "bribery",
     "bribe"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "fbi",
-   "section": "Forces & Institutions",
-   "count": 106,
-   "members": [
-    "fbi",
-    "fbi operation"
    ],
    "from_board": true,
    "pillar": "Story"
@@ -8815,6 +8643,21 @@
     "jewry",
     "zionism",
     "bar mitzvah"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "labor union",
+   "section": "Forces & Institutions",
+   "count": 21,
+   "members": [
+    "labor union",
+    "union",
+    "labor strike",
+    "labor organizer",
+    "worker's rights",
+    "labor rights",
+    "strike"
    ],
    "pillar": "Story"
   },
@@ -9359,6 +9202,21 @@
     "persecution",
     "repression"
    ]
+  },
+  {
+   "canonical": "female empowerment",
+   "section": "Identity & Society",
+   "count": 46,
+   "members": [
+    "strong woman",
+    "female empowerment",
+    "girl power",
+    "one woman army",
+    "women and society",
+    "tough girl",
+    "empowerment"
+   ],
+   "pillar": "Story"
   },
   {
    "canonical": "interracial",
@@ -12385,6 +12243,17 @@
    "members": [
     "love at first sight",
     "whirlwind romance"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "roommates",
+   "section": "Relationships & Family",
+   "count": 23,
+   "members": [
+    "roommates",
+    "lodger",
+    "cohabitant"
    ],
    "pillar": "Story"
   },
@@ -16551,6 +16420,11 @@
    "name": "rethink-wave-5-banked",
    "date": "2026-07-24",
    "note": "RETHINK WAVE 5 (Events & Actions + War & Conflict, 114 tags) BANKED per user, all proposals confirmed: SHIFTS slavery+colonialism+apartheid -> Identity & Society (systems of domination, not wars) · coup detat E&A -> W&C · national history -> Themes. 32 MICRO-TAG DISSOLVES (all member strings carried, dedup-union verified clean): 6 named revolutions -> revolution · revolt+insurgence+uprising(+gwangju) -> rebellion · pre-war+post war+life during wartime -> wartime · post spanish civil war -> civil war · post war japan -> japanese epoch [Era] · war zone+casualty of war+war injury -> warfare · pogrom -> war atrocity · war epic -> epic [Sub-genres] · mafia war -> mafia · drug war -> drugs · gang warfare -> gangster (its gang-war string twin) · trojan war -> mythology · second sino-japanese war -> world war [Era] · undercover operation+black ops -> undercover · international espionage -> espionage · fbi surveillance -> surveillance · fbi operation -> fbi · military operation -> warfare · counterfeit money -> fraud · bribery -> corruption. RULED KEEP: cat and mouse · abuse-family boundary (condition M&H vs act E&A) · prom · fictional war · future war. W&C now ~24 strong tags."
+  },
+  {
+   "name": "rethink-wave-6-banked",
+   "date": "2026-07-24",
+   "note": "RETHINK WAVE 6 (Characters, 157 tags) BANKED per user: STRAYS unemployment DISSOLVED->worklife · labor union->F&I · female empowerment->I&S · roommates->R&F. FEDERAL-AGENT DUST: fbi agent->fbi · cia agent+cia analyst+ex-cia agent+nsa agent+u.s. secret service agent+federal agent->spy · dea agent->police (user confirmed). MICRO-PEOPLE: roman->historic empire · barbarian->warrior · war correspondent->journalist · impostor->con artist · principal->school · witness->courtroom. pharaoh->egypt HELD: user raised the historic-figure question (era figures -> historic empire?) — resolved next record. Person-vs-event pairs + protagonist/victim/blonde/small person/slacker/retirement/midlife/caveman all KEEP. ~140 clean."
   }
  ],
  "unassigned": [],
