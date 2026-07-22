@@ -13,7 +13,7 @@
   {
    "canonical": "audacious",
    "section": "Disposition",
-   "count": 301,
+   "count": 308,
    "members": [
     "audacious",
     "bold",
@@ -22,7 +22,9 @@
     "courage",
     "defiant",
     "heroism",
-    "exciting"
+    "exciting",
+    "dangerous mission",
+    "suicide mission"
    ],
    "pillar": "Feel"
   },
@@ -69,14 +71,15 @@
   {
    "canonical": "powerful",
    "section": "Disposition",
-   "count": 153,
+   "count": 156,
    "members": [
     "powerful",
     "commanding",
     "domineering",
     "forceful",
     "assertive",
-    "confidence"
+    "confidence",
+    "power"
    ],
    "pillar": "Feel"
   },
@@ -130,14 +133,15 @@
   {
    "canonical": "philosophical",
    "section": "Disposition",
-   "count": 120,
+   "count": 123,
    "members": [
     "philosophical",
     "objective",
     "subjective",
     "philosophy",
     "humanity",
-    "human nature"
+    "human nature",
+    "american  way of life"
    ],
    "pillar": "Feel"
   },
@@ -500,11 +504,12 @@
    "canonical": "cliché",
    "pillar": "Feel",
    "section": "Mood",
-   "count": 159,
+   "count": 163,
    "members": [
     "cliché",
     "familiar",
-    "affectation"
+    "affectation",
+    "stereotype"
    ],
    "note": "user 2026-07-23: affectation placed here — may not be the best placement but okay for now"
   },
@@ -589,8 +594,8 @@
     "sarcasm",
     "irreverent",
     "social commentary",
-    "stereotype",
-    "modern society"
+    "modern society",
+    "politically incorrect"
    ],
    "pillar": "Feel"
   },
@@ -692,6 +697,24 @@
    ]
   },
   {
+   "canonical": "macabre",
+   "section": "Mood",
+   "count": 84,
+   "members": [
+    "macabre",
+    "ghoulish",
+    "creepy",
+    "unsettling",
+    "disturbing",
+    "gruesome",
+    "taxidermy",
+    "necrophilia",
+    "deadly",
+    "skeleton"
+   ],
+   "pillar": "Feel"
+  },
+  {
    "canonical": "hopeless",
    "section": "Mood",
    "count": 79,
@@ -720,21 +743,21 @@
    "pillar": "Feel"
   },
   {
-   "canonical": "macabre",
+   "canonical": "mysterious",
+   "pillar": "Feel",
    "section": "Mood",
-   "count": 73,
+   "count": 77,
    "members": [
-    "macabre",
-    "ghoulish",
-    "creepy",
-    "unsettling",
-    "disturbing",
-    "gruesome",
-    "taxidermy",
-    "necrophilia",
-    "deadly"
-   ],
-   "pillar": "Feel"
+    "mysterious",
+    "enigmatic",
+    "mysterious events",
+    "human mystery",
+    "mysterious character",
+    "mysterious man",
+    "strange person",
+    "hooded figure",
+    "intrigue"
+   ]
   },
   {
    "canonical": "informative",
@@ -747,22 +770,6 @@
     "didactic",
     "clinical",
     "instructive"
-   ]
-  },
-  {
-   "canonical": "mysterious",
-   "pillar": "Feel",
-   "section": "Mood",
-   "count": 66,
-   "members": [
-    "mysterious",
-    "enigmatic",
-    "mysterious events",
-    "human mystery",
-    "mysterious character",
-    "mysterious man",
-    "strange person",
-    "hooded figure"
    ]
   },
   {
@@ -893,25 +900,6 @@
    "note": "absorbed the holiday season canonical"
   },
   {
-   "canonical": "near future",
-   "section": "Era",
-   "count": 139,
-   "members": [
-    "near future",
-    "2030s",
-    "2040s",
-    "2050s",
-    "2060s",
-    "2070s",
-    "2090s",
-    "not too distant future",
-    "futuristic",
-    "future",
-    "hoverboard"
-   ],
-   "pillar": "Setting"
-  },
-  {
    "canonical": "1980s",
    "section": "Era",
    "count": 134,
@@ -972,9 +960,27 @@
    ]
   },
   {
+   "canonical": "cold war",
+   "section": "Era",
+   "count": 96,
+   "members": [
+    "berlin wall",
+    "cold war",
+    "cold war era",
+    "cuban missile crisis",
+    "german democratic republic",
+    "iron curtain",
+    "korean war (1950-53)",
+    "mccarthyism",
+    "space race",
+    "vietnam war"
+   ],
+   "pillar": "Setting"
+  },
+  {
    "canonical": "historic empire",
    "section": "Era",
-   "count": 97,
+   "count": 95,
    "members": [
     "medieval italy",
     "imperial russia",
@@ -995,26 +1001,7 @@
     "ottoman",
     "maya civilization",
     "napoleonic wars",
-    "conquest",
     "civilization"
-   ],
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "cold war",
-   "section": "Era",
-   "count": 96,
-   "members": [
-    "berlin wall",
-    "cold war",
-    "cold war era",
-    "cuban missile crisis",
-    "german democratic republic",
-    "iron curtain",
-    "korean war (1950-53)",
-    "mccarthyism",
-    "space race",
-    "vietnam war"
    ],
    "pillar": "Setting"
   },
@@ -1124,6 +1111,22 @@
    "pillar": "Setting"
   },
   {
+   "canonical": "near future",
+   "section": "Era",
+   "count": 56,
+   "members": [
+    "near future",
+    "2030s",
+    "2040s",
+    "2050s",
+    "2060s",
+    "2070s",
+    "2090s",
+    "not too distant future"
+   ],
+   "pillar": "Setting"
+  },
+  {
    "canonical": "roaring 20s",
    "section": "Era",
    "count": 55,
@@ -1193,17 +1196,6 @@
    ]
   },
   {
-   "canonical": "summer",
-   "pillar": "Setting",
-   "section": "Era",
-   "count": 41,
-   "members": [
-    "summer",
-    "heat",
-    "sunlight"
-   ]
-  },
-  {
    "canonical": "1910s",
    "section": "Era",
    "count": 39,
@@ -1212,6 +1204,16 @@
    ],
    "from_board": true,
    "pillar": "Setting"
+  },
+  {
+   "canonical": "summer",
+   "pillar": "Setting",
+   "section": "Era",
+   "count": 38,
+   "members": [
+    "summer",
+    "sunlight"
+   ]
   },
   {
    "canonical": "new year's eve",
@@ -1422,7 +1424,7 @@
   {
    "canonical": "school",
    "section": "Locations",
-   "count": 448,
+   "count": 444,
    "members": [
     "approved school",
     "ballet school",
@@ -1483,7 +1485,6 @@
     "college graduate",
     "popular girl",
     "bukatsu",
-    "playground",
     "clique"
    ],
    "pillar": "Setting"
@@ -1531,7 +1532,7 @@
   {
    "canonical": "space",
    "section": "Locations",
-   "count": 182,
+   "count": 177,
    "members": [
     "space",
     "outer space",
@@ -1564,7 +1565,6 @@
     "meteor",
     "meteorite",
     "sun",
-    "earth",
     "cosmic"
    ],
    "pillar": "Setting"
@@ -1572,7 +1572,7 @@
   {
    "canonical": "house",
    "section": "Locations",
-   "count": 149,
+   "count": 174,
    "members": [
     "house",
     "country house",
@@ -1604,7 +1604,12 @@
     "cellar",
     "flat",
     "garage",
-    "fireplace"
+    "fireplace",
+    "boarding house",
+    "shower",
+    "mirror",
+    "moving in",
+    "moving out"
    ],
    "pillar": "Setting"
   },
@@ -1657,7 +1662,7 @@
    "canonical": "countryside",
    "pillar": "Setting",
    "section": "Locations",
-   "count": 116,
+   "count": 112,
    "members": [
     "countryside",
     "rural area",
@@ -1668,8 +1673,7 @@
     "country life",
     "provincial life",
     "windmill",
-    "moor (terrain)",
-    "land dispute"
+    "moor (terrain)"
    ]
   },
   {
@@ -1940,6 +1944,21 @@
    "pillar": "Setting"
   },
   {
+   "canonical": "planet",
+   "section": "Locations",
+   "count": 48,
+   "members": [
+    "planet",
+    "planet mars",
+    "destruction of planet",
+    "save the planet",
+    "planet earth",
+    "planet invasion",
+    "earth"
+   ],
+   "pillar": "Setting"
+  },
+  {
    "canonical": "ocean",
    "pillar": "Setting",
    "section": "Locations",
@@ -1996,6 +2015,22 @@
    "pillar": "Setting"
   },
   {
+   "canonical": "park",
+   "section": "Locations",
+   "count": 45,
+   "members": [
+    "park",
+    "garden",
+    "national park",
+    "gardener",
+    "fountain",
+    "playground",
+    "picnic",
+    "florist"
+   ],
+   "pillar": "Setting"
+  },
+  {
    "canonical": "motorcycle",
    "pillar": "Setting",
    "section": "Locations",
@@ -2044,20 +2079,6 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "planet",
-   "section": "Locations",
-   "count": 41,
-   "members": [
-    "planet",
-    "planet mars",
-    "destruction of planet",
-    "save the planet",
-    "planet earth",
-    "planet invasion"
-   ],
-   "pillar": "Setting"
-  },
-  {
    "canonical": "casino",
    "section": "Locations",
    "count": 40,
@@ -2068,16 +2089,18 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "factory",
+   "canonical": "laboratory",
    "section": "Locations",
-   "count": 38,
+   "count": 39,
    "members": [
-    "factory",
-    "warehouse",
-    "slaughterhouse",
-    "construction",
-    "construction site"
+    "in-home laboratory",
+    "laboratory",
+    "research laboratory",
+    "research station",
+    "secret lab",
+    "chemical"
    ],
+   "note": "a setting, not a job — surfaced here only because the science regex caught it",
    "pillar": "Setting"
   },
   {
@@ -2091,20 +2114,6 @@
     "smithsonian",
     "exhibition"
    ],
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "laboratory",
-   "section": "Locations",
-   "count": 36,
-   "members": [
-    "in-home laboratory",
-    "laboratory",
-    "research laboratory",
-    "research station",
-    "secret lab"
-   ],
-   "note": "a setting, not a job — surfaced here only because the science regex caught it",
    "pillar": "Setting"
   },
   {
@@ -2153,15 +2162,13 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "park",
+   "canonical": "factory",
    "section": "Locations",
-   "count": 31,
+   "count": 30,
    "members": [
-    "park",
-    "garden",
-    "national park",
-    "gardener",
-    "fountain"
+    "factory",
+    "warehouse",
+    "slaughterhouse"
    ],
    "pillar": "Setting"
   },
@@ -2256,6 +2263,18 @@
    "pillar": "Setting"
   },
   {
+   "canonical": "truck",
+   "pillar": "Setting",
+   "section": "Locations",
+   "count": 26,
+   "members": [
+    "ice cream truck",
+    "pickup truck",
+    "truck",
+    "convoy"
+   ]
+  },
+  {
    "canonical": "airport",
    "section": "Locations",
    "count": 25,
@@ -2302,17 +2321,6 @@
    ],
    "pillar": "Setting",
    "note": "mining accident (2f, floor waived) -> mine per user; miner already a member"
-  },
-  {
-   "canonical": "truck",
-   "pillar": "Setting",
-   "section": "Locations",
-   "count": 23,
-   "members": [
-    "ice cream truck",
-    "pickup truck",
-    "truck"
-   ]
   },
   {
    "canonical": "border",
@@ -2821,23 +2829,6 @@
    "pillar": "Setting"
   },
   {
-   "canonical": "hotel",
-   "section": "Place",
-   "count": 111,
-   "members": [
-    "hotel",
-    "hotel room",
-    "luxury hotel",
-    "continental hotel",
-    "resort",
-    "hotel manager",
-    "inn",
-    "boarding house"
-   ],
-   "from_board": true,
-   "pillar": "Setting"
-  },
-  {
    "canonical": "island",
    "section": "Place",
    "count": 110,
@@ -2854,13 +2845,30 @@
   {
    "canonical": "forest",
    "section": "Place",
-   "count": 105,
+   "count": 108,
    "members": [
     "forest",
     "woods",
     "lost in the woods",
     "forest fire",
-    "tree"
+    "tree",
+    "woodcutter"
+   ],
+   "from_board": true,
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "hotel",
+   "section": "Place",
+   "count": 106,
+   "members": [
+    "hotel",
+    "hotel room",
+    "luxury hotel",
+    "continental hotel",
+    "resort",
+    "hotel manager",
+    "inn"
    ],
    "from_board": true,
    "pillar": "Setting"
@@ -2900,21 +2908,6 @@
    ],
    "from_board": true,
    "note": "board label was the short form \"washington dc\"",
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "castle",
-   "section": "Place",
-   "count": 68,
-   "members": [
-    "castle",
-    "fortress",
-    "walled city",
-    "tower",
-    "secret passage",
-    "secret passageway"
-   ],
-   "from_board": true,
    "pillar": "Setting"
   },
   {
@@ -2967,12 +2960,24 @@
   {
    "canonical": "church",
    "section": "Place",
-   "count": 63,
+   "count": 60,
    "members": [
     "church",
     "cathedral",
-    "church choir",
-    "bell"
+    "church choir"
+   ],
+   "from_board": true,
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "castle",
+   "section": "Place",
+   "count": 58,
+   "members": [
+    "castle",
+    "fortress",
+    "walled city",
+    "tower"
    ],
    "from_board": true,
    "pillar": "Setting"
@@ -3305,6 +3310,17 @@
    "pillar": "Setting"
   },
   {
+   "canonical": "ohio",
+   "section": "Place",
+   "count": 23,
+   "members": [
+    "cleveland, ohio",
+    "ohio",
+    "cincinnati"
+   ],
+   "pillar": "Setting"
+  },
+  {
    "canonical": "norway",
    "section": "Place",
    "count": 22,
@@ -3368,29 +3384,6 @@
     "vienna, austria",
     "austria",
     "austrian"
-   ],
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "ohio",
-   "section": "Place",
-   "count": 20,
-   "members": [
-    "cleveland, ohio",
-    "ohio"
-   ],
-   "pillar": "Setting"
-  },
-  {
-   "canonical": "usa",
-   "section": "Place",
-   "count": 20,
-   "members": [
-    "america",
-    "united states of america (usa)",
-    "american  way of life",
-    "cincinnati",
-    "washington"
    ],
    "pillar": "Setting"
   },
@@ -3668,6 +3661,16 @@
     "northern england"
    ],
    "note": "region tag — grouping RESOLVED 2026-07-22: regions stay own Place tags, no umbrella",
+   "pillar": "Setting"
+  },
+  {
+   "canonical": "usa",
+   "section": "Place",
+   "count": 10,
+   "members": [
+    "america",
+    "united states of america (usa)"
+   ],
    "pillar": "Setting"
   },
   {
@@ -4369,6 +4372,16 @@
    ]
   },
   {
+   "canonical": "washington",
+   "pillar": "Setting",
+   "section": "Place",
+   "count": 3,
+   "members": [
+    "washington"
+   ],
+   "note": "the STATE (birdwatching corpus), not the president"
+  },
+  {
    "canonical": "nepal",
    "section": "Place",
    "count": 2,
@@ -4510,7 +4523,7 @@
    "canonical": "forces of nature",
    "pillar": "Story",
    "section": "Animals & Nature",
-   "count": 118,
+   "count": 124,
    "members": [
     "earthquake",
     "tsunami",
@@ -4529,7 +4542,9 @@
     "volcanic ash",
     "volcanic eruption",
     "lava",
-    "cataclysm"
+    "cataclysm",
+    "heat",
+    "extinction"
    ]
   },
   {
@@ -4599,6 +4614,17 @@
    "note": "tiny bug species grouped"
   },
   {
+   "canonical": "animal attack",
+   "pillar": "Story",
+   "section": "Animals & Nature",
+   "count": 52,
+   "members": [
+    "animal attack",
+    "eaten by animal",
+    "bite"
+   ]
+  },
+  {
    "canonical": "bird",
    "pillar": "Story",
    "section": "Animals & Nature",
@@ -4619,10 +4645,23 @@
    "note": "small bird species grouped; penguin separate"
   },
   {
+   "canonical": "horse",
+   "pillar": "Story",
+   "section": "Animals & Nature",
+   "count": 46,
+   "members": [
+    "horse",
+    "horseback riding",
+    "mustang",
+    "horse carriage"
+   ],
+   "note": "mustang corpus-verified as horse, not car"
+  },
+  {
    "canonical": "climate change",
    "pillar": "Story",
    "section": "Animals & Nature",
-   "count": 48,
+   "count": 45,
    "members": [
     "climate change",
     "global warming",
@@ -4643,22 +4682,8 @@
     "climate",
     "water pollution",
     "water shortage",
-    "environmental protection agency",
-    "extinction"
+    "environmental protection agency"
    ]
-  },
-  {
-   "canonical": "horse",
-   "pillar": "Story",
-   "section": "Animals & Nature",
-   "count": 46,
-   "members": [
-    "horse",
-    "horseback riding",
-    "mustang",
-    "horse carriage"
-   ],
-   "note": "mustang corpus-verified as horse, not car"
   },
   {
    "canonical": "shark",
@@ -4711,16 +4736,6 @@
     "talking to animals"
    ],
    "note": "generic only — talking dog/cat/pig live with their species"
-  },
-  {
-   "canonical": "animal attack",
-   "pillar": "Story",
-   "section": "Animals & Nature",
-   "count": 36,
-   "members": [
-    "animal attack",
-    "eaten by animal"
-   ]
   },
   {
    "canonical": "ape",
@@ -5042,7 +5057,7 @@
   {
    "canonical": "villain",
    "section": "Characters",
-   "count": 373,
+   "count": 376,
    "members": [
     "villain",
     "antagonistic",
@@ -5058,7 +5073,8 @@
     "henchmen",
     "nemesis",
     "evil plot",
-    "evil"
+    "evil",
+    "perfect crime"
    ],
    "pillar": "Story"
   },
@@ -5333,7 +5349,7 @@
   {
    "canonical": "scientist",
    "section": "Characters",
-   "count": 165,
+   "count": 162,
    "members": [
     "anthropologist",
     "anthropology",
@@ -5354,8 +5370,7 @@
     "meteorologist",
     "paleontology",
     "quantum mechanics",
-    "chemical",
-    "secret formula"
+    "weather forecaster"
    ],
    "pillar": "Story",
    "note": "astronomy/telescope/observatory + mathematics/mathematician all left loose by user — science-practice keywords held for later evaluation"
@@ -5528,9 +5543,28 @@
    "pillar": "Story"
   },
   {
+   "canonical": "teacher",
+   "section": "Characters",
+   "count": 131,
+   "members": [
+    "teacher",
+    "music teacher",
+    "school teacher",
+    "high school teacher",
+    "tutor",
+    "female teacher",
+    "dance teacher",
+    "teacher student relationship",
+    "schoolteacher",
+    "teaching",
+    "teachers and students"
+   ],
+   "pillar": "Story"
+  },
+  {
    "canonical": "workplace",
    "section": "Characters",
-   "count": 137,
+   "count": 129,
    "members": [
     "workplace",
     "workplace comedy",
@@ -5554,30 +5588,9 @@
     "colleague",
     "janitor",
     "taskmaster",
-    "doorman",
-    "florist",
     "conference",
     "workshop",
     "work"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "teacher",
-   "section": "Characters",
-   "count": 131,
-   "members": [
-    "teacher",
-    "music teacher",
-    "school teacher",
-    "high school teacher",
-    "tutor",
-    "female teacher",
-    "dance teacher",
-    "teacher student relationship",
-    "schoolteacher",
-    "teaching",
-    "teachers and students"
    ],
    "pillar": "Story"
   },
@@ -5934,36 +5947,15 @@
    "pillar": "Story"
   },
   {
-   "canonical": "con artist",
-   "section": "Characters",
-   "count": 69,
-   "members": [
-    "con artist",
-    "con man",
-    "scam",
-    "scam artist",
-    "swindle",
-    "grifter",
-    "con",
-    "con game",
-    "small time crook",
-    "crook",
-    "opportunist",
-    "hustler"
-   ],
-   "pillar": "Story"
-  },
-  {
    "canonical": "bodyguard",
    "section": "Characters",
-   "count": 69,
+   "count": 64,
    "members": [
     "bodyguard",
     "security guard",
     "protection",
     "guard",
     "protector",
-    "guardian",
     "night watchman"
    ],
    "pillar": "Story"
@@ -5984,6 +5976,25 @@
     "downsizing",
     "laid off",
     "forced retirement"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "con artist",
+   "section": "Characters",
+   "count": 59,
+   "members": [
+    "con artist",
+    "con man",
+    "scam",
+    "scam artist",
+    "swindle",
+    "grifter",
+    "con",
+    "con game",
+    "small time crook",
+    "crook",
+    "opportunist"
    ],
    "pillar": "Story"
   },
@@ -6014,9 +6025,25 @@
    "pillar": "Story"
   },
   {
+   "canonical": "actor",
+   "section": "Characters",
+   "count": 56,
+   "members": [
+    "actor",
+    "actress",
+    "aspiring actor",
+    "aging actor",
+    "struggling actor",
+    "porn actor",
+    "famous actor",
+    "aspiring actress"
+   ],
+   "pillar": "Story"
+  },
+  {
    "canonical": "dancer",
    "section": "Characters",
-   "count": 57,
+   "count": 54,
    "members": [
     "dancer",
     "ballet dancer",
@@ -6030,24 +6057,7 @@
     "dancing master",
     "choreographer",
     "choreography",
-    "swan lake",
-    "ball"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "actor",
-   "section": "Characters",
-   "count": 56,
-   "members": [
-    "actor",
-    "actress",
-    "aspiring actor",
-    "aging actor",
-    "struggling actor",
-    "porn actor",
-    "famous actor",
-    "aspiring actress"
+    "swan lake"
    ],
    "pillar": "Story"
   },
@@ -6071,22 +6081,6 @@
     "buddy",
     "partner",
     "partnership"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "female empowerment",
-   "section": "Characters",
-   "count": 53,
-   "members": [
-    "strong woman",
-    "female empowerment",
-    "girl power",
-    "one woman army",
-    "women and society",
-    "tough girl",
-    "tomboy",
-    "empowerment"
    ],
    "pillar": "Story"
   },
@@ -6145,6 +6139,21 @@
     "retirement home",
     "nursing home",
     "old lady"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "female empowerment",
+   "section": "Characters",
+   "count": 46,
+   "members": [
+    "strong woman",
+    "female empowerment",
+    "girl power",
+    "one woman army",
+    "women and society",
+    "tough girl",
+    "empowerment"
    ],
    "pillar": "Story"
   },
@@ -6549,6 +6558,18 @@
    "pillar": "Story"
   },
   {
+   "canonical": "manual labor",
+   "section": "Characters",
+   "count": 27,
+   "members": [
+    "factory worker",
+    "construction worker",
+    "construction",
+    "construction site"
+   ],
+   "pillar": "Story"
+  },
+  {
    "canonical": "director",
    "section": "Characters",
    "count": 26,
@@ -6721,16 +6742,6 @@
     "worker's rights",
     "labor rights",
     "strike"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "manual labor",
-   "section": "Characters",
-   "count": 20,
-   "members": [
-    "factory worker",
-    "construction worker"
    ],
    "pillar": "Story"
   },
@@ -7022,6 +7033,17 @@
    ]
   },
   {
+   "canonical": "hotel staff",
+   "pillar": "Story",
+   "section": "Characters",
+   "count": 10,
+   "members": [
+    "concierge",
+    "valet",
+    "doorman"
+   ]
+  },
+  {
    "canonical": "musketeer",
    "section": "Characters",
    "count": 9,
@@ -7130,16 +7152,6 @@
    ],
    "from_board": true,
    "pillar": "Story"
-  },
-  {
-   "canonical": "concierge",
-   "pillar": "Story",
-   "section": "Characters",
-   "count": 7,
-   "members": [
-    "concierge",
-    "valet"
-   ]
   },
   {
    "canonical": "caretaker",
@@ -7284,7 +7296,7 @@
    "canonical": "fight",
    "pillar": "Story",
    "section": "Events & Actions",
-   "count": 251,
+   "count": 260,
    "members": [
     "brawl",
     "catfight",
@@ -7300,7 +7312,10 @@
     "underground fighting",
     "attack",
     "assault",
-    "beating"
+    "beating",
+    "versus",
+    "versus fighting",
+    "battle for power"
    ],
    "note": "absorbed the combat + hand to hand combat canonicals"
   },
@@ -7335,7 +7350,7 @@
    "canonical": "crash",
    "pillar": "Story",
    "section": "Events & Actions",
-   "count": 216,
+   "count": 201,
    "members": [
     "airplane accident",
     "airplane crash",
@@ -7365,8 +7380,7 @@
     "spaceship crash",
     "train accident",
     "train crash",
-    "hit-and-run",
-    "accident"
+    "hit-and-run"
    ],
    "note": "one crash/wreck/accident event tag (user); sub-floor 2f strings included, floor waived; generic `accident` corpus-verified broad -> loose"
   },
@@ -7450,7 +7464,7 @@
   {
    "canonical": "heist",
    "section": "Events & Actions",
-   "count": 146,
+   "count": 144,
    "members": [
     "heist",
     "bank heist",
@@ -7470,8 +7484,7 @@
     "security system",
     "bearer bonds",
     "locksmith",
-    "security breach",
-    "perfect crime"
+    "security breach"
    ],
    "pillar": "Story"
   },
@@ -7537,6 +7550,25 @@
    "pillar": "Story"
   },
   {
+   "canonical": "battle",
+   "pillar": "Story",
+   "section": "Events & Actions",
+   "count": 133,
+   "members": [
+    "ambush",
+    "battle",
+    "battlefield",
+    "rampage",
+    "siege",
+    "conquest",
+    "street war",
+    "destroy",
+    "mass destruction",
+    "destruction",
+    "battle assignment"
+   ]
+  },
+  {
    "canonical": "bullying",
    "section": "Events & Actions",
    "count": 112,
@@ -7580,19 +7612,6 @@
     "mission",
     "search",
     "search for truth"
-   ]
-  },
-  {
-   "canonical": "battle",
-   "pillar": "Story",
-   "section": "Events & Actions",
-   "count": 102,
-   "members": [
-    "ambush",
-    "battle",
-    "battlefield",
-    "rampage",
-    "siege"
    ]
   },
   {
@@ -7739,6 +7758,27 @@
    ]
   },
   {
+   "canonical": "party",
+   "pillar": "Story",
+   "section": "Events & Actions",
+   "count": 77,
+   "members": [
+    "bachelor party",
+    "celebration",
+    "dinner party",
+    "house party",
+    "party",
+    "pool party",
+    "socialite party",
+    "surprise party",
+    "stag night",
+    "rave",
+    "partying",
+    "one night",
+    "ball"
+   ]
+  },
+  {
    "canonical": "undercover",
    "section": "Events & Actions",
    "count": 76,
@@ -7753,30 +7793,10 @@
    "pillar": "Story"
   },
   {
-   "canonical": "party",
-   "pillar": "Story",
-   "section": "Events & Actions",
-   "count": 74,
-   "members": [
-    "bachelor party",
-    "celebration",
-    "dinner party",
-    "house party",
-    "party",
-    "pool party",
-    "socialite party",
-    "surprise party",
-    "stag night",
-    "rave",
-    "partying",
-    "one night"
-   ]
-  },
-  {
    "canonical": "falsely accused",
    "pillar": "Story",
    "section": "Events & Actions",
-   "count": 71,
+   "count": 74,
    "members": [
     "falsely accused",
     "framed",
@@ -7787,7 +7807,8 @@
     "innocent suspect",
     "wrongly accused",
     "set up",
-    "accusation"
+    "accusation",
+    "west memphis three"
    ]
   },
   {
@@ -7810,29 +7831,6 @@
     "duel",
     "showdown",
     "mexican standoff"
-   ]
-  },
-  {
-   "canonical": "captivity",
-   "pillar": "Story",
-   "section": "Events & Actions",
-   "count": 62,
-   "members": [
-    "captured",
-    "chained",
-    "handcuffed",
-    "handcuffs",
-    "tied up",
-    "locked in",
-    "cage",
-    "capture",
-    "dungeon",
-    "torture chamber",
-    "captivity",
-    "locked door",
-    "buried alive",
-    "rope",
-    "entrapment"
    ]
   },
   {
@@ -7861,7 +7859,7 @@
   {
    "canonical": "execution",
    "section": "Events & Actions",
-   "count": 57,
+   "count": 56,
    "members": [
     "death penalty",
     "death sentence",
@@ -7873,8 +7871,7 @@
     "public execution",
     "capital punishment",
     "death by hanging",
-    "lethal injection",
-    "noose"
+    "lethal injection"
    ],
    "pillar": "Story"
   },
@@ -7892,6 +7889,27 @@
     "female explorer",
     "safari",
     "hiking"
+   ]
+  },
+  {
+   "canonical": "captivity",
+   "pillar": "Story",
+   "section": "Events & Actions",
+   "count": 52,
+   "members": [
+    "captured",
+    "chained",
+    "handcuffed",
+    "handcuffs",
+    "tied up",
+    "locked in",
+    "cage",
+    "capture",
+    "dungeon",
+    "torture chamber",
+    "captivity",
+    "locked door",
+    "buried alive"
    ]
   },
   {
@@ -8119,6 +8137,17 @@
    ]
   },
   {
+   "canonical": "plan",
+   "pillar": "Story",
+   "section": "Events & Actions",
+   "count": 23,
+   "members": [
+    "plan",
+    "scheme",
+    "plan gone wrong"
+   ]
+  },
+  {
    "canonical": "cybercrime",
    "pillar": "Story",
    "section": "Events & Actions",
@@ -8140,6 +8169,16 @@
     "stranded",
     "marooned",
     "castaway"
+   ]
+  },
+  {
+   "canonical": "accident",
+   "pillar": "Story",
+   "section": "Events & Actions",
+   "count": 22,
+   "members": [
+    "accident",
+    "mistake"
    ]
   },
   {
@@ -8247,6 +8286,16 @@
    "pillar": "Story"
   },
   {
+   "canonical": "lockdown",
+   "pillar": "Story",
+   "section": "Events & Actions",
+   "count": 7,
+   "members": [
+    "lockdown"
+   ],
+   "note": "user: can refer to shootings, not only pandemic"
+  },
+  {
    "canonical": "fbi operation",
    "section": "Events & Actions",
    "count": 5,
@@ -8289,7 +8338,7 @@
   {
    "canonical": "religion",
    "section": "Forces & Institutions",
-   "count": 216,
+   "count": 207,
    "members": [
     "belief in god",
     "bible",
@@ -8316,8 +8365,7 @@
     "religious conversion",
     "religious conflict",
     "religious hypocrisy",
-    "hindu",
-    "confession"
+    "hindu"
    ],
    "pillar": "Story"
   },
@@ -8398,7 +8446,7 @@
   {
    "canonical": "politics",
    "section": "Forces & Institutions",
-   "count": 186,
+   "count": 182,
    "members": [
     "politics",
     "usa politics",
@@ -8424,13 +8472,11 @@
     "debate",
     "u.s. embassy",
     "european union",
-    "power",
     "speech",
     "city hall",
     "public works",
     "state of emergency",
     "power struggle",
-    "battle for power",
     "power relations",
     "power dynamics",
     "fictitious country",
@@ -8439,9 +8485,38 @@
    "pillar": "Story"
   },
   {
+   "canonical": "intelligence agency",
+   "section": "Forces & Institutions",
+   "count": 163,
+   "members": [
+    "central intelligence agency (cia)",
+    "kgb",
+    "mi6",
+    "british secret service",
+    "national security agency (nsa)",
+    "mossad",
+    "stasi",
+    "gestapo",
+    "french gestapo",
+    "secret service",
+    "homeland security",
+    "dea",
+    "intelligence agency",
+    "secret intelligence service",
+    "intelligence service",
+    "mi5",
+    "national intelligence service (nis)",
+    "u.s. counterintelligence",
+    "ex kgb",
+    "intelligence officer",
+    "british intelligence"
+   ],
+   "pillar": "Story"
+  },
+  {
    "canonical": "mafia",
    "section": "Forces & Institutions",
-   "count": 170,
+   "count": 160,
    "members": [
     "mafia",
     "mobster",
@@ -8461,17 +8536,14 @@
     "camorra",
     "sicilian",
     "godfather",
-    "kingpin",
-    "underworld",
-    "street war",
-    "street life"
+    "kingpin"
    ],
    "pillar": "Story"
   },
   {
    "canonical": "army",
    "section": "Forces & Institutions",
-   "count": 164,
+   "count": 152,
    "members": [
     "army",
     "us army",
@@ -8506,40 +8578,7 @@
     "national guard",
     "u.s. army soldier",
     "private",
-    "convoy",
-    "battle assignment",
-    "dangerous mission",
-    "suicide mission",
     "raid"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "intelligence agency",
-   "section": "Forces & Institutions",
-   "count": 163,
-   "members": [
-    "central intelligence agency (cia)",
-    "kgb",
-    "mi6",
-    "british secret service",
-    "national security agency (nsa)",
-    "mossad",
-    "stasi",
-    "gestapo",
-    "french gestapo",
-    "secret service",
-    "homeland security",
-    "dea",
-    "intelligence agency",
-    "secret intelligence service",
-    "intelligence service",
-    "mi5",
-    "national intelligence service (nis)",
-    "u.s. counterintelligence",
-    "ex kgb",
-    "intelligence officer",
-    "british intelligence"
    ],
    "pillar": "Story"
   },
@@ -8547,7 +8586,7 @@
    "canonical": "moviebiz",
    "pillar": "Story",
    "section": "Forces & Institutions",
-   "count": 141,
+   "count": 139,
    "members": [
     "film industry",
     "film production",
@@ -8565,8 +8604,7 @@
     "behind the scenes",
     "screenplay",
     "outtakes",
-    "product placement",
-    "audience"
+    "product placement"
    ],
    "note": "custom label (user); movie business + hollywood industry cluster"
   },
@@ -8645,7 +8683,7 @@
    "canonical": "television",
    "pillar": "Story",
    "section": "Forces & Institutions",
-   "count": 64,
+   "count": 61,
    "members": [
     "game show",
     "talent show",
@@ -8659,8 +8697,7 @@
     "tv special",
     "sitcom",
     "series finale",
-    "remote control",
-    "weather forecaster"
+    "remote control"
    ]
   },
   {
@@ -8699,15 +8736,14 @@
    "canonical": "technology",
    "pillar": "Story",
    "section": "Forces & Institutions",
-   "count": 57,
+   "count": 54,
    "members": [
     "high technology",
     "machine",
     "man vs machine",
     "technology",
     "high tech",
-    "techno thriller",
-    "artificial"
+    "techno thriller"
    ]
   },
   {
@@ -9469,6 +9505,20 @@
    "pillar": "Story"
   },
   {
+   "canonical": "counterculture",
+   "pillar": "Story",
+   "section": "Identity & Society",
+   "count": 38,
+   "members": [
+    "counter-culture",
+    "subculture",
+    "counterculture",
+    "underground",
+    "underworld",
+    "tomboy"
+   ]
+  },
+  {
    "canonical": "lesbian",
    "section": "Identity & Society",
    "count": 32,
@@ -9502,18 +9552,6 @@
     "cross dressing",
     "transvestism",
     "transvestite"
-   ]
-  },
-  {
-   "canonical": "counterculture",
-   "pillar": "Story",
-   "section": "Identity & Society",
-   "count": 28,
-   "members": [
-    "counter-culture",
-    "subculture",
-    "counterculture",
-    "underground"
    ]
   },
   {
@@ -9815,7 +9853,7 @@
   {
    "canonical": "sickness",
    "section": "Mind & Health",
-   "count": 194,
+   "count": 189,
    "members": [
     "sickness",
     "cancer",
@@ -9846,7 +9884,6 @@
     "injury",
     "wound",
     "health",
-    "hypochondriac",
     "sexually transmitted disease"
    ],
    "pillar": "Story"
@@ -9854,7 +9891,7 @@
   {
    "canonical": "mental illness",
    "section": "Mind & Health",
-   "count": 155,
+   "count": 160,
    "members": [
     "mental illness",
     "mental health",
@@ -9878,7 +9915,8 @@
     "neurosis",
     "disorder",
     "breakdown",
-    "psychological stress"
+    "psychological stress",
+    "hypochondriac"
    ],
    "pillar": "Story"
   },
@@ -9925,7 +9963,7 @@
   {
    "canonical": "virus",
    "section": "Mind & Health",
-   "count": 122,
+   "count": 119,
    "members": [
     "virus",
     "infection",
@@ -9941,8 +9979,7 @@
     "covid-19",
     "contagion",
     "vaccine",
-    "parasite",
-    "lockdown"
+    "parasite"
    ],
    "pillar": "Story"
   },
@@ -10078,7 +10115,7 @@
    "canonical": "insecurity",
    "pillar": "Story",
    "section": "Mind & Health",
-   "count": 52,
+   "count": 56,
    "members": [
     "insecurity",
     "shyness",
@@ -10089,7 +10126,8 @@
     "self esteem",
     "self image",
     "insecure",
-    "trust issues"
+    "trust issues",
+    "embarrasment"
    ]
   },
   {
@@ -10350,32 +10388,6 @@
    ]
   },
   {
-   "canonical": "explosion",
-   "pillar": "Story",
-   "section": "Objects & Weapons",
-   "count": 142,
-   "members": [
-    "bomb shelter",
-    "bomber",
-    "car explosion",
-    "car fire",
-    "dynamite",
-    "exploding car",
-    "explosion",
-    "explosions",
-    "explosive",
-    "explosive action",
-    "explosives expert",
-    "nuclear explosion",
-    "time bomb",
-    "blast",
-    "destroy",
-    "destruction",
-    "mass destruction"
-   ],
-   "note": "bomber+bomb shelter per user; time bomb from nuclear cluster"
-  },
-  {
    "canonical": "weapons",
    "pillar": "Story",
    "section": "Objects & Weapons",
@@ -10406,6 +10418,29 @@
     "steel helmet"
    ],
    "note": "minor weapons grouped, animals-style; resolves the parked re-org pile"
+  },
+  {
+   "canonical": "explosion",
+   "pillar": "Story",
+   "section": "Objects & Weapons",
+   "count": 125,
+   "members": [
+    "bomb shelter",
+    "bomber",
+    "car explosion",
+    "car fire",
+    "dynamite",
+    "exploding car",
+    "explosion",
+    "explosions",
+    "explosive",
+    "explosive action",
+    "explosives expert",
+    "nuclear explosion",
+    "time bomb",
+    "blast"
+   ],
+   "note": "bomber+bomb shelter per user; time bomb from nuclear cluster"
   },
   {
    "canonical": "sword",
@@ -10630,6 +10665,18 @@
    ]
   },
   {
+   "canonical": "clock",
+   "pillar": "Story",
+   "section": "Objects & Weapons",
+   "count": 20,
+   "members": [
+    "clock",
+    "clock tower",
+    "midnight",
+    "alarm clock"
+   ]
+  },
+  {
    "canonical": "tattoo",
    "pillar": "Story",
    "section": "Objects & Weapons",
@@ -10646,6 +10693,27 @@
    "members": [
     "diamond"
    ]
+  },
+  {
+   "canonical": "balloon",
+   "pillar": "Story",
+   "section": "Objects & Weapons",
+   "count": 10,
+   "members": [
+    "balloon",
+    "hot air balloon"
+   ]
+  },
+  {
+   "canonical": "rope",
+   "pillar": "Story",
+   "section": "Objects & Weapons",
+   "count": 10,
+   "members": [
+    "rope",
+    "noose"
+   ],
+   "note": "user: noose is not always execution — sometimes self harm"
   },
   {
    "canonical": "sports",
@@ -10691,7 +10759,7 @@
   {
    "canonical": "drugs",
    "section": "Pursuits",
-   "count": 250,
+   "count": 247,
    "members": [
     "drugs",
     "cocaine",
@@ -10710,7 +10778,6 @@
     "recreational drug use",
     "drugged",
     "drug scene",
-    "acid",
     "syringe",
     "pill",
     "pills"
@@ -10819,33 +10886,6 @@
    "pillar": "Story"
   },
   {
-   "canonical": "travel",
-   "pillar": "Story",
-   "section": "Pursuits",
-   "count": 121,
-   "members": [
-    "travel",
-    "tourist",
-    "tourism",
-    "sightseeing",
-    "backpacker",
-    "air travel",
-    "american tourist",
-    "passport",
-    "cross country trip",
-    "around the world",
-    "weekend getaway",
-    "american abroad",
-    "passenger",
-    "suitcase",
-    "ticket",
-    "caravan",
-    "balloon",
-    "hot air balloon",
-    "tourists in peril"
-   ]
-  },
-  {
    "canonical": "food",
    "section": "Pursuits",
    "count": 116,
@@ -10882,7 +10922,7 @@
    "canonical": "game",
    "pillar": "Story",
    "section": "Pursuits",
-   "count": 113,
+   "count": 116,
    "members": [
     "game",
     "trapped in a game",
@@ -10904,7 +10944,33 @@
     "riddle",
     "playing chess",
     "interactive",
-    "bowling alley"
+    "bowling alley",
+    "tricks"
+   ]
+  },
+  {
+   "canonical": "travel",
+   "pillar": "Story",
+   "section": "Pursuits",
+   "count": 114,
+   "members": [
+    "travel",
+    "tourist",
+    "tourism",
+    "sightseeing",
+    "backpacker",
+    "air travel",
+    "american tourist",
+    "passport",
+    "cross country trip",
+    "around the world",
+    "weekend getaway",
+    "american abroad",
+    "passenger",
+    "suitcase",
+    "ticket",
+    "caravan",
+    "tourists in peril"
    ]
   },
   {
@@ -11007,7 +11073,7 @@
   {
    "canonical": "theater",
    "section": "Pursuits",
-   "count": 52,
+   "count": 54,
    "members": [
     "broadway",
     "drive-in theater",
@@ -11019,7 +11085,8 @@
     "stage show",
     "theater",
     "theatre group",
-    "staging"
+    "staging",
+    "audience"
    ],
    "pillar": "Story"
   },
@@ -11098,20 +11165,6 @@
    ]
   },
   {
-   "canonical": "camping",
-   "pillar": "Story",
-   "section": "Pursuits",
-   "count": 34,
-   "members": [
-    "camping",
-    "camping trip",
-    "campfire",
-    "tent",
-    "boy scouts",
-    "picnic"
-   ]
-  },
-  {
    "canonical": "band",
    "section": "Pursuits",
    "count": 33,
@@ -11145,6 +11198,19 @@
     "basketball team"
    ],
    "pillar": "Story"
+  },
+  {
+   "canonical": "camping",
+   "pillar": "Story",
+   "section": "Pursuits",
+   "count": 29,
+   "members": [
+    "camping",
+    "camping trip",
+    "campfire",
+    "tent",
+    "boy scouts"
+   ]
   },
   {
    "canonical": "american football",
@@ -11208,6 +11274,22 @@
    "pillar": "Story"
   },
   {
+   "canonical": "psychedelics",
+   "pillar": "Story",
+   "section": "Pursuits",
+   "count": 22,
+   "members": [
+    "psychedelics",
+    "lsd",
+    "psychedelic drug",
+    "hallucinogenic drug",
+    "hallucinogen",
+    "drug trip",
+    "opium",
+    "acid"
+   ]
+  },
+  {
    "canonical": "sailing",
    "pillar": "Story",
    "section": "Pursuits",
@@ -11216,21 +11298,6 @@
     "raft",
     "rafting",
     "sailing"
-   ]
-  },
-  {
-   "canonical": "psychedelics",
-   "pillar": "Story",
-   "section": "Pursuits",
-   "count": 19,
-   "members": [
-    "psychedelics",
-    "lsd",
-    "psychedelic drug",
-    "hallucinogenic drug",
-    "hallucinogen",
-    "drug trip",
-    "opium"
    ]
   },
   {
@@ -11482,7 +11549,7 @@
   {
    "canonical": "love",
    "section": "Relationships & Family",
-   "count": 490,
+   "count": 493,
    "members": [
     "love",
     "falling in love",
@@ -11507,7 +11574,8 @@
     "african american romance",
     "unlikely romance",
     "woman falls in love",
-    "new relationship"
+    "new relationship",
+    "anniversary"
    ],
    "pillar": "Story"
   },
@@ -11551,7 +11619,7 @@
   {
    "canonical": "family",
    "section": "Relationships & Family",
-   "count": 394,
+   "count": 399,
    "members": [
     "family",
     "family relationships",
@@ -11581,7 +11649,8 @@
     "guardianship",
     "family drama",
     "tradition",
-    "abandonment"
+    "abandonment",
+    "guardian"
    ],
    "pillar": "Story"
   },
@@ -11700,7 +11769,7 @@
   {
    "canonical": "dating",
    "section": "Relationships & Family",
-   "count": 193,
+   "count": 189,
    "members": [
     "dating",
     "online dating",
@@ -11722,7 +11791,6 @@
     "bachelor",
     "single",
     "single woman",
-    "girl next door",
     "meeting"
    ],
    "pillar": "Story"
@@ -11779,7 +11847,7 @@
   {
    "canonical": "wedding",
    "section": "Relationships & Family",
-   "count": 160,
+   "count": 157,
    "members": [
     "wedding",
     "honeymoon",
@@ -11801,8 +11869,7 @@
     "bride and groom",
     "maid of honor",
     "best man",
-    "elopement",
-    "anniversary"
+    "elopement"
    ],
    "pillar": "Story"
   },
@@ -12044,7 +12111,7 @@
   {
    "canonical": "desire",
    "section": "Relationships & Family",
-   "count": 65,
+   "count": 71,
    "members": [
     "lust",
     "desire",
@@ -12056,7 +12123,9 @@
     "temptation",
     "infatuation",
     "dream girl",
-    "attraction"
+    "attraction",
+    "girl next door",
+    "blood lust"
    ],
    "pillar": "Story"
   },
@@ -12259,17 +12328,6 @@
    "pillar": "Story"
   },
   {
-   "canonical": "inheritance",
-   "pillar": "Story",
-   "section": "Relationships & Family",
-   "count": 32,
-   "members": [
-    "inheritance",
-    "legacy",
-    "history and legacy"
-   ]
-  },
-  {
    "canonical": "family estrangement",
    "section": "Relationships & Family",
    "count": 29,
@@ -12384,6 +12442,15 @@
    "pillar": "Story"
   },
   {
+   "canonical": "inheritance",
+   "pillar": "Story",
+   "section": "Relationships & Family",
+   "count": 15,
+   "members": [
+    "inheritance"
+   ]
+  },
+  {
    "canonical": "child custody",
    "section": "Relationships & Family",
    "count": 15,
@@ -12421,16 +12488,6 @@
    "count": 9,
    "members": [
     "polyamory"
-   ]
-  },
-  {
-   "canonical": "moving house",
-   "pillar": "Story",
-   "section": "Relationships & Family",
-   "count": 8,
-   "members": [
-    "moving in",
-    "moving out"
    ]
   },
   {
@@ -12487,7 +12544,7 @@
   {
    "canonical": "cruelty",
    "section": "Themes",
-   "count": 336,
+   "count": 333,
    "members": [
     "cruelty",
     "sadistic",
@@ -12507,7 +12564,6 @@
     "violent",
     "sexual sadism",
     "sexual torture",
-    "blood lust",
     "brutal violence",
     "extreme violence"
    ],
@@ -12571,7 +12627,7 @@
   {
    "canonical": "survival",
    "section": "Themes",
-   "count": 171,
+   "count": 174,
    "members": [
     "human vs nature",
     "man vs nature",
@@ -12582,7 +12638,8 @@
     "survivalist",
     "fight for survival",
     "survival instinct",
-    "endurance"
+    "endurance",
+    "street life"
    ],
    "backfill": true,
    "pillar": "Story"
@@ -12606,7 +12663,7 @@
   {
    "canonical": "ambition",
    "section": "Themes",
-   "count": 134,
+   "count": 144,
    "members": [
     "ambition",
     "workaholic",
@@ -12621,7 +12678,8 @@
     "rise and fall",
     "success",
     "american dream",
-    "perfectionist"
+    "perfectionist",
+    "hustler"
    ],
    "pillar": "Story"
   },
@@ -12646,14 +12704,13 @@
   {
    "canonical": "conspiracy",
    "section": "Themes",
-   "count": 125,
+   "count": 113,
    "members": [
     "conspiracy",
     "government conspiracy",
     "government cover-up",
     "conspiracy theory",
-    "cover-up",
-    "intrigue"
+    "cover-up"
    ],
    "pillar": "Story"
   },
@@ -12685,6 +12742,21 @@
     "quest for identity",
     "self identity",
     "self exploration"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "shame",
+   "section": "Themes",
+   "count": 93,
+   "members": [
+    "shame",
+    "guilt",
+    "humiliation",
+    "embarrassed",
+    "sense of guilt",
+    "guilty conscience",
+    "confession"
    ],
    "pillar": "Story"
   },
@@ -12732,37 +12804,27 @@
    ]
   },
   {
-   "canonical": "manipulation",
+   "canonical": "secrets",
    "pillar": "Story",
    "section": "Themes",
-   "count": 83,
+   "count": 78,
    "members": [
-    "manipulation",
-    "psychological manipulation",
-    "gaslighting",
-    "manipulative woman",
-    "coercion",
-    "pitting ones enemy's against each other",
-    "beguilement",
-    "plan",
-    "scheme",
-    "plan gone wrong",
-    "control"
+    "secret",
+    "dark secret",
+    "secret past",
+    "secret history",
+    "hidden past",
+    "hidden truth",
+    "hidden agenda",
+    "hiding",
+    "secrecy",
+    "anonymity",
+    "clandestine",
+    "secret relationship",
+    "secret passage",
+    "secret passageway",
+    "secret formula"
    ]
-  },
-  {
-   "canonical": "shame",
-   "section": "Themes",
-   "count": 81,
-   "members": [
-    "shame",
-    "guilt",
-    "humiliation",
-    "embarrassed",
-    "sense of guilt",
-    "guilty conscience"
-   ],
-   "pillar": "Story"
   },
   {
    "canonical": "redemption",
@@ -12781,23 +12843,20 @@
    "pillar": "Story"
   },
   {
-   "canonical": "secrets",
+   "canonical": "manipulation",
    "pillar": "Story",
    "section": "Themes",
-   "count": 65,
+   "count": 64,
    "members": [
-    "secret",
-    "dark secret",
-    "secret past",
-    "secret history",
-    "hidden past",
-    "hidden truth",
-    "hidden agenda",
-    "hiding",
-    "secrecy",
-    "anonymity",
-    "clandestine",
-    "secret relationship"
+    "manipulation",
+    "psychological manipulation",
+    "gaslighting",
+    "manipulative woman",
+    "coercion",
+    "pitting ones enemy's against each other",
+    "beguilement",
+    "control",
+    "entrapment"
    ]
   },
   {
@@ -12989,6 +13048,20 @@
    ]
   },
   {
+   "canonical": "conflict",
+   "pillar": "Story",
+   "section": "Themes",
+   "count": 36,
+   "members": [
+    "conflict",
+    "enemy",
+    "adversary",
+    "argument",
+    "bickering",
+    "land dispute"
+   ]
+  },
+  {
    "canonical": "beauty",
    "pillar": "Story",
    "section": "Themes",
@@ -12999,19 +13072,6 @@
     "beauty contest",
     "beauty salon",
     "pretty woman"
-   ]
-  },
-  {
-   "canonical": "conflict",
-   "pillar": "Story",
-   "section": "Themes",
-   "count": 32,
-   "members": [
-    "conflict",
-    "enemy",
-    "adversary",
-    "argument",
-    "bickering"
    ]
   },
   {
@@ -13104,6 +13164,16 @@
     "gossip",
     "rumor",
     "reputation"
+   ]
+  },
+  {
+   "canonical": "legacy",
+   "pillar": "Story",
+   "section": "Themes",
+   "count": 17,
+   "members": [
+    "legacy",
+    "history and legacy"
    ]
   },
   {
@@ -13698,11 +13768,10 @@
   {
    "canonical": "based on true story",
    "section": "Based On & Franchise",
-   "count": 448,
+   "count": 445,
    "members": [
     "based on true story",
-    "historical event",
-    "west memphis three"
+    "historical event"
    ],
    "from_board": true,
    "pillar": "Style & Format"
@@ -14160,7 +14229,7 @@
   {
    "canonical": "gore",
    "section": "Sub-genres & Styles",
-   "count": 254,
+   "count": 242,
    "members": [
     "beheading",
     "body mutilation",
@@ -14185,7 +14254,6 @@
     "flesh eating",
     "razor",
     "castration",
-    "skeleton",
     "bone",
     "blood",
     "bloody",
@@ -14256,19 +14324,6 @@
    "pillar": "Style & Format"
   },
   {
-   "canonical": "slasher",
-   "section": "Sub-genres & Styles",
-   "count": 128,
-   "members": [
-    "slasher",
-    "slasher horror",
-    "proto-slasher",
-    "leatherface",
-    "shower"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
    "canonical": "found footage",
    "section": "Sub-genres & Styles",
    "count": 119,
@@ -14285,6 +14340,18 @@
     "super 8mm footage",
     "videotape",
     "vhs"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "slasher",
+   "section": "Sub-genres & Styles",
+   "count": 117,
+   "members": [
+    "slasher",
+    "slasher horror",
+    "proto-slasher",
+    "leatherface"
    ],
    "pillar": "Style & Format"
   },
@@ -14485,29 +14552,6 @@
    "pillar": "Style & Format"
   },
   {
-   "canonical": "crude humor",
-   "pillar": "Style & Format",
-   "section": "Sub-genres & Styles",
-   "count": 68,
-   "members": [
-    "crude humor",
-    "bathroom humor",
-    "scatological humor",
-    "sexual humor",
-    "f word",
-    "swear",
-    "laxative",
-    "toilet",
-    "vomit",
-    "vomiting",
-    "urination",
-    "coprophagia",
-    "politically incorrect",
-    "slang",
-    "embarrasment"
-   ]
-  },
-  {
    "canonical": "whodunit",
    "pillar": "Style & Format",
    "section": "Sub-genres & Styles",
@@ -14529,6 +14573,27 @@
    ],
    "from_board": true,
    "pillar": "Style & Format"
+  },
+  {
+   "canonical": "crude",
+   "pillar": "Style & Format",
+   "section": "Sub-genres & Styles",
+   "count": 62,
+   "members": [
+    "crude humor",
+    "bathroom humor",
+    "scatological humor",
+    "sexual humor",
+    "f word",
+    "swear",
+    "laxative",
+    "toilet",
+    "vomit",
+    "vomiting",
+    "urination",
+    "coprophagia",
+    "slang"
+   ]
   },
   {
    "canonical": "psychological drama",
@@ -14768,18 +14833,6 @@
    ]
   },
   {
-   "canonical": "comedy of errors",
-   "pillar": "Style & Format",
-   "section": "Sub-genres & Styles",
-   "count": 31,
-   "members": [
-    "comedy of errors",
-    "escapade",
-    "misadventure",
-    "mistake"
-   ]
-  },
-  {
    "canonical": "sword and sorcery",
    "section": "Sub-genres & Styles",
    "count": 30,
@@ -14863,6 +14916,17 @@
     "biblical epic"
    ],
    "pillar": "Style & Format"
+  },
+  {
+   "canonical": "comedy of errors",
+   "pillar": "Style & Format",
+   "section": "Sub-genres & Styles",
+   "count": 25,
+   "members": [
+    "comedy of errors",
+    "escapade",
+    "misadventure"
+   ]
   },
   {
    "canonical": "folk horror",
@@ -15219,7 +15283,7 @@
   {
    "canonical": "monster",
    "section": "Worlds & Lore",
-   "count": 260,
+   "count": 257,
    "members": [
     "monster",
     "monsters",
@@ -15234,9 +15298,7 @@
     "ghoul",
     "human monster",
     "beast",
-    "slime",
-    "versus",
-    "versus fighting"
+    "slime"
    ],
    "pillar": "Style & Format"
   },
@@ -15258,7 +15320,7 @@
   {
    "canonical": "supernatural",
    "section": "Worlds & Lore",
-   "count": 240,
+   "count": 238,
    "members": [
     "supernatural",
     "supernatural power",
@@ -15268,29 +15330,7 @@
     "fighting supernatural",
     "religion and supernatural",
     "soul transference",
-    "superstition",
-    "mirror"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "magic",
-   "section": "Worlds & Lore",
-   "count": 235,
-   "members": [
-    "magic",
-    "black magic",
-    "magic lamp",
-    "magical object",
-    "magic land",
-    "magic realism",
-    "magical girl",
-    "potion",
-    "flying carpet",
-    "illusionist",
-    "illusion",
-    "inanimate objects come to life",
-    "tricks"
+    "superstition"
    ],
    "pillar": "Style & Format"
   },
@@ -15335,6 +15375,26 @@
    "pillar": "Style & Format"
   },
   {
+   "canonical": "magic",
+   "section": "Worlds & Lore",
+   "count": 233,
+   "members": [
+    "magic",
+    "black magic",
+    "magic lamp",
+    "magical object",
+    "magic land",
+    "magic realism",
+    "magical girl",
+    "potion",
+    "flying carpet",
+    "illusionist",
+    "illusion",
+    "inanimate objects come to life"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
    "canonical": "dystopia",
    "section": "Worlds & Lore",
    "count": 225,
@@ -15365,29 +15425,6 @@
     "healing power",
     "weather manipulation",
     "flying"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "time travel",
-   "section": "Worlds & Lore",
-   "count": 165,
-   "members": [
-    "time travel",
-    "time loop",
-    "time machine",
-    "alternate timeline",
-    "journey in the past",
-    "changing the past or future",
-    "time-manipulation",
-    "time paradox",
-    "time warp",
-    "what if",
-    "groundhog day",
-    "clock",
-    "clock tower",
-    "alarm clock",
-    "midnight"
    ],
    "pillar": "Style & Format"
   },
@@ -15426,6 +15463,25 @@
    ],
    "pillar": "Style & Format",
    "note": "user 2026-07-22: mega-merge of the creature-folk tags (floor waived for the sub-3 scatter); evaluate pulling the big ones (dragon/fairy/mermaid/elves) back out at placement review"
+  },
+  {
+   "canonical": "time travel",
+   "section": "Worlds & Lore",
+   "count": 149,
+   "members": [
+    "time travel",
+    "time loop",
+    "time machine",
+    "alternate timeline",
+    "journey in the past",
+    "changing the past or future",
+    "time-manipulation",
+    "time paradox",
+    "time warp",
+    "what if",
+    "groundhog day"
+   ],
+   "pillar": "Style & Format"
   },
   {
    "canonical": "alternate reality",
@@ -15493,6 +15549,23 @@
    "pillar": "Style & Format"
   },
   {
+   "canonical": "futuristic",
+   "pillar": "Style & Format",
+   "section": "Worlds & Lore",
+   "count": 115,
+   "members": [
+    "future",
+    "futuristic",
+    "hoverboard",
+    "metropolis",
+    "futuristic city",
+    "megacity",
+    "futuristic world",
+    "vision of the future",
+    "seeing the future"
+   ]
+  },
+  {
    "canonical": "ghost",
    "section": "Worlds & Lore",
    "count": 114,
@@ -15542,22 +15615,6 @@
    "note": "paranormal phenomena/superstition/omen left loose by user"
   },
   {
-   "canonical": "vampire",
-   "section": "Worlds & Lore",
-   "count": 90,
-   "members": [
-    "vampire",
-    "dracula",
-    "nosferatu",
-    "vampire hunter (slayer)",
-    "transylvania",
-    "drinking blood",
-    "bite"
-   ],
-   "from_board": true,
-   "pillar": "Style & Format"
-  },
-  {
    "canonical": "haunting",
    "section": "Worlds & Lore",
    "count": 86,
@@ -15598,9 +15655,24 @@
    "pillar": "Style & Format"
   },
   {
+   "canonical": "vampire",
+   "section": "Worlds & Lore",
+   "count": 85,
+   "members": [
+    "vampire",
+    "dracula",
+    "nosferatu",
+    "vampire hunter (slayer)",
+    "transylvania",
+    "drinking blood"
+   ],
+   "from_board": true,
+   "pillar": "Style & Format"
+  },
+  {
    "canonical": "fairy tale",
    "section": "Worlds & Lore",
-   "count": 81,
+   "count": 79,
    "members": [
     "fairy tale",
     "fairytale",
@@ -15616,7 +15688,6 @@
     "queen of hearts",
     "lewis carroll",
     "beanstalk",
-    "woodcutter",
     "tale"
    ],
    "pillar": "Style & Format"
@@ -16107,18 +16178,6 @@
    ]
   },
   {
-   "canonical": "future city",
-   "pillar": "Style & Format",
-   "section": "Worlds & Lore",
-   "count": 14,
-   "members": [
-    "metropolis",
-    "futuristic city",
-    "megacity",
-    "futuristic world"
-   ]
-  },
-  {
    "canonical": "lost civilization",
    "pillar": "Style & Format",
    "section": "Worlds & Lore",
@@ -16312,24 +16371,14 @@
    "pillar": "Style & Format"
   },
   {
-   "canonical": "vision of the future",
-   "section": "Worlds & Lore",
-   "count": 4,
-   "members": [
-    "vision of the future"
-   ],
-   "from_board": true,
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "seeing the future",
+   "canonical": "artificial",
+   "pillar": "Style & Format",
    "section": "Worlds & Lore",
    "count": 3,
    "members": [
-    "seeing the future"
+    "artificial"
    ],
-   "from_board": true,
-   "pillar": "Style & Format"
+   "note": "the not-real/fake concept"
   },
   {
    "canonical": "ancient prophecy",
@@ -16652,6 +16701,16 @@
    "name": "great-reintegration",
    "date": "2026-07-23",
    "note": "THE GREAT RE-INTEGRATION (user directive: exclusion rules DISSOLVED; face-value placement of the whole ledger; subjectivity welcomed as product voice; dedup protects counts; pollution risk accepted + re-evaluable). 435 face-value folds + 14 NEW tags (secrets ~65 · honor · conflict · determined [Disposition] · body · blonde · future city · film formats · charity · moving · landlord · insurance · horror comedy) applied. Notable face-value calls: transporter->driver + governor->politician + twist->plot twist + robin->animals(bird) + titanic->ship + shower->slasher + groundhog day->time travel (pollution risk ACCEPTED per user) · amused-class editorial words to nearest moods · future->near future (overrides not-Era note per fresh-start directive) · chinese/japanese woman->place tags + asian woman HELD (sensitivity flag) · american dream->ambition · accident->crash · tea+candy->food (fresh-start overrides). excluded.json REPURPOSED as the ON-HOLD ledger: 113 strings individually on hold (no confident home), revisit any time. scarecrow->farm + lecture->professor (user). Everything >=3 is now: canonical member, or on-hold-by-name. NEXT: final missed-<3->=3 sweeps -> placement review -> comprehensive rethink -> adapter."
+  },
+  {
+   "name": "reintegration-review-amendments",
+   "date": "2026-07-23",
+   "note": "REVIEW AMENDMENTS (user, ~45 rulings): NEW futuristic (dissolved future city + vision of the future + seeing the future tags; +future/futuristic/hoverboard from near future) · NEW balloon/legacy/plan/clock (pulled from travel/inheritance/manipulation/time travel) · moving house dissolved->house · RENAME crude humor->crude (politically incorrect->satirical, embarrasment->insecurity) · conquest+destroy family+battle assignment+battle for power+street war+versus x2->battle/fight · earth->planet · cincinnati->ohio · construction x2->manual labor · secret passage x2+secret formula->secrets · chemical->laboratory · hustler->ambition · underworld+tomboy->counterculture · audience->theater · acid->psychedelics · picnic+playground+florist->park · girl next door+blood lust->desire · anniversary->love · intrigue->mysterious · skeleton->macabre · shower+mirror+boarding house->house · woodcutter->forest · tricks->game · heat->forces of nature · american way of life->philosophical · west memphis three->falsely accused · guardian->family · power->powerful · bell->HOLD (object, no home named). QUESTIONS PRESENTED (not applied): extinction options · hotel-staff label for doorman/valet/concierge · ball · perfect crime (mastermind absent) · entrapment · rope/noose · accident · power dynamics · dangerous/suicide mission (reckless absent) · convoy->truck? · weather forecaster->scientist? · artificial · confession->shame? · lockdown · washington=THE STATE (birdwatching corpus) · bite->animal attack?"
+  },
+  {
+   "name": "review-q17",
+   "date": "2026-07-23",
+   "note": "17 question rulings: NEW washington (the STATE, pulled from usa) · extinction->forces of nature · concierge RENAMED hotel staff (+doorman) · ball->party · perfect crime->villain · entrapment->manipulation · NEW rope [rope,noose — noose not always execution, sometimes self harm] · NEW accident [accident,mistake] · dangerous+suicide mission->audacious · convoy->truck · weather forecaster->scientist (from television) · NEW artificial (from technology) · confession->shame · NEW lockdown [can refer to shootings] · bite->animal attack · numbers stays in genius. Q9 power dynamics PENDING (forbidden love suggested)."
   }
  ],
  "unassigned": [],
