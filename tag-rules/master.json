@@ -2928,10 +2928,11 @@
   {
    "canonical": "soviet union",
    "section": "Place",
-   "count": 19,
+   "count": 21,
    "members": [
     "soviet union",
-    "ussr"
+    "ussr",
+    "soviet union history"
    ],
    "pillar": "Setting"
   },
@@ -4913,7 +4914,7 @@
   {
    "canonical": "police",
    "section": "Characters",
-   "count": 456,
+   "count": 466,
    "members": [
     "police",
     "police brutality",
@@ -4962,7 +4963,9 @@
     "s.w.a.t.",
     "gendarmerie",
     "arrested",
-    "dea agent"
+    "dea agent",
+    "scotland yard",
+    "interpol"
    ],
    "pillar": "Story"
   },
@@ -5703,6 +5706,29 @@
    "pillar": "Story"
   },
   {
+   "canonical": "genius",
+   "section": "Characters",
+   "count": 92,
+   "members": [
+    "child prodigy",
+    "precocious child",
+    "boy genius",
+    "math genius",
+    "genius",
+    "prodigy",
+    "mathematics",
+    "mathematician",
+    "smart kid",
+    "intelligent",
+    "intelligence",
+    "intellectual",
+    "talent",
+    "numbers",
+    "expert"
+   ],
+   "pillar": "Story"
+  },
+  {
    "canonical": "hitman",
    "section": "Characters",
    "count": 87,
@@ -6264,6 +6290,19 @@
    "pillar": "Story"
   },
   {
+   "canonical": "evil child",
+   "section": "Characters",
+   "count": 34,
+   "members": [
+    "evil child",
+    "ghost child",
+    "child vampire",
+    "feral child",
+    "evil little girl"
+   ],
+   "pillar": "Story"
+  },
+  {
    "canonical": "millionaire",
    "pillar": "Story",
    "section": "Characters",
@@ -6687,6 +6726,18 @@
     "damsel in distress",
     "woman in peril",
     "woman in jeopardy"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "mischievous child",
+   "section": "Characters",
+   "count": 18,
+   "members": [
+    "mischievous child",
+    "spoiled child",
+    "mischievous children",
+    "child outsmarts adult"
    ],
    "pillar": "Story"
   },
@@ -8018,9 +8069,55 @@
    "note": "user: can refer to shootings, not only pandemic"
   },
   {
+   "canonical": "army",
+   "section": "Forces & Institutions",
+   "count": 218,
+   "members": [
+    "army",
+    "us army",
+    "british army",
+    "japanese army",
+    "french army",
+    "red army",
+    "russian army",
+    "korean army",
+    "liberation army",
+    "turkish army",
+    "german army",
+    "ira (irish republican army)",
+    "u.s. army",
+    "union army",
+    "mexican army",
+    "roman army",
+    "people's liberation army",
+    "french liberation army",
+    "armies",
+    "battalion",
+    "female battalion",
+    "cavalry",
+    "infantry",
+    "troops",
+    "u.s. cavalry",
+    "roman legion",
+    "army nurse",
+    "army medic",
+    "army bugler",
+    "desertion",
+    "national guard",
+    "u.s. army soldier",
+    "private",
+    "raid",
+    "military",
+    "soviet military",
+    "us military",
+    "militia"
+   ],
+   "pillar": "Story"
+  },
+  {
    "canonical": "religion",
    "section": "Forces & Institutions",
-   "count": 207,
+   "count": 210,
    "members": [
     "belief in god",
     "bible",
@@ -8047,7 +8144,9 @@
     "religious conversion",
     "religious conflict",
     "religious hypocrisy",
-    "hindu"
+    "hindu",
+    "atheism",
+    "atheist"
    ],
    "pillar": "Story"
   },
@@ -8129,7 +8228,7 @@
   {
    "canonical": "politics",
    "section": "Forces & Institutions",
-   "count": 179,
+   "count": 182,
    "members": [
     "politics",
     "usa politics",
@@ -8162,7 +8261,8 @@
     "power struggle",
     "power relations",
     "fictitious country",
-    "conservative"
+    "conservative",
+    "democracy"
    ],
    "pillar": "Story"
   },
@@ -8224,48 +8324,6 @@
    "pillar": "Story"
   },
   {
-   "canonical": "army",
-   "section": "Forces & Institutions",
-   "count": 152,
-   "members": [
-    "army",
-    "us army",
-    "british army",
-    "japanese army",
-    "french army",
-    "red army",
-    "russian army",
-    "korean army",
-    "liberation army",
-    "turkish army",
-    "german army",
-    "ira (irish republican army)",
-    "u.s. army",
-    "union army",
-    "mexican army",
-    "roman army",
-    "people's liberation army",
-    "french liberation army",
-    "armies",
-    "battalion",
-    "female battalion",
-    "cavalry",
-    "infantry",
-    "troops",
-    "u.s. cavalry",
-    "roman legion",
-    "army nurse",
-    "army medic",
-    "army bugler",
-    "desertion",
-    "national guard",
-    "u.s. army soldier",
-    "private",
-    "raid"
-   ],
-   "pillar": "Story"
-  },
-  {
    "canonical": "moviebiz",
    "pillar": "Story",
    "section": "Forces & Institutions",
@@ -8292,6 +8350,23 @@
    "note": "custom label (user); movie business + hollywood industry cluster"
   },
   {
+   "canonical": "corruption",
+   "section": "Forces & Institutions",
+   "count": 129,
+   "members": [
+    "corruption",
+    "corrupt officials",
+    "corrupt government",
+    "corrupt official",
+    "bribery",
+    "bribe",
+    "political corruption",
+    "government corruption"
+   ],
+   "from_board": true,
+   "pillar": "Story"
+  },
+  {
    "canonical": "fbi",
    "section": "Forces & Institutions",
    "count": 117,
@@ -8299,21 +8374,6 @@
     "fbi",
     "fbi operation",
     "fbi agent"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "corruption",
-   "section": "Forces & Institutions",
-   "count": 114,
-   "members": [
-    "corruption",
-    "corrupt officials",
-    "corrupt government",
-    "corrupt official",
-    "bribery",
-    "bribe"
    ],
    "from_board": true,
    "pillar": "Story"
@@ -8357,13 +8417,16 @@
    "note": "christian film folded here (over broader religion) per user"
   },
   {
-   "canonical": "military",
+   "canonical": "secret organization",
    "section": "Forces & Institutions",
-   "count": 68,
+   "count": 65,
    "members": [
-    "military",
-    "soviet military"
+    "secret organization",
+    "secret government organization",
+    "fictional government agency",
+    "secret society"
    ],
+   "from_board": true,
    "pillar": "Story"
   },
   {
@@ -8435,6 +8498,19 @@
    "pillar": "Story"
   },
   {
+   "canonical": "government",
+   "section": "Forces & Institutions",
+   "count": 58,
+   "members": [
+    "government",
+    "bureaucracy",
+    "governance",
+    "secretary of defense",
+    "government agency"
+   ],
+   "pillar": "Story"
+  },
+  {
    "canonical": "navy",
    "section": "Forces & Institutions",
    "count": 52,
@@ -8455,14 +8531,19 @@
    "pillar": "Story"
   },
   {
-   "canonical": "government",
+   "canonical": "tyranny",
    "section": "Forces & Institutions",
    "count": 49,
    "members": [
-    "government",
-    "bureaucracy",
-    "governance",
-    "secretary of defense"
+    "authoritarian",
+    "authoritarian regime",
+    "totalitarian",
+    "totalitarian regime",
+    "tyranny",
+    "totalitarianism",
+    "dictatorship",
+    "franco regime (francoism)",
+    "vichy regime"
    ],
    "pillar": "Story"
   },
@@ -8505,20 +8586,6 @@
    "pillar": "Story"
   },
   {
-   "canonical": "tyranny",
-   "section": "Forces & Institutions",
-   "count": 38,
-   "members": [
-    "authoritarian",
-    "authoritarian regime",
-    "totalitarian",
-    "totalitarian regime",
-    "tyranny",
-    "totalitarianism"
-   ],
-   "pillar": "Story"
-  },
-  {
    "canonical": "radio",
    "pillar": "Story",
    "section": "Forces & Institutions",
@@ -8548,6 +8615,18 @@
    ]
   },
   {
+   "canonical": "communism",
+   "section": "Forces & Institutions",
+   "count": 32,
+   "members": [
+    "communism",
+    "chinese communism",
+    "stalinism",
+    "anti-communism"
+   ],
+   "pillar": "Story"
+  },
+  {
    "canonical": "spirituality",
    "section": "Forces & Institutions",
    "count": 31,
@@ -8566,24 +8645,29 @@
   {
    "canonical": "fascism",
    "section": "Forces & Institutions",
-   "count": 29,
+   "count": 31,
    "members": [
     "fascism",
     "fascist",
-    "benito mussolini"
+    "benito mussolini",
+    "anti-fascism"
    ],
    "from_board": true,
    "pillar": "Story"
   },
   {
-   "canonical": "secret organization",
+   "canonical": "pornography",
+   "pillar": "Story",
    "section": "Forces & Institutions",
-   "count": 28,
+   "count": 29,
    "members": [
-    "secret organization"
+    "pornography",
+    "porn star",
+    "porn industry",
+    "pornographic video",
+    "softcore"
    ],
-   "from_board": true,
-   "pillar": "Story"
+   "note": "shifted R&F -> Forces & Institutions (rethink wave 7): an industry, beside moviebiz"
   },
   {
    "canonical": "fossil fuels",
@@ -8667,25 +8751,6 @@
    "pillar": "Story"
   },
   {
-   "canonical": "communism",
-   "section": "Forces & Institutions",
-   "count": 21,
-   "members": [
-    "communism",
-    "chinese communism"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "secret society",
-   "pillar": "Story",
-   "section": "Forces & Institutions",
-   "count": 21,
-   "members": [
-    "secret society"
-   ]
-  },
-  {
    "canonical": "nasa",
    "pillar": "Story",
    "section": "Forces & Institutions",
@@ -8709,16 +8774,6 @@
    ]
   },
   {
-   "canonical": "political corruption",
-   "section": "Forces & Institutions",
-   "count": 19,
-   "members": [
-    "political corruption",
-    "government corruption"
-   ],
-   "pillar": "Story"
-  },
-  {
    "canonical": "real estate",
    "section": "Forces & Institutions",
    "count": 18,
@@ -8739,16 +8794,6 @@
     "censorship",
     "book burning",
     "banned film"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "secret government organization",
-   "section": "Forces & Institutions",
-   "count": 14,
-   "members": [
-    "secret government organization"
    ],
    "from_board": true,
    "pillar": "Story"
@@ -8808,17 +8853,6 @@
    ]
   },
   {
-   "canonical": "dictatorship",
-   "section": "Forces & Institutions",
-   "count": 11,
-   "members": [
-    "dictatorship",
-    "franco regime (francoism)",
-    "vichy regime"
-   ],
-   "pillar": "Story"
-  },
-  {
    "canonical": "buddhism",
    "section": "Forces & Institutions",
    "count": 11,
@@ -8826,26 +8860,6 @@
     "buddhism",
     "buddhist monk"
    ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "fictional government agency",
-   "section": "Forces & Institutions",
-   "count": 11,
-   "members": [
-    "fictional government agency"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "anti-communism",
-   "section": "Forces & Institutions",
-   "count": 10,
-   "members": [
-    "anti-communism"
-   ],
-   "from_board": true,
    "pillar": "Story"
   },
   {
@@ -8859,26 +8873,6 @@
    ]
   },
   {
-   "canonical": "us military",
-   "section": "Forces & Institutions",
-   "count": 9,
-   "members": [
-    "us military"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "government agency",
-   "section": "Forces & Institutions",
-   "count": 9,
-   "members": [
-    "government agency"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
    "canonical": "empire",
    "section": "Forces & Institutions",
    "count": 7,
@@ -8889,121 +8883,12 @@
    "pillar": "Story"
   },
   {
-   "canonical": "scotland yard",
+   "canonical": "socialism",
    "section": "Forces & Institutions",
    "count": 7,
    "members": [
-    "scotland yard"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "atheism",
-   "section": "Forces & Institutions",
-   "count": 6,
-   "members": [
-    "atheism",
-    "atheist"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "socialism",
-   "section": "Forces & Institutions",
-   "count": 5,
-   "members": [
-    "socialism"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "militia",
-   "section": "Forces & Institutions",
-   "count": 5,
-   "members": [
-    "militia"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "nationalism",
-   "section": "Forces & Institutions",
-   "count": 4,
-   "members": [
-    "nationalism"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "interpol",
-   "section": "Forces & Institutions",
-   "count": 4,
-   "members": [
-    "interpol"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "anti-fascism",
-   "section": "Forces & Institutions",
-   "count": 3,
-   "members": [
-    "anti-fascism"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "stalinism",
-   "section": "Forces & Institutions",
-   "count": 3,
-   "members": [
-    "stalinism"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "democracy",
-   "section": "Forces & Institutions",
-   "count": 3,
-   "members": [
-    "democracy"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "socialists",
-   "section": "Forces & Institutions",
-   "count": 2,
-   "members": [
+    "socialism",
     "socialists"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "soviet union history",
-   "section": "Forces & Institutions",
-   "count": 2,
-   "members": [
-    "soviet union history"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "anti-imperialism",
-   "section": "Forces & Institutions",
-   "count": 2,
-   "members": [
-    "anti-imperialism"
    ],
    "from_board": true,
    "pillar": "Story"
@@ -9353,12 +9238,13 @@
   {
    "canonical": "colonialism",
    "section": "Identity & Society",
-   "count": 23,
+   "count": 24,
    "members": [
     "colonialism",
     "french colonialism",
     "colonisation",
-    "colony"
+    "colony",
+    "anti-imperialism"
    ],
    "pillar": "Story",
    "note": "shifted War & Conflict -> Identity & Society (rethink wave 5): a system of domination, not a war"
@@ -11847,29 +11733,6 @@
    "pillar": "Story"
   },
   {
-   "canonical": "genius",
-   "section": "Relationships & Family",
-   "count": 92,
-   "members": [
-    "child prodigy",
-    "precocious child",
-    "boy genius",
-    "math genius",
-    "genius",
-    "prodigy",
-    "mathematics",
-    "mathematician",
-    "smart kid",
-    "intelligent",
-    "intelligence",
-    "intellectual",
-    "talent",
-    "numbers",
-    "expert"
-   ],
-   "pillar": "Story"
-  },
-  {
    "canonical": "love triangle",
    "section": "Relationships & Family",
    "count": 87,
@@ -12143,19 +12006,6 @@
    "pillar": "Story"
   },
   {
-   "canonical": "evil child",
-   "section": "Relationships & Family",
-   "count": 34,
-   "members": [
-    "evil child",
-    "ghost child",
-    "child vampire",
-    "feral child",
-    "evil little girl"
-   ],
-   "pillar": "Story"
-  },
-  {
    "canonical": "death of a child",
    "section": "Relationships & Family",
    "count": 33,
@@ -12193,19 +12043,6 @@
     "father daughter estrangement"
    ],
    "pillar": "Story"
-  },
-  {
-   "canonical": "pornography",
-   "pillar": "Story",
-   "section": "Relationships & Family",
-   "count": 29,
-   "members": [
-    "pornography",
-    "porn star",
-    "porn industry",
-    "pornographic video",
-    "softcore"
-   ]
   },
   {
    "canonical": "unrequited love",
@@ -12280,18 +12117,6 @@
    "count": 18,
    "members": [
     "single parent"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "mischievous child",
-   "section": "Relationships & Family",
-   "count": 18,
-   "members": [
-    "mischievous child",
-    "spoiled child",
-    "mischievous children",
-    "child outsmarts adult"
    ],
    "pillar": "Story"
   },
@@ -12941,6 +12766,19 @@
    "note": "shifted War & Conflict -> Themes (rethink wave 5): a history subject, not a war"
   },
   {
+   "canonical": "patriotism",
+   "section": "Themes",
+   "count": 24,
+   "members": [
+    "patriotism",
+    "homeland",
+    "patriot",
+    "nationalism"
+   ],
+   "from_board": true,
+   "pillar": "Story"
+  },
+  {
    "canonical": "disillusionment",
    "section": "Themes",
    "count": 23,
@@ -12964,18 +12802,6 @@
     "institution",
     "dynasty"
    ]
-  },
-  {
-   "canonical": "patriotism",
-   "section": "Themes",
-   "count": 22,
-   "members": [
-    "patriotism",
-    "homeland",
-    "patriot"
-   ],
-   "from_board": true,
-   "pillar": "Story"
   },
   {
    "canonical": "teamwork",
@@ -16446,6 +16272,11 @@
    "name": "rethink-wave-6b-banked",
    "date": "2026-07-24",
    "note": "WAVE 6B (police division + historic figures) BANKED per user: POLICE DIVIDED — NEW buddy cop [Sub-genres] 45f (genre flavor) · NEW sheriff [Characters] (7 lawman strings: sheriff/marshals/texas ranger, ~80f western-lawman shelf) · police state->dystopia · police procedural STAYS in police per user · police keeps the big cop-world (~470f). HISTORIC-FIGURE RULE (user): a figure folds to their most specific WORLD shelf (hitler->nazi, earp->american west, lincoln->politician, arthur->knight all stand). Ancient/imperial figures world = historic empire: pharaoh (dissolved) + cleopatra (ex-egypt) + sparta greece (ex-greece) + napoleon bonaparte (ex-france; rejoins napoleonic wars — split pair fixed) + FLOOR-WAIVED sub-3 unambiguous figures per user: julius caesar, genghis khan, alexander the great, marie antoinette. billy the kid + jesse james (floor-waived) -> american west · mozart (floor-waived) -> musician."
+  },
+  {
+   "name": "rethink-wave-7-banked",
+   "date": "2026-07-24",
+   "note": "RETHINK WAVE 7 (F&I + R&F, 125 tags) BANKED per user: SHIFTS genius+evil child+mischievous child -> Characters (persons in R&F) · pornography -> F&I (industry, beside moviebiz). -ISM DUST (topic-shelf logic, both stances share the shelf): socialists->socialism · stalinism+anti-communism->communism · anti-fascism->fascism · anti-imperialism->colonialism · nationalism->patriotism · democracy->politics · political corruption->corruption · dictatorship->tyranny · soviet union history->soviet union. GOVERNMENT/COVERT: government agency->government · secret government organization+fictional government agency+secret society->secret organization (ONE covert-org shelf ~45f). MILITARY TWINS: military+us military+militia->army (branches navy/air force/marine/elite force stay). LAW: scotland yard+interpol->police · atheism->religion. empire 7f HELD — user asked for a better fold than historic empire (legacy? royalty?) — resolved next record."
   }
  ],
  "unassigned": [],
