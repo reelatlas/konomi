@@ -39,6 +39,18 @@
   "flop": "ratio<1 (both>$10k)",
   "stacking": "box-office ROI bands mutually exclusive; blockbuster + big-budget + one ROI band may co-occur; all reception tags stack freely otherwise"
  },
+ "sagas": {
+  "_comment": "Part 3 BANKED (user, 2026-07-24). Measured: 2,170 films (25.4%) carry belongs_to_collection; 1,059 distinct collections.",
+  "source": "belongs_to_collection — ids + names embedded in raw payloads (zero new requests at MVP; /collection endpoint post-MVP for artwork + complete part lists)",
+  "shelf_floor": 2,
+  "shelf_size": "594 sagas covering 1,705 films",
+  "singletons": "465 card-only: saga name displays on the film card as a read-only value, DISABLED as a tag (not draggable/selectable — as a recommend input it could only return the film itself); floor is corpus-relative so future imports can graduate a singleton to the shelf (delta report will surface it)",
+  "grouping": "ONE Sagas home: the named-saga shelf (search + rank — top ~20 by film count, search reaches all 594) beside the 5 franchise-mechanics tag-kw (sequel/prequel/remake/reboot/spin off)",
+  "label": "strip trailing ' Collection' from TMDB names (James Bond Collection -> James Bond)",
+  "levels": "all levels including moviegoer (franchises are the most mainstream handle)",
+  "promote": "each >=2 saga promotes as a tag (type: saga, members = its corpus film ids) — add-tag slots, recommend, and random work with zero engine special-casing",
+  "known_behavior": "two sagas in two slots => empty result set (franchises share no films) — covered by existing empty-result UX"
+ },
  "rules": {
   "universal_floor": "one floor for all sections at film buff; per-section tuning deferred post-launch",
   "empty_section_hidden": "a section with zero tags above the active floor is not selectable in the UI (it would be empty), never an error",

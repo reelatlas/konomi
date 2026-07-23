@@ -837,8 +837,18 @@ checked-in knob file.** Three distinct experiences BY DESIGN (MVP; tune in produ
 - Section reading order banked in pillar_tree (user final; SPORTS inserted between Faith and
   Arts & performance — flagged, unconfirmed). Board has live floor control + collapse toggle.
 - **DEFERRED post-launch (user):** per-section floor tweaks · Map restructure/condensing ·
-  level-name final confirm. ⏭️ NEXT in step ⑤: franchise shelf · credits · facts · import
-  delta report.
+  level-name final confirm. ⏭️ NEXT in step ⑤: credits · facts · import delta report.
+
+**STEP ⑤ PART 3 ✅ BANKED (user, 2026-07-24) — the Sagas shelf, in adapter-config.json.**
+Measured from raw payloads (zero new requests): 25.4% of corpus (2,170 films) carries
+belongs_to_collection · 1,059 distinct collections · top: James Bond 20, Fast & Furious 11,
+Saw 10, Star Wars 9, Harry Potter 8. RULINGS: shelf floor ≥2 corpus films (594 usable sagas /
+1,705 films — every selectable saga guarantees ≥1 more film; §7 connectivity rule) ·
+465 singletons = card-only READ-ONLY display, disabled as tags · ONE Sagas home (named shelf
+search+rank beside the 5 mechanics tag-kw) · strip " Collection" from labels · all levels
+incl. Moviegoer · each ≥2 saga promotes AS a tag (type: saga) so slots/recommend/random need
+no special-casing. CLARIFIED (user): Origin facts (original language, countries) are FULL MVP
+values, no holds — only the foreign INGEST-bucket exploration is deferred.
 
 **STEP ⑤ PART 2 ✅ BANKED (user, 2026-07-24) — genres + reception, in adapter-config.json:**
 genres = passthrough (19, wt-100). **ALL 14 reception tags ship at MVP** — 13 as raw-field
