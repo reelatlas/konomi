@@ -166,9 +166,14 @@ export function Masthead({ theme, onThemeChange, collapsed }: MastheadProps) {
           {otherSide && (
             <div
               aria-hidden={collapsed}
-              className="absolute bottom-full right-0 mb-[var(--space-md)]"
+              className="absolute bottom-full right-0 mb-[var(--space-sm)]"
               style={{
-                opacity: "calc(1 - var(--masthead-progress))",
+                // ×2 with a max() clamp: fully vanished by progress 0.5,
+                // not 1 — the switch reads as "expanded-state chrome," so it
+                // gets out of the way in the first half of the scrub while
+                // the geometry morph continues underneath. Isolated to this
+                // wrapper; no other masthead property reads this curve.
+                opacity: "max(0, calc(1 - var(--masthead-progress) * 2))",
               }}
             >
               <Link
