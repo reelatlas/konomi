@@ -820,6 +820,55 @@ franchise shelf from TMDB `belongs_to_collection`).
 flair, `Engines of Society` as the model. Board artifact cc16cb4a now has a collapse-sub-tags
 toggle. Full wave-by-wave record in sweeps[] (`rethink-*` records, wave 1 → COMPLETE).
 
+## THE LAYER MAP — confirmed plan of record (user walkthrough, 2026-07-24)
+
+User re-confirmed the full data architecture before step ⑤; verified consistent with §1
+(raw landing → adapter → shared catalog → app) and everything settled since. The buckets:
+
+1. **Corpus identifiers** (import seed buckets: famous/infamous/buzzing… — measured §"seed")
+   and **TMDB genres** (wt-100 coarse layer) = the quick-association identifiers, weighted 100%.
+2. **The keyword alias map** (this whole consolidation: 1,120 canonicals / 35 sections) = the
+   flavor layer. Ranking TBD: based on finalized deduped counts (already carried per tag) and
+   titles-across. **GUARDRAIL (measured, standing):** any rarity/heat/rank scale is
+   PER-SECTION, never a global percentage — no keyword covers even 13% of the corpus; floors
+   not means.
+3. **Direct data** (credits/staff, belongs_to_collection, release data, production companies,
+   posters…) = same ranking approach, adapter-shaped per group.
+4. **Level gating** (the anime casual/seasoned/otaku analog): rank level toggles which layers
+   surface — lowest = genres + corpus identifiers only; highest = the full chosen tag surface.
+   Candidate mechanism: per-section floors that TIGHTEN per level (one knob, no new machinery).
+   Film-side level names TBD (fold into the names pass).
+5. **Then features** (search, tag grouping, result-card sections) come after the data layers
+   are locked — feature design consumes the adapter output, never reshapes it.
+
+**Two-layer rules split re-confirmed:** pull/shape rules live with the import (probe → seed →
+expand → hydrate → report; raw landing untouched, jsonb, no hand schema); promote rules live
+with the adapter (floors, weights, label precedence, franchise shelf). Anime and movie stay
+separated at the pull, unified at the shared catalog so the app experience is seamless.
+
+### TMDB API inventory (what exists vs what we use — checked 2026-07-24)
+| Data | Status |
+|---|---|
+| genres, keywords, title/overview/tagline, release_date, runtime, original_language | ✅ have (hydrated) |
+| vote_average, vote_count, popularity | ✅ have (Reception methodology §8) |
+| belongs_to_collection | ✅ planned — the franchise shelf (adapter step ⑤) |
+| credits (cast + crew: director, writer, composer…) | ✅ planned — people tags, per-group adapter |
+| images (posters/backdrops/logos), videos (trailers) | ✅ planned — display assets |
+| production_companies / production_countries | ✅ planned — studio/country facts |
+| **release_dates → per-country certifications (age ratings)** | ⭐ CONSIDER — content-rating facet/filter |
+| **watch/providers (JustWatch streaming availability per region)** | ⭐ CONSIDER — big product value, later |
+| **budget + revenue** | ⭐ CONSIDER — blockbuster/indie signal for ranking |
+| **/movie/changes delta feed** | ⭐ CONSIDER — sync hygiene for catalog freshness |
+| /person endpoints (person popularity, combined credits) | ⭐ CONSIDER — ranks cast/director tags |
+| /collection details (name, parts, artwork) | needed WITH the franchise shelf |
+| alternative_titles, translations | maybe (localized titles) |
+| recommendations, similar, reviews, lists, external_ids | ✖ skip — Konomi's own logic covers these |
+| trending / discover / now_playing / top_rated / upcoming | ✖ skip for corpus (pinned snapshot); possible refresh sources later |
+
+**⏭️ ORDER: ① the section-names pass (user wants it BEFORE further roadmap) ② step ⑤ adapter,
+per group and sometimes per section (tag-pool floors + level gating · genre passthrough ·
+reception identifiers · franchise shelf · credits · facts).**
+
 ## (superseded checkpoint below)
 ## ⏸️ RESUME HERE — SESSION CHECKPOINT (2026-07-24 · ZERO LOOSE + ZERO HOLD · the roadmap below is current)
 
