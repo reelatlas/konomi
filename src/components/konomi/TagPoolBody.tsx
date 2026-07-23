@@ -260,7 +260,15 @@ export function TagPoolBody({
           {trailingControls}
         </div>
         {showSubStrip && (
-          <div className="min-w-0 w-fit">
+          // max-w-full is load-bearing, not hygiene: this wrapper sits in a
+          // flex-COLUMN, where w-fit resolves to max-content (no definite
+          // available width, unlike the primary strip's flex-row wrapper,
+          // which the row's shrink algorithm constrains) — confirmed live
+          // at 500px: the strip rendered 1565px wide, clipped, and
+          // ScrollFadeArea saw no overflow so it couldn't scroll. Capping
+          // at 100% of the (stretched, definite) row wrapper is what makes
+          // the same scroll/arrow treatment as the primary strip kick in.
+          <div className="min-w-0 w-fit max-w-full">
             <SectionTabStrip
               size="secondary"
               idBase="tagpool-sub"
