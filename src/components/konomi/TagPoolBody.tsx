@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { genreTags, sortTags, TAG_SECTIONS, tagsForCategories, tagsForSection } from "@/lib/konomi/tagPool";
+import { genreTags, sortTags, tagsForCategories, tagsForSection } from "@/lib/konomi/tagPool";
 import type { TagInfo } from "@/lib/konomi/types";
+import { useDomain } from "./domainContext";
 import { ScrollFadeArea } from "./ScrollFadeArea";
 import { SectionTabStrip } from "./SectionTabStrip";
 import { TagChip } from "./TagChip";
@@ -125,6 +126,7 @@ export function TagPoolBody({
   trailingControls,
   isPoolPanelResizing,
 }: TagPoolBodyProps) {
+  const domain = useDomain();
   const level = useLevel();
   const sort = useSort();
   // Plain component state, not localStorage-backed — TagPoolBody itself
@@ -133,7 +135,7 @@ export function TagPoolBody({
   // scroll position to survive closing and reopening edit mode. No
   // requirement was made for this to survive a full page reload, so it
   // isn't persisted beyond the session.
-  const [activeSectionKey, setActiveSectionKey] = useState(TAG_SECTIONS[0].key);
+  const [activeSectionKey, setActiveSectionKey] = useState(domain.sections[0].key);
 
   // Live-measured height of the tabs row below — replaces a flat constant
   // (the old TABS_HEIGHT) because SectionTabStrip's own rendered height
@@ -158,9 +160,9 @@ export function TagPoolBody({
   // Every section with at least one tag at the current level — hidden
   // entirely (not shown as a disabled tab), matching the old collapsible
   // version's "hidden, not just collapsed, empty sections" behavior.
-  const visibleSections = TAG_SECTIONS.map((section) => ({
+  const visibleSections = domain.sections.map((section) => ({
     section,
-    tags: tagsForSection(allTags, section, level, totalSeriesCount),
+    tags: tagsForSection(domain, allTags, section, level, totalSeriesCount),
   })).filter(({ tags }) => tags.length > 0);
 
   // A Tag Density / Level change can make the currently-active section
@@ -249,7 +251,7 @@ export function TagPoolBody({
           {active.section.subsections ? (
             <div className="flex flex-col gap-[var(--space-lg)]">
               {active.section.subsections.map((sub) => {
-                const subTags = sortTags(tagsForCategories(allTags, sub.categories, level, totalSeriesCount), sort);
+                const subTags = sortTags(tagsForCategories(domain, allTags, sub.categories, level, totalSeriesCount), sort);
                 if (!subTags.length) return null;
                 return (
                   <div key={sub.label}>
@@ -266,7 +268,7 @@ export function TagPoolBody({
               tags={sortTags(
                 active.section.key === "genres"
                   ? genreTags(allTags)
-                  : tagsForCategories(allTags, active.section.categories ?? [], level, totalSeriesCount),
+                  : tagsForCategories(domain, allTags, active.section.categories ?? [], level, totalSeriesCount),
                 sort,
               )}
               selectedTags={selectedTags}

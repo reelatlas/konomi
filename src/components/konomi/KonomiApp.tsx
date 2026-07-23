@@ -2,11 +2,13 @@
 
 import { animate, useMotionValue, type AnimationPlaybackControls } from "motion/react";
 import { useEffect, useRef, useState } from "react";
+import { DOMAINS, type DomainKey } from "@/lib/konomi/domains";
 import { visiblePoolTagNames } from "@/lib/konomi/tagPool";
 import { isThemeKey, THEME_STORAGE_KEY } from "@/lib/konomi/themes";
 import { THEME_TRANSITION } from "@/lib/konomi/themeTransitionTuning";
 import type { LevelKey, Series, TagInfo } from "@/lib/konomi/types";
 import { useKonomi } from "@/lib/konomi/useKonomi";
+import { DomainProvider } from "./domainContext";
 import { Masthead } from "./Masthead";
 import { MixerBar } from "./MixerBar";
 import { RecommendationsBody } from "./RecommendationsBody";
@@ -14,6 +16,11 @@ import { ResultsHeader } from "./ResultsHeader";
 import { setLevelPref, useLevel } from "./tagPoolPrefs";
 
 interface KonomiAppProps {
+  // Which catalog partition this instance shows — a registry KEY, not the
+  // Domain object itself: a Domain holds functions, which a server
+  // component (each side's page.tsx) can't pass across the client boundary.
+  // Resolved via DOMAINS below.
+  side: DomainKey;
   initialSeries: Series[];
   initialTags: TagInfo[];
 }
@@ -43,9 +50,22 @@ const MASTHEAD_SETTLE_DURATION_S = 0.7;
 const MASTHEAD_SCRUB_DISTANCE_PX = 120;
 const MASTHEAD_FLICK_PROJECTION_MS = 120;
 
-export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
+export function KonomiApp({ side, initialSeries, initialTags }: KonomiAppProps) {
+  const domain = DOMAINS[side];
   const k = useKonomi(initialSeries, initialTags);
   const level = useLevel();
+  // Mirrors `side` onto <html> as data-side, alongside the data-theme the
+  // theme effect below manages — side is catalog partition, theme is user
+  // chrome, two orthogonal axes that must compose (film + Tide is a valid
+  // state), so film must never be expressed as a fourth theme. No CSS
+  // rule reads [data-side] yet (Phase 1 ships both sides visually
+  // identical), so this post-paint effect can't flash; if per-side token
+  // overrides land later, set this pre-hydration instead, alongside
+  // THEME_INIT_SCRIPT (layout.tsx), which can derive it from
+  // location.pathname since side is route-determined.
+  useEffect(() => {
+    document.documentElement.dataset.side = side;
+  }, [side]);
   // Owned here, not inside MixerBar — hitting RECOMMEND (in MixerBar, a
   // sibling of the results surface) needs to force this closed even when
   // edit mode is currently open, so the user lands on the new results
@@ -414,13 +434,13 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
   // correctly excludes Technical/Sexual Content too — see its doc comment.
   function handleLevelChange(next: LevelKey) {
     setLevelPref(next);
-    k.pruneTags(new Set(visiblePoolTagNames(k.allTags, next, k.totalSeriesCount)));
+    k.pruneTags(new Set(visiblePoolTagNames(domain, k.allTags, next, k.totalSeriesCount)));
   }
 
   // Random ×3 must only ever pick from what the pool actually shows at the
   // current level — same canonical visible-name list as the prune cascade.
   function handleRandomTags() {
-    k.randomTags(visiblePoolTagNames(k.allTags, level, k.totalSeriesCount));
+    k.randomTags(visiblePoolTagNames(domain, k.allTags, level, k.totalSeriesCount));
   }
 
   // Closes edit mode only on a successful RECOMMEND. An error (e.g.
@@ -440,24 +460,29 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
   }
 
   return (
-    // App-shell rewrite: this root is now a fixed 100svh flex column, not
-    // a normally-scrolling page. html/body (globals.css) stop being the
-    // real scroll root — nothing above or below this div needs to scroll
-    // at all anymore. See DESIGN_SYSTEM.md for the full reasoning (traced
-    // the MixerBar animation machinery back to "the page itself scrolls"
-    // being the root condition forcing it, and removed that condition
-    // instead of patching further on top of it).
-    //
-    // Unconditional overflow-hidden now, not the mastheadCollapsed-keyed
-    // toggle an earlier pass had here — the actual scroll container moved
-    // one level in, to the new wrapper around Masthead + results
-    // specifically (below), once "scroll a bit collapses the masthead"/
-    // "pull down while collapsed re-expands it" needed a scrollable
-    // region that explicitly excludes MixerBar. This root is now just a
-    // fixed-size flex shell holding that wrapper and MixerBar as two
-    // siblings — MixerBar is no longer inside anything that scrolls at
-    // all, in either masthead state, so its own position:sticky is a
-    // permanent no-op now rather than only a collapsed-mode one.
+    // DomainProvider: the one place the active side's Domain enters the
+    // tree — deep consumers (TagPoolBody, ResultCard, LevelSelector) read
+    // it via useDomain() instead of prop-threading through MixerBar/
+    // RecommendationsBody/ResultsHeader, none of which use it themselves.
+    <DomainProvider value={domain}>
+    {/* App-shell rewrite: this root is now a fixed 100svh flex column, not
+        a normally-scrolling page. html/body (globals.css) stop being the
+        real scroll root — nothing above or below this div needs to scroll
+        at all anymore. See DESIGN_SYSTEM.md for the full reasoning (traced
+        the MixerBar animation machinery back to "the page itself scrolls"
+        being the root condition forcing it, and removed that condition
+        instead of patching further on top of it).
+
+        Unconditional overflow-hidden now, not the mastheadCollapsed-keyed
+        toggle an earlier pass had here — the actual scroll container moved
+        one level in, to the new wrapper around Masthead + results
+        specifically (below), once "scroll a bit collapses the masthead"/
+        "pull down while collapsed re-expands it" needed a scrollable
+        region that explicitly excludes MixerBar. This root is now just a
+        fixed-size flex shell holding that wrapper and MixerBar as two
+        siblings — MixerBar is no longer inside anything that scrolls at
+        all, in either masthead state, so its own position:sticky is a
+        permanent no-op now rather than only a collapsed-mode one. */}
     <div
       // No data-theme here (removed) — this div used to carry its own
       // synced copy, but it's React-rendered and re-renders in lockstep
@@ -678,5 +703,6 @@ export function KonomiApp({ initialSeries, initialTags }: KonomiAppProps) {
         />
       </div>
     </div>
+    </DomainProvider>
   );
 }

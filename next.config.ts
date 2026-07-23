@@ -7,6 +7,23 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname),
   },
+  // The app lives at explicit per-side routes (/anime today, /film next) so
+  // the URL always names the catalog partition — see src/lib/konomi/domain.ts.
+  // A config-level redirect (real HTTP 307, checked before any rendering),
+  // NOT a page calling redirect(): a statically prerendered redirect page
+  // degrades to a meta-refresh with a visible ~1s blank flash, confirmed
+  // live against the production build. permanent: false deliberately — the
+  // destination may later become "last-visited side," and browsers cache
+  // 308s forever.
+  async redirects() {
+    return [
+      {
+        source: "/",
+        destination: "/anime",
+        permanent: false,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {

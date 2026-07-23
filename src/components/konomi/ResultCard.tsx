@@ -1,9 +1,10 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { scoreSeries } from "@/lib/konomi/scoring";
-import { isTagVisibleAtLevel, sortTags } from "@/lib/konomi/tagPool";
+import { sortTags } from "@/lib/konomi/tagPool";
 import type { LevelKey, ResultEntry, SortKey, TagInfo } from "@/lib/konomi/types";
 import { useAnimationDebugValues } from "./animationDebugStore";
+import { useDomain } from "./domainContext";
 import { ArrowsShuffleIcon, LockClosedIcon, LockOpenIcon } from "./icons";
 import { IconButton } from "./IconButton";
 import { RatingBadge } from "./RatingBadge";
@@ -116,6 +117,7 @@ export function ResultCard({
   // own top-of-file comment for why (a temporary tuning aid, remove once
   // settled). Defaults to cardAnimTuning.ts's own original values.
   const animationDebug = useAnimationDebugValues();
+  const domain = useDomain();
   // prefers-reduced-motion disables the FLIP slide (snapping to the new slot is
   // the correct reduced-motion behavior, matching how the enter/exit keyframes
   // are already collapsed under the same query in globals.css).
@@ -145,7 +147,7 @@ export function ResultCard({
   // wouldn't let you select at this level.
   const cardTagInfos = [...series.tags, ...series.genres]
     .map((name) => tagInfoByName.get(name))
-    .filter((t): t is TagInfo => t !== undefined && isTagVisibleAtLevel(t, level, totalSeriesCount));
+    .filter((t): t is TagInfo => t !== undefined && domain.isTagVisible(t, level, totalSeriesCount));
   const cardTags = sortTags(cardTagInfos, sort).map((t) => t.name);
   const perfect = score === filledCount && filledCount > 0;
   const scoreLabel = perfect ? "PERFECT" : `${score}/${filledCount}`;

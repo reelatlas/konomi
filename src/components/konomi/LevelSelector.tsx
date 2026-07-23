@@ -1,12 +1,10 @@
 import type { MouseEvent } from "react";
 import { useEffect, useRef, useState } from "react";
-import { LEVEL_OPTIONS } from "@/lib/konomi/tagPool";
 import type { LevelKey } from "@/lib/konomi/types";
 import { getAnimationDebugValues } from "./animationDebugStore";
+import { useDomain } from "./domainContext";
 import { RollingLabel } from "./RollingLabel";
 import { useSupportsHover } from "./useSupportsHover";
-
-const LEVEL_LABELS = LEVEL_OPTIONS.map((o) => o.label);
 
 interface LevelSelectorProps {
   value: LevelKey;
@@ -23,11 +21,6 @@ interface LevelSelectorProps {
   collapsed?: boolean;
 }
 
-function nextLevel(key: LevelKey): LevelKey {
-  const i = LEVEL_OPTIONS.findIndex((o) => o.key === key);
-  return LEVEL_OPTIONS[(i + 1) % LEVEL_OPTIONS.length].key;
-}
-
 // Same segmented-button structure as MatchSelector/SortSelect — a separate
 // component rather than a generalized shared one, since MatchSelector's
 // contract (values are the labels) doesn't fit custom labels like
@@ -37,9 +30,18 @@ function nextLevel(key: LevelKey): LevelKey {
 // (hence `aria-label`, not `title`, on each button) and not a single shared
 // line for just the active option.
 export function LevelSelector({ value, onChange, collapsed }: LevelSelectorProps) {
+  // The level ladder comes from the active side's domain (labels/hints
+  // differ per side; keys don't) — previously the module-scope LEVEL_OPTIONS
+  // constant, so LEVEL_LABELS and nextLevel moved in here with it.
+  const { levels } = useDomain();
+  const levelLabels = levels.map((o) => o.label);
+  const nextLevel = (key: LevelKey): LevelKey => {
+    const i = levels.findIndex((o) => o.key === key);
+    return levels[(i + 1) % levels.length].key;
+  };
   const [hovered, setHovered] = useState<LevelKey | null>(null);
-  const hoveredOption = LEVEL_OPTIONS.find((o) => o.key === hovered);
-  const activeOption = LEVEL_OPTIONS.find((o) => o.key === value)!;
+  const hoveredOption = levels.find((o) => o.key === hovered);
+  const activeOption = levels.find((o) => o.key === value)!;
   // Collapsed's own reveal state, separate from `hovered` above — that one
   // tracks *which segment* is being previewed among 3 (a hover-preview of a
   // value that isn't necessarily active yet); collapsed has only one button
@@ -146,7 +148,7 @@ export function LevelSelector({ value, onChange, collapsed }: LevelSelectorProps
           // their collapsed single buttons — share one height on the pixel grid.
           className="py-[var(--space-md)] leading-[16px] px-[var(--space-lg)] border-0 [outline:none] cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] whitespace-nowrap bg-[var(--surface)] text-[var(--ink)]"
         >
-          <RollingLabel value={activeOption.label} sizeToWidestOf={LEVEL_LABELS} />
+          <RollingLabel value={activeOption.label} sizeToWidestOf={levelLabels} />
         </button>
         <span
           aria-hidden={!shown}
@@ -163,7 +165,7 @@ export function LevelSelector({ value, onChange, collapsed }: LevelSelectorProps
 
   return (
     <div className="relative flex border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-2)]">
-      {LEVEL_OPTIONS.map((option, i) => {
+      {levels.map((option, i) => {
         const active = value === option.key;
         return (
           <button
