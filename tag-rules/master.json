@@ -14124,7 +14124,7 @@
   },
   {
    "canonical": "credits scene",
-   "section": "Craft & format",
+   "section": "Filmcraft",
    "count": 632,
    "members": [
     "duringcreditsstinger",
@@ -14136,7 +14136,7 @@
   },
   {
    "canonical": "animated",
-   "section": "Craft & format",
+   "section": "Filmcraft",
    "count": 381,
    "members": [
     "adult animation",
@@ -14153,7 +14153,7 @@
   },
   {
    "canonical": "female director",
-   "section": "Craft & format",
+   "section": "Filmcraft",
    "count": 319,
    "members": [
     "woman director"
@@ -14163,7 +14163,7 @@
   },
   {
    "canonical": "black and white",
-   "section": "Craft & format",
+   "section": "Filmcraft",
    "count": 290,
    "members": [
     "black and white"
@@ -14173,7 +14173,7 @@
   },
   {
    "canonical": "musical",
-   "section": "Craft & format",
+   "section": "Filmcraft",
    "count": 215,
    "members": [
     "musical",
@@ -14188,7 +14188,7 @@
   },
   {
    "canonical": "anime",
-   "section": "Craft & format",
+   "section": "Filmcraft",
    "count": 205,
    "members": [
     "anime",
@@ -14202,7 +14202,7 @@
   },
   {
    "canonical": "short film",
-   "section": "Craft & format",
+   "section": "Filmcraft",
    "count": 171,
    "members": [
     "short film"
@@ -14212,7 +14212,7 @@
   },
   {
    "canonical": "cartoon",
-   "section": "Craft & format",
+   "section": "Filmcraft",
    "count": 154,
    "members": [
     "cartoon",
@@ -14234,8 +14234,38 @@
    "pillar": "Style"
   },
   {
+   "canonical": "found footage",
+   "section": "Filmcraft",
+   "count": 119,
+   "members": [
+    "found footage",
+    "found footage adjacent",
+    "handheld camera",
+    "hidden camera",
+    "photographic evidence",
+    "subjective camera",
+    "video tape",
+    "home video",
+    "camcorder",
+    "super 8mm footage",
+    "videotape",
+    "vhs"
+   ],
+   "pillar": "Style"
+  },
+  {
+   "canonical": "flashback",
+   "pillar": "Style",
+   "section": "Filmcraft",
+   "count": 114,
+   "members": [
+    "flashback",
+    "told in flashback"
+   ]
+  },
+  {
    "canonical": "live action",
-   "section": "Craft & format",
+   "section": "Filmcraft",
    "count": 106,
    "members": [
     "live action and animation",
@@ -14247,7 +14277,7 @@
   },
   {
    "canonical": "docufilm",
-   "section": "Craft & format",
+   "section": "Filmcraft",
    "count": 85,
    "members": [
     "animal documentary",
@@ -14272,7 +14302,7 @@
   },
   {
    "canonical": "silent film",
-   "section": "Craft & format",
+   "section": "Filmcraft",
    "count": 74,
    "members": [
     "silent film",
@@ -14284,110 +14314,9 @@
    "pillar": "Style"
   },
   {
-   "canonical": "compilation",
-   "pillar": "Style",
-   "section": "Craft & format",
-   "count": 31,
-   "members": [
-    "compilation",
-    "short compilation"
-   ]
-  },
-  {
-   "canonical": "stop motion",
-   "section": "Craft & format",
-   "count": 30,
-   "members": [
-    "stop motion",
-    "claymation",
-    "plasticine"
-   ],
-   "pillar": "Style"
-  },
-  {
-   "canonical": "film formats",
-   "pillar": "Style",
-   "section": "Craft & format",
-   "count": 28,
-   "members": [
-    "vistavision",
-    "techniscope",
-    "metrocolor",
-    "warnercolor"
-   ]
-  },
-  {
-   "canonical": "east asian lead",
-   "pillar": "Style",
-   "section": "Craft & format",
-   "count": 16,
-   "members": [
-    "east asian lead"
-   ]
-  },
-  {
-   "canonical": "academy awards",
-   "pillar": "Style",
-   "section": "Craft & format",
-   "count": 11,
-   "members": [
-    "oscar winner",
-    "best picture nominee"
-   ]
-  },
-  {
-   "canonical": "screenlife",
-   "pillar": "Style",
-   "section": "Craft & format",
-   "count": 7,
-   "members": [
-    "screenlife"
-   ]
-  },
-  {
-   "canonical": "donghua",
-   "pillar": "Style",
-   "section": "Craft & format",
-   "count": 4,
-   "members": [
-    "donghua",
-    "nezha"
-   ]
-  },
-  {
-   "canonical": "found footage",
-   "section": "Narrative devices",
-   "count": 119,
-   "members": [
-    "found footage",
-    "found footage adjacent",
-    "handheld camera",
-    "hidden camera",
-    "photographic evidence",
-    "subjective camera",
-    "video tape",
-    "home video",
-    "camcorder",
-    "super 8mm footage",
-    "videotape",
-    "vhs"
-   ],
-   "pillar": "Style"
-  },
-  {
-   "canonical": "flashback",
-   "pillar": "Style",
-   "section": "Narrative devices",
-   "count": 114,
-   "members": [
-    "flashback",
-    "told in flashback"
-   ]
-  },
-  {
    "canonical": "film in film",
    "pillar": "Style",
-   "section": "Narrative devices",
+   "section": "Filmcraft",
    "count": 51,
    "members": [
     "cinema on cinema",
@@ -14400,7 +14329,7 @@
   },
   {
    "canonical": "nonlinear",
-   "section": "Narrative devices",
+   "section": "Filmcraft",
    "count": 43,
    "members": [
     "nonlinear timeline",
@@ -14418,7 +14347,7 @@
   {
    "canonical": "multiple storylines",
    "pillar": "Style",
-   "section": "Narrative devices",
+   "section": "Filmcraft",
    "count": 35,
    "members": [
     "multiple storylines",
@@ -14427,7 +14356,7 @@
   },
   {
    "canonical": "narration",
-   "section": "Narrative devices",
+   "section": "Filmcraft",
    "count": 34,
    "members": [
     "narration",
@@ -14438,7 +14367,7 @@
   {
    "canonical": "meta",
    "pillar": "Style",
-   "section": "Narrative devices",
+   "section": "Filmcraft",
    "count": 34,
    "members": [
     "meta",
@@ -14449,18 +14378,51 @@
    ]
   },
   {
+   "canonical": "compilation",
+   "pillar": "Style",
+   "section": "Filmcraft",
+   "count": 31,
+   "members": [
+    "compilation",
+    "short compilation"
+   ]
+  },
+  {
+   "canonical": "stop motion",
+   "section": "Filmcraft",
+   "count": 30,
+   "members": [
+    "stop motion",
+    "claymation",
+    "plasticine"
+   ],
+   "pillar": "Style"
+  },
+  {
    "canonical": "breaking the fourth wall",
    "pillar": "Style",
-   "section": "Narrative devices",
+   "section": "Filmcraft",
    "count": 29,
    "members": [
     "breaking the fourth wall"
    ]
   },
   {
+   "canonical": "film formats",
+   "pillar": "Style",
+   "section": "Filmcraft",
+   "count": 28,
+   "members": [
+    "vistavision",
+    "techniscope",
+    "metrocolor",
+    "warnercolor"
+   ]
+  },
+  {
    "canonical": "plot twist",
    "pillar": "Style",
-   "section": "Narrative devices",
+   "section": "Filmcraft",
    "count": 21,
    "members": [
     "plot twist",
@@ -14470,9 +14432,18 @@
    ]
   },
   {
+   "canonical": "east asian lead",
+   "pillar": "Style",
+   "section": "Filmcraft",
+   "count": 16,
+   "members": [
+    "east asian lead"
+   ]
+  },
+  {
    "canonical": "storytelling",
    "pillar": "Style",
-   "section": "Narrative devices",
+   "section": "Filmcraft",
    "count": 16,
    "members": [
     "storytelling",
@@ -14483,7 +14454,7 @@
   {
    "canonical": "pov",
    "pillar": "Style",
-   "section": "Narrative devices",
+   "section": "Filmcraft",
    "count": 16,
    "members": [
     "pov (point of view)",
@@ -14491,14 +14462,43 @@
    ]
   },
   {
+   "canonical": "academy awards",
+   "pillar": "Style",
+   "section": "Filmcraft",
+   "count": 11,
+   "members": [
+    "oscar winner",
+    "best picture nominee"
+   ]
+  },
+  {
+   "canonical": "screenlife",
+   "pillar": "Style",
+   "section": "Filmcraft",
+   "count": 7,
+   "members": [
+    "screenlife"
+   ]
+  },
+  {
    "canonical": "real time",
-   "section": "Narrative devices",
+   "section": "Filmcraft",
    "count": 6,
    "members": [
     "real time"
    ],
    "from_board": true,
    "pillar": "Style"
+  },
+  {
+   "canonical": "donghua",
+   "pillar": "Style",
+   "section": "Filmcraft",
+   "count": 4,
+   "members": [
+    "donghua",
+    "nezha"
+   ]
   },
   {
    "canonical": "sequel",
@@ -16239,6 +16239,11 @@
    "name": "section-names-pass-banked",
    "date": "2026-07-24",
    "note": "SECTION NAMES PASS BANKED (user picks, sentence-case standard applied to ALL structure values): Feel = Mood + Attitude (ex-Disposition). Setting = Era · Time of year (ex-Seasons & Holidays) · Regions · Map (ex-Place) · Natural world · Built world (ex-Locations) · Vessels (ex-Vehicles). Story = Archetypes & people · Professions (ex-Professions & Occupations) · Crime · Events & actions · Themes · Mind & health · Identity · Love & family (ex-Relationships & Family; user wrote and-spelled, normalized to & matching siblings — SURFACED) · Faith (ex-Faith & Religion) · Engines of society · War & conflict · Sports · Arts & performance · Vices · Pursuits & hobbies · Animals & nature · Objects & weapons. PILLAR Style & Format RENAMED Style (read from user header, surfaced for veto) = Sub-genres (ex-Sub-genres & Styles) · Wondrous worlds · Bestiary (ex-Creatures & Beings) · Arcana (ex-Magic & the Supernatural) · Craft & format (ex-Format & Medium) · Based on · Narrative devices (name PENDING combine question — Storycraft counter-proposed) · Cinema waves (ex-Cinema Movements) · Sagas (ex-Franchise). OPEN: narrative-devices combine-or-rename · film-side level names (Moviegoer/Buff/Cinephile rec un-ruled)."
+  },
+  {
+   "name": "naming-complete",
+   "date": "2026-07-24",
+   "note": "NAMING COMPLETE: Craft & format + Narrative devices MERGED under FILMCRAFT (user; browse-model argument won — found footage proves making-vs-telling was taxonomist-real not browser-real; ~30 tags, the film-as-craft shelf). FILM-SIDE LEVEL NAMES loosely settled (user): Moviegoer · Film buff · Cinephile — alternates NOTED for later exploration: Casual/Buff/Cinephile · Matinee/Marquee/Criterion (Criterion brand caution) · Viewer/Buff/Auteur. FINAL STRUCTURE: 4 pillars / 34 sections — Feel (Mood, Attitude) · Setting (Era, Time of year, Regions, Map, Natural world, Built world, Vessels) · Story (Archetypes & people, Professions, Crime, Events & actions, Themes, Mind & health, Identity, Love & family, Faith, Engines of society, War & conflict, Sports, Arts & performance, Vices, Pursuits & hobbies, Animals & nature, Objects & weapons) · Style (Sub-genres, Wondrous worlds, Bestiary, Arcana, Filmcraft, Based on, Cinema waves, Sagas). Sentence-case standard everywhere. NEXT: step 5 adapter."
   }
  ],
  "unassigned": [],
@@ -16372,9 +16377,8 @@
    "Wondrous worlds",
    "Bestiary",
    "Arcana",
-   "Craft & format",
+   "Filmcraft",
    "Based on",
-   "Narrative devices",
    "Cinema waves",
    "Sagas"
   ]

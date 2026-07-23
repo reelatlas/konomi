@@ -797,24 +797,31 @@ existing category. Finish the current artifact's buckets FIRST, then revisit.
 Artifact: https://claude.ai/code/artifact/15f8e86f-1a93-4073-a816-96f8b3117a19
 
 
-## ⏸️ RESUME HERE — SESSION CHECKPOINT (2026-07-24 · COMPREHENSIVE RETHINK ✅ COMPLETE)
+## ⏸️ RESUME HERE — SESSION CHECKPOINT (2026-07-24 · RETHINK ✅ + NAMES ✅ — structure FINAL)
 
 **State: `tag-rules/master.json` = 1,120 canonicals / 6,561 member strings / 0 loose / 0 hold.**
-Roadmap steps ①–④ ALL DONE. **⏭️ NEXT = STEP ⑤ ADAPTER WORK** (per-section display floors;
-franchise shelf from TMDB `belongs_to_collection`).
+Roadmap steps ①–④ done, names pass done. **⏭️ NEXT = STEP ⑤ ADAPTER WORK**, per group and
+sometimes per section: tag-pool floors + level gating · genre passthrough (wt-100) · reception
+identifiers + the user-owned rating transform · franchise shelf (belongs_to_collection +
+/collection) · credits adapter · facts adapter · THE IMPORT DELTA REPORT (per-pull review
+surface). API considers awaiting decisions: certifications · watch/providers · budget+revenue ·
+/movie/changes feed · /person popularity.
 
-**FINAL STRUCTURE (4 pillars / 35 one-kind-of-thing sections):**
-- **Feel (2):** Mood 37 · Disposition 17 — adjective grain
-- **Setting (7):** Era 29 · Seasons & Holidays 11 · Regions 22 · Place 132 · Natural World 18 ·
-  Locations 68 · Vehicles 12
-- **Story (17):** Archetypes & People 57 · Professions & Occupations 85 (DO-vs-ARE grain) ·
-  Crime 19 · Events & Actions 45 · Themes 45 · Mind & Health 36 · Identity 47 · Relationships &
-  Family 55 · Faith & Religion 8 · Engines of Society 36 (user name) · War & Conflict 22 ·
-  Sports 21 · Arts & Performance 13 · Vices 6 · Pursuits & Hobbies 7 · Animals & Nature 39 ·
-  Objects & Weapons 23
-- **Style & Format (9):** Sub-genres & Styles 73 · Wondrous Worlds 29 · Creatures & Beings 26 ·
-  Magic & the Supernatural 24 · Format & Medium 18 · Based On 15 · Narrative Devices 12 ·
-  Cinema Movements 8 · Franchise 5
+**FINAL STRUCTURE (4 pillars / 34 sections, sentence-case standard everywhere):**
+- **Feel (54):** Mood 37 · Attitude 17
+- **Setting (292):** Era 29 · Time of year 11 · Regions 22 · Map 132 · Natural world 18 ·
+  Built world 68 · Vessels 12
+- **Story (564):** Archetypes & people 57 · Professions 85 · Crime 19 · Events & actions 45 ·
+  Themes 45 · Mind & health 36 · Identity 47 · Love & family 55 · Faith 8 · Engines of
+  society 36 · War & conflict 22 · Sports 21 · Arts & performance 13 · Vices 6 · Pursuits &
+  hobbies 7 · Animals & nature 39 · Objects & weapons 23
+- **Style (210):** Sub-genres 73 · Wondrous worlds 29 · Bestiary 26 · Arcana 24 · Filmcraft 30
+  (Craft & format + Narrative devices merged — browse-model over taxonomy; found footage was
+  the proof) · Based on 15 · Cinema waves 8 · Sagas 5
+
+**LEVEL NAMES (loosely settled, user):** Moviegoer · Film buff · Cinephile. Alternates noted
+for later: Casual/Buff/Cinephile · Matinee/Marquee/Criterion (brand caution) · Viewer/Buff/
+Auteur.
 
 **HELD IDEA (user, 2026-07-24):** a future all-section-names pass — concise with a touch of
 flair, `Engines of Society` as the model. Board artifact cc16cb4a now has a collapse-sub-tags
