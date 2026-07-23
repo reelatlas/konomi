@@ -269,7 +269,43 @@ export async function getFilmCatalog(): Promise<Catalog> {
     isGenre: true,
   }));
 
-  const tags = [...storedTags, ...synthTags, ...genreTags].sort((a, b) => a.name.localeCompare(b.name));
+  // Merge stored tags that share a (category, name) pair — DISTINCT DB tags
+  // whose display names collide: two different actors both named "Michael
+  // Gough", TMDB's separate regional company records for "Netflix"/"Sony
+  // Pictures", two De Laurentiis producers. The app identifies tags by name
+  // (slots, scoring, chip keys), so two same-named chips in one sub-tab
+  // were both a real React duplicate-key error (confirmed live) and
+  // functionally identical anyway — selecting either matches films from
+  // both entities. One chip, with seriesCount recomputed as the TRUE
+  // number of films carrying the name (not a sum, which would double-count
+  // a film linked to both same-named tags); minLevel takes the most
+  // permissive of the group. If per-entity identity ever matters, that's
+  // the key-based-matching refactor, not a rendering patch.
+  const dupNames = new Set<string>();
+  {
+    const seen = new Set<string>();
+    for (const t of storedTags) {
+      const k = `${t.category}::${t.name}`;
+      if (seen.has(k)) dupNames.add(t.name);
+      else seen.add(k);
+    }
+  }
+  const trueNameCounts = new Map<string, number>();
+  if (dupNames.size > 0) {
+    for (const s of series) for (const n of s.tags) if (dupNames.has(n)) trueNameCounts.set(n, (trueNameCounts.get(n) ?? 0) + 1);
+  }
+  const mergedStored = new Map<string, TagInfo>();
+  for (const t of storedTags) {
+    const k = `${t.category}::${t.name}`;
+    const existing = mergedStored.get(k);
+    if (!existing) {
+      mergedStored.set(k, dupNames.has(t.name) ? { ...t, seriesCount: trueNameCounts.get(t.name) ?? t.seriesCount } : t);
+    } else if (t.minLevel && existing.minLevel && Number(t.minLevel) < Number(existing.minLevel)) {
+      existing.minLevel = t.minLevel;
+    }
+  }
+
+  const tags = [...mergedStored.values(), ...synthTags, ...genreTags].sort((a, b) => a.name.localeCompare(b.name));
 
   return { series, tags };
 }
