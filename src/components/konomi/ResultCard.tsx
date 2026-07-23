@@ -1102,17 +1102,21 @@ export function ResultCard({
                 surfaceColor is doing. */}
             <div className="relative z-[2]">
               {/* key: remount (and so reset scroll to the top) whenever the
-                  level/sort filters change which list this IS. Without it,
-                  the area's mandatory scroll-snap re-snaps to the
-                  previously-snapped CHIP after the reflow (per spec), and a
-                  density bump that sorts new chips into the top rows drags
-                  the view down to wherever that old chip landed — reported
-                  live as "raising Tag Density shifts my view downward." A
-                  different filter output is a different list; start it at
-                  the top — the same remount-on-key decision TagPoolBody
-                  already made for its section switches. */}
+                  RENDERED LIST actually changes. Without it, the area's
+                  mandatory scroll-snap re-snaps to the previously-snapped
+                  CHIP after the reflow (per spec), and a density bump that
+                  sorts new chips into the top rows drags the view down to
+                  wherever that old chip landed — reported live as "raising
+                  Tag Density shifts my view downward." Keyed on the list
+                  CONTENT, not the level/sort inputs: a filter change that
+                  yields the identical list (every visible tag clears both
+                  levels) keeps the same key and preserves scroll — nothing
+                  moved, so don't move the user; any real change resets to
+                  the top of what is now a different list. Same
+                  remount-on-key decision TagPoolBody made for its section
+                  switches. */}
               <TagScrollArea
-                key={`${level}:${sort}`}
+                key={cardTags.join("|")}
                 tags={cardTags}
                 selectedTags={selectedTags}
                 onChipToggle={onChipToggle}

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { DOMAINS } from "@/lib/konomi/domains";
 import type { ThemeKey } from "@/lib/konomi/types";
 import { useDomain } from "./domainContext";
+import { SideSwitchIcon } from "./icons";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 
 interface MastheadProps {
@@ -142,19 +143,49 @@ export function Masthead({ theme, onThemeChange, collapsed }: MastheadProps) {
             hover subtext would otherwise hang below the slim row. Only ever
             visible on hover, so keying it off the settled boolean (not the live
             progress) is invisible during the scrub itself. */}
-        <div className="self-center shrink-0 flex items-center gap-[var(--space-lg)]">
-          {/* PLACEHOLDER side-switch affordance — deliberately minimal (a
-              bordered mono chip in the segmented-control register, same box
-              recipe as LevelSelector's collapsed button) until the real
-              switch interaction gets its own design pass. Functional and
-              token-driven, not a pattern to copy. */}
+        <div className="relative self-center shrink-0">
+          {/* Side switch (anime ⇄ film) — the flat mono icon+text affordance
+              format the results-header metadata readouts use (glow-host
+              bloom, 18px glyph, lowercase, no box), NOT a bordered chip.
+              ABSOLUTELY positioned above the ThemeSwitcher (bottom-full +
+              space-md gap, right-aligned) — out of flow, zero layout
+              footprint, so its presence moves NOTHING else in the header:
+              the ThemeSwitcher keeps its exact self-center position and the
+              wordmark row's height/centering are untouched (requested
+              directly after an in-flow column version visibly pushed the
+              ThemeSwitcher down). Expanded-masthead-only, per the
+              masthead's own two-layer animation split: opacity rides
+              --masthead-progress via calc, so it fades in lockstep with the
+              scrub and the settle spring for free; DISCRETE attributes
+              (aria-hidden, tabIndex, pointer-events) key off the settled
+              `collapsed` boolean, same as ThemeSwitcher's subtextPlacement
+              — they can't scrub, and a beat of lag on a mid-gesture
+              fractional state is invisible. Hover: CSS transitions only
+              (color + a 180° glyph flip) — a discrete A→B hover state is
+              animation-ladder rung 1, no Motion needed. */}
           {otherSide && (
-            <Link
-              href={otherSide.route}
-              className="border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-2)] px-[var(--space-lg)] py-[var(--space-md)] leading-[16px] font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] uppercase whitespace-nowrap bg-[var(--surface)] text-[var(--ink)]"
+            <div
+              aria-hidden={collapsed}
+              className="absolute bottom-full right-0 mb-[var(--space-md)]"
+              style={{
+                opacity: "calc(1 - var(--masthead-progress))",
+              }}
             >
-              ⇄ {otherSide.label}
-            </Link>
+              <Link
+                href={otherSide.route}
+                tabIndex={collapsed ? -1 : undefined}
+                aria-label={`switch to the ${otherSide.label.toLowerCase()} side`}
+                className={[
+                  "glow-host group/sideswitch inline-flex items-center gap-[var(--space-xs)] font-mono text-[length:var(--text-xs)] tracking-[var(--tracking-lg)] lowercase text-[var(--muted)] hover:text-[var(--primary)] focus-visible:text-[var(--primary)] transition-colors duration-200 whitespace-nowrap",
+                  collapsed ? "pointer-events-none" : "",
+                ].join(" ")}
+              >
+                <span className="inline-flex items-center justify-center w-[18px] h-[18px] shrink-0">
+                  <SideSwitchIcon className="glow-icon w-[18px] h-[18px] transition-transform duration-200 group-hover/sideswitch:rotate-180" />
+                </span>
+                <span>{otherSide.label.toLowerCase()}</span>
+              </Link>
+            </div>
           )}
           <ThemeSwitcher value={theme} onChange={onThemeChange} subtextPlacement={collapsed ? "left" : undefined} />
         </div>
