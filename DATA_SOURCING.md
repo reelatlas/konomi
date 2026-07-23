@@ -896,6 +896,26 @@ restructure · rating transform · provider refresh topping · certifications fa
 foreign ingest bucket · writers re-measure. Surface board artifact 0af35cf2 visualizes
 every layer; boards cc16cb4a (master) + c3f4e8e9 (review) unchanged.
 
+### Growth & refresh doctrine — NOTED 2026-07-24 (user strategy, nothing wired yet)
+**Append-only membership, refresh in place, recompute meaning.** The ~8.5k pull was a
+measured starter corpus, not a ceiling. ① MEMBERSHIP IS STICKY: never delete a landed
+tmdb_id; if an id ever must go, use the EXISTING `tmdb_ingest_exclusions` table (0009) +
+promote filters it — raw stays append-only, reversible, audited. ② REHYDRATE in place when
+votes/providers/keywords/certs go stale (`/movie/changes` is the cheap sync input when
+wanted). ③ GROW by re-running Discover + expand, hydrating only `newIds = hits − have`;
+seed takes are per-run candidate windows, not DB caps. ④ RESNAPSHOT only to change the
+recognition definition itself. **Labels are ephemeral by design**: discovery buckets
+(buzzing = topping re-pull) and reception tags recompute at promote from current fields —
+films may lose/gain famous/buzzing etc. as the corpus shifts; EXPECTED, not breakage.
+**Tag surface recomputes from the new whole** (promote is a full rebuild): frequencies,
+floors, heat, and saga graduations all shift with growth — the delta report is the review
+surface for every such run (pull → promote → delta → review queue → --update).
+**Watch-items when wiring grow-mode:** the buff surface drifts up under an absolute floor
+55 (if buff should STAY ~400-sized, the floor becomes a percentile knob — one config line;
+IA-pressure will say when) · stamp run dates into bucket records for provenance (the seed
+is pinned-snapshot semantics; re-runs select materially different sets) · era-defining's
+fetched_at guard auto-advances with rehydrates (already built).
+
 **STEP ⑤ PART 3 ✅ BANKED (user, 2026-07-24) — the Sagas shelf, in adapter-config.json.**
 Measured from raw payloads (zero new requests): 25.4% of corpus (2,170 films) carries
 belongs_to_collection · 1,059 distinct collections · top: James Bond 20, Fast & Furious 11,
