@@ -823,6 +823,15 @@ surface). API considers awaiting decisions: certifications · watch/providers ·
 for later: Casual/Buff/Cinephile · Matinee/Marquee/Criterion (brand caution) · Viewer/Buff/
 Auteur.
 
+**STEP ⑤ PART 1 ⏳ AWAITING RULINGS (artifact c3f4e8e9 `adapter-part-1-floors-levels`,
+2026-07-24):** measured tag-pool gating proposal — Moviegoer = genres + corpus identifiers
+only · Film buff = per-section display floors (default 15 · Map/Regions 20 · seven small
+sections unfloored) → 876 tags · Cinephile = all 1,120. Measured: 8,531 films, 8.7 tags/film
+mean, 338 zero-tag films ride genres+identifiers; floors prune browse dust (Map 132→42) not
+cards (8.7→8.4). Heat = percentile-within-section (guardrail honored); card cap deferred to
+UI. Open: Cinema-waves-at-buff (REC yes) · Identity floor 15-vs-10 (heritage micro-tags) ·
+zero-tag fallback confirm. On bank: config becomes a checked-in adapter JSON.
+
 **HELD IDEA (user, 2026-07-24):** a future all-section-names pass — concise with a touch of
 flair, `Engines of Society` as the model. Board artifact cc16cb4a now has a collapse-sub-tags
 toggle. Full wave-by-wave record in sweeps[] (`rethink-*` records, wave 1 → COMPLETE).
