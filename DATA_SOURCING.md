@@ -837,7 +837,32 @@ checked-in knob file.** Three distinct experiences BY DESIGN (MVP; tune in produ
 - Section reading order banked in pillar_tree (user final; SPORTS inserted between Faith and
   Arts & performance — flagged, unconfirmed). Board has live floor control + collapse toggle.
 - **DEFERRED post-launch (user):** per-section floor tweaks · Map restructure/condensing ·
-  level-name final confirm. ⏭️ NEXT in step ⑤: credits · facts · import delta report.
+  level-name final confirm.
+
+## ✅ STEP ⑤ ADAPTER DESIGN — COMPLETE (2026-07-24 · all 6 parts banked in tag-rules/adapter-config.json)
+
+① **Tag-pool gating**: Moviegoer 33 (genres+reception, no tag-kw) · Film buff 437 (universal
+floor 55) · Cinephile 1,153 (no floor) · empty-section-hidden rule · heat = percentile within
+section. ② **Genres + reception**: 19 wt-100 passthrough · ALL 14 reception tags at MVP incl.
+era-defining (locked §8 recipe) · raw vote_average display · box-office stacking rule.
+③ **Sagas**: shelf floor ≥2 (594 sagas / 1,705 films) · 465 singletons card-only read-only ·
+one Sagas home · strip " Collection" · all levels · promote-as-tags. ④ **Credits**: buff+
+cinephile · all six categories (actors order<10 6,883 · directors 931 · studios 1,978 ·
+producers 2,026 · cinematographers 831 · composers 661) · writers excluded (measured dead) ·
+floor ≥3. ⑤ **Facts**: Origin selectable tags (decade 14 · country 66 · original language,
+buff+cinephile) · **certifications selectable (US primary) — needs THE ONE NEW PULL: a
+release_dates hydrate pass (~8,531 req)** · card facts (year, runtime, rating, poster,
+overview, budget/revenue, singleton saga names) · runtime/year band-tag stubs reserved
+(config-only later change; decade demonstrates the pattern) · **watch providers ALREADY in
+raw** (zero requests): card-back flatrate links, JustWatch attribution required, refresh =
+post-MVP topping. ⑥ **Import delta report**: after every pull — auto-integrated / manual
+queue w/ suggested homes / IA-pressure flags — rendered as an artifact board.
+
+**⏭️ WHAT REMAINS OF STEP ⑤ = IMPLEMENTATION:** write the promote code (reads master.json +
+adapter-config.json → fills the shared catalog partition) · the certifications hydrate pass ·
+the delta-report generator · shared-catalog schema for the film partition. Then UI. Surface
+board artifact 0af35cf2 visualizes every banked layer; boards cc16cb4a (master) + c3f4e8e9
+(review) unchanged.
 
 **STEP ⑤ PART 3 ✅ BANKED (user, 2026-07-24) — the Sagas shelf, in adapter-config.json.**
 Measured from raw payloads (zero new requests): 25.4% of corpus (2,170 films) carries

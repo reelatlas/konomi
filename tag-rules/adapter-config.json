@@ -67,6 +67,40 @@
   "promote": "each person/studio promotes as a tag (type: person | studio) — slots/recommend/combos work with zero engine special-casing",
   "display": "search + rank: top names by film count, progressive search reaches the rest"
  },
+ "facts": {
+  "_comment": "Part 5 BANKED (user, 2026-07-24).",
+  "origin_tags": {
+   "levels": "film buff + cinephile",
+   "decade": "14 tags · 100% · from release_date (decade IS banded release year — the pattern for any future band tags)",
+   "country": "66 tags at >=3 floor · 99.8%",
+   "original_language": ">=3 floor · full MVP value, no holds (only the foreign INGEST-bucket exploration is deferred)"
+  },
+  "certifications": {
+   "selectable": true,
+   "primary": "US certification (G/PG/PG-13/R/NC-17/NR; data is per-country)",
+   "requires": "ONE hydrate pass appending release_dates (~8,531 requests) — the only new pull MVP needs"
+  },
+  "card_facts": ["release year", "runtime", "raw vote_average", "poster/backdrop", "overview/tagline", "budget/revenue where present", "singleton saga name (read-only, disabled as tag)"],
+  "runtime_bands": null,
+  "year_bands": null,
+  "_bands_comment": "user option reserved: define bands (hypothetical example: under 1hr / under 2hr / under 3hr / 3hr+) to promote runtime or year bands as selectable tags — a config-only change + re-promote, zero new ingest",
+  "watch_providers": {
+   "selectable": false,
+   "display": "card-back streaming links, flatrate (stream) only, click-to-link — the anime-side pattern",
+   "source": "ALREADY in raw payloads via the original hydrate append (zero new requests)",
+   "staleness": "snapshot-frozen licensing data; cheap refresh pass post-MVP (a topping, like buzzing)",
+   "attribution": "JustWatch attribution REQUIRED wherever provider data displays (TMDB terms)"
+  }
+ },
+ "import_delta_report": {
+  "_comment": "Part 6 BANKED (user, 2026-07-24). Generated after EVERY pull; renders as an artifact board so reviewing an import feels like the consolidation waves did.",
+  "sections": {
+   "auto_integrated": "new keywords that matched existing member strings -> where they landed (canonical + section); new films + which tags/sagas/people they joined",
+   "manual_queue": "new >=3-count strings with no member match, each with a suggested home — the propose-first wave rhythm, institutionalized",
+   "ia_pressure": "sections growing disproportionately · singleton sagas graduating past the >=2 shelf floor · people crossing the >=3 floor · anything suggesting a tag-IA change"
+  },
+  "sync_note": "/movie/changes feed remains a separate consider for cheap re-hydration; this report is the review surface regardless of how a pull happens"
+ },
  "rules": {
   "universal_floor": "one floor for all sections at film buff; per-section tuning deferred post-launch",
   "empty_section_hidden": "a section with zero tags above the active floor is not selectable in the UI (it would be empty), never an error",
