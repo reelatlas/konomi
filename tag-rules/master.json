@@ -1987,6 +1987,17 @@
    ]
   },
   {
+   "canonical": "maze",
+   "pillar": "Setting",
+   "section": "Locations",
+   "count": 15,
+   "members": [
+    "maze",
+    "labyrinth",
+    "labirinto"
+   ]
+  },
+  {
    "canonical": "shopping mall",
    "section": "Locations",
    "count": 13,
@@ -4368,7 +4379,7 @@
   {
    "canonical": "animals",
    "section": "Animals & Nature",
-   "count": 219,
+   "count": 225,
    "members": [
     "animal adventure",
     "animal behaviour",
@@ -4409,7 +4420,9 @@
     "bat",
     "different species",
     "robin",
-    "exterminator"
+    "exterminator",
+    "endangered species",
+    "wildlife"
    ],
    "from_board": true,
    "pillar": "Story",
@@ -4830,16 +4843,6 @@
    "members": [
     "killer whale",
     "whale"
-   ]
-  },
-  {
-   "canonical": "wildlife",
-   "pillar": "Story",
-   "section": "Animals & Nature",
-   "count": 11,
-   "members": [
-    "endangered species",
-    "wildlife"
    ]
   },
   {
@@ -8226,6 +8229,34 @@
    "pillar": "Story"
   },
   {
+   "canonical": "money",
+   "section": "Forces & Institutions",
+   "count": 184,
+   "members": [
+    "money",
+    "stolen money",
+    "bag of money",
+    "suitcase full of money",
+    "cash",
+    "dollar",
+    "money problems",
+    "prize money",
+    "debt",
+    "financial problem",
+    "bankrupt",
+    "bankruptcy",
+    "finances",
+    "repayment",
+    "tax collector",
+    "taxes",
+    "financial transactions",
+    "auction",
+    "deal"
+   ],
+   "from_board": true,
+   "pillar": "Story"
+  },
+  {
    "canonical": "politics",
    "section": "Forces & Institutions",
    "count": 182,
@@ -8670,6 +8701,21 @@
    "note": "shifted R&F -> Forces & Institutions (rethink wave 7): an industry, beside moviebiz"
   },
   {
+   "canonical": "advertising",
+   "pillar": "Story",
+   "section": "Forces & Institutions",
+   "count": 29,
+   "members": [
+    "advertising",
+    "commercial",
+    "publicist",
+    "advertising expert",
+    "advertising agency",
+    "publicity",
+    "sponsorship"
+   ]
+  },
+  {
    "canonical": "fossil fuels",
    "pillar": "Story",
    "section": "Forces & Institutions",
@@ -8871,16 +8917,6 @@
     "insurance",
     "insurance agent"
    ]
-  },
-  {
-   "canonical": "empire",
-   "section": "Forces & Institutions",
-   "count": 7,
-   "members": [
-    "empire"
-   ],
-   "from_board": true,
-   "pillar": "Story"
   },
   {
    "canonical": "socialism",
@@ -10176,6 +10212,27 @@
    "note": "sword-fights live with the sword (user: split by weapon)"
   },
   {
+   "canonical": "nuclear weapons",
+   "pillar": "Story",
+   "section": "Objects & Weapons",
+   "count": 79,
+   "members": [
+    "atomic bomb",
+    "atomic bomb test",
+    "missile",
+    "nuclear missile",
+    "nuclear weapons",
+    "nuclear war",
+    "nuclear threat",
+    "warhead",
+    "nuclear holocaust",
+    "nuclear radiation",
+    "radiation",
+    "radiation sickness",
+    "radioactivity"
+   ]
+  },
+  {
    "canonical": "mask",
    "pillar": "Story",
    "section": "Objects & Weapons",
@@ -10187,23 +10244,6 @@
     "masked ball",
     "masked man",
     "pig mask"
-   ]
-  },
-  {
-   "canonical": "nuclear weapons",
-   "pillar": "Story",
-   "section": "Objects & Weapons",
-   "count": 66,
-   "members": [
-    "atomic bomb",
-    "atomic bomb test",
-    "missile",
-    "nuclear missile",
-    "nuclear weapons",
-    "nuclear war",
-    "nuclear threat",
-    "warhead",
-    "nuclear holocaust"
    ]
   },
   {
@@ -10384,18 +10424,6 @@
    "pillar": "Story"
   },
   {
-   "canonical": "radiation",
-   "pillar": "Story",
-   "section": "Objects & Weapons",
-   "count": 20,
-   "members": [
-    "nuclear radiation",
-    "radiation",
-    "radiation sickness",
-    "radioactivity"
-   ]
-  },
-  {
    "canonical": "tattoo",
    "pillar": "Story",
    "section": "Objects & Weapons",
@@ -10552,34 +10580,6 @@
     "recording contract",
     "audio recording"
    ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "money",
-   "section": "Pursuits",
-   "count": 184,
-   "members": [
-    "money",
-    "stolen money",
-    "bag of money",
-    "suitcase full of money",
-    "cash",
-    "dollar",
-    "money problems",
-    "prize money",
-    "debt",
-    "financial problem",
-    "bankrupt",
-    "bankruptcy",
-    "finances",
-    "repayment",
-    "tax collector",
-    "taxes",
-    "financial transactions",
-    "auction",
-    "deal"
-   ],
-   "from_board": true,
    "pillar": "Story"
   },
   {
@@ -10991,21 +10991,6 @@
    ]
   },
   {
-   "canonical": "advertising",
-   "pillar": "Story",
-   "section": "Pursuits",
-   "count": 29,
-   "members": [
-    "advertising",
-    "commercial",
-    "publicist",
-    "advertising expert",
-    "advertising agency",
-    "publicity",
-    "sponsorship"
-   ]
-  },
-  {
    "canonical": "football (soccer)",
    "section": "Pursuits",
    "count": 25,
@@ -11105,7 +11090,8 @@
     "poker",
     "poker game"
    ],
-   "pillar": "Story"
+   "pillar": "Story",
+   "note": "user 2026-07-24: kept OWN beside gambling — poker is a skill game without house odds, stands on its own"
   },
   {
    "canonical": "wrestling",
@@ -12740,6 +12726,19 @@
    ]
   },
   {
+   "canonical": "legacy",
+   "pillar": "Story",
+   "section": "Themes",
+   "count": 30,
+   "members": [
+    "legacy",
+    "history and legacy",
+    "institution",
+    "dynasty",
+    "empire"
+   ]
+  },
+  {
    "canonical": "honor",
    "pillar": "Story",
    "section": "Themes",
@@ -12790,18 +12789,6 @@
     "regret"
    ],
    "pillar": "Story"
-  },
-  {
-   "canonical": "legacy",
-   "pillar": "Story",
-   "section": "Themes",
-   "count": 23,
-   "members": [
-    "legacy",
-    "history and legacy",
-    "institution",
-    "dynasty"
-   ]
   },
   {
    "canonical": "teamwork",
@@ -13173,7 +13160,7 @@
   },
   {
    "canonical": "based on novel or book",
-   "section": "Based On & Franchise",
+   "section": "Based On",
    "count": 1189,
    "members": [
     "based on novel or book",
@@ -13190,18 +13177,8 @@
    "pillar": "Style & Format"
   },
   {
-   "canonical": "sequel",
-   "section": "Based On & Franchise",
-   "count": 732,
-   "members": [
-    "sequel"
-   ],
-   "from_board": true,
-   "pillar": "Style & Format"
-  },
-  {
    "canonical": "based on true story",
-   "section": "Based On & Franchise",
+   "section": "Based On",
    "count": 445,
    "members": [
     "based on true story",
@@ -13212,7 +13189,7 @@
   },
   {
    "canonical": "biography",
-   "section": "Based On & Franchise",
+   "section": "Based On",
    "count": 356,
    "members": [
     "biography",
@@ -13234,33 +13211,22 @@
   },
   {
    "canonical": "based on comic",
-   "section": "Based On & Franchise",
-   "count": 277,
+   "section": "Based On",
+   "count": 284,
    "members": [
     "based on comic",
     "based on graphic novel",
     "based on webcomic or webtoon",
-    "dc extended universe (dceu)"
-   ],
-   "from_board": true,
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "remake",
-   "section": "Based On & Franchise",
-   "count": 229,
-   "members": [
-    "remake",
-    "retelling",
-    "remade",
-    "alternate version"
+    "dc extended universe (dceu)",
+    "comic book",
+    "comic book shop"
    ],
    "from_board": true,
    "pillar": "Style & Format"
   },
   {
    "canonical": "based on play or musical",
-   "section": "Based On & Franchise",
+   "section": "Based On",
    "count": 129,
    "members": [
     "based on play or musical",
@@ -13271,7 +13237,7 @@
   },
   {
    "canonical": "based on tv series",
-   "section": "Based On & Franchise",
+   "section": "Based On",
    "count": 113,
    "members": [
     "based on tv series",
@@ -13283,7 +13249,7 @@
   },
   {
    "canonical": "based on video game",
-   "section": "Based On & Franchise",
+   "section": "Based On",
    "count": 102,
    "members": [
     "based on video game",
@@ -13294,7 +13260,7 @@
   },
   {
    "canonical": "based on manga",
-   "section": "Based On & Franchise",
+   "section": "Based On",
    "count": 93,
    "members": [
     "based on manga"
@@ -13304,7 +13270,7 @@
   },
   {
    "canonical": "based on toy",
-   "section": "Based On & Franchise",
+   "section": "Based On",
    "count": 77,
    "members": [
     "based on toy",
@@ -13321,37 +13287,8 @@
    "pillar": "Style & Format"
   },
   {
-   "canonical": "prequel",
-   "section": "Based On & Franchise",
-   "count": 69,
-   "members": [
-    "prequel",
-    "origin story"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "reboot",
-   "section": "Based On & Franchise",
-   "count": 52,
-   "members": [
-    "reboot"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "spin off",
-   "section": "Based On & Franchise",
-   "count": 51,
-   "members": [
-    "spin off"
-   ],
-   "note": "kept as a plain single-keyword tag in Franchise — NOT a rollup; mcu/dcamu went to superhero",
-   "pillar": "Style & Format"
-  },
-  {
    "canonical": "based on fairy tale",
-   "section": "Based On & Franchise",
+   "section": "Based On",
    "count": 44,
    "members": [
     "based on fairy tale",
@@ -13361,7 +13298,7 @@
   },
   {
    "canonical": "based on movie",
-   "section": "Based On & Franchise",
+   "section": "Based On",
    "count": 34,
    "members": [
     "based on movie",
@@ -13371,7 +13308,7 @@
   },
   {
    "canonical": "adaptation",
-   "section": "Based On & Franchise",
+   "section": "Based On",
    "count": 18,
    "members": [
     "adaptation",
@@ -13382,7 +13319,7 @@
   },
   {
    "canonical": "based on magazine, newspaper or article",
-   "section": "Based On & Franchise",
+   "section": "Based On",
    "count": 17,
    "members": [
     "based on magazine, newspaper or article"
@@ -13391,7 +13328,7 @@
   },
   {
    "canonical": "based on song, poem or rhyme",
-   "section": "Based On & Franchise",
+   "section": "Based On",
    "count": 16,
    "members": [
     "based on song, poem or rhyme",
@@ -13402,11 +13339,474 @@
   },
   {
    "canonical": "based on theme park ride",
-   "section": "Based On & Franchise",
+   "section": "Based On",
    "count": 5,
    "members": [
     "based on theme park ride"
    ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "grindhouse",
+   "pillar": "Style & Format",
+   "section": "Cinema Movements",
+   "count": 30,
+   "members": [
+    "grindhouse",
+    "b-horror",
+    "video nasty",
+    "canuxploitation",
+    "new french extremism",
+    "direct to video"
+   ]
+  },
+  {
+   "canonical": "neorealism",
+   "pillar": "Style & Format",
+   "section": "Cinema Movements",
+   "count": 23,
+   "members": [
+    "neorealism",
+    "italian neo realism",
+    "neo realism",
+    "social realism",
+    "realism"
+   ]
+  },
+  {
+   "canonical": "pre-code",
+   "pillar": "Style & Format",
+   "section": "Cinema Movements",
+   "count": 19,
+   "members": [
+    "pre-code"
+   ]
+  },
+  {
+   "canonical": "avant-garde",
+   "section": "Cinema Movements",
+   "count": 15,
+   "members": [
+    "avant-garde",
+    "avant garde"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "expressionism",
+   "pillar": "Style & Format",
+   "section": "Cinema Movements",
+   "count": 12,
+   "members": [
+    "expressionism",
+    "german expressionism"
+   ]
+  },
+  {
+   "canonical": "new wave cinema",
+   "pillar": "Style & Format",
+   "section": "Cinema Movements",
+   "count": 9,
+   "members": [
+    "french new wave",
+    "japanese new wave",
+    "czech new wave"
+   ]
+  },
+  {
+   "canonical": "dogme 95",
+   "pillar": "Style & Format",
+   "section": "Cinema Movements",
+   "count": 4,
+   "members": [
+    "dogme 95"
+   ]
+  },
+  {
+   "canonical": "mumblecore",
+   "pillar": "Style & Format",
+   "section": "Cinema Movements",
+   "count": 3,
+   "members": [
+    "mumblecore"
+   ]
+  },
+  {
+   "canonical": "monster",
+   "section": "Creatures & Beings",
+   "count": 257,
+   "members": [
+    "monster",
+    "monsters",
+    "giant monster",
+    "sea monster",
+    "water monster",
+    "monster island",
+    "creature",
+    "frankenstein",
+    "boogeyman",
+    "cenobite",
+    "ghoul",
+    "human monster",
+    "beast",
+    "slime"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "alien",
+   "section": "Creatures & Beings",
+   "count": 234,
+   "members": [
+    "alien",
+    "alien invasion",
+    "alien attack",
+    "alien contact",
+    "alien encounter",
+    "alien infection",
+    "human vs alien",
+    "space invasion",
+    "evil alien",
+    "alien monster",
+    "alien race",
+    "aliens",
+    "humanoid alien",
+    "alien creature",
+    "alien parasites",
+    "shape shifting alien",
+    "extraterrestrial",
+    "extraterrestrial life form",
+    "alien dna",
+    "alien abduction",
+    "alien technology",
+    "alien language",
+    "alien friendship",
+    "alien life-form",
+    "extraterrestrial technology",
+    "ufo",
+    "alien planet",
+    "flying saucer",
+    "body snatchers",
+    "area 51",
+    "symbiote",
+    "martian"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "ghost",
+   "section": "Creatures & Beings",
+   "count": 114,
+   "members": [
+    "ghost",
+    "ghostbuster",
+    "vengeful ghost",
+    "wraith",
+    "phantom",
+    "ghostbusters",
+    "ghost story"
+   ],
+   "from_board": true,
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "demon",
+   "section": "Creatures & Beings",
+   "count": 111,
+   "members": [
+    "demon",
+    "demonic",
+    "demonic possession",
+    "demon hunter"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "zombie",
+   "section": "Creatures & Beings",
+   "count": 86,
+   "members": [
+    "zombie",
+    "zombie apocalypse",
+    "evil dead"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "vampire",
+   "section": "Creatures & Beings",
+   "count": 85,
+   "members": [
+    "vampire",
+    "dracula",
+    "nosferatu",
+    "vampire hunter (slayer)",
+    "transylvania",
+    "drinking blood"
+   ],
+   "from_board": true,
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "mythical creature",
+   "section": "Creatures & Beings",
+   "count": 71,
+   "members": [
+    "mythical creature",
+    "unicorn",
+    "goblin",
+    "ogre",
+    "troll",
+    "giant",
+    "minotaur",
+    "kraken",
+    "yeti",
+    "cyclops",
+    "siren",
+    "banshee",
+    "medusa",
+    "griffin",
+    "centaur",
+    "pegasus",
+    "sphinx",
+    "gorgon",
+    "bigfoot",
+    "sasquatch",
+    "leprechaun",
+    "cryptozoology"
+   ],
+   "pillar": "Style & Format",
+   "note": "user 2026-07-22 mega-merge; placement review 2026-07-24: dragon/fairy(+fairies)/mermaid/elves pulled back out as own tags per user — this shelf keeps the scatter (unicorn, goblin, troll, giant, kraken, yeti, leprechaun…)"
+  },
+  {
+   "canonical": "robot",
+   "section": "Creatures & Beings",
+   "count": 67,
+   "members": [
+    "robot"
+   ],
+   "from_board": true,
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "mutant",
+   "section": "Creatures & Beings",
+   "count": 65,
+   "members": [
+    "mutant",
+    "mutants",
+    "mutation",
+    "genetic mutation",
+    "hybrid"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "giant creature",
+   "pillar": "Style & Format",
+   "section": "Creatures & Beings",
+   "count": 50,
+   "members": [
+    "giant creature",
+    "giant spider",
+    "giant insect",
+    "giant ape",
+    "giant worm",
+    "giant snake",
+    "giant lizard",
+    "giant animal",
+    "giant crocodile",
+    "giant crab",
+    "giant octopus",
+    "graboids",
+    "giant man"
+   ]
+  },
+  {
+   "canonical": "werewolf",
+   "section": "Creatures & Beings",
+   "count": 43,
+   "members": [
+    "werewolf",
+    "werewolf child",
+    "wolfman"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "doppelgänger",
+   "pillar": "Style & Format",
+   "section": "Creatures & Beings",
+   "count": 43,
+   "members": [
+    "body double",
+    "doppelgänger",
+    "look-alike",
+    "duality"
+   ]
+  },
+  {
+   "canonical": "dragon",
+   "pillar": "Style & Format",
+   "section": "Creatures & Beings",
+   "count": 40,
+   "members": [
+    "dragon"
+   ]
+  },
+  {
+   "canonical": "giant robot",
+   "section": "Creatures & Beings",
+   "count": 38,
+   "members": [
+    "giant robot",
+    "humanoid robot",
+    "robot fighting",
+    "mecha"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "kaiju",
+   "section": "Creatures & Beings",
+   "count": 37,
+   "members": [
+    "godzilla",
+    "kaiju",
+    "king kong",
+    "king ghidorah",
+    "rodan",
+    "mothra"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "android",
+   "section": "Creatures & Beings",
+   "count": 34,
+   "members": [
+    "android",
+    "human android relationship"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "fairy",
+   "pillar": "Style & Format",
+   "section": "Creatures & Beings",
+   "count": 29,
+   "members": [
+    "fairy",
+    "fairies"
+   ]
+  },
+  {
+   "canonical": "cyborg",
+   "section": "Creatures & Beings",
+   "count": 27,
+   "members": [
+    "cyborg",
+    "female cyborg"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "clone",
+   "section": "Creatures & Beings",
+   "count": 27,
+   "members": [
+    "clone",
+    "cloning",
+    "human clone"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "spirit",
+   "section": "Creatures & Beings",
+   "count": 27,
+   "members": [
+    "spirit"
+   ],
+   "from_board": true,
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "angel",
+   "section": "Creatures & Beings",
+   "count": 24,
+   "members": [
+    "angel",
+    "guardian angel",
+    "fallen angel"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "mermaid",
+   "pillar": "Style & Format",
+   "section": "Creatures & Beings",
+   "count": 18,
+   "members": [
+    "mermaid"
+   ]
+  },
+  {
+   "canonical": "elves",
+   "pillar": "Style & Format",
+   "section": "Creatures & Beings",
+   "count": 18,
+   "members": [
+    "elves"
+   ]
+  },
+  {
+   "canonical": "dwarf",
+   "section": "Creatures & Beings",
+   "count": 15,
+   "members": [
+    "dwarf"
+   ],
+   "from_board": true,
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "magical creature",
+   "section": "Creatures & Beings",
+   "count": 12,
+   "members": [
+    "magical creature"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "mummy",
+   "section": "Creatures & Beings",
+   "count": 10,
+   "members": [
+    "mummy"
+   ],
+   "from_board": true,
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "undead",
+   "section": "Creatures & Beings",
+   "count": 9,
+   "members": [
+    "undead"
+   ],
+   "from_board": true,
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "prehistoric creature",
+   "section": "Creatures & Beings",
+   "count": 7,
+   "members": [
+    "prehistoric creature"
+   ],
+   "from_board": true,
    "pillar": "Style & Format"
   },
   {
@@ -13571,16 +13971,6 @@
    "pillar": "Style & Format"
   },
   {
-   "canonical": "narration",
-   "section": "Format & Medium",
-   "count": 34,
-   "members": [
-    "narration",
-    "voiceover"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
    "canonical": "compilation",
    "pillar": "Style & Format",
    "section": "Format & Medium",
@@ -13623,16 +14013,6 @@
    ]
   },
   {
-   "canonical": "avant-garde",
-   "section": "Format & Medium",
-   "count": 15,
-   "members": [
-    "avant-garde",
-    "avant garde"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
    "canonical": "academy awards",
    "pillar": "Style & Format",
    "section": "Format & Medium",
@@ -13660,6 +14040,395 @@
     "donghua",
     "nezha"
    ]
+  },
+  {
+   "canonical": "sequel",
+   "section": "Franchise",
+   "count": 732,
+   "members": [
+    "sequel"
+   ],
+   "from_board": true,
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "remake",
+   "section": "Franchise",
+   "count": 229,
+   "members": [
+    "remake",
+    "retelling",
+    "remade",
+    "alternate version"
+   ],
+   "from_board": true,
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "prequel",
+   "section": "Franchise",
+   "count": 69,
+   "members": [
+    "prequel",
+    "origin story"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "reboot",
+   "section": "Franchise",
+   "count": 52,
+   "members": [
+    "reboot"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "spin off",
+   "section": "Franchise",
+   "count": 51,
+   "members": [
+    "spin off"
+   ],
+   "note": "kept as a plain single-keyword tag in Franchise — NOT a rollup; mcu/dcamu went to superhero",
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "supernatural",
+   "section": "Magic & the Supernatural",
+   "count": 238,
+   "members": [
+    "supernatural",
+    "supernatural power",
+    "supernatural creature",
+    "supernatural being",
+    "supernatural drama",
+    "fighting supernatural",
+    "religion and supernatural",
+    "soul transference",
+    "superstition"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "magic",
+   "section": "Magic & the Supernatural",
+   "count": 233,
+   "members": [
+    "magic",
+    "black magic",
+    "magic lamp",
+    "magical object",
+    "magic land",
+    "magic realism",
+    "magical girl",
+    "potion",
+    "flying carpet",
+    "illusionist",
+    "illusion",
+    "inanimate objects come to life"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "psychic",
+   "section": "Magic & the Supernatural",
+   "count": 116,
+   "members": [
+    "clairvoyant",
+    "fortune teller",
+    "medium",
+    "precognition",
+    "premonition",
+    "psychic",
+    "psychic power",
+    "spiritism",
+    "séance",
+    "tarot cards",
+    "telekinesis",
+    "telepathy",
+    "mind reading",
+    "extrasensory perception",
+    "visions",
+    "vision"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "occult",
+   "pillar": "Style & Format",
+   "section": "Magic & the Supernatural",
+   "count": 90,
+   "members": [
+    "necronomicon",
+    "occult",
+    "occultism",
+    "pagan",
+    "paganism",
+    "ritual",
+    "ritual sacrifice",
+    "voodoo",
+    "human sacrifice",
+    "ouija board",
+    "book of the dead",
+    "alchemy"
+   ],
+   "note": "paranormal phenomena/superstition/omen left loose by user"
+  },
+  {
+   "canonical": "haunting",
+   "section": "Magic & the Supernatural",
+   "count": 86,
+   "members": [
+    "apparition",
+    "evil spirit",
+    "haunted",
+    "haunted house",
+    "haunting",
+    "poltergeist"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "satanism",
+   "pillar": "Style & Format",
+   "section": "Magic & the Supernatural",
+   "count": 65,
+   "members": [
+    "deal with the devil",
+    "devil",
+    "devil worship",
+    "pact with the devil",
+    "pentagram",
+    "satan",
+    "satanic ritual",
+    "satanism",
+    "satanist",
+    "anti-christ",
+    "lucifer",
+    "faustian pact",
+    "sale of soul",
+    "soul selling"
+   ],
+   "note": "devil = Satan-figure films (9/26 overlap w/ demon family) — kept apart from demon 111"
+  },
+  {
+   "canonical": "mythology",
+   "section": "Magic & the Supernatural",
+   "count": 62,
+   "members": [
+    "demigod",
+    "egyptian mythology",
+    "god of thunder",
+    "greek mythology",
+    "japanese mythology",
+    "myth",
+    "mythology",
+    "nordic mythology",
+    "norse god",
+    "norse mythology",
+    "hades",
+    "poseidon",
+    "zeus",
+    "odyssey",
+    "trojan war"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "folklore",
+   "section": "Magic & the Supernatural",
+   "count": 56,
+   "members": [
+    "folklore",
+    "japanese folklore",
+    "norwegian folklore",
+    "urban legend",
+    "legend",
+    "fable",
+    "bluebeard",
+    "arabian nights",
+    "headless horseman"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "curse",
+   "section": "Magic & the Supernatural",
+   "count": 55,
+   "members": [
+    "curse",
+    "cursed town"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "possession",
+   "section": "Magic & the Supernatural",
+   "count": 51,
+   "members": [
+    "possession",
+    "possessed",
+    "possessed doll"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "enchantment",
+   "section": "Magic & the Supernatural",
+   "count": 41,
+   "members": [
+    "enchant",
+    "enchantment"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "paranormal",
+   "pillar": "Style & Format",
+   "section": "Magic & the Supernatural",
+   "count": 40,
+   "members": [
+    "paranormal",
+    "paranormal phenomena",
+    "paranormal investigation",
+    "paranormal activity",
+    "omen"
+   ]
+  },
+  {
+   "canonical": "immortality",
+   "section": "Magic & the Supernatural",
+   "count": 34,
+   "members": [
+    "immortality",
+    "eternal youth"
+   ],
+   "from_board": true,
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "afterlife",
+   "section": "Magic & the Supernatural",
+   "count": 34,
+   "members": [
+    "afterlife",
+    "life after death"
+   ],
+   "from_board": true,
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "wish",
+   "pillar": "Style & Format",
+   "section": "Magic & the Supernatural",
+   "count": 33,
+   "members": [
+    "wish",
+    "wish fulfillment",
+    "wishes come true",
+    "wishes",
+    "genie"
+   ]
+  },
+  {
+   "canonical": "exorcism",
+   "section": "Magic & the Supernatural",
+   "count": 30,
+   "members": [
+    "exorcism",
+    "exorcist"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "prophecy",
+   "section": "Magic & the Supernatural",
+   "count": 27,
+   "members": [
+    "prophecy"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "reincarnation",
+   "section": "Magic & the Supernatural",
+   "count": 22,
+   "members": [
+    "reincarnation",
+    "rebirth"
+   ],
+   "from_board": true,
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "resurrection",
+   "section": "Magic & the Supernatural",
+   "count": 21,
+   "members": [
+    "resurrection"
+   ],
+   "from_board": true,
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "hell",
+   "section": "Magic & the Supernatural",
+   "count": 18,
+   "members": [
+    "hell"
+   ],
+   "from_board": true,
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "chosen one",
+   "section": "Magic & the Supernatural",
+   "count": 16,
+   "members": [
+    "chosen one"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "heaven",
+   "section": "Magic & the Supernatural",
+   "count": 8,
+   "members": [
+    "heaven"
+   ],
+   "from_board": true,
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "ancient evil",
+   "section": "Magic & the Supernatural",
+   "count": 8,
+   "members": [
+    "ancient evil"
+   ],
+   "from_board": true,
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "purgatory",
+   "section": "Magic & the Supernatural",
+   "count": 5,
+   "members": [
+    "purgatory"
+   ],
+   "from_board": true,
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "ancient prophecy",
+   "section": "Magic & the Supernatural",
+   "count": 2,
+   "members": [
+    "ancient prophecy"
+   ],
+   "from_board": true,
+   "pillar": "Style & Format"
   },
   {
    "canonical": "found footage",
@@ -13731,6 +14500,16 @@
     "multiple storylines",
     "multiple perspectives"
    ]
+  },
+  {
+   "canonical": "narration",
+   "section": "Narrative Devices",
+   "count": 34,
+   "members": [
+    "narration",
+    "voiceover"
+   ],
+   "pillar": "Style & Format"
   },
   {
    "canonical": "meta",
@@ -13852,6 +14631,21 @@
     "wing chun",
     "shaolin",
     "self-defense"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "superhero",
+   "section": "Sub-genres & Styles",
+   "count": 241,
+   "members": [
+    "superhero",
+    "superhero team",
+    "teen superhero",
+    "masked superhero",
+    "superhero teamup",
+    "marvel cinematic universe (mcu)",
+    "dc animated movie universe (dcamu)"
    ],
    "pillar": "Style & Format"
   },
@@ -14094,6 +14888,29 @@
     "period drama",
     "period piece",
     "costume drama"
+   ],
+   "pillar": "Style & Format"
+  },
+  {
+   "canonical": "fairy tale",
+   "section": "Sub-genres & Styles",
+   "count": 79,
+   "members": [
+    "fairy tale",
+    "fairytale",
+    "modern fairy tale",
+    "dark fairy tale",
+    "fairy godmother",
+    "little red riding hood",
+    "cinderella",
+    "cinderella story",
+    "pinocchio",
+    "wonderland",
+    "mad hatter",
+    "queen of hearts",
+    "lewis carroll",
+    "beanstalk",
+    "tale"
    ],
    "pillar": "Style & Format"
   },
@@ -14365,20 +15182,6 @@
    ]
   },
   {
-   "canonical": "grindhouse",
-   "pillar": "Style & Format",
-   "section": "Sub-genres & Styles",
-   "count": 30,
-   "members": [
-    "grindhouse",
-    "b-horror",
-    "video nasty",
-    "canuxploitation",
-    "new french extremism",
-    "direct to video"
-   ]
-  },
-  {
    "canonical": "sex comedy",
    "section": "Sub-genres & Styles",
    "count": 29,
@@ -14435,19 +15238,6 @@
    "pillar": "Style & Format"
   },
   {
-   "canonical": "neorealism",
-   "pillar": "Style & Format",
-   "section": "Sub-genres & Styles",
-   "count": 23,
-   "members": [
-    "neorealism",
-    "italian neo realism",
-    "neo realism",
-    "social realism",
-    "realism"
-   ]
-  },
-  {
    "canonical": "folk horror",
    "pillar": "Style & Format",
    "section": "Sub-genres & Styles",
@@ -14473,15 +15263,6 @@
    "members": [
     "tokusatsu",
     "henshin heroes"
-   ]
-  },
-  {
-   "canonical": "pre-code",
-   "pillar": "Style & Format",
-   "section": "Sub-genres & Styles",
-   "count": 19,
-   "members": [
-    "pre-code"
    ]
   },
   {
@@ -14613,16 +15394,6 @@
    "pillar": "Style & Format"
   },
   {
-   "canonical": "expressionism",
-   "pillar": "Style & Format",
-   "section": "Sub-genres & Styles",
-   "count": 12,
-   "members": [
-    "expressionism",
-    "german expressionism"
-   ]
-  },
-  {
    "canonical": "medical drama",
    "pillar": "Style & Format",
    "section": "Sub-genres & Styles",
@@ -14669,17 +15440,6 @@
    "pillar": "Style & Format"
   },
   {
-   "canonical": "new wave cinema",
-   "pillar": "Style & Format",
-   "section": "Sub-genres & Styles",
-   "count": 9,
-   "members": [
-    "french new wave",
-    "japanese new wave",
-    "czech new wave"
-   ]
-  },
-  {
    "canonical": "peplum",
    "pillar": "Style & Format",
    "section": "Sub-genres & Styles",
@@ -14699,30 +15459,12 @@
    "pillar": "Style & Format"
   },
   {
-   "canonical": "dogme 95",
-   "pillar": "Style & Format",
-   "section": "Sub-genres & Styles",
-   "count": 4,
-   "members": [
-    "dogme 95"
-   ]
-  },
-  {
    "canonical": "horror comedy",
    "pillar": "Style & Format",
    "section": "Sub-genres & Styles",
    "count": 4,
    "members": [
     "comedy horror"
-   ]
-  },
-  {
-   "canonical": "mumblecore",
-   "pillar": "Style & Format",
-   "section": "Sub-genres & Styles",
-   "count": 3,
-   "members": [
-    "mumblecore"
    ]
   },
   {
@@ -14735,122 +15477,8 @@
    ]
   },
   {
-   "canonical": "monster",
-   "section": "Worlds & Lore",
-   "count": 257,
-   "members": [
-    "monster",
-    "monsters",
-    "giant monster",
-    "sea monster",
-    "water monster",
-    "monster island",
-    "creature",
-    "frankenstein",
-    "boogeyman",
-    "cenobite",
-    "ghoul",
-    "human monster",
-    "beast",
-    "slime"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "superhero",
-   "section": "Worlds & Lore",
-   "count": 241,
-   "members": [
-    "superhero",
-    "superhero team",
-    "teen superhero",
-    "masked superhero",
-    "superhero teamup",
-    "marvel cinematic universe (mcu)",
-    "dc animated movie universe (dcamu)"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "supernatural",
-   "section": "Worlds & Lore",
-   "count": 238,
-   "members": [
-    "supernatural",
-    "supernatural power",
-    "supernatural creature",
-    "supernatural being",
-    "supernatural drama",
-    "fighting supernatural",
-    "religion and supernatural",
-    "soul transference",
-    "superstition"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "alien",
-   "section": "Worlds & Lore",
-   "count": 234,
-   "members": [
-    "alien",
-    "alien invasion",
-    "alien attack",
-    "alien contact",
-    "alien encounter",
-    "alien infection",
-    "human vs alien",
-    "space invasion",
-    "evil alien",
-    "alien monster",
-    "alien race",
-    "aliens",
-    "humanoid alien",
-    "alien creature",
-    "alien parasites",
-    "shape shifting alien",
-    "extraterrestrial",
-    "extraterrestrial life form",
-    "alien dna",
-    "alien abduction",
-    "alien technology",
-    "alien language",
-    "alien friendship",
-    "alien life-form",
-    "extraterrestrial technology",
-    "ufo",
-    "alien planet",
-    "flying saucer",
-    "body snatchers",
-    "area 51",
-    "symbiote",
-    "martian"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "magic",
-   "section": "Worlds & Lore",
-   "count": 233,
-   "members": [
-    "magic",
-    "black magic",
-    "magic lamp",
-    "magical object",
-    "magic land",
-    "magic realism",
-    "magical girl",
-    "potion",
-    "flying carpet",
-    "illusionist",
-    "illusion",
-    "inanimate objects come to life"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
    "canonical": "dystopia",
-   "section": "Worlds & Lore",
+   "section": "Wondrous Worlds",
    "count": 226,
    "members": [
     "dystopia",
@@ -14869,7 +15497,7 @@
   },
   {
    "canonical": "super power",
-   "section": "Worlds & Lore",
+   "section": "Wondrous Worlds",
    "count": 169,
    "members": [
     "super power",
@@ -14885,7 +15513,7 @@
   },
   {
    "canonical": "time travel",
-   "section": "Worlds & Lore",
+   "section": "Wondrous Worlds",
    "count": 149,
    "members": [
     "time travel",
@@ -14904,7 +15532,7 @@
   },
   {
    "canonical": "alternate reality",
-   "section": "Worlds & Lore",
+   "section": "Wondrous Worlds",
    "count": 131,
    "members": [
     "alternate dimension",
@@ -14930,7 +15558,7 @@
   {
    "canonical": "futuristic",
    "pillar": "Style & Format",
-   "section": "Worlds & Lore",
+   "section": "Wondrous Worlds",
    "count": 128,
    "members": [
     "future",
@@ -14948,7 +15576,7 @@
   },
   {
    "canonical": "post-apocalyptic",
-   "section": "Worlds & Lore",
+   "section": "Wondrous Worlds",
    "count": 122,
    "members": [
     "post-apocalyptic",
@@ -14963,95 +15591,8 @@
    "pillar": "Style & Format"
   },
   {
-   "canonical": "psychic",
-   "section": "Worlds & Lore",
-   "count": 116,
-   "members": [
-    "clairvoyant",
-    "fortune teller",
-    "medium",
-    "precognition",
-    "premonition",
-    "psychic",
-    "psychic power",
-    "spiritism",
-    "séance",
-    "tarot cards",
-    "telekinesis",
-    "telepathy",
-    "mind reading",
-    "extrasensory perception",
-    "visions",
-    "vision"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "ghost",
-   "section": "Worlds & Lore",
-   "count": 114,
-   "members": [
-    "ghost",
-    "ghostbuster",
-    "vengeful ghost",
-    "wraith",
-    "phantom",
-    "ghostbusters",
-    "ghost story"
-   ],
-   "from_board": true,
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "demon",
-   "section": "Worlds & Lore",
-   "count": 111,
-   "members": [
-    "demon",
-    "demonic",
-    "demonic possession",
-    "demon hunter"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "occult",
-   "pillar": "Style & Format",
-   "section": "Worlds & Lore",
-   "count": 90,
-   "members": [
-    "necronomicon",
-    "occult",
-    "occultism",
-    "pagan",
-    "paganism",
-    "ritual",
-    "ritual sacrifice",
-    "voodoo",
-    "human sacrifice",
-    "ouija board",
-    "book of the dead",
-    "alchemy"
-   ],
-   "note": "paranormal phenomena/superstition/omen left loose by user"
-  },
-  {
-   "canonical": "haunting",
-   "section": "Worlds & Lore",
-   "count": 86,
-   "members": [
-    "apparition",
-    "evil spirit",
-    "haunted",
-    "haunted house",
-    "haunting",
-    "poltergeist"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
    "canonical": "spaceship",
-   "section": "Worlds & Lore",
+   "section": "Wondrous Worlds",
    "count": 86,
    "members": [
     "alien space craft",
@@ -15065,88 +15606,8 @@
    "pillar": "Style & Format"
   },
   {
-   "canonical": "zombie",
-   "section": "Worlds & Lore",
-   "count": 86,
-   "members": [
-    "zombie",
-    "zombie apocalypse",
-    "evil dead"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "vampire",
-   "section": "Worlds & Lore",
-   "count": 85,
-   "members": [
-    "vampire",
-    "dracula",
-    "nosferatu",
-    "vampire hunter (slayer)",
-    "transylvania",
-    "drinking blood"
-   ],
-   "from_board": true,
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "fairy tale",
-   "section": "Worlds & Lore",
-   "count": 79,
-   "members": [
-    "fairy tale",
-    "fairytale",
-    "modern fairy tale",
-    "dark fairy tale",
-    "fairy godmother",
-    "little red riding hood",
-    "cinderella",
-    "cinderella story",
-    "pinocchio",
-    "wonderland",
-    "mad hatter",
-    "queen of hearts",
-    "lewis carroll",
-    "beanstalk",
-    "tale"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "mythical creature",
-   "section": "Worlds & Lore",
-   "count": 71,
-   "members": [
-    "mythical creature",
-    "unicorn",
-    "goblin",
-    "ogre",
-    "troll",
-    "giant",
-    "minotaur",
-    "kraken",
-    "yeti",
-    "cyclops",
-    "siren",
-    "banshee",
-    "medusa",
-    "griffin",
-    "centaur",
-    "pegasus",
-    "sphinx",
-    "gorgon",
-    "bigfoot",
-    "sasquatch",
-    "leprechaun",
-    "cryptozoology"
-   ],
-   "pillar": "Style & Format",
-   "note": "user 2026-07-22 mega-merge; placement review 2026-07-24: dragon/fairy(+fairies)/mermaid/elves pulled back out as own tags per user — this shelf keeps the scatter (unicorn, goblin, troll, giant, kraken, yeti, leprechaun…)"
-  },
-  {
    "canonical": "artificial intelligence (a.i.)",
-   "section": "Worlds & Lore",
+   "section": "Wondrous Worlds",
    "count": 67,
    "members": [
     "artificial intelligence (a.i.)"
@@ -15155,137 +15616,9 @@
    "pillar": "Style & Format"
   },
   {
-   "canonical": "robot",
-   "section": "Worlds & Lore",
-   "count": 67,
-   "members": [
-    "robot"
-   ],
-   "from_board": true,
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "satanism",
-   "pillar": "Style & Format",
-   "section": "Worlds & Lore",
-   "count": 65,
-   "members": [
-    "deal with the devil",
-    "devil",
-    "devil worship",
-    "pact with the devil",
-    "pentagram",
-    "satan",
-    "satanic ritual",
-    "satanism",
-    "satanist",
-    "anti-christ",
-    "lucifer",
-    "faustian pact",
-    "sale of soul",
-    "soul selling"
-   ],
-   "note": "devil = Satan-figure films (9/26 overlap w/ demon family) — kept apart from demon 111"
-  },
-  {
-   "canonical": "mutant",
-   "section": "Worlds & Lore",
-   "count": 65,
-   "members": [
-    "mutant",
-    "mutants",
-    "mutation",
-    "genetic mutation",
-    "hybrid"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "mythology",
-   "section": "Worlds & Lore",
-   "count": 62,
-   "members": [
-    "demigod",
-    "egyptian mythology",
-    "god of thunder",
-    "greek mythology",
-    "japanese mythology",
-    "myth",
-    "mythology",
-    "nordic mythology",
-    "norse god",
-    "norse mythology",
-    "hades",
-    "poseidon",
-    "zeus",
-    "odyssey",
-    "trojan war"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "folklore",
-   "section": "Worlds & Lore",
-   "count": 56,
-   "members": [
-    "folklore",
-    "japanese folklore",
-    "norwegian folklore",
-    "urban legend",
-    "legend",
-    "fable",
-    "bluebeard",
-    "arabian nights",
-    "headless horseman"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "curse",
-   "section": "Worlds & Lore",
-   "count": 55,
-   "members": [
-    "curse",
-    "cursed town"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "possession",
-   "section": "Worlds & Lore",
-   "count": 51,
-   "members": [
-    "possession",
-    "possessed",
-    "possessed doll"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "giant creature",
-   "pillar": "Style & Format",
-   "section": "Worlds & Lore",
-   "count": 50,
-   "members": [
-    "giant creature",
-    "giant spider",
-    "giant insect",
-    "giant ape",
-    "giant worm",
-    "giant snake",
-    "giant lizard",
-    "giant animal",
-    "giant crocodile",
-    "giant crab",
-    "giant octopus",
-    "graboids",
-    "giant man"
-   ]
-  },
-  {
    "canonical": "fantasy world",
    "pillar": "Style & Format",
-   "section": "Worlds & Lore",
+   "section": "Wondrous Worlds",
    "count": 48,
    "members": [
     "fantasy world",
@@ -15295,145 +15628,9 @@
    ]
   },
   {
-   "canonical": "werewolf",
-   "section": "Worlds & Lore",
-   "count": 43,
-   "members": [
-    "werewolf",
-    "werewolf child",
-    "wolfman"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "doppelgänger",
-   "pillar": "Style & Format",
-   "section": "Worlds & Lore",
-   "count": 43,
-   "members": [
-    "body double",
-    "doppelgänger",
-    "look-alike",
-    "duality"
-   ]
-  },
-  {
-   "canonical": "enchantment",
-   "section": "Worlds & Lore",
-   "count": 41,
-   "members": [
-    "enchant",
-    "enchantment"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "paranormal",
-   "pillar": "Style & Format",
-   "section": "Worlds & Lore",
-   "count": 40,
-   "members": [
-    "paranormal",
-    "paranormal phenomena",
-    "paranormal investigation",
-    "paranormal activity",
-    "omen"
-   ]
-  },
-  {
-   "canonical": "dragon",
-   "pillar": "Style & Format",
-   "section": "Worlds & Lore",
-   "count": 40,
-   "members": [
-    "dragon"
-   ]
-  },
-  {
-   "canonical": "giant robot",
-   "section": "Worlds & Lore",
-   "count": 38,
-   "members": [
-    "giant robot",
-    "humanoid robot",
-    "robot fighting",
-    "mecha"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "kaiju",
-   "section": "Worlds & Lore",
-   "count": 37,
-   "members": [
-    "godzilla",
-    "kaiju",
-    "king kong",
-    "king ghidorah",
-    "rodan",
-    "mothra"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "android",
-   "section": "Worlds & Lore",
-   "count": 34,
-   "members": [
-    "android",
-    "human android relationship"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "immortality",
-   "section": "Worlds & Lore",
-   "count": 34,
-   "members": [
-    "immortality",
-    "eternal youth"
-   ],
-   "from_board": true,
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "afterlife",
-   "section": "Worlds & Lore",
-   "count": 34,
-   "members": [
-    "afterlife",
-    "life after death"
-   ],
-   "from_board": true,
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "wish",
-   "pillar": "Style & Format",
-   "section": "Worlds & Lore",
-   "count": 33,
-   "members": [
-    "wish",
-    "wish fulfillment",
-    "wishes come true",
-    "wishes",
-    "genie"
-   ]
-  },
-  {
-   "canonical": "exorcism",
-   "section": "Worlds & Lore",
-   "count": 30,
-   "members": [
-    "exorcism",
-    "exorcist"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
    "canonical": "mind control",
    "pillar": "Style & Format",
-   "section": "Worlds & Lore",
+   "section": "Wondrous Worlds",
    "count": 29,
    "members": [
     "mind control",
@@ -15441,58 +15638,8 @@
    ]
   },
   {
-   "canonical": "fairy",
-   "pillar": "Style & Format",
-   "section": "Worlds & Lore",
-   "count": 29,
-   "members": [
-    "fairy",
-    "fairies"
-   ]
-  },
-  {
-   "canonical": "cyborg",
-   "section": "Worlds & Lore",
-   "count": 27,
-   "members": [
-    "cyborg",
-    "female cyborg"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "prophecy",
-   "section": "Worlds & Lore",
-   "count": 27,
-   "members": [
-    "prophecy"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "clone",
-   "section": "Worlds & Lore",
-   "count": 27,
-   "members": [
-    "clone",
-    "cloning",
-    "human clone"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "spirit",
-   "section": "Worlds & Lore",
-   "count": 27,
-   "members": [
-    "spirit"
-   ],
-   "from_board": true,
-   "pillar": "Style & Format"
-  },
-  {
    "canonical": "genetic engineering",
-   "section": "Worlds & Lore",
+   "section": "Wondrous Worlds",
    "count": 27,
    "members": [
     "dna",
@@ -15506,7 +15653,7 @@
   {
    "canonical": "body swap",
    "pillar": "Style & Format",
-   "section": "Worlds & Lore",
+   "section": "Wondrous Worlds",
    "count": 27,
    "members": [
     "body exchange",
@@ -15519,50 +15666,18 @@
    ]
   },
   {
-   "canonical": "angel",
-   "section": "Worlds & Lore",
-   "count": 24,
-   "members": [
-    "angel",
-    "guardian angel",
-    "fallen angel"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
    "canonical": "transhumanism",
    "pillar": "Style & Format",
-   "section": "Worlds & Lore",
+   "section": "Wondrous Worlds",
    "count": 23,
    "members": [
     "transhumanism"
    ]
   },
   {
-   "canonical": "reincarnation",
-   "section": "Worlds & Lore",
-   "count": 22,
-   "members": [
-    "reincarnation",
-    "rebirth"
-   ],
-   "from_board": true,
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "resurrection",
-   "section": "Worlds & Lore",
-   "count": 21,
-   "members": [
-    "resurrection"
-   ],
-   "from_board": true,
-   "pillar": "Style & Format"
-  },
-  {
    "canonical": "invisibility",
    "pillar": "Style & Format",
-   "section": "Worlds & Lore",
+   "section": "Wondrous Worlds",
    "count": 19,
    "members": [
     "invisibility",
@@ -15572,46 +15687,9 @@
    ]
   },
   {
-   "canonical": "hell",
-   "section": "Worlds & Lore",
-   "count": 18,
-   "members": [
-    "hell"
-   ],
-   "from_board": true,
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "mermaid",
-   "pillar": "Style & Format",
-   "section": "Worlds & Lore",
-   "count": 18,
-   "members": [
-    "mermaid"
-   ]
-  },
-  {
-   "canonical": "elves",
-   "pillar": "Style & Format",
-   "section": "Worlds & Lore",
-   "count": 18,
-   "members": [
-    "elves"
-   ]
-  },
-  {
-   "canonical": "chosen one",
-   "section": "Worlds & Lore",
-   "count": 16,
-   "members": [
-    "chosen one"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
    "canonical": "evolution",
    "pillar": "Style & Format",
-   "section": "Worlds & Lore",
+   "section": "Wondrous Worlds",
    "count": 16,
    "members": [
     "evolution",
@@ -15619,30 +15697,9 @@
    ]
   },
   {
-   "canonical": "dwarf",
-   "section": "Worlds & Lore",
-   "count": 15,
-   "members": [
-    "dwarf"
-   ],
-   "from_board": true,
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "maze",
-   "pillar": "Style & Format",
-   "section": "Worlds & Lore",
-   "count": 15,
-   "members": [
-    "maze",
-    "labyrinth",
-    "labirinto"
-   ]
-  },
-  {
    "canonical": "alternate history",
    "pillar": "Style & Format",
-   "section": "Worlds & Lore",
+   "section": "Wondrous Worlds",
    "count": 15,
    "members": [
     "alternate history",
@@ -15651,7 +15708,7 @@
   },
   {
    "canonical": "teleportation",
-   "section": "Worlds & Lore",
+   "section": "Wondrous Worlds",
    "count": 14,
    "members": [
     "teleportation"
@@ -15662,7 +15719,7 @@
   {
    "canonical": "imaginary friend",
    "pillar": "Style & Format",
-   "section": "Worlds & Lore",
+   "section": "Wondrous Worlds",
    "count": 14,
    "members": [
     "imaginary friend"
@@ -15671,7 +15728,7 @@
   {
    "canonical": "lost civilization",
    "pillar": "Style & Format",
-   "section": "Worlds & Lore",
+   "section": "Wondrous Worlds",
    "count": 13,
    "members": [
     "lost civilization",
@@ -15681,18 +15738,9 @@
    ]
   },
   {
-   "canonical": "magical creature",
-   "section": "Worlds & Lore",
-   "count": 12,
-   "members": [
-    "magical creature"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
    "canonical": "shrinking",
    "pillar": "Style & Format",
-   "section": "Worlds & Lore",
+   "section": "Wondrous Worlds",
    "count": 12,
    "members": [
     "shrinking",
@@ -15703,7 +15751,7 @@
   },
   {
    "canonical": "interspecies romance",
-   "section": "Worlds & Lore",
+   "section": "Wondrous Worlds",
    "count": 11,
    "members": [
     "interspecies romance",
@@ -15714,7 +15762,7 @@
   {
    "canonical": "implant",
    "pillar": "Style & Format",
-   "section": "Worlds & Lore",
+   "section": "Wondrous Worlds",
    "count": 11,
    "members": [
     "implant",
@@ -15725,7 +15773,7 @@
   {
    "canonical": "hologram",
    "pillar": "Style & Format",
-   "section": "Worlds & Lore",
+   "section": "Wondrous Worlds",
    "count": 11,
    "members": [
     "hologram"
@@ -15733,7 +15781,7 @@
   },
   {
    "canonical": "utopia",
-   "section": "Worlds & Lore",
+   "section": "Wondrous Worlds",
    "count": 10,
    "members": [
     "utopia"
@@ -15742,38 +15790,8 @@
    "pillar": "Style & Format"
   },
   {
-   "canonical": "mummy",
-   "section": "Worlds & Lore",
-   "count": 10,
-   "members": [
-    "mummy"
-   ],
-   "from_board": true,
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "comic book",
-   "section": "Worlds & Lore",
-   "count": 9,
-   "members": [
-    "comic book",
-    "comic book shop"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "undead",
-   "section": "Worlds & Lore",
-   "count": 9,
-   "members": [
-    "undead"
-   ],
-   "from_board": true,
-   "pillar": "Style & Format"
-  },
-  {
    "canonical": "portal",
-   "section": "Worlds & Lore",
+   "section": "Wondrous Worlds",
    "count": 9,
    "members": [
     "portal"
@@ -15782,38 +15800,8 @@
    "pillar": "Style & Format"
   },
   {
-   "canonical": "heaven",
-   "section": "Worlds & Lore",
-   "count": 8,
-   "members": [
-    "heaven"
-   ],
-   "from_board": true,
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "ancient evil",
-   "section": "Worlds & Lore",
-   "count": 8,
-   "members": [
-    "ancient evil"
-   ],
-   "from_board": true,
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "prehistoric creature",
-   "section": "Worlds & Lore",
-   "count": 7,
-   "members": [
-    "prehistoric creature"
-   ],
-   "from_board": true,
-   "pillar": "Style & Format"
-  },
-  {
    "canonical": "space war",
-   "section": "Worlds & Lore",
+   "section": "Wondrous Worlds",
    "count": 6,
    "members": [
     "space war"
@@ -15822,18 +15810,8 @@
    "pillar": "Style & Format"
   },
   {
-   "canonical": "purgatory",
-   "section": "Worlds & Lore",
-   "count": 5,
-   "members": [
-    "purgatory"
-   ],
-   "from_board": true,
-   "pillar": "Style & Format"
-  },
-  {
    "canonical": "nanotechnology",
-   "section": "Worlds & Lore",
+   "section": "Wondrous Worlds",
    "count": 5,
    "members": [
     "nanotechnology"
@@ -15843,7 +15821,7 @@
   },
   {
    "canonical": "cryogenics",
-   "section": "Worlds & Lore",
+   "section": "Wondrous Worlds",
    "count": 5,
    "members": [
     "cryogenics"
@@ -15853,7 +15831,7 @@
   },
   {
    "canonical": "cryonics",
-   "section": "Worlds & Lore",
+   "section": "Wondrous Worlds",
    "count": 4,
    "members": [
     "cryonics"
@@ -15864,22 +15842,12 @@
   {
    "canonical": "artificial",
    "pillar": "Style & Format",
-   "section": "Worlds & Lore",
+   "section": "Wondrous Worlds",
    "count": 3,
    "members": [
     "artificial"
    ],
    "note": "the not-real/fake concept"
-  },
-  {
-   "canonical": "ancient prophecy",
-   "section": "Worlds & Lore",
-   "count": 2,
-   "members": [
-    "ancient prophecy"
-   ],
-   "from_board": true,
-   "pillar": "Style & Format"
   }
  ],
  "sweeps": [
@@ -16277,6 +16245,16 @@
    "name": "rethink-wave-7-banked",
    "date": "2026-07-24",
    "note": "RETHINK WAVE 7 (F&I + R&F, 125 tags) BANKED per user: SHIFTS genius+evil child+mischievous child -> Characters (persons in R&F) · pornography -> F&I (industry, beside moviebiz). -ISM DUST (topic-shelf logic, both stances share the shelf): socialists->socialism · stalinism+anti-communism->communism · anti-fascism->fascism · anti-imperialism->colonialism · nationalism->patriotism · democracy->politics · political corruption->corruption · dictatorship->tyranny · soviet union history->soviet union. GOVERNMENT/COVERT: government agency->government · secret government organization+fictional government agency+secret society->secret organization (ONE covert-org shelf ~45f). MILITARY TWINS: military+us military+militia->army (branches navy/air force/marine/elite force stay). LAW: scotland yard+interpol->police · atheism->religion. empire 7f HELD — user asked for a better fold than historic empire (legacy? royalty?) — resolved next record."
+  },
+  {
+   "name": "rethink-wave-8-banked",
+   "date": "2026-07-24",
+   "note": "RETHINK WAVE 8 (Pursuits+A&N+O&W, 114 tags) BANKED per user: empire DISSOLVED->legacy (user: too broad to confine to royalty; joins dynasty there — resolves the wave-7 hold) · money->F&I (the wealth-force, beside capitalism/stock market) · advertising->F&I (industry, beside moviebiz/media) · wildlife DISSOLVED->animals · radiation DISSOLVED->nuclear weapons (fallout register; energy keeps the civil-electric side: electricity/nuclear power plant/electric shock — meltdown films will carry both shelves, which is correct browse behavior) · poker KEPT OWN (user: a skill game without house odds — stands apart from gambling; note recorded on tag). Everything else clean: sport tags, music cluster, vice shelf, species rules, split-by-weapon, user-made objects."
+  },
+  {
+   "name": "rethink-wave-9-architecture-banked",
+   "date": "2026-07-24",
+   "note": "STYLE & FORMAT RE-ARCHITECTURE BANKED per user: Worlds & Lore RETIRED, split 3 ways — Creatures & Beings (28: monster/alien/zombie/vampire/ghost[the being]/robots family) · Magic & the Supernatural (25: magic/occult/haunting[the phenomenon]/curse/afterlife family) · Wondrous Worlds (30, user label over Speculative Worlds: dystopia/time travel/alternate reality/AI/science family). superhero + fairy tale -> Sub-genres & Styles (user: genre reads). maze -> Setting/Locations (a built place). comic book DISSOLVED -> based on comic. NEW Cinema Movements section (8 movement tags as own tags, NOT merged — user confirmed section-not-lump: neorealism, expressionism, new wave cinema, dogme 95, mumblecore, pre-code, grindhouse + avant-garde ex-Format). Based On & Franchise SPLIT: Franchise (sequel/prequel/remake/reboot/spin off = production lineage) vs Based On (15 source-material tags). narration -> Narrative Devices. Style & Format = 9 one-kind-of-thing sections. OPEN: single-nuclear question (user deciding)."
   }
  ],
  "unassigned": [],
@@ -16402,9 +16380,13 @@
   "Style & Format": [
    "Sub-genres & Styles",
    "Format & Medium",
-   "Worlds & Lore",
-   "Based On & Franchise",
-   "Narrative Devices"
+   "Narrative Devices",
+   "Creatures & Beings",
+   "Magic & the Supernatural",
+   "Wondrous Worlds",
+   "Cinema Movements",
+   "Based On",
+   "Franchise"
   ]
  }
 }
