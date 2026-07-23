@@ -12,8 +12,15 @@ import type { LevelKey, SortKey } from "@/lib/konomi/types";
 // lives in KonomiApp (see setLevelPref there is called alongside the
 // mixer's prune cascade) — sort and pool-panel-height have no cascade, so
 // their setters are called directly from the control that changes them.
-const LEVEL_STORAGE_KEY = "konomi:tagpool:level";
-const SORT_STORAGE_KEY = "konomi:tagpool:sort";
+//
+// Level and sort are PER-SIDE: "Cinephile" and "Otaku" are separate
+// decisions, so their keys are built from the active Domain's
+// storagePrefix (callers pass it — anime's is the historical bare
+// "konomi", keeping existing users' saved values; film's is "konomi:film").
+// The pool panel height stays one global key — it's device ergonomics
+// (how tall the sheet sits on this screen), not a catalog preference.
+const levelStorageKey = (prefix: string) => `${prefix}:tagpool:level`;
+const sortStorageKey = (prefix: string) => `${prefix}:tagpool:sort`;
 // MixerBar's edit-mode pool panel height, stored as a FRACTION of the current
 // resize ceiling (poolPanelMaxHeight), NOT an absolute pixel height. Storing the
 // proportion is what makes the panel track the window: at 70% it stays 70% of
@@ -159,13 +166,13 @@ function isSortKey(value: string | null): value is SortKey {
   return value === "popular" || value === "unpopular" || value === "az" || value === "za";
 }
 
-function getLevelSnapshot(): LevelKey {
-  const stored = window.localStorage.getItem(LEVEL_STORAGE_KEY);
+function getLevelSnapshot(prefix: string): LevelKey {
+  const stored = window.localStorage.getItem(levelStorageKey(prefix));
   return isLevelKey(stored) ? stored : DEFAULT_LEVEL;
 }
 
-function getSortSnapshot(): SortKey {
-  const stored = window.localStorage.getItem(SORT_STORAGE_KEY);
+function getSortSnapshot(prefix: string): SortKey {
+  const stored = window.localStorage.getItem(sortStorageKey(prefix));
   return isSortKey(stored) ? stored : DEFAULT_SORT;
 }
 
@@ -208,24 +215,30 @@ function getPoolHeightFractionSnapshot(): number | null {
   return parsed;
 }
 
-export function useLevel(): LevelKey {
+// `prefix` = the active Domain's storagePrefix. Taken as an explicit arg
+// (not read from useDomain() in here) because KonomiApp — the component
+// that PROVIDES the domain context — is itself a caller and sits outside
+// its own provider. Inline-closure getSnapshot is fine with
+// useSyncExternalStore: it's re-invoked each render regardless, and the
+// values it returns are primitives (stable by value).
+export function useLevel(prefix: string): LevelKey {
   return useSyncExternalStore(
     (callback) => {
       levelListeners.add(callback);
       return () => levelListeners.delete(callback);
     },
-    getLevelSnapshot,
+    () => getLevelSnapshot(prefix),
     () => DEFAULT_LEVEL,
   );
 }
 
-export function useSort(): SortKey {
+export function useSort(prefix: string): SortKey {
   return useSyncExternalStore(
     (callback) => {
       sortListeners.add(callback);
       return () => sortListeners.delete(callback);
     },
-    getSortSnapshot,
+    () => getSortSnapshot(prefix),
     () => DEFAULT_SORT,
   );
 }
@@ -254,13 +267,13 @@ export function usePoolPanelHeightFraction(): number | null {
 // doesn't depend on `window` at all, so it's already identical on server
 // and client with no useSyncExternalStore ceremony needed.
 
-export function setLevelPref(level: LevelKey) {
-  window.localStorage.setItem(LEVEL_STORAGE_KEY, level);
+export function setLevelPref(prefix: string, level: LevelKey) {
+  window.localStorage.setItem(levelStorageKey(prefix), level);
   levelListeners.forEach((callback) => callback());
 }
 
-export function setSortPref(sort: SortKey) {
-  window.localStorage.setItem(SORT_STORAGE_KEY, sort);
+export function setSortPref(prefix: string, sort: SortKey) {
+  window.localStorage.setItem(sortStorageKey(prefix), sort);
   sortListeners.forEach((callback) => callback());
 }
 

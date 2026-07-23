@@ -9,6 +9,7 @@ import {
   getEffectiveStaggerMs,
   getVisibleCardTierCount,
 } from "./cardAnimTuning";
+import { useDomain } from "./domainContext";
 import { FilterControls } from "./FilterControls";
 import { CheckIcon, DiceIcon, TagPoolIcon } from "./icons";
 import { IconButton } from "./IconButton";
@@ -260,8 +261,9 @@ export function RecommendationsBody({
   onCloseEditMode,
   onRandomTags,
 }: RecommendationsBodyProps) {
-  const level = useLevel();
-  const sort = useSort();
+  const { storagePrefix } = useDomain();
+  const level = useLevel(storagePrefix);
+  const sort = useSort(storagePrefix);
   // Live-tweakable via AnimationDebugPanel.tsx — read at the top level (not
   // inside the IIFE below) since hooks can't be called from a nested
   // function, even one invoked synchronously during this same render.

@@ -36,16 +36,23 @@ const ANIME_TAG_SECTIONS: TagSection[] = [
 // Anime visibility is COMPUTED from catalog stats (unlike film, whose tags
 // carry a stored min_level — see Domain.isTagVisible in domain.ts). Genres
 // always pass (isGenre short-circuits before any level check), which is
-// also why callers never need to level-filter genreTags().
+// also why callers never need to level-filter genreTags(). avgRank is null
+// only on film tags, which never reach this rule — the ?? -1 just keeps the
+// null branch honest (fails every threshold) without a non-null assertion.
 function isAnimeTagVisible(tag: TagInfo, level: LevelKey, totalCount: number): boolean {
   if (tag.isGenre) return true;
   if (level === "1") return false;
-  if (level === "2") return tag.avgRank >= POPULAR_AVG_RANK_THRESHOLD && tag.seriesCount >= POPULAR_SERIES_COUNT_PCT * totalCount;
-  return tag.avgRank >= AVG_RANK_BASELINE;
+  const rank = tag.avgRank ?? -1;
+  if (level === "2") return rank >= POPULAR_AVG_RANK_THRESHOLD && tag.seriesCount >= POPULAR_SERIES_COUNT_PCT * totalCount;
+  return rank >= AVG_RANK_BASELINE;
 }
 
 export const animeDomain: Domain = {
   key: "anime",
+  label: "Anime",
+  route: "/anime",
+  // Historical un-suffixed prefix — keeps existing users' saved level/sort.
+  storagePrefix: "konomi",
   sections: ANIME_TAG_SECTIONS,
   levels: [
     { key: "1", label: "Casual", hint: "light enjoyer ☕" },
@@ -53,4 +60,7 @@ export const animeDomain: Domain = {
     { key: "3", label: "Otaku", hint: ">9000 ⋆˙⟡(っ•̀,•́)っ≡≡≡≡〇" },
   ],
   isTagVisible: isAnimeTagVisible,
+  // Verbatim the line ResultCard used to build inline — year/eps can
+  // genuinely be null (unreleased media), so each part drops independently.
+  cardMeta: (item) => [item.year ?? "TBA", item.eps != null ? `${item.eps} EP` : null].filter(Boolean).join(" · "),
 };

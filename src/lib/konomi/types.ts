@@ -1,15 +1,23 @@
+// The shared catalog item shape for BOTH sides (anime series and films) —
+// kept under its historical name to avoid a cosmetic mass-rename. Film rows
+// are adapted into this shape by getFilmCatalog (filmQueries.ts): each side
+// fills the shared core, plus its own optional fields below; presentation
+// differences (eps vs runtime, rating scale) live in the Domain's cardMeta
+// mapping, not in per-side card components.
 export interface Series {
   title: string;
   // Nullable because AniList genuinely lacks these for some entries (e.g.
   // "Not Yet Released" media) — components must handle the null case.
   year: number | null;
+  // Anime-only (episode count); null for films — runtimeMin is the film
+  // counterpart. Both feed the card meta line via Domain.cardMeta.
   eps: number | null;
   tags: string[];
   coverImageUrl: string | null;
   genres: string[];
-  // AniList's own weighted-average viewer score, 0-100. Null whenever
-  // AniList itself has too few scores to report one yet (e.g. very new/
-  // unreleased media) — genuinely absent, not a real 0.
+  // 0-100 scale on BOTH sides — AniList's weighted average natively; TMDB's
+  // 0-10 vote_average is ×10-normalized at adaptation so RatingBadge's
+  // tiers/format need no per-side branching. Null when genuinely absent.
   averageScore: number | null;
   // Pre-cleaned plain text (real newlines, no <br> tags, no trailing
   // "(Source: ...)" citation, no ~!spoiler!~ markup), see
@@ -26,6 +34,17 @@ export interface Series {
   // confirmed live) so the chip UI has to handle a label-only, ink-filled
   // fallback either way.
   streamingServices: { name: string; url: string; icon: string | null; color: string | null }[];
+  // ---- Film-only optionals (absent on anime items) ----
+  // Runtime in minutes; the film counterpart of eps.
+  runtimeMin?: number | null;
+  // US certification (G/PG/PG-13/R/NC-17/NR), already trimmed.
+  certification?: string | null;
+  // Saga/collection name (" Collection" suffix stripped), for card display.
+  // Set for EVERY saga member including singletons — a singleton's saga is
+  // a read-only card fact whose name is deliberately NOT a selectable tag
+  // (see adapter-config.json sagas.singletons); shelf (≥2) sagas also exist
+  // as real tags in `tags`, so this field is purely display.
+  sagaName?: string | null;
 }
 
 export interface ResultEntry {
@@ -41,8 +60,17 @@ export interface TagInfo {
   name: string;
   category: string | null;
   seriesCount: number;
-  avgRank: number;
+  // Anime-only: AniList's mean tag rank, read by animeDomain's COMPUTED
+  // visibility rule. Null on film tags — film visibility is STORED
+  // (minLevel below), and neither side may fake the other's field to
+  // borrow its rule (no fabricated ranks).
+  avgRank: number | null;
   isGenre: boolean;
+  // Film-only: the stored level gate ("1" moviegoer / "2" film buff / "3"
+  // cinephile), from film_tags.min_level for DB tags or assigned at
+  // synthesis for column-derived tags (reception/origin/certification).
+  // Absent on anime tags.
+  minLevel?: LevelKey;
 }
 
 export type ThemeKey = "default" | "dark" | "third";

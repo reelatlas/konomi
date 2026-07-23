@@ -127,8 +127,8 @@ export function TagPoolBody({
   isPoolPanelResizing,
 }: TagPoolBodyProps) {
   const domain = useDomain();
-  const level = useLevel();
-  const sort = useSort();
+  const level = useLevel(domain.storagePrefix);
+  const sort = useSort(domain.storagePrefix);
   // Plain component state, not localStorage-backed — TagPoolBody itself
   // never unmounts while browse mode is active (only max-h-0 toggles, in
   // MixerBar), so this alone is enough for the active section and its
@@ -136,6 +136,14 @@ export function TagPoolBody({
   // requirement was made for this to survive a full page reload, so it
   // isn't persisted beyond the session.
   const [activeSectionKey, setActiveSectionKey] = useState(domain.sections[0].key);
+  // Active subsection PER SECTION (keyed by section key) for sections that
+  // render their subsections as a second tab tier (subsectionsAsTabs — the
+  // film pillars). A map, not a single key, so switching Story → Style →
+  // back to Story lands on the Story sub-tab you were on. Values are
+  // subsection SLUGS (see subKey below), not labels — they double as
+  // element-id fragments for the tab/panel aria wiring, and labels like
+  // "Time of year" contain spaces, which ids can't.
+  const [activeSubKeys, setActiveSubKeys] = useState<Record<string, string>>({});
 
   // Live-measured height of the tabs row below — replaces a flat constant
   // (the old TABS_HEIGHT) because SectionTabStrip's own rendered height
@@ -187,6 +195,34 @@ export function TagPoolBody({
   }
   const active = activeInVisible ?? visibleSections[0];
 
+  // Second tier (film pillars): subsections rendered as tabs, one shown at
+  // a time. Same rules as the section tier, one level down: empty
+  // subsections hidden entirely, and when the stored active sub disappears
+  // (level change) fall to the first visible one and COMMIT it — the same
+  // render-phase converge-in-one-pass pattern as the section fallback
+  // above (after the set, the condition is false on the immediate
+  // re-render, so it can't loop).
+  const subKey = (label: string) => label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  const subTabsMode = Boolean(active?.section.subsectionsAsTabs && active.section.subsections);
+  const visibleSubs = subTabsMode
+    ? active.section
+        .subsections!.map((sub) => ({
+          sub,
+          slug: subKey(sub.label),
+          tags: tagsForCategories(domain, allTags, sub.categories, level, totalSeriesCount),
+        }))
+        .filter(({ tags }) => tags.length > 0)
+    : [];
+  const storedSubSlug = active ? activeSubKeys[active.section.key] : undefined;
+  const activeSub = visibleSubs.find(({ slug }) => slug === storedSubSlug) ?? visibleSubs[0];
+  if (subTabsMode && activeSub && storedSubSlug !== activeSub.slug) {
+    setActiveSubKeys((prev) => ({ ...prev, [active.section.key]: activeSub.slug }));
+  }
+  // The strip is pure noise when only one subsection survives the level
+  // floor (e.g. Style at Moviegoer = Sagas alone) — hide it and show that
+  // one subsection's chips plain.
+  const showSubStrip = subTabsMode && visibleSubs.length > 1;
+
   return (
     <div className="flex flex-col min-w-0" style={{ gap: STRIP_GAP }}>
       {/* Tabs row — SectionTabStrip on the left, MixerBar's resize grip/
@@ -203,20 +239,43 @@ export function TagPoolBody({
           ResizeObserver (below) measures this whole row, trailingControls
           included, with no extra code needed for that — it already
           measures whatever this row's real rendered height is. */}
-      <div ref={rowRef} className="flex items-center justify-between gap-x-[var(--space-lg)] min-w-0">
-        <div className="min-w-0 w-fit">
-          <SectionTabStrip
-            sections={visibleSections.map(({ section, tags }) => ({
-              key: section.key,
-              label: section.label,
-              selectedCount: tags.filter((t) => selectedTags.includes(t.name)).length,
-            }))}
-            activeKey={active.section.key}
-            onChange={setActiveSectionKey}
-            visible={editMode}
-          />
+      {/* rowRef wraps BOTH tab tiers (a flex-col) so the single existing
+          ResizeObserver measurement — and therefore chipAreaHeightPx —
+          automatically accounts for the second strip whenever the active
+          section renders one, with no extra measurement code. */}
+      <div ref={rowRef} className="flex flex-col min-w-0" style={{ gap: STRIP_GAP }}>
+        <div className="flex items-center justify-between gap-x-[var(--space-lg)] min-w-0">
+          <div className="min-w-0 w-fit">
+            <SectionTabStrip
+              sections={visibleSections.map(({ section, tags }) => ({
+                key: section.key,
+                label: section.label,
+                selectedCount: tags.filter((t) => selectedTags.includes(t.name)).length,
+              }))}
+              activeKey={active.section.key}
+              onChange={setActiveSectionKey}
+              visible={editMode}
+            />
+          </div>
+          {trailingControls}
         </div>
-        {trailingControls}
+        {showSubStrip && (
+          <div className="min-w-0 w-fit">
+            <SectionTabStrip
+              size="secondary"
+              idBase="tagpool-sub"
+              ariaLabel={`${active.section.label} subsections`}
+              sections={visibleSubs.map(({ sub, slug, tags }) => ({
+                key: slug,
+                label: sub.label,
+                selectedCount: tags.filter((t) => selectedTags.includes(t.name)).length,
+              }))}
+              activeKey={activeSub!.slug}
+              onChange={(slug) => setActiveSubKeys((prev) => ({ ...prev, [active.section.key]: slug }))}
+              visible={editMode}
+            />
+          </div>
+        )}
       </div>
 
       {/* key={active.section.key}: forces a clean remount (and therefore a
@@ -233,7 +292,7 @@ export function TagPoolBody({
           role=tabpanel/aria-labelledby/tabIndex make this the real target
           of the tab strip's aria-controls above. */}
       <div
-        key={active.section.key}
+        key={subTabsMode && activeSub ? `${active.section.key}:${activeSub.slug}` : active.section.key}
         id={`tagpool-panel-${active.section.key}`}
         role="tabpanel"
         aria-labelledby={`tagpool-tab-${active.section.key}`}
@@ -248,7 +307,21 @@ export function TagPoolBody({
           restrictTouchAction
           pauseMeasurementWhileResizing={isPoolPanelResizing}
         >
-          {active.section.subsections ? (
+          {subTabsMode && activeSub ? (
+            // Sub-tab tier active: one subsection's chips, flat. The inner
+            // div is the sub strip's own tabpanel (ids match idBase
+            // "tagpool-sub"); the outer panel above stays the primary
+            // strip's target, so both tiers' aria-controls resolve. The
+            // outer key includes the sub slug, so switching sub-tabs
+            // remounts and resets scroll — same decision as sections.
+            <div
+              id={`tagpool-sub-panel-${activeSub.slug}`}
+              role={showSubStrip ? "tabpanel" : undefined}
+              aria-labelledby={showSubStrip ? `tagpool-sub-tab-${activeSub.slug}` : undefined}
+            >
+              <ChipRow tags={sortTags(activeSub.tags, sort)} selectedTags={selectedTags} onChipToggle={onChipToggle} />
+            </div>
+          ) : active.section.subsections ? (
             <div className="flex flex-col gap-[var(--space-lg)]">
               {active.section.subsections.map((sub) => {
                 const subTags = sortTags(tagsForCategories(domain, allTags, sub.categories, level, totalSeriesCount), sort);

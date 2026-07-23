@@ -13,6 +13,18 @@ interface SectionTabStripProps {
   sections: SectionTabItem[];
   activeKey: string;
   onChange: (key: string) => void;
+  // "primary" (default): the top-level section row — display face, text-lg,
+  // the existing look. "secondary": the film side's subsection tier below it
+  // — mono/small, matching the register of the anime Theme subsection
+  // labels so the two rows read as a hierarchy, but ink/muted-colored like
+  // real tabs since these ARE tabs, not inline headings.
+  size?: "primary" | "secondary";
+  // Element-id namespace for role=tab/aria-controls wiring — tab ids become
+  // `${idBase}-tab-${key}`, and the caller's matching panel must use
+  // `${idBase}-panel-${key}`. Defaults to the historical "tagpool"; the
+  // subsection tier passes its own so two strips on screen never collide.
+  idBase?: string;
+  ariaLabel?: string;
   // False whenever this strip's own container is currently clipped to zero
   // height (MixerBar's collapsed, browse-mode `max-h-0 overflow-hidden` —
   // TagPoolBody, and this strip inside it, stay mounted the whole time, not
@@ -37,7 +49,15 @@ const SCROLL_STEP = 140;
 // Real tablist: role=tab/tablist, aria-selected, roving tabindex (only the
 // active tab is in the natural tab order; arrow keys move — and, per the
 // "automatic activation" model below, also activate — the others).
-export function SectionTabStrip({ sections, activeKey, onChange, visible = true }: SectionTabStripProps) {
+export function SectionTabStrip({
+  sections,
+  activeKey,
+  onChange,
+  size = "primary",
+  idBase = "tagpool",
+  ariaLabel = "Tag pool sections",
+  visible = true,
+}: SectionTabStripProps) {
   const tabRefs = useRef(new Map<string, HTMLButtonElement>());
 
   // Brings the active tab into view whenever it changes — a click already
@@ -141,7 +161,12 @@ export function SectionTabStrip({ sections, activeKey, onChange, visible = true 
     // horizontal caller (the results carousel's CSS grid needs the
     // opposite: a real available width to size its own columns against).
     <ScrollFadeArea orientation="horizontal" scrollStep={SCROLL_STEP} fadeSize={12} surfaceColor="var(--surface)" fitContent restrictTouchAction>
-      <div role="tablist" aria-label="Tag pool sections" onKeyDown={handleKeyDown} className="flex flex-nowrap items-center gap-[var(--space-xl)]">
+      <div
+        role="tablist"
+        aria-label={ariaLabel}
+        onKeyDown={handleKeyDown}
+        className={["flex flex-nowrap items-center", size === "primary" ? "gap-[var(--space-xl)]" : "gap-[var(--space-lg)]"].join(" ")}
+      >
         {sections.map((section) => {
           const active = section.key === activeKey;
           return (
@@ -152,25 +177,30 @@ export function SectionTabStrip({ sections, activeKey, onChange, visible = true 
                 else tabRefs.current.delete(section.key);
               }}
               role="tab"
-              id={`tagpool-tab-${section.key}`}
+              id={`${idBase}-tab-${section.key}`}
               aria-selected={active}
-              aria-controls={`tagpool-panel-${section.key}`}
+              aria-controls={`${idBase}-panel-${section.key}`}
               tabIndex={active ? 0 : -1}
               type="button"
               onClick={() => onChange(section.key)}
               className="shrink-0 cursor-pointer"
             >
-              {/* Same font/size/style as the old CollapsibleSection header
-                  labels (font-display text-lg uppercase tracking-sm) —
-                  deliberately one step smaller than PanelToggleHeader's
+              {/* Primary: same font/size/style as the old CollapsibleSection
+                  header labels (font-display text-lg uppercase tracking-sm)
+                  — deliberately one step smaller than PanelToggleHeader's
                   text-xl toggle above it, so the two rows read as a
                   hierarchy (panel tabs, then section tabs within Tag
                   Pool) rather than one flattened row of controls. No
-                  chevron — sections are tabs now, nothing to expand. */}
+                  chevron — sections are tabs now, nothing to expand.
+                  Secondary drops to the mono/2xs register of the anime
+                  Theme subsection headings for the same hierarchy reason,
+                  one tier further down. */}
               <span className="inline-flex items-center gap-[var(--space-sm)]">
                 <span
                   className={[
-                    "font-display text-[length:var(--text-lg)] uppercase tracking-[var(--tracking-sm)]",
+                    size === "primary"
+                      ? "font-display text-[length:var(--text-lg)] uppercase tracking-[var(--tracking-sm)]"
+                      : "font-mono font-bold text-[length:var(--text-2xs)] uppercase tracking-[var(--tracking-xl)]",
                     active ? "text-[var(--ink)]" : "text-[var(--muted)]",
                   ].join(" ")}
                 >

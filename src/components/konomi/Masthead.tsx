@@ -1,5 +1,8 @@
-import { ThemeSwitcher } from "./ThemeSwitcher";
+import Link from "next/link";
+import { DOMAINS } from "@/lib/konomi/domains";
 import type { ThemeKey } from "@/lib/konomi/types";
+import { useDomain } from "./domainContext";
+import { ThemeSwitcher } from "./ThemeSwitcher";
 
 interface MastheadProps {
   theme: ThemeKey;
@@ -56,6 +59,12 @@ interface MastheadProps {
 // verbatim, so a settled masthead is pixel-identical to the boolean version
 // this replaced; only the in-between is new.
 export function Masthead({ theme, onThemeChange, collapsed }: MastheadProps) {
+  // The side switch links to the OTHER catalog partition (anime ⇄ film) — a
+  // real route navigation, so each side keeps its own server fetch and its
+  // own mounted app state. With exactly two sides, "the other one" is a
+  // find; a 3+-side future would swap this for a menu.
+  const domain = useDomain();
+  const otherSide = Object.values(DOMAINS).find((d) => d.key !== domain.key);
   return (
     <header
       // border: bottom stays full width in both states; top/left/right thin
@@ -133,7 +142,20 @@ export function Masthead({ theme, onThemeChange, collapsed }: MastheadProps) {
             hover subtext would otherwise hang below the slim row. Only ever
             visible on hover, so keying it off the settled boolean (not the live
             progress) is invisible during the scrub itself. */}
-        <div className="self-center shrink-0">
+        <div className="self-center shrink-0 flex items-center gap-[var(--space-lg)]">
+          {/* PLACEHOLDER side-switch affordance — deliberately minimal (a
+              bordered mono chip in the segmented-control register, same box
+              recipe as LevelSelector's collapsed button) until the real
+              switch interaction gets its own design pass. Functional and
+              token-driven, not a pattern to copy. */}
+          {otherSide && (
+            <Link
+              href={otherSide.route}
+              className="border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-2)] px-[var(--space-lg)] py-[var(--space-md)] leading-[16px] font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] uppercase whitespace-nowrap bg-[var(--surface)] text-[var(--ink)]"
+            >
+              ⇄ {otherSide.label}
+            </Link>
+          )}
           <ThemeSwitcher value={theme} onChange={onThemeChange} subtextPlacement={collapsed ? "left" : undefined} />
         </div>
       </div>

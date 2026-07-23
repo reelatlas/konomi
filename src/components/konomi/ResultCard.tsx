@@ -282,9 +282,10 @@ export function ResultCard({
     setHintWrapped(el.offsetHeight > singleLineHeight + 1);
   }, [activeHint]);
   const hasImage = Boolean(series.coverImageUrl);
-  // year/eps come from AniList and can genuinely be null (e.g. unreleased
-  // media) — omit whichever part is missing instead of rendering "null".
-  const meta = [series.year ?? "TBA", series.eps != null ? `${series.eps} EP` : null].filter(Boolean).join(" · ");
+  // The meta line is per-side (anime: year · eps; film: year · runtime ·
+  // cert) — the domain's presentation mapping, so this card stays one
+  // component for both. Missing parts are omitted inside cardMeta.
+  const meta = domain.cardMeta(series);
   // Enter/exit are plain CSS keyframes (animate-card-enter / animate-card-exit,
   // globals.css), applied on the card wrapper below with inline duration/delay/
   // distance from the live tuning store. isExiting is checked BEFORE isEntering
@@ -1322,7 +1323,15 @@ export function ResultCard({
                 the space either way, since it's zone 1's own sibling now,
                 not a shared row the way it used to be. */}
             {series.streamingServices.length > 0 && (
-              <div className="flex flex-wrap gap-[var(--space-sm)]">
+              <div className="flex flex-wrap items-center gap-[var(--space-sm)]">
+                {/* Film provider data contractually requires JustWatch
+                    credit wherever it displays (TMDB terms) — the domain
+                    carries the line; anime sets none and renders nothing. */}
+                {domain.streamingAttribution && (
+                  <span className="w-full font-mono text-[length:var(--text-2xs)] tracking-[var(--tracking-sm)] text-[var(--subtext)] lowercase">
+                    {domain.streamingAttribution}
+                  </span>
+                )}
                 {series.streamingServices.map((s) => (
                   // onClick's own stopPropagation, not preventDefault: the
                   // whole card flips on a plain onClick at the <article>

@@ -53,7 +53,7 @@ const MASTHEAD_FLICK_PROJECTION_MS = 120;
 export function KonomiApp({ side, initialSeries, initialTags }: KonomiAppProps) {
   const domain = DOMAINS[side];
   const k = useKonomi(initialSeries, initialTags);
-  const level = useLevel();
+  const level = useLevel(domain.storagePrefix);
   // Mirrors `side` onto <html> as data-side, alongside the data-theme the
   // theme effect below manages — side is catalog partition, theme is user
   // chrome, two orthogonal axes that must compose (film + Tide is a valid
@@ -433,7 +433,7 @@ export function KonomiApp({ side, initialSeries, initialTags }: KonomiAppProps) 
   // visiblePoolTagNames (not a raw isTagVisibleAtLevel filter) is what
   // correctly excludes Technical/Sexual Content too — see its doc comment.
   function handleLevelChange(next: LevelKey) {
-    setLevelPref(next);
+    setLevelPref(domain.storagePrefix, next);
     k.pruneTags(new Set(visiblePoolTagNames(domain, k.allTags, next, k.totalSeriesCount)));
   }
 

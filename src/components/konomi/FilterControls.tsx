@@ -1,7 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import type { LevelKey } from "@/lib/konomi/types";
+import type { LevelKey, SortKey } from "@/lib/konomi/types";
+import { useDomain } from "./domainContext";
 import { SortIcon, TagIcon } from "./icons";
 import { LevelSelector } from "./LevelSelector";
 import { SortSelect } from "./SortSelect";
@@ -50,8 +51,10 @@ interface FilterControlsProps {
 // participates in the reduction (it's always shown, on top). The collapse widths
 // differ per layout — see expandedHide/collapsedShow below.
 export function FilterControls({ onLevelChange, layout = "popover", className }: FilterControlsProps) {
-  const level = useLevel();
-  const sort = useSort();
+  const { storagePrefix } = useDomain();
+  const level = useLevel(storagePrefix);
+  const sort = useSort(storagePrefix);
+  const handleSortChange = (s: SortKey) => setSortPref(storagePrefix, s);
   const inline = layout === "inline";
 
   // The expanded control shows above the collapse width, the collapsed single-
@@ -122,8 +125,8 @@ export function FilterControls({ onLevelChange, layout = "popover", className }:
       {field(
         "Tag Sort",
         <SortIcon className="text-[var(--ink)]" />,
-        <SortSelect value={sort} onChange={setSortPref} />,
-        <SortSelect value={sort} onChange={setSortPref} collapsed />,
+        <SortSelect value={sort} onChange={handleSortChange} />,
+        <SortSelect value={sort} onChange={handleSortChange} collapsed />,
       )}
     </div>
   );
