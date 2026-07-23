@@ -51,6 +51,22 @@
   "promote": "each >=2 saga promotes as a tag (type: saga, members = its corpus film ids) — add-tag slots, recommend, and random work with zero engine special-casing",
   "known_behavior": "two sagas in two slots => empty result set (franchises share no films) — covered by existing empty-result UX"
  },
+ "credits": {
+  "_comment": "Part 4 BANKED (user, 2026-07-24). All numbers measured in §7 at the >=3-film floor. Everything tweakable once real data + UI exist.",
+  "levels": "film buff + cinephile only (moviegoer stays genres + reception + sagas)",
+  "categories": {
+   "actors": { "band": "cast.order < 10", "tags": 6883, "coverage": "95.3%" },
+   "directors": { "tags": 931, "coverage": "85.3%" },
+   "studios": { "tags": 1978, "coverage": "92.4%" },
+   "producers": { "tags": 2026, "coverage": "78.4%" },
+   "cinematographers": { "tags": 831, "coverage": "72.6%" },
+   "composers": { "tags": 661, "coverage": "69.9%" },
+   "writers": "EXCLUDED — 20.1% coverage, measured dead; post-MVP re-measure with Screenplay/Writer/Story job labels merged"
+  },
+  "floor": 3,
+  "promote": "each person/studio promotes as a tag (type: person | studio) — slots/recommend/combos work with zero engine special-casing",
+  "display": "search + rank: top names by film count, progressive search reaches the rest"
+ },
  "rules": {
   "universal_floor": "one floor for all sections at film buff; per-section tuning deferred post-launch",
   "empty_section_hidden": "a section with zero tags above the active floor is not selectable in the UI (it would be empty), never an error",
