@@ -13,6 +13,12 @@ const ANIME_TAG_SECTIONS: TagSection[] = [
   {
     key: "theme",
     label: "Theme",
+    // Sub-TABS (the film-pillar treatment), not inline labeled groups —
+    // adopted back from the film side once it proved out there (user
+    // decision): one subsection shown at a time beats scrolling all ten
+    // groups vertically. Flipping this flag is the entire change; the
+    // strip/badges/empty-sub hiding/level fallback are domain-generic.
+    subsectionsAsTabs: true,
     subsections: [
       { label: "Action", categories: ["Theme-Action"] },
       { label: "Fantasy", categories: ["Theme-Fantasy"] },

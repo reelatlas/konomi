@@ -207,7 +207,22 @@ export function SectionTabStrip({
                   {section.label}
                 </span>
                 {section.selectedCount > 0 && (
-                  <span className="font-mono font-bold text-[length:var(--text-2xs)] leading-none bg-[var(--fill)] border-[length:var(--border-hair)] border-[var(--ink)] px-[var(--space-sm)] py-[var(--space-xs)]">
+                  // Same badge recipe at both sizes (font stays 2xs — the
+                  // type scale's floor); secondary only tightens the BOX
+                  // (px-xs, no py) so the badge's total height fits inside
+                  // the 2xs label's own line box. That makes "a badge
+                  // appearing never changes this row's height" true BY
+                  // CONSTRUCTION on the secondary tier — the badge can't be
+                  // the row's tallest element — instead of by reserving
+                  // permanent row height the chip area would pay for.
+                  // (Primary never had the problem: its display-face labels'
+                  // line box already exceeds the padded badge.)
+                  <span
+                    className={[
+                      "font-mono font-bold text-[length:var(--text-2xs)] leading-none bg-[var(--fill)] border-[length:var(--border-hair)] border-[var(--ink)]",
+                      size === "primary" ? "px-[var(--space-sm)] py-[var(--space-xs)]" : "px-[var(--space-xs)] py-0",
+                    ].join(" ")}
+                  >
                     {section.selectedCount}
                   </span>
                 )}
