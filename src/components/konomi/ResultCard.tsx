@@ -1101,7 +1101,18 @@ export function ResultCard({
                 separately keeps the arrows visible regardless of what
                 surfaceColor is doing. */}
             <div className="relative z-[2]">
+              {/* key: remount (and so reset scroll to the top) whenever the
+                  level/sort filters change which list this IS. Without it,
+                  the area's mandatory scroll-snap re-snaps to the
+                  previously-snapped CHIP after the reflow (per spec), and a
+                  density bump that sorts new chips into the top rows drags
+                  the view down to wherever that old chip landed — reported
+                  live as "raising Tag Density shifts my view downward." A
+                  different filter output is a different list; start it at
+                  the top — the same remount-on-key decision TagPoolBody
+                  already made for its section switches. */}
               <TagScrollArea
+                key={`${level}:${sort}`}
                 tags={cardTags}
                 selectedTags={selectedTags}
                 onChipToggle={onChipToggle}
