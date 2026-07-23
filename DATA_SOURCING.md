@@ -865,9 +865,26 @@ separated at the pull, unified at the shared catalog so the app experience is se
 | recommendations, similar, reviews, lists, external_ids | ✖ skip — Konomi's own logic covers these |
 | trending / discover / now_playing / top_rated / upcoming | ✖ skip for corpus (pinned snapshot); possible refresh sources later |
 
+**TWO NUANCES ADDED (user, 2026-07-24):**
+- **User ratings:** vote_average/vote_count are pulled raw (✅ have); the user will run THEIR
+  OWN rank transform over them for a better distribution — this lives adapter-side and is
+  user-owned (may extend/replace the §8 distribution shaping; the Bayesian-shrink + percentile
+  machinery is the starting point, not a constraint).
+- **The IMPORT DELTA REPORT (a required build):** distinct from TMDB's `/movie/changes` feed
+  (that's the SOURCE-side sync input — which movies changed upstream, so re-hydration is
+  cheap). What Konomi needs on top is the KONOMI-SIDE review surface: after EVERY pull, an
+  auto-generated report that categorizes the delta — (a) data auto-integrated and WHERE (new
+  keywords that matched existing member strings → their canonical/section), (b) the
+  manual-integration queue (new ≥floor strings with suggested homes, propose-first, exactly
+  the wave rhythm), (c) IA-pressure flags (sections growing oddly, new clusters that suggest
+  tag-IA changes). The alias map makes this natural: every incoming keyword either matches →
+  auto-lands, or is new → queued. Both mechanisms wanted: changes feed for cheap sync, delta
+  report for human review.
+
 **⏭️ ORDER: ① the section-names pass (user wants it BEFORE further roadmap) ② step ⑤ adapter,
 per group and sometimes per section (tag-pool floors + level gating · genre passthrough ·
-reception identifiers · franchise shelf · credits · facts).**
+reception identifiers · user-owned rating transform · franchise shelf · credits · facts ·
+the import delta report).**
 
 ## (superseded checkpoint below)
 ## ⏸️ RESUME HERE — SESSION CHECKPOINT (2026-07-24 · ZERO LOOSE + ZERO HOLD · the roadmap below is current)
