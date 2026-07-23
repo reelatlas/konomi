@@ -4806,6 +4806,19 @@
    ]
   },
   {
+   "canonical": "prehistoric animal",
+   "pillar": "Story",
+   "section": "Animals & Nature",
+   "count": 14,
+   "members": [
+    "mammoth",
+    "saber-toothed tiger",
+    "megalodon",
+    "prehistoric creature"
+   ],
+   "note": "real extinct animals — not dinosaurs, not lore; megalodon (2f) included by user rule"
+  },
+  {
    "canonical": "elephant",
    "pillar": "Story",
    "section": "Animals & Nature",
@@ -4881,18 +4894,6 @@
    "members": [
     "rat"
    ]
-  },
-  {
-   "canonical": "prehistoric animal",
-   "pillar": "Story",
-   "section": "Animals & Nature",
-   "count": 8,
-   "members": [
-    "mammoth",
-    "saber-toothed tiger",
-    "megalodon"
-   ],
-   "note": "real extinct animals — not dinosaurs, not lore; megalodon (2f) included by user rule"
   },
   {
    "canonical": "turtle",
@@ -13552,7 +13553,7 @@
   {
    "canonical": "mythical creature",
    "section": "Creatures & Beings",
-   "count": 71,
+   "count": 80,
    "members": [
     "mythical creature",
     "unicorn",
@@ -13575,7 +13576,8 @@
     "bigfoot",
     "sasquatch",
     "leprechaun",
-    "cryptozoology"
+    "cryptozoology",
+    "magical creature"
    ],
    "pillar": "Style & Format",
    "note": "user 2026-07-22 mega-merge; placement review 2026-07-24: dragon/fairy(+fairies)/mermaid/elves pulled back out as own tags per user — this shelf keeps the scatter (unicorn, goblin, troll, giant, kraken, yeti, leprechaun…)"
@@ -13773,15 +13775,6 @@
    "pillar": "Style & Format"
   },
   {
-   "canonical": "magical creature",
-   "section": "Creatures & Beings",
-   "count": 12,
-   "members": [
-    "magical creature"
-   ],
-   "pillar": "Style & Format"
-  },
-  {
    "canonical": "mummy",
    "section": "Creatures & Beings",
    "count": 10,
@@ -13797,16 +13790,6 @@
    "count": 9,
    "members": [
     "undead"
-   ],
-   "from_board": true,
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "prehistoric creature",
-   "section": "Creatures & Beings",
-   "count": 7,
-   "members": [
-    "prehistoric creature"
    ],
    "from_board": true,
    "pillar": "Style & Format"
@@ -14346,9 +14329,10 @@
   {
    "canonical": "prophecy",
    "section": "Magic & the Supernatural",
-   "count": 27,
+   "count": 28,
    "members": [
-    "prophecy"
+    "prophecy",
+    "ancient prophecy"
    ],
    "pillar": "Style & Format"
   },
@@ -14418,16 +14402,6 @@
    "count": 5,
    "members": [
     "purgatory"
-   ],
-   "from_board": true,
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "ancient prophecy",
-   "section": "Magic & the Supernatural",
-   "count": 2,
-   "members": [
-    "ancient prophecy"
    ],
    "from_board": true,
    "pillar": "Style & Format"
@@ -15442,20 +15416,12 @@
    "pillar": "Style & Format"
   },
   {
-   "canonical": "peplum",
-   "pillar": "Style & Format",
-   "section": "Sub-genres & Styles",
-   "count": 7,
-   "members": [
-    "peplum"
-   ]
-  },
-  {
    "canonical": "sword and sandal",
    "section": "Sub-genres & Styles",
-   "count": 5,
+   "count": 9,
    "members": [
-    "sword and sandal"
+    "sword and sandal",
+    "peplum"
    ],
    "from_board": true,
    "pillar": "Style & Format"
@@ -15802,6 +15768,17 @@
    "pillar": "Style & Format"
   },
   {
+   "canonical": "cryogenics",
+   "section": "Wondrous Worlds",
+   "count": 9,
+   "members": [
+    "cryogenics",
+    "cryonics"
+   ],
+   "from_board": true,
+   "pillar": "Style & Format"
+  },
+  {
    "canonical": "space war",
    "section": "Wondrous Worlds",
    "count": 6,
@@ -15817,26 +15794,6 @@
    "count": 5,
    "members": [
     "nanotechnology"
-   ],
-   "from_board": true,
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "cryogenics",
-   "section": "Wondrous Worlds",
-   "count": 5,
-   "members": [
-    "cryogenics"
-   ],
-   "from_board": true,
-   "pillar": "Style & Format"
-  },
-  {
-   "canonical": "cryonics",
-   "section": "Wondrous Worlds",
-   "count": 4,
-   "members": [
-    "cryonics"
    ],
    "from_board": true,
    "pillar": "Style & Format"
@@ -16262,6 +16219,11 @@
    "name": "nuclear-single-shelf",
    "date": "2026-07-24",
    "note": "user Option A: nuclear weapons RENAMED nuclear + absorbed nuclear power plant from energy — one ~82f nuclear shelf (weapons default-read preserved per user); energy keeps electricity/energy/electric shock. ROADMAP CLARIFICATION (user): the section-ARCHITECTURE pass just run on Style & Format must ALSO run on Story (its sections were tag-scanned in waves 4-8 but never architecture-evaluated); Style & Format still needs its TAG-LEVEL scan. Order chosen: S&F tag scan first (closes the pillar), then Story architecture as the final rethink act."
+  },
+  {
+   "name": "rethink-wave-10-banked",
+   "date": "2026-07-24",
+   "note": "RETHINK WAVE 10 (Style & Format tag level) BANKED per user: peplum DISSOLVED->sword and sandal 12f (same genre, plain-English label) · cryonics->cryogenics 9f · ancient prophecy->prophecy · magical creature->mythical creature 82f · prehistoric creature->prehistoric animal [A&N] 14f (cross-pillar; real-extinct register). RULED KEEP: spaghetti western stays a Sub-genre (browsers read western flavor over production era) · undead (umbrella being-word) · spirit vs ghost · super power [Wondrous] / superhero [Sub-genre] split-pair deliberate. STYLE & FORMAT COMPLETE — architecture + tags. COMPREHENSIVE RETHINK remaining: the Story ARCHITECTURE pass (11 sections)."
   }
  ],
  "unassigned": [],
