@@ -4916,6 +4916,216 @@
    "note": "user rule: kept separate from crocodile"
   },
   {
+   "canonical": "music",
+   "section": "Arts & Performance",
+   "count": 200,
+   "members": [
+    "music",
+    "pop music",
+    "rock music",
+    "classical music",
+    "folk music",
+    "rap music",
+    "music industry",
+    "music business",
+    "music history",
+    "live music",
+    "music record",
+    "music recording",
+    "music instrument",
+    "music video",
+    "rock 'n' roll",
+    "hip-hop",
+    "punk rock",
+    "heavy metal",
+    "karaoke",
+    "disco",
+    "swing",
+    "pop",
+    "banjo",
+    "cello",
+    "drums",
+    "fiddle",
+    "harmonica",
+    "telecaster",
+    "jukebox",
+    "acapella",
+    "gospel",
+    "hymn",
+    "boys' choir",
+    "blues",
+    "ragtime",
+    "grunge",
+    "mariachi",
+    "pink floyd",
+    "recording",
+    "recording session",
+    "recording contract",
+    "audio recording"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "dance",
+   "section": "Arts & Performance",
+   "count": 77,
+   "members": [
+    "dancing",
+    "dance",
+    "dance competition",
+    "dance performance",
+    "tap dancing",
+    "ballroom dancing",
+    "dance hall",
+    "dance club",
+    "dance instructor"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "filmmaking",
+   "pillar": "Story",
+   "section": "Arts & Performance",
+   "count": 74,
+   "members": [
+    "audition",
+    "backstage",
+    "cameraman",
+    "filmmaking",
+    "horror filmmaking",
+    "movie",
+    "recording studio"
+   ]
+  },
+  {
+   "canonical": "concert",
+   "section": "Arts & Performance",
+   "count": 61,
+   "members": [
+    "concert",
+    "concert film",
+    "concert footage",
+    "rock concert",
+    "music festival",
+    "music tour"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "theater",
+   "section": "Arts & Performance",
+   "count": 54,
+   "members": [
+    "broadway",
+    "drive-in theater",
+    "filmed theater",
+    "live performance",
+    "live theatre",
+    "movie theater",
+    "stage",
+    "stage show",
+    "theater",
+    "theatre group",
+    "staging",
+    "audience"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "fashion",
+   "pillar": "Story",
+   "section": "Arts & Performance",
+   "count": 41,
+   "members": [
+    "fashion",
+    "fashion magazine",
+    "fashion show",
+    "modeling",
+    "supermodel",
+    "fashion designer",
+    "fashion industry",
+    "makeover",
+    "shopping"
+   ]
+  },
+  {
+   "canonical": "singing",
+   "section": "Arts & Performance",
+   "count": 37,
+   "members": [
+    "singing",
+    "singing competition",
+    "music competition",
+    "singing in a car"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "burlesque",
+   "pillar": "Story",
+   "section": "Arts & Performance",
+   "count": 34,
+   "members": [
+    "burlesque",
+    "cabaret",
+    "strip show",
+    "vaudeville"
+   ]
+  },
+  {
+   "canonical": "band",
+   "section": "Arts & Performance",
+   "count": 33,
+   "members": [
+    "rock band",
+    "band",
+    "marching band",
+    "punk band",
+    "pop band",
+    "orchestra"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "jazz",
+   "section": "Arts & Performance",
+   "count": 17,
+   "members": [
+    "jazz",
+    "jazz club"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "ballet",
+   "section": "Arts & Performance",
+   "count": 17,
+   "members": [
+    "ballet"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "opera",
+   "pillar": "Story",
+   "section": "Arts & Performance",
+   "count": 17,
+   "members": [
+    "opera",
+    "phantom of the opera",
+    "rock opera"
+   ]
+  },
+  {
+   "canonical": "country music",
+   "section": "Arts & Performance",
+   "count": 13,
+   "members": [
+    "country music"
+   ],
+   "pillar": "Story"
+  },
+  {
    "canonical": "police",
    "section": "Characters",
    "count": 466,
@@ -7054,7 +7264,7 @@
   },
   {
    "canonical": "murder",
-   "section": "Events & Actions",
+   "section": "Crime",
    "count": 748,
    "members": [
     "accused of murder",
@@ -7103,6 +7313,286 @@
    "pillar": "Story"
   },
   {
+   "canonical": "robbery",
+   "section": "Crime",
+   "count": 216,
+   "members": [
+    "robbery",
+    "bank robbery",
+    "bank robber",
+    "armed robbery",
+    "hold-up robbery",
+    "botched robbery",
+    "train robbery",
+    "armored car robbery",
+    "jewel robbery",
+    "mugging",
+    "carjacking",
+    "burglary",
+    "burglar",
+    "burglars",
+    "grave robber",
+    "robber",
+    "cops and robbers",
+    "robbery crew",
+    "robbery gang"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "kidnapping",
+   "section": "Crime",
+   "count": 191,
+   "members": [
+    "kidnapping",
+    "child kidnapping",
+    "abduction",
+    "held captive",
+    "child abduction",
+    "stockholm syndrome",
+    "chloroform"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "investigation",
+   "section": "Crime",
+   "count": 164,
+   "members": [
+    "investigation",
+    "police investigation",
+    "crime scene",
+    "crime investigation",
+    "criminal investigation",
+    "insurance investigator",
+    "covered investigation"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "heist",
+   "section": "Crime",
+   "count": 147,
+   "members": [
+    "heist",
+    "bank heist",
+    "diamond heist",
+    "jewelry heist",
+    "money heist",
+    "heist gone wrong",
+    "getaway",
+    "getaway driver",
+    "one last job",
+    "caper",
+    "safe",
+    "vault",
+    "safe deposit box",
+    "safecracker",
+    "caper comedy",
+    "security system",
+    "bearer bonds",
+    "locksmith",
+    "security breach",
+    "parker"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "on the run",
+   "section": "Crime",
+   "count": 133,
+   "members": [
+    "fugitive",
+    "fugitive lovers",
+    "love on the run",
+    "man hunt",
+    "man on the run",
+    "manhunt",
+    "on the run",
+    "wanted man",
+    "hunted",
+    "runaway",
+    "running away"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "undercover",
+   "section": "Crime",
+   "count": 91,
+   "members": [
+    "undercover",
+    "infiltration",
+    "sting operation",
+    "covert operation",
+    "covert operations",
+    "safe house",
+    "undercover operation",
+    "black ops"
+   ],
+   "from_board": true,
+   "pillar": "Story"
+  },
+  {
+   "canonical": "hostage",
+   "section": "Crime",
+   "count": 85,
+   "members": [
+    "hostage",
+    "hostage-taking",
+    "hostage situation",
+    "hostages",
+    "liberation of hostage",
+    "held hostage",
+    "hostage negotiator"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "falsely accused",
+   "pillar": "Story",
+   "section": "Crime",
+   "count": 74,
+   "members": [
+    "falsely accused",
+    "framed",
+    "framed for a crime",
+    "framed for murder",
+    "false accusations",
+    "wrongful arrest",
+    "innocent suspect",
+    "wrongly accused",
+    "set up",
+    "accusation",
+    "west memphis three"
+   ]
+  },
+  {
+   "canonical": "fraud",
+   "section": "Crime",
+   "count": 60,
+   "members": [
+    "fraud",
+    "insurance fraud",
+    "credit card fraud",
+    "embezzlement",
+    "ponzi scheme",
+    "money laundering",
+    "counterfeit money",
+    "counterfeit",
+    "forgery"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "blackmail",
+   "section": "Crime",
+   "count": 59,
+   "members": [
+    "extortion",
+    "blackmail"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "execution",
+   "section": "Crime",
+   "count": 56,
+   "members": [
+    "death penalty",
+    "death sentence",
+    "electric chair",
+    "execution",
+    "gallows",
+    "guillotine",
+    "hanging",
+    "public execution",
+    "capital punishment",
+    "death by hanging",
+    "lethal injection"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "home invasion",
+   "pillar": "Story",
+   "section": "Crime",
+   "count": 47,
+   "members": [
+    "home invasion",
+    "break in",
+    "intruder"
+   ]
+  },
+  {
+   "canonical": "smuggling",
+   "section": "Crime",
+   "count": 45,
+   "members": [
+    "smuggling",
+    "smuggling (contraband)",
+    "drug smuggling",
+    "black market",
+    "middleman"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "trafficking",
+   "section": "Crime",
+   "count": 27,
+   "members": [
+    "arms dealer",
+    "human trafficking",
+    "organ trafficking",
+    "sex trafficking"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "interrogation",
+   "pillar": "Story",
+   "section": "Crime",
+   "count": 26,
+   "members": [
+    "interrogation"
+   ]
+  },
+  {
+   "canonical": "ransom",
+   "section": "Crime",
+   "count": 25,
+   "members": [
+    "ransom",
+    "ransom demand"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "cybercrime",
+   "pillar": "Story",
+   "section": "Crime",
+   "count": 22,
+   "members": [
+    "computer virus",
+    "cyber terrorism",
+    "cybercrime",
+    "hacking"
+   ],
+   "note": "computer virus = the digital kind; disease virus tag untouched"
+  },
+  {
+   "canonical": "hijacking",
+   "section": "Crime",
+   "count": 17,
+   "members": [
+    "hijacking",
+    "airplane hijacking",
+    "train hijacking"
+   ],
+   "pillar": "Story"
+  },
+  {
    "canonical": "fight",
    "pillar": "Story",
    "section": "Events & Actions",
@@ -7130,33 +7620,6 @@
     "barricade"
    ],
    "note": "absorbed the combat + hand to hand combat canonicals"
-  },
-  {
-   "canonical": "robbery",
-   "section": "Events & Actions",
-   "count": 216,
-   "members": [
-    "robbery",
-    "bank robbery",
-    "bank robber",
-    "armed robbery",
-    "hold-up robbery",
-    "botched robbery",
-    "train robbery",
-    "armored car robbery",
-    "jewel robbery",
-    "mugging",
-    "carjacking",
-    "burglary",
-    "burglar",
-    "burglars",
-    "grave robber",
-    "robber",
-    "cops and robbers",
-    "robbery crew",
-    "robbery gang"
-   ],
-   "pillar": "Story"
   },
   {
    "canonical": "crash",
@@ -7197,21 +7660,6 @@
    "note": "one crash/wreck/accident event tag (user); sub-floor 2f strings included, floor waived; generic `accident` corpus-verified broad -> loose"
   },
   {
-   "canonical": "kidnapping",
-   "section": "Events & Actions",
-   "count": 191,
-   "members": [
-    "kidnapping",
-    "child kidnapping",
-    "abduction",
-    "held captive",
-    "child abduction",
-    "stockholm syndrome",
-    "chloroform"
-   ],
-   "pillar": "Story"
-  },
-  {
    "canonical": "terrorism",
    "section": "Events & Actions",
    "count": 189,
@@ -7241,21 +7689,6 @@
    "pillar": "Story"
   },
   {
-   "canonical": "investigation",
-   "section": "Events & Actions",
-   "count": 164,
-   "members": [
-    "investigation",
-    "police investigation",
-    "crime scene",
-    "crime investigation",
-    "criminal investigation",
-    "insurance investigator",
-    "covered investigation"
-   ],
-   "pillar": "Story"
-  },
-  {
    "canonical": "secret identity",
    "pillar": "Story",
    "section": "Events & Actions",
@@ -7272,34 +7705,6 @@
     "identity swap",
     "alter ego"
    ]
-  },
-  {
-   "canonical": "heist",
-   "section": "Events & Actions",
-   "count": 147,
-   "members": [
-    "heist",
-    "bank heist",
-    "diamond heist",
-    "jewelry heist",
-    "money heist",
-    "heist gone wrong",
-    "getaway",
-    "getaway driver",
-    "one last job",
-    "caper",
-    "safe",
-    "vault",
-    "safe deposit box",
-    "safecracker",
-    "caper comedy",
-    "security system",
-    "bearer bonds",
-    "locksmith",
-    "security breach",
-    "parker"
-   ],
-   "pillar": "Story"
   },
   {
    "canonical": "shootout",
@@ -7363,25 +7768,6 @@
     "escape plan",
     "prison escape"
    ]
-  },
-  {
-   "canonical": "on the run",
-   "section": "Events & Actions",
-   "count": 133,
-   "members": [
-    "fugitive",
-    "fugitive lovers",
-    "love on the run",
-    "man hunt",
-    "man on the run",
-    "manhunt",
-    "on the run",
-    "wanted man",
-    "hunted",
-    "runaway",
-    "running away"
-   ],
-   "pillar": "Story"
   },
   {
    "canonical": "bullying",
@@ -7517,23 +7903,6 @@
    ]
   },
   {
-   "canonical": "undercover",
-   "section": "Events & Actions",
-   "count": 91,
-   "members": [
-    "undercover",
-    "infiltration",
-    "sting operation",
-    "covert operation",
-    "covert operations",
-    "safe house",
-    "undercover operation",
-    "black ops"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
    "canonical": "missing person",
    "pillar": "Story",
    "section": "Events & Actions",
@@ -7547,21 +7916,6 @@
     "missing wife",
     "missing body"
    ]
-  },
-  {
-   "canonical": "hostage",
-   "section": "Events & Actions",
-   "count": 85,
-   "members": [
-    "hostage",
-    "hostage-taking",
-    "hostage situation",
-    "hostages",
-    "liberation of hostage",
-    "held hostage",
-    "hostage negotiator"
-   ],
-   "pillar": "Story"
   },
   {
    "canonical": "child abuse",
@@ -7614,25 +7968,6 @@
    ]
   },
   {
-   "canonical": "falsely accused",
-   "pillar": "Story",
-   "section": "Events & Actions",
-   "count": 74,
-   "members": [
-    "falsely accused",
-    "framed",
-    "framed for a crime",
-    "framed for murder",
-    "false accusations",
-    "wrongful arrest",
-    "innocent suspect",
-    "wrongly accused",
-    "set up",
-    "accusation",
-    "west memphis three"
-   ]
-  },
-  {
    "canonical": "saving the world",
    "pillar": "Story",
    "section": "Events & Actions",
@@ -7655,33 +7990,6 @@
    ]
   },
   {
-   "canonical": "fraud",
-   "section": "Events & Actions",
-   "count": 60,
-   "members": [
-    "fraud",
-    "insurance fraud",
-    "credit card fraud",
-    "embezzlement",
-    "ponzi scheme",
-    "money laundering",
-    "counterfeit money",
-    "counterfeit",
-    "forgery"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "blackmail",
-   "section": "Events & Actions",
-   "count": 59,
-   "members": [
-    "extortion",
-    "blackmail"
-   ],
-   "pillar": "Story"
-  },
-  {
    "canonical": "fire",
    "pillar": "Story",
    "section": "Events & Actions",
@@ -7693,25 +8001,6 @@
     "burning",
     "person on fire"
    ]
-  },
-  {
-   "canonical": "execution",
-   "section": "Events & Actions",
-   "count": 56,
-   "members": [
-    "death penalty",
-    "death sentence",
-    "electric chair",
-    "execution",
-    "gallows",
-    "guillotine",
-    "hanging",
-    "public execution",
-    "capital punishment",
-    "death by hanging",
-    "lethal injection"
-   ],
-   "pillar": "Story"
   },
   {
    "canonical": "captivity",
@@ -7773,30 +8062,6 @@
     "international espionage"
    ],
    "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "home invasion",
-   "pillar": "Story",
-   "section": "Events & Actions",
-   "count": 47,
-   "members": [
-    "home invasion",
-    "break in",
-    "intruder"
-   ]
-  },
-  {
-   "canonical": "smuggling",
-   "section": "Events & Actions",
-   "count": 45,
-   "members": [
-    "smuggling",
-    "smuggling (contraband)",
-    "drug smuggling",
-    "black market",
-    "middleman"
-   ],
    "pillar": "Story"
   },
   {
@@ -7902,18 +8167,6 @@
    "pillar": "Story"
   },
   {
-   "canonical": "trafficking",
-   "section": "Events & Actions",
-   "count": 27,
-   "members": [
-    "arms dealer",
-    "human trafficking",
-    "organ trafficking",
-    "sex trafficking"
-   ],
-   "pillar": "Story"
-  },
-  {
    "canonical": "scandal",
    "section": "Events & Actions",
    "count": 27,
@@ -7934,25 +8187,6 @@
     "birthday",
     "birthday party"
    ]
-  },
-  {
-   "canonical": "interrogation",
-   "pillar": "Story",
-   "section": "Events & Actions",
-   "count": 26,
-   "members": [
-    "interrogation"
-   ]
-  },
-  {
-   "canonical": "ransom",
-   "section": "Events & Actions",
-   "count": 25,
-   "members": [
-    "ransom",
-    "ransom demand"
-   ],
-   "pillar": "Story"
   },
   {
    "canonical": "power outage",
@@ -7976,19 +8210,6 @@
    ]
   },
   {
-   "canonical": "cybercrime",
-   "pillar": "Story",
-   "section": "Events & Actions",
-   "count": 22,
-   "members": [
-    "computer virus",
-    "cyber terrorism",
-    "cybercrime",
-    "hacking"
-   ],
-   "note": "computer virus = the digital kind; disease virus tag untouched"
-  },
-  {
    "canonical": "stranded",
    "pillar": "Story",
    "section": "Events & Actions",
@@ -8008,17 +8229,6 @@
     "accident",
     "mistake"
    ]
-  },
-  {
-   "canonical": "hijacking",
-   "section": "Events & Actions",
-   "count": 17,
-   "members": [
-    "hijacking",
-    "airplane hijacking",
-    "train hijacking"
-   ],
-   "pillar": "Story"
   },
   {
    "canonical": "riot",
@@ -8073,54 +8283,8 @@
    "note": "user: can refer to shootings, not only pandemic"
   },
   {
-   "canonical": "army",
-   "section": "Forces & Institutions",
-   "count": 218,
-   "members": [
-    "army",
-    "us army",
-    "british army",
-    "japanese army",
-    "french army",
-    "red army",
-    "russian army",
-    "korean army",
-    "liberation army",
-    "turkish army",
-    "german army",
-    "ira (irish republican army)",
-    "u.s. army",
-    "union army",
-    "mexican army",
-    "roman army",
-    "people's liberation army",
-    "french liberation army",
-    "armies",
-    "battalion",
-    "female battalion",
-    "cavalry",
-    "infantry",
-    "troops",
-    "u.s. cavalry",
-    "roman legion",
-    "army nurse",
-    "army medic",
-    "army bugler",
-    "desertion",
-    "national guard",
-    "u.s. army soldier",
-    "private",
-    "raid",
-    "military",
-    "soviet military",
-    "us military",
-    "militia"
-   ],
-   "pillar": "Story"
-  },
-  {
    "canonical": "religion",
-   "section": "Forces & Institutions",
+   "section": "Faith & Religion",
    "count": 210,
    "members": [
     "belief in god",
@@ -8155,6 +8319,108 @@
    "pillar": "Story"
   },
   {
+   "canonical": "catholicism",
+   "section": "Faith & Religion",
+   "count": 80,
+   "members": [
+    "catholic",
+    "catholicism",
+    "roman catholic church",
+    "catholic priest",
+    "catholic school",
+    "vatican (holy see)",
+    "pope",
+    "inquisition"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "christianity",
+   "section": "Faith & Religion",
+   "count": 77,
+   "members": [
+    "christian",
+    "christian faith",
+    "christian film",
+    "christianity",
+    "jesus christ",
+    "baptism",
+    "mormon",
+    "amish",
+    "puritan",
+    "saint",
+    "joan of arc",
+    "jeanne d'arc",
+    "cross"
+   ],
+   "pillar": "Story",
+   "note": "christian film folded here (over broader religion) per user"
+  },
+  {
+   "canonical": "cult",
+   "section": "Faith & Religion",
+   "count": 60,
+   "members": [
+    "cult",
+    "satanic cult",
+    "religious cult",
+    "cult leader",
+    "sect",
+    "fanatic"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "spirituality",
+   "section": "Faith & Religion",
+   "count": 31,
+   "members": [
+    "spirituality",
+    "spiritual journey",
+    "spiritualism",
+    "mysticism",
+    "guru",
+    "mystic",
+    "shaman",
+    "enlightenment"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "judaism",
+   "section": "Faith & Religion",
+   "count": 22,
+   "members": [
+    "judaism",
+    "jewish family",
+    "rabbi",
+    "jewry",
+    "zionism",
+    "bar mitzvah"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "islam",
+   "section": "Faith & Religion",
+   "count": 12,
+   "members": [
+    "islam",
+    "muslim"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "buddhism",
+   "section": "Faith & Religion",
+   "count": 11,
+   "members": [
+    "buddhism",
+    "buddhist monk"
+   ],
+   "pillar": "Story"
+  },
+  {
    "canonical": "courtroom",
    "section": "Forces & Institutions",
    "count": 198,
@@ -8182,50 +8448,6 @@
     "judiciary",
     "sentence",
     "witness"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "elite force",
-   "section": "Forces & Institutions",
-   "count": 193,
-   "members": [
-    "mercenary",
-    "sniper",
-    "female sniper",
-    "sniper rifle",
-    "elite sniper",
-    "commando",
-    "super soldier",
-    "special forces",
-    "ex special forces",
-    "u.s. navy seal",
-    "u.s. army ranger",
-    "space marine",
-    "one man army",
-    "special unit",
-    "private military company",
-    "elite unit",
-    "elite forces",
-    "foreign legion",
-    "commando unit",
-    "elite commando",
-    "elite squad",
-    "special forces team",
-    "special ops",
-    "special ops team",
-    "special forces training",
-    "green beret",
-    "delta force",
-    "paratrooper",
-    "spetsnaz",
-    "military contractor",
-    "military contractors",
-    "contractor",
-    "gun for hire",
-    "female mercenary",
-    "marine sniper",
-    "two man army"
    ],
    "pillar": "Story"
   },
@@ -8411,44 +8633,6 @@
    "pillar": "Story"
   },
   {
-   "canonical": "catholicism",
-   "section": "Forces & Institutions",
-   "count": 80,
-   "members": [
-    "catholic",
-    "catholicism",
-    "roman catholic church",
-    "catholic priest",
-    "catholic school",
-    "vatican (holy see)",
-    "pope",
-    "inquisition"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "christianity",
-   "section": "Forces & Institutions",
-   "count": 77,
-   "members": [
-    "christian",
-    "christian faith",
-    "christian film",
-    "christianity",
-    "jesus christ",
-    "baptism",
-    "mormon",
-    "amish",
-    "puritan",
-    "saint",
-    "joan of arc",
-    "jeanne d'arc",
-    "cross"
-   ],
-   "pillar": "Story",
-   "note": "christian film folded here (over broader religion) per user"
-  },
-  {
    "canonical": "secret organization",
    "section": "Forces & Institutions",
    "count": 65,
@@ -8481,20 +8665,6 @@
     "series finale",
     "remote control"
    ]
-  },
-  {
-   "canonical": "cult",
-   "section": "Forces & Institutions",
-   "count": 60,
-   "members": [
-    "cult",
-    "satanic cult",
-    "religious cult",
-    "cult leader",
-    "sect",
-    "fanatic"
-   ],
-   "pillar": "Story"
   },
   {
    "canonical": "technology",
@@ -8543,26 +8713,6 @@
    "pillar": "Story"
   },
   {
-   "canonical": "navy",
-   "section": "Forces & Institutions",
-   "count": 52,
-   "members": [
-    "aircraft carrier",
-    "british navy",
-    "german navy",
-    "naval battle",
-    "naval battleship",
-    "naval combat",
-    "navy",
-    "nuclear submarine",
-    "royal navy",
-    "u.s. navy",
-    "battleship",
-    "coast guard"
-   ],
-   "pillar": "Story"
-  },
-  {
    "canonical": "tyranny",
    "section": "Forces & Institutions",
    "count": 49,
@@ -8596,26 +8746,6 @@
     "online relationship"
    ],
    "note": "kept separate from social media (different film eras)"
-  },
-  {
-   "canonical": "air force",
-   "section": "Forces & Institutions",
-   "count": 39,
-   "members": [
-    "aerial combat",
-    "air force",
-    "air force base",
-    "air force one",
-    "air raid",
-    "fighter jet",
-    "fighter pilot",
-    "jet fighter pilot",
-    "military airplane",
-    "raf (royal air force)",
-    "u.s. air force",
-    "u.s. army air corps"
-   ],
-   "pillar": "Story"
   },
   {
    "canonical": "radio",
@@ -8655,22 +8785,6 @@
     "chinese communism",
     "stalinism",
     "anti-communism"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "spirituality",
-   "section": "Forces & Institutions",
-   "count": 31,
-   "members": [
-    "spirituality",
-    "spiritual journey",
-    "spiritualism",
-    "mysticism",
-    "guru",
-    "mystic",
-    "shaman",
-    "enlightenment"
    ],
    "pillar": "Story"
   },
@@ -8755,32 +8869,6 @@
    ],
    "pillar": "Story",
    "note": "moved Locations -> Forces & Institutions (placement review 2026-07-24); absorbed the securities, stocks and bonds board tag"
-  },
-  {
-   "canonical": "marine",
-   "section": "Forces & Institutions",
-   "count": 22,
-   "members": [
-    "ex-marine",
-    "marine",
-    "marine corps",
-    "u.s. marine"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "judaism",
-   "section": "Forces & Institutions",
-   "count": 22,
-   "members": [
-    "judaism",
-    "jewish family",
-    "rabbi",
-    "jewry",
-    "zionism",
-    "bar mitzvah"
-   ],
-   "pillar": "Story"
   },
   {
    "canonical": "labor union",
@@ -8868,16 +8956,6 @@
    "pillar": "Story"
   },
   {
-   "canonical": "islam",
-   "section": "Forces & Institutions",
-   "count": 12,
-   "members": [
-    "islam",
-    "muslim"
-   ],
-   "pillar": "Story"
-  },
-  {
    "canonical": "tribe",
    "pillar": "Story",
    "section": "Forces & Institutions",
@@ -8886,16 +8964,6 @@
     "tribe",
     "chieftain"
    ]
-  },
-  {
-   "canonical": "buddhism",
-   "section": "Forces & Institutions",
-   "count": 11,
-   "members": [
-    "buddhism",
-    "buddhist monk"
-   ],
-   "pillar": "Story"
   },
   {
    "canonical": "insurance",
@@ -10466,150 +10534,6 @@
    "note": "user: noose is not always execution — sometimes self harm"
   },
   {
-   "canonical": "sports",
-   "section": "Pursuits",
-   "count": 253,
-   "members": [
-    "sports",
-    "sport",
-    "sport competition",
-    "extreme sports",
-    "future sport",
-    "olympic games",
-    "skateboarding",
-    "ice skating",
-    "volleyball",
-    "cycling",
-    "cross country",
-    "world cup",
-    "parkour",
-    "the big game",
-    "penalty",
-    "medal",
-    "doping",
-    "runner",
-    "track and field",
-    "figure skating",
-    "fencing",
-    "bullfighting",
-    "ping pong",
-    "skydiving",
-    "bungee-jump",
-    "kids' sports team",
-    "mascot",
-    "cyclist",
-    "skateboarder",
-    "adrenaline junkie",
-    "athlete"
-   ],
-   "from_board": true,
-   "pillar": "Story",
-   "note": "the umbrella for generic strings + 3-8f micro-sports; big sports are own tags; athlete tag dissolved in (rethink wave 1)"
-  },
-  {
-   "canonical": "drugs",
-   "section": "Pursuits",
-   "count": 248,
-   "members": [
-    "drugs",
-    "cocaine",
-    "drug trafficking",
-    "heroin",
-    "meth lab",
-    "drug crime",
-    "magic mushroom",
-    "drug use",
-    "illegal drugs",
-    "drug dealing",
-    "war on drugs",
-    "drug deal",
-    "drug",
-    "synthetic drug",
-    "recreational drug use",
-    "drugged",
-    "drug scene",
-    "syringe",
-    "pill",
-    "pills",
-    "drug war"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "music",
-   "section": "Pursuits",
-   "count": 200,
-   "members": [
-    "music",
-    "pop music",
-    "rock music",
-    "classical music",
-    "folk music",
-    "rap music",
-    "music industry",
-    "music business",
-    "music history",
-    "live music",
-    "music record",
-    "music recording",
-    "music instrument",
-    "music video",
-    "rock 'n' roll",
-    "hip-hop",
-    "punk rock",
-    "heavy metal",
-    "karaoke",
-    "disco",
-    "swing",
-    "pop",
-    "banjo",
-    "cello",
-    "drums",
-    "fiddle",
-    "harmonica",
-    "telecaster",
-    "jukebox",
-    "acapella",
-    "gospel",
-    "hymn",
-    "boys' choir",
-    "blues",
-    "ragtime",
-    "grunge",
-    "mariachi",
-    "pink floyd",
-    "recording",
-    "recording session",
-    "recording contract",
-    "audio recording"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "alcohol",
-   "section": "Pursuits",
-   "count": 123,
-   "members": [
-    "alcohol",
-    "drinking",
-    "beer",
-    "wine",
-    "drink",
-    "whiskey",
-    "wine drinking",
-    "wine cellar",
-    "underage drinking",
-    "drunkenness",
-    "drunk",
-    "liquor",
-    "moonshine",
-    "sake",
-    "champagne",
-    "intoxication"
-   ],
-   "pillar": "Story"
-  },
-  {
    "canonical": "food",
    "section": "Pursuits",
    "count": 120,
@@ -10700,125 +10624,6 @@
    ]
   },
   {
-   "canonical": "gambling",
-   "section": "Pursuits",
-   "count": 82,
-   "members": [
-    "gambling",
-    "gambler",
-    "gambling debt",
-    "bet",
-    "lottery",
-    "wager",
-    "blackjack",
-    "roulette",
-    "card playing",
-    "pool billiards"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "dance",
-   "section": "Pursuits",
-   "count": 77,
-   "members": [
-    "dancing",
-    "dance",
-    "dance competition",
-    "dance performance",
-    "tap dancing",
-    "ballroom dancing",
-    "dance hall",
-    "dance club",
-    "dance instructor"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "filmmaking",
-   "pillar": "Story",
-   "section": "Pursuits",
-   "count": 74,
-   "members": [
-    "audition",
-    "backstage",
-    "cameraman",
-    "filmmaking",
-    "horror filmmaking",
-    "movie",
-    "recording studio"
-   ]
-  },
-  {
-   "canonical": "racing",
-   "section": "Pursuits",
-   "count": 74,
-   "members": [
-    "car race",
-    "horse race",
-    "horse racing",
-    "motor sport",
-    "nascar",
-    "race car",
-    "racehorse",
-    "racing",
-    "street race",
-    "race",
-    "speed",
-    "motorsport",
-    "formula one (f1)"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "concert",
-   "section": "Pursuits",
-   "count": 61,
-   "members": [
-    "concert",
-    "concert film",
-    "concert footage",
-    "rock concert",
-    "music festival",
-    "music tour"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "marijuana",
-   "pillar": "Story",
-   "section": "Pursuits",
-   "count": 58,
-   "members": [
-    "marijuana",
-    "pot smoking",
-    "stoner",
-    "weed",
-    "cannabis",
-    "stoner comedy"
-   ]
-  },
-  {
-   "canonical": "theater",
-   "section": "Pursuits",
-   "count": 54,
-   "members": [
-    "broadway",
-    "drive-in theater",
-    "filmed theater",
-    "live performance",
-    "live theatre",
-    "movie theater",
-    "stage",
-    "stage show",
-    "theater",
-    "theatre group",
-    "staging",
-    "audience"
-   ],
-   "pillar": "Story"
-  },
-  {
    "canonical": "training",
    "pillar": "Story",
    "section": "Pursuits",
@@ -10843,120 +10648,6 @@
    "note": "moved Setting/Era -> Story/Pursuits (rethink wave 3b, user): a leisure pursuit, not a time; absorbed weekend getaway from travel"
   },
   {
-   "canonical": "fashion",
-   "pillar": "Story",
-   "section": "Pursuits",
-   "count": 41,
-   "members": [
-    "fashion",
-    "fashion magazine",
-    "fashion show",
-    "modeling",
-    "supermodel",
-    "fashion designer",
-    "fashion industry",
-    "makeover",
-    "shopping"
-   ]
-  },
-  {
-   "canonical": "swimming",
-   "section": "Pursuits",
-   "count": 40,
-   "members": [
-    "swimming pool",
-    "swimming",
-    "nude swimming",
-    "skinny dipping"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "singing",
-   "section": "Pursuits",
-   "count": 37,
-   "members": [
-    "singing",
-    "singing competition",
-    "music competition",
-    "singing in a car"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "baseball",
-   "section": "Pursuits",
-   "count": 35,
-   "members": [
-    "baseball",
-    "baseball bat",
-    "baseball player"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "boxing",
-   "section": "Pursuits",
-   "count": 34,
-   "members": [
-    "boxing",
-    "female boxing",
-    "bare knuckle boxing"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "burlesque",
-   "pillar": "Story",
-   "section": "Pursuits",
-   "count": 34,
-   "members": [
-    "burlesque",
-    "cabaret",
-    "strip show",
-    "vaudeville"
-   ]
-  },
-  {
-   "canonical": "basketball",
-   "section": "Pursuits",
-   "count": 34,
-   "members": [
-    "basketball",
-    "national basketball association (nba)",
-    "basketball team",
-    "basketball player"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "band",
-   "section": "Pursuits",
-   "count": 33,
-   "members": [
-    "rock band",
-    "band",
-    "marching band",
-    "punk band",
-    "pop band",
-    "orchestra"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "smoking",
-   "pillar": "Story",
-   "section": "Pursuits",
-   "count": 31,
-   "members": [
-    "smoking",
-    "cigarette",
-    "cigar smoking",
-    "tobacco",
-    "lighter"
-   ]
-  },
-  {
    "canonical": "camping",
    "pillar": "Story",
    "section": "Pursuits",
@@ -10967,67 +10658,6 @@
     "campfire",
     "tent",
     "boy scouts"
-   ]
-  },
-  {
-   "canonical": "american football",
-   "pillar": "Story",
-   "section": "Pursuits",
-   "count": 29,
-   "members": [
-    "american football",
-    "high school american football"
-   ]
-  },
-  {
-   "canonical": "scuba diving",
-   "pillar": "Story",
-   "section": "Pursuits",
-   "count": 29,
-   "members": [
-    "scuba diving",
-    "scuba",
-    "diving",
-    "diver",
-    "diving suit",
-    "cave diving"
-   ]
-  },
-  {
-   "canonical": "football (soccer)",
-   "section": "Pursuits",
-   "count": 25,
-   "members": [
-    "football (soccer)",
-    "football (soccer) player"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "psychedelics",
-   "pillar": "Story",
-   "section": "Pursuits",
-   "count": 22,
-   "members": [
-    "psychedelics",
-    "lsd",
-    "psychedelic drug",
-    "hallucinogenic drug",
-    "hallucinogen",
-    "drug trip",
-    "opium",
-    "acid"
-   ]
-  },
-  {
-   "canonical": "sailing",
-   "pillar": "Story",
-   "section": "Pursuits",
-   "count": 20,
-   "members": [
-    "raft",
-    "rafting",
-    "sailing"
    ]
   },
   {
@@ -11044,120 +10674,6 @@
    ]
   },
   {
-   "canonical": "jazz",
-   "section": "Pursuits",
-   "count": 17,
-   "members": [
-    "jazz",
-    "jazz club"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "ballet",
-   "section": "Pursuits",
-   "count": 17,
-   "members": [
-    "ballet"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "opera",
-   "pillar": "Story",
-   "section": "Pursuits",
-   "count": 17,
-   "members": [
-    "opera",
-    "phantom of the opera",
-    "rock opera"
-   ]
-  },
-  {
-   "canonical": "climbing",
-   "section": "Pursuits",
-   "count": 17,
-   "members": [
-    "climbing",
-    "rock climbing",
-    "mountaineer",
-    "mountaineering"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "poker",
-   "section": "Pursuits",
-   "count": 16,
-   "members": [
-    "poker",
-    "poker game"
-   ],
-   "pillar": "Story",
-   "note": "user 2026-07-24: kept OWN beside gambling — poker is a skill game without house odds, stands on its own"
-  },
-  {
-   "canonical": "wrestling",
-   "section": "Pursuits",
-   "count": 15,
-   "members": [
-    "wrestling",
-    "pro wrestling"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "golf",
-   "section": "Pursuits",
-   "count": 14,
-   "members": [
-    "golf",
-    "golf club",
-    "driving range"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "surfing",
-   "section": "Pursuits",
-   "count": 13,
-   "members": [
-    "surfing",
-    "surfer",
-    "surfboard"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "country music",
-   "section": "Pursuits",
-   "count": 13,
-   "members": [
-    "country music"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "tennis",
-   "section": "Pursuits",
-   "count": 11,
-   "members": [
-    "tennis",
-    "tennis player",
-    "tennis pro"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "chess",
-   "pillar": "Story",
-   "section": "Pursuits",
-   "count": 11,
-   "members": [
-    "chess"
-   ]
-  },
-  {
    "canonical": "charity",
    "pillar": "Story",
    "section": "Pursuits",
@@ -11167,44 +10683,6 @@
     "fundraising",
     "volunteer"
    ]
-  },
-  {
-   "canonical": "archery",
-   "pillar": "Story",
-   "section": "Pursuits",
-   "count": 9,
-   "members": [
-    "archery",
-    "archer"
-   ]
-  },
-  {
-   "canonical": "ice hockey",
-   "section": "Pursuits",
-   "count": 8,
-   "members": [
-    "ice hockey"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "fishing",
-   "pillar": "Story",
-   "section": "Pursuits",
-   "count": 8,
-   "members": [
-    "fishing"
-   ]
-  },
-  {
-   "canonical": "skiing",
-   "section": "Pursuits",
-   "count": 7,
-   "members": [
-    "skiing",
-    "snow skiing"
-   ],
-   "pillar": "Story"
   },
   {
    "canonical": "friendship",
@@ -12169,6 +11647,261 @@
    ]
   },
   {
+   "canonical": "sports",
+   "section": "Sports",
+   "count": 253,
+   "members": [
+    "sports",
+    "sport",
+    "sport competition",
+    "extreme sports",
+    "future sport",
+    "olympic games",
+    "skateboarding",
+    "ice skating",
+    "volleyball",
+    "cycling",
+    "cross country",
+    "world cup",
+    "parkour",
+    "the big game",
+    "penalty",
+    "medal",
+    "doping",
+    "runner",
+    "track and field",
+    "figure skating",
+    "fencing",
+    "bullfighting",
+    "ping pong",
+    "skydiving",
+    "bungee-jump",
+    "kids' sports team",
+    "mascot",
+    "cyclist",
+    "skateboarder",
+    "adrenaline junkie",
+    "athlete"
+   ],
+   "from_board": true,
+   "pillar": "Story",
+   "note": "the umbrella for generic strings + 3-8f micro-sports; big sports are own tags; athlete tag dissolved in (rethink wave 1)"
+  },
+  {
+   "canonical": "racing",
+   "section": "Sports",
+   "count": 74,
+   "members": [
+    "car race",
+    "horse race",
+    "horse racing",
+    "motor sport",
+    "nascar",
+    "race car",
+    "racehorse",
+    "racing",
+    "street race",
+    "race",
+    "speed",
+    "motorsport",
+    "formula one (f1)"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "swimming",
+   "section": "Sports",
+   "count": 40,
+   "members": [
+    "swimming pool",
+    "swimming",
+    "nude swimming",
+    "skinny dipping"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "baseball",
+   "section": "Sports",
+   "count": 35,
+   "members": [
+    "baseball",
+    "baseball bat",
+    "baseball player"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "boxing",
+   "section": "Sports",
+   "count": 34,
+   "members": [
+    "boxing",
+    "female boxing",
+    "bare knuckle boxing"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "basketball",
+   "section": "Sports",
+   "count": 34,
+   "members": [
+    "basketball",
+    "national basketball association (nba)",
+    "basketball team",
+    "basketball player"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "american football",
+   "pillar": "Story",
+   "section": "Sports",
+   "count": 29,
+   "members": [
+    "american football",
+    "high school american football"
+   ]
+  },
+  {
+   "canonical": "scuba diving",
+   "pillar": "Story",
+   "section": "Sports",
+   "count": 29,
+   "members": [
+    "scuba diving",
+    "scuba",
+    "diving",
+    "diver",
+    "diving suit",
+    "cave diving"
+   ]
+  },
+  {
+   "canonical": "football (soccer)",
+   "section": "Sports",
+   "count": 25,
+   "members": [
+    "football (soccer)",
+    "football (soccer) player"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "sailing",
+   "pillar": "Story",
+   "section": "Sports",
+   "count": 20,
+   "members": [
+    "raft",
+    "rafting",
+    "sailing"
+   ]
+  },
+  {
+   "canonical": "climbing",
+   "section": "Sports",
+   "count": 17,
+   "members": [
+    "climbing",
+    "rock climbing",
+    "mountaineer",
+    "mountaineering"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "wrestling",
+   "section": "Sports",
+   "count": 15,
+   "members": [
+    "wrestling",
+    "pro wrestling"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "golf",
+   "section": "Sports",
+   "count": 14,
+   "members": [
+    "golf",
+    "golf club",
+    "driving range"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "surfing",
+   "section": "Sports",
+   "count": 13,
+   "members": [
+    "surfing",
+    "surfer",
+    "surfboard"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "tennis",
+   "section": "Sports",
+   "count": 11,
+   "members": [
+    "tennis",
+    "tennis player",
+    "tennis pro"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "chess",
+   "pillar": "Story",
+   "section": "Sports",
+   "count": 11,
+   "members": [
+    "chess"
+   ]
+  },
+  {
+   "canonical": "archery",
+   "pillar": "Story",
+   "section": "Sports",
+   "count": 9,
+   "members": [
+    "archery",
+    "archer"
+   ]
+  },
+  {
+   "canonical": "ice hockey",
+   "section": "Sports",
+   "count": 8,
+   "members": [
+    "ice hockey"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "fishing",
+   "pillar": "Story",
+   "section": "Sports",
+   "count": 8,
+   "members": [
+    "fishing"
+   ]
+  },
+  {
+   "canonical": "skiing",
+   "section": "Sports",
+   "count": 7,
+   "members": [
+    "skiing",
+    "snow skiing"
+   ],
+   "pillar": "Story"
+  },
+  {
    "canonical": "death",
    "section": "Themes",
    "count": 458,
@@ -12880,6 +12613,221 @@
    "pillar": "Story"
   },
   {
+   "canonical": "drugs",
+   "section": "Vices",
+   "count": 248,
+   "members": [
+    "drugs",
+    "cocaine",
+    "drug trafficking",
+    "heroin",
+    "meth lab",
+    "drug crime",
+    "magic mushroom",
+    "drug use",
+    "illegal drugs",
+    "drug dealing",
+    "war on drugs",
+    "drug deal",
+    "drug",
+    "synthetic drug",
+    "recreational drug use",
+    "drugged",
+    "drug scene",
+    "syringe",
+    "pill",
+    "pills",
+    "drug war"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "alcohol",
+   "section": "Vices",
+   "count": 123,
+   "members": [
+    "alcohol",
+    "drinking",
+    "beer",
+    "wine",
+    "drink",
+    "whiskey",
+    "wine drinking",
+    "wine cellar",
+    "underage drinking",
+    "drunkenness",
+    "drunk",
+    "liquor",
+    "moonshine",
+    "sake",
+    "champagne",
+    "intoxication"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "gambling",
+   "section": "Vices",
+   "count": 82,
+   "members": [
+    "gambling",
+    "gambler",
+    "gambling debt",
+    "bet",
+    "lottery",
+    "wager",
+    "blackjack",
+    "roulette",
+    "card playing",
+    "pool billiards"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "marijuana",
+   "pillar": "Story",
+   "section": "Vices",
+   "count": 58,
+   "members": [
+    "marijuana",
+    "pot smoking",
+    "stoner",
+    "weed",
+    "cannabis",
+    "stoner comedy"
+   ]
+  },
+  {
+   "canonical": "smoking",
+   "pillar": "Story",
+   "section": "Vices",
+   "count": 31,
+   "members": [
+    "smoking",
+    "cigarette",
+    "cigar smoking",
+    "tobacco",
+    "lighter"
+   ]
+  },
+  {
+   "canonical": "psychedelics",
+   "pillar": "Story",
+   "section": "Vices",
+   "count": 22,
+   "members": [
+    "psychedelics",
+    "lsd",
+    "psychedelic drug",
+    "hallucinogenic drug",
+    "hallucinogen",
+    "drug trip",
+    "opium",
+    "acid"
+   ]
+  },
+  {
+   "canonical": "poker",
+   "section": "Vices",
+   "count": 16,
+   "members": [
+    "poker",
+    "poker game"
+   ],
+   "pillar": "Story",
+   "note": "user 2026-07-24: kept OWN beside gambling — poker is a skill game without house odds, stands on its own"
+  },
+  {
+   "canonical": "army",
+   "section": "War & Conflict",
+   "count": 218,
+   "members": [
+    "army",
+    "us army",
+    "british army",
+    "japanese army",
+    "french army",
+    "red army",
+    "russian army",
+    "korean army",
+    "liberation army",
+    "turkish army",
+    "german army",
+    "ira (irish republican army)",
+    "u.s. army",
+    "union army",
+    "mexican army",
+    "roman army",
+    "people's liberation army",
+    "french liberation army",
+    "armies",
+    "battalion",
+    "female battalion",
+    "cavalry",
+    "infantry",
+    "troops",
+    "u.s. cavalry",
+    "roman legion",
+    "army nurse",
+    "army medic",
+    "army bugler",
+    "desertion",
+    "national guard",
+    "u.s. army soldier",
+    "private",
+    "raid",
+    "military",
+    "soviet military",
+    "us military",
+    "militia"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "elite force",
+   "section": "War & Conflict",
+   "count": 193,
+   "members": [
+    "mercenary",
+    "sniper",
+    "female sniper",
+    "sniper rifle",
+    "elite sniper",
+    "commando",
+    "super soldier",
+    "special forces",
+    "ex special forces",
+    "u.s. navy seal",
+    "u.s. army ranger",
+    "space marine",
+    "one man army",
+    "special unit",
+    "private military company",
+    "elite unit",
+    "elite forces",
+    "foreign legion",
+    "commando unit",
+    "elite commando",
+    "elite squad",
+    "special forces team",
+    "special ops",
+    "special ops team",
+    "special forces training",
+    "green beret",
+    "delta force",
+    "paratrooper",
+    "spetsnaz",
+    "military contractor",
+    "military contractors",
+    "contractor",
+    "gun for hire",
+    "female mercenary",
+    "marine sniper",
+    "two man army"
+   ],
+   "pillar": "Story"
+  },
+  {
    "canonical": "nazi",
    "section": "War & Conflict",
    "count": 115,
@@ -13012,6 +12960,26 @@
    "pillar": "Story"
   },
   {
+   "canonical": "navy",
+   "section": "War & Conflict",
+   "count": 52,
+   "members": [
+    "aircraft carrier",
+    "british navy",
+    "german navy",
+    "naval battle",
+    "naval battleship",
+    "naval combat",
+    "navy",
+    "nuclear submarine",
+    "royal navy",
+    "u.s. navy",
+    "battleship",
+    "coast guard"
+   ],
+   "pillar": "Story"
+  },
+  {
    "canonical": "rebellion",
    "section": "War & Conflict",
    "count": 51,
@@ -13089,6 +13057,26 @@
    "pillar": "Story"
   },
   {
+   "canonical": "air force",
+   "section": "War & Conflict",
+   "count": 39,
+   "members": [
+    "aerial combat",
+    "air force",
+    "air force base",
+    "air force one",
+    "air raid",
+    "fighter jet",
+    "fighter pilot",
+    "jet fighter pilot",
+    "military airplane",
+    "raf (royal air force)",
+    "u.s. air force",
+    "u.s. army air corps"
+   ],
+   "pillar": "Story"
+  },
+  {
    "canonical": "military occupation",
    "section": "War & Conflict",
    "count": 24,
@@ -13096,6 +13084,18 @@
     "japanese occupation of china",
     "japanese occupation of korea",
     "nazi occupation"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "marine",
+   "section": "War & Conflict",
+   "count": 22,
+   "members": [
+    "ex-marine",
+    "marine",
+    "marine corps",
+    "u.s. marine"
    ],
    "pillar": "Story"
   },
@@ -16224,6 +16224,11 @@
    "name": "rethink-wave-10-banked",
    "date": "2026-07-24",
    "note": "RETHINK WAVE 10 (Style & Format tag level) BANKED per user: peplum DISSOLVED->sword and sandal 12f (same genre, plain-English label) · cryonics->cryogenics 9f · ancient prophecy->prophecy · magical creature->mythical creature 82f · prehistoric creature->prehistoric animal [A&N] 14f (cross-pillar; real-extinct register). RULED KEEP: spaghetti western stays a Sub-genre (browsers read western flavor over production era) · undead (umbrella being-word) · spirit vs ghost · super power [Wondrous] / superhero [Sub-genre] split-pair deliberate. STYLE & FORMAT COMPLETE — architecture + tags. COMPREHENSIVE RETHINK remaining: the Story ARCHITECTURE pass (11 sections)."
+  },
+  {
+   "name": "rethink-wave-11-partial-banked",
+   "date": "2026-07-24",
+   "note": "STORY ARCHITECTURE partial bank per user (A2-A4; A1 Characters split under evaluation 2-way vs 3-way): NEW Crime section (19: murder 748f out of Events, + robbery/heist/kidnapping family + law-process chips investigation/undercover/falsely accused/on the run/interrogation/execution per user) · NEW Faith & Religion (8, out of F&I) · military orgs (army/navy/air force/marine/elite force) -> War & Conflict (war world consolidates ~22) · NEW Sports (20, incl. chess per user: mind sport) · NEW Arts & Performance (13, incl. fashion per user) · NEW Vices (7: drugs/alcohol/marijuana/psychedelics/smoking/gambling + poker riding WITH ITS OWN-TAG identity preserved — flag to user) · training stays Pursuits. PENDING: A1 Characters 2-way (Professions & Occupations vs Archetypes & People, DO-vs-ARE grain) or 3-way · renames for War & Conflict / Forces & Institutions / Pursuits-remainder (options going to user)."
   }
  ],
  "unassigned": [],
@@ -16344,7 +16349,12 @@
    "Themes",
    "Pursuits",
    "Animals & Nature",
-   "Objects & Weapons"
+   "Objects & Weapons",
+   "Crime",
+   "Faith & Religion",
+   "Sports",
+   "Arts & Performance",
+   "Vices"
   ],
   "Style & Format": [
    "Sub-genres & Styles",
