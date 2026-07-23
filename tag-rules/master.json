@@ -8856,18 +8856,6 @@
    "pillar": "Story"
   },
   {
-   "canonical": "energy",
-   "pillar": "Story",
-   "section": "Forces & Institutions",
-   "count": 13,
-   "members": [
-    "electricity",
-    "nuclear power plant",
-    "energy",
-    "electric shock"
-   ]
-  },
-  {
    "canonical": "diplomacy",
    "section": "Forces & Institutions",
    "count": 12,
@@ -8916,6 +8904,17 @@
    "members": [
     "insurance",
     "insurance agent"
+   ]
+  },
+  {
+   "canonical": "energy",
+   "pillar": "Story",
+   "section": "Forces & Institutions",
+   "count": 8,
+   "members": [
+    "electricity",
+    "energy",
+    "electric shock"
    ]
   },
   {
@@ -10212,10 +10211,10 @@
    "note": "sword-fights live with the sword (user: split by weapon)"
   },
   {
-   "canonical": "nuclear weapons",
+   "canonical": "nuclear",
    "pillar": "Story",
    "section": "Objects & Weapons",
-   "count": 79,
+   "count": 83,
    "members": [
     "atomic bomb",
     "atomic bomb test",
@@ -10229,8 +10228,11 @@
     "nuclear radiation",
     "radiation",
     "radiation sickness",
-    "radioactivity"
-   ]
+    "radioactivity",
+    "nuclear",
+    "nuclear power plant"
+   ],
+   "note": "renamed from nuclear weapons + absorbed nuclear power plant (user Option A, 2026-07-24): ONE nuclear shelf — bombs, war, fallout, meltdowns; energy keeps the electric family"
   },
   {
    "canonical": "mask",
@@ -16255,6 +16257,11 @@
    "name": "rethink-wave-9-architecture-banked",
    "date": "2026-07-24",
    "note": "STYLE & FORMAT RE-ARCHITECTURE BANKED per user: Worlds & Lore RETIRED, split 3 ways — Creatures & Beings (28: monster/alien/zombie/vampire/ghost[the being]/robots family) · Magic & the Supernatural (25: magic/occult/haunting[the phenomenon]/curse/afterlife family) · Wondrous Worlds (30, user label over Speculative Worlds: dystopia/time travel/alternate reality/AI/science family). superhero + fairy tale -> Sub-genres & Styles (user: genre reads). maze -> Setting/Locations (a built place). comic book DISSOLVED -> based on comic. NEW Cinema Movements section (8 movement tags as own tags, NOT merged — user confirmed section-not-lump: neorealism, expressionism, new wave cinema, dogme 95, mumblecore, pre-code, grindhouse + avant-garde ex-Format). Based On & Franchise SPLIT: Franchise (sequel/prequel/remake/reboot/spin off = production lineage) vs Based On (15 source-material tags). narration -> Narrative Devices. Style & Format = 9 one-kind-of-thing sections. OPEN: single-nuclear question (user deciding)."
+  },
+  {
+   "name": "nuclear-single-shelf",
+   "date": "2026-07-24",
+   "note": "user Option A: nuclear weapons RENAMED nuclear + absorbed nuclear power plant from energy — one ~82f nuclear shelf (weapons default-read preserved per user); energy keeps electricity/energy/electric shock. ROADMAP CLARIFICATION (user): the section-ARCHITECTURE pass just run on Style & Format must ALSO run on Story (its sections were tag-scanned in waves 4-8 but never architecture-evaluated); Style & Format still needs its TAG-LEVEL scan. Order chosen: S&F tag scan first (closes the pillar), then Story architecture as the final rethink act."
   }
  ],
  "unassigned": [],
