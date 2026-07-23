@@ -1,0 +1,32 @@
+-- Drops the GIN index 0009 put on raw_tmdb_movies.payload.
+--
+-- It was added on the reasoning that "the report and the adapter both reach
+-- into the payload by key, so GIN keeps those lookups from degrading into a
+-- full scan." That reasoning was wrong about the access pattern. Neither
+-- consumer does a selective lookup:
+--
+--   - the report reads every payload and aggregates in JS
+--   - the adapter transforms every row into the shared catalog
+--
+-- Both are full scans BY DESIGN. A GIN index earns its keep on queries that
+-- select a small subset of rows; it does nothing for a job that visits all of
+-- them, and it is not free — measured against the real corpus:
+--
+--   table                 123 MB
+--   payload GIN index     205 MB   <- larger than the data, 0 index scans
+--
+-- Indexing every key and every string in a ~70KB document (all cast names,
+-- character names, the overview, every provider in every region) is what makes
+-- it bigger than the table. Dropping it takes raw_tmdb_movies from 328 MB to
+-- ~123 MB, which matters on a 500 MB tier.
+--
+-- If an ad-hoc "which films have keyword X" query ever justifies an index
+-- here, don't restore this one — a seq scan over 6.5k rows is already fast,
+-- and if it genuinely needed indexing, a targeted expression index on the
+-- extracted subpath (or jsonb_path_ops, which indexes values rather than every
+-- key AND value) would be a fraction of the size.
+--
+-- raw_tmdb_movies_seed_buckets_idx is kept: it's 80 kB, and "which bucket
+-- produced this film" is a real reporting axis.
+
+drop index if exists public.raw_tmdb_movies_payload_idx;

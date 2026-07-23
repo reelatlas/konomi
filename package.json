@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "import:anilist": "tsx --env-file=.env.local scripts/import-anilist.ts"
+    "import:anilist": "tsx --env-file=.env.local scripts/import-anilist.ts",
+    "import:tmdb": "tsx --env-file=.env.local scripts/import-tmdb.ts",
+    "promote:tmdb": "tsx --env-file=.env.local scripts/promote-tmdb.ts",
+    "delta:tmdb": "tsx --env-file=.env.local scripts/delta-report-tmdb.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",

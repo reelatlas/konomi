@@ -858,11 +858,43 @@ raw** (zero requests): card-back flatrate links, JustWatch attribution required,
 post-MVP topping. ⑥ **Import delta report**: after every pull — auto-integrated / manual
 queue w/ suggested homes / IA-pressure flags — rendered as an artifact board.
 
-**⏭️ WHAT REMAINS OF STEP ⑤ = IMPLEMENTATION:** write the promote code (reads master.json +
-adapter-config.json → fills the shared catalog partition) · the certifications hydrate pass ·
-the delta-report generator · shared-catalog schema for the film partition. Then UI. Surface
-board artifact 0af35cf2 visualizes every banked layer; boards cc16cb4a (master) + c3f4e8e9
-(review) unchanged.
+## ✅ STEP ⑤ IMPLEMENTATION — SHIPPED & VERIFIED (2026-07-24 · the catalog is LIVE)
+
+**The film partition is live in the database and every cross-check passed.**
+- **Migration `0012_add_film_catalog.sql` APPLIED**: films / film_tags / film_tag_links,
+  mirroring the anime patterns (RLS public-read, service-role writes, set_updated_at,
+  join+count scoring shape, 0002/0003-style grants). Column-vs-join rule: closed vocab →
+  columns (genres, reception, certification, decade, language, countries — the series.genres
+  precedent); open vocab → the tags join; per-value metadata → jsonb (watch_providers — the
+  streaming_services precedent).
+- **Certifications backfill DONE**: release_dates appended to all 8,531 raw payloads, 0
+  failures; `import-tmdb.ts` APPEND_TO_RESPONSE now includes release_dates for future pulls.
+  Cert present on 7,138 films (83.7%). Providers present on 5,158 (60.5%).
+- **`npm run promote:tmdb`** (scripts/promote-tmdb.ts): full-rebuild promote reading
+  master.json + adapter-config.json. LIVE NUMBERS: 8,531 films · 14,996 tags (kw 1,120 ·
+  actors 6,862 · directors 931 · studios 1,978 · producers 2,020 · cinematographers 831 ·
+  composers 660 · sagas 594) · 177,219 links · **era-defining 202** (locked §8 recipe;
+  corpus mean measured 6.754; expected ~205 ✓).
+- **CROSS-CHECKS ALL PASS**: kw 1,120 exact · kw-at-buff 404 exact · sagas 594 exact ·
+  saga-named films 2,170 exact · people/studio coverage within 0.2% of §7. Spot-checks:
+  Goldfinger (1960s · PG · James Bond shelf-true · Connery · mega-roi) · Fight Club (R ·
+  era-defining · broke-even · fourth-wall kw) · Spirited Away (Ghibli studio tag ·
+  era-defining · film-side record, isolation intact).
+- **BUG FOUND & FIXED in verification**: 26 raw TMDB keyword strings carry stray trailing
+  whitespace ("oil rig ") — promote + delta report now trim on read (the alias map holds
+  trimmed forms; "exact corpus strings" = exact after whitespace normalization).
+- **`npm run delta:tmdb`** (scripts/delta-report-tmdb.ts): the part-6 report is REAL —
+  first run created the `tag-rules/kw-seen.json` baseline (committed; delta-report.html is
+  gitignored) and SELF-VALIDATED the whole system: manual queue = exactly the 15 dropped
+  genre words · count drift = 0 rows (live db matches master.json perfectly) · 349 sagas
+  sit at the ≥2 boundary. Run after every pull; `-- --update` accepts the new baseline
+  after review.
+
+**⏭️ NEXT: UI.** The data layer is complete — the app can now read the film partition
+(same join+count scoring query as anime). Post-MVP list stands: per-section floors · Map
+restructure · rating transform · provider refresh topping · certifications facet polish ·
+foreign ingest bucket · writers re-measure. Surface board artifact 0af35cf2 visualizes
+every layer; boards cc16cb4a (master) + c3f4e8e9 (review) unchanged.
 
 **STEP ⑤ PART 3 ✅ BANKED (user, 2026-07-24) — the Sagas shelf, in adapter-config.json.**
 Measured from raw payloads (zero new requests): 25.4% of corpus (2,170 films) carries

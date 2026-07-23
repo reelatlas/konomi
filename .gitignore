@@ -42,3 +42,6 @@ next-env.d.ts
 
 # sandbox
 /_sandbox/
+
+# generated per-pull review page (delta:tmdb) — the kw-seen.json BASELINE is committed, the report is not
+delta-report.html
