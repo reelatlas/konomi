@@ -15574,14 +15574,15 @@
    "pillar": "Style"
   },
   {
-   "canonical": "artificial intelligence (a.i.)",
+   "canonical": "artificial intelligence (ai)",
    "section": "Wondrous worlds",
    "count": 67,
    "members": [
     "artificial intelligence (a.i.)"
    ],
    "from_board": true,
-   "pillar": "Style"
+   "pillar": "Style",
+   "note": "label modernized: (a.i.) -> (ai) per user 2026-07-24; corpus member strings unchanged"
   },
   {
    "canonical": "fantasy world",
@@ -16244,6 +16245,11 @@
    "name": "naming-complete",
    "date": "2026-07-24",
    "note": "NAMING COMPLETE: Craft & format + Narrative devices MERGED under FILMCRAFT (user; browse-model argument won — found footage proves making-vs-telling was taxonomist-real not browser-real; ~30 tags, the film-as-craft shelf). FILM-SIDE LEVEL NAMES loosely settled (user): Moviegoer · Film buff · Cinephile — alternates NOTED for later exploration: Casual/Buff/Cinephile · Matinee/Marquee/Criterion (Criterion brand caution) · Viewer/Buff/Auteur. FINAL STRUCTURE: 4 pillars / 34 sections — Feel (Mood, Attitude) · Setting (Era, Time of year, Regions, Map, Natural world, Built world, Vessels) · Story (Archetypes & people, Professions, Crime, Events & actions, Themes, Mind & health, Identity, Love & family, Faith, Engines of society, War & conflict, Sports, Arts & performance, Vices, Pursuits & hobbies, Animals & nature, Objects & weapons) · Style (Sub-genres, Wondrous worlds, Bestiary, Arcana, Filmcraft, Based on, Cinema waves, Sagas). Sentence-case standard everywhere. NEXT: step 5 adapter."
+  },
+  {
+   "name": "label-ai",
+   "date": "2026-07-24",
+   "note": "label rename: artificial intelligence (a.i.) -> artificial intelligence (ai) (user; members untouched — exact corpus strings preserved)"
   }
  ],
  "unassigned": [],
