@@ -905,6 +905,15 @@ User re-confirmed the full data architecture before step ⑤; verified consisten
 expand → hydrate → report; raw landing untouched, jsonb, no hand schema); promote rules live
 with the adapter (floors, weights, label precedence, franchise shelf). Anime and movie stay
 separated at the pull, unified at the shared catalog so the app experience is seamless.
+**ISOLATION CLARIFIED (user confirm, 2026-07-24): "unified" = same schema/infrastructure and
+UI patterns, NEVER mixed data.** The catalog is partitioned by medium/source; the anime side
+reads only AniList-derived rows and tags, the film side only TMDB-derived rows and tags. Tag
+pools are disjoint objects (a film tag's members are film ids — it cannot return anime, and
+vice versa), so the recommend engine is isolated per side by construction. The UI toggle
+flips which partition the whole surface reads. Known conceptual overlap, not a data bleed:
+anime FILMS (e.g. Ghibli features) exist on both sides as separate records from their
+separate sources — by design (sweep-17 standing direction: AniList owns anime granularity;
+the film side maps anime vocab to film-native tags).
 
 ### TMDB API inventory (what exists vs what we use — checked 2026-07-24)
 | Data | Status |
