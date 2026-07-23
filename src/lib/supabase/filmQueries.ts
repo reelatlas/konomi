@@ -96,50 +96,74 @@ interface RawFilmTagRow {
 
 const PAGE = 500;
 
-export async function getFilmCatalog(): Promise<Catalog> {
-  // Stored tags first (~15k rows, paged) — film_count/min_level are already
-  // computed by the promote script, so no client-side stat pass is needed
-  // the way the anime side derives seriesCount/avgRank.
-  const storedTags: TagInfo[] = [];
-  for (let off = 0; ; off += 1000) {
-    const { data, error } = await supabase
-      .from("film_tags")
-      .select("type, name, section, film_count, min_level")
-      .order("id")
-      .range(off, off + 999)
-      .returns<RawFilmTagRow[]>();
-    if (error) throw new Error(`Failed to load film tags from Supabase: ${error.message}`);
-    for (const t of data ?? []) {
-      storedTags.push({
-        name: t.name,
-        // kw rows carry their master-ruled section; credit/saga rows carry
-        // null and get their home from their type.
-        category: t.type === "kw" ? t.section : (TYPE_CATEGORY[t.type] ?? null),
-        seriesCount: t.film_count,
-        avgRank: null,
-        isGenre: false,
-        minLevel: MIN_LEVEL_MAP[t.min_level] ?? "3",
-      });
-    }
-    if ((data ?? []).length < 1000) break;
-  }
+// Count the table once, then fetch the pages CONCURRENTLY in bounded waves
+// — the pages are independent range reads over a stable ORDER BY, so fully
+// serializing them was pure wasted wall-clock (measured: the sequential
+// version's ~33 dependent round trips dominated /film's load, worst in dev
+// where nothing caches the route). Bounded, not unbounded: firing all 18
+// film pages at once hit Postgres statement timeouts (each page joins the
+// 177k-row links table — measured, not theoretical), so waves of
+// PAGE_CONCURRENCY keep the DB comfortably inside its limits while still
+// collapsing the latency. Pages land in index order either way, so the
+// result is exactly as ordered as the sequential loop's was.
+const PAGE_CONCURRENCY = 5;
 
-  // Films with their linked tag names embedded (the anime-side resource-
-  // embedding pattern), paged under PostgREST's row cap.
-  const rows: RawFilmRow[] = [];
-  for (let off = 0; ; off += PAGE) {
-    const { data, error } = await supabase
-      .from("films")
-      .select(
-        "title, year, runtime, rating, genres, reception, certification, original_language, countries, decade, saga_name, overview, poster_path, watch_providers, watch_link, film_tag_links(film_tags(name))",
-      )
-      .order("title")
-      .range(off, off + PAGE - 1)
-      .returns<RawFilmRow[]>();
-    if (error) throw new Error(`Failed to load film catalog from Supabase: ${error.message}`);
-    rows.push(...(data ?? []));
-    if ((data ?? []).length < PAGE) break;
+async function fetchAllPaged<T>(table: string, select: string, orderCol: string, pageSize: number): Promise<T[]> {
+  const { count, error: countError } = await supabase.from(table).select(orderCol, { count: "exact", head: true });
+  if (countError || count === null) {
+    throw new Error(`Failed to count ${table} from Supabase: ${countError?.message ?? "no count returned"}`);
   }
+  const pageCount = Math.ceil(count / pageSize);
+  const fetchPage = (i: number) =>
+    supabase
+      .from(table)
+      .select(select)
+      .order(orderCol)
+      .range(i * pageSize, i * pageSize + pageSize - 1)
+      .then(({ data, error }) => {
+        if (error) throw new Error(`Failed to load ${table} from Supabase: ${error.message}`);
+        return (data ?? []) as T[];
+      });
+  const pages: T[][] = [];
+  for (let start = 0; start < pageCount; start += PAGE_CONCURRENCY) {
+    const wave = await Promise.all(
+      Array.from({ length: Math.min(PAGE_CONCURRENCY, pageCount - start) }, (_, j) => fetchPage(start + j)),
+    );
+    pages.push(...wave);
+  }
+  return pages.flat();
+}
+
+export async function getFilmCatalog(): Promise<Catalog> {
+  // Stored tags (~15k rows) and films-with-linked-tag-names (the anime-side
+  // resource-embedding pattern) — the two fetches are independent of each
+  // other too, so they also run concurrently. film_count/min_level are
+  // already computed by the promote script, so no client-side stat pass is
+  // needed the way the anime side derives seriesCount/avgRank.
+  const [tagRows, rows] = await Promise.all([
+    fetchAllPaged<RawFilmTagRow>("film_tags", "type, name, section, film_count, min_level", "id", 1000),
+    // Ordered by tmdb_id, not title: range pagination needs a UNIQUE sort
+    // column or rows can straddle page boundaries on ties (duplicate
+    // titles genuinely exist — remakes), silently duplicating/dropping
+    // films. Series order doesn't matter downstream (scorePool shuffles).
+    fetchAllPaged<RawFilmRow>(
+      "films",
+      "title, year, runtime, rating, genres, reception, certification, original_language, countries, decade, saga_name, overview, poster_path, watch_providers, watch_link, film_tag_links(film_tags(name))",
+      "tmdb_id",
+      PAGE,
+    ),
+  ]);
+
+  const storedTags: TagInfo[] = tagRows.map((t) => ({
+    name: t.name,
+    // kw rows carry their master-ruled section; credit/saga rows carry
+    // null and get their home from their type.
+    category: t.type === "kw" ? t.section : (TYPE_CATEGORY[t.type] ?? null),
+    seriesCount: t.film_count,
+    avgRank: null,
+    isGenre: false,
+    minLevel: MIN_LEVEL_MAP[t.min_level] ?? "3",
+  }));
 
   // Synthesized-tag film counts, accumulated in one pass.
   const counts = {
@@ -189,7 +213,12 @@ export async function getFilmCatalog(): Promise<Catalog> {
       title: row.title,
       year: row.year,
       eps: null,
-      tags: [...linked, ...synthesized],
+      // Set-dedupe: one person credited in multiple roles on the SAME film
+      // (Tom Six directs AND produces) links two same-named tags, and the
+      // duplicate name reaching the card's tag row was a real React
+      // duplicate-key error (confirmed live). A film's tag list is
+      // conceptually a set; scoring (includes-based) is unaffected.
+      tags: [...new Set([...linked, ...synthesized])],
       coverImageUrl: row.poster_path ? `${TMDB_IMG}/w500${row.poster_path}` : null,
       genres: row.genres ?? [],
       // ×10: TMDB's 0-10 vote_average onto the shared 0-100 scale — see
