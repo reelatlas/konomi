@@ -19,7 +19,25 @@
  },
  "rating": {
   "display": "raw TMDB vote_average — MVP default per user 2026-07-24",
-  "post_mvp": "user-owned distribution transform (and any §8 shrink/percentile machinery it keeps or replaces)"
+  "post_mvp": "user-owned custom rating mechanism (separate from and after MVP; era-defining ships at MVP with the locked §8 recipe)"
+ },
+ "reception_mvp": {
+  "_comment": "ALL 14 reception tags ship at MVP (user 2026-07-24). 13 are per-film raw-field thresholds; era-defining is the one corpus-wide computation (locked §8 recipe: m=1000 shrink, top slice within decade, vc floor). Computed at promote, never at ingest. Sometimes-layer: films with no qualifying tag show genres only.",
+  "acclaimed": "va>=7.2 & vc>=2000",
+  "era-defining": "LOCKED §8 recipe: shrunk = (va*vc + 6.5*1000)/(vc+1000), top slice within release decade, vc floor per §8",
+  "divisive": "va 4.5-6.5 & vc>=600",
+  "infamous": "bottom ~300 by va at vc>=500 (~va<=5.35)",
+  "famous": "vc>=3000",
+  "underseen": "va>=7.2 & vc 100-800",
+  "niche favourite": "va>=7.2 & vc 800-2500",
+  "buzzing": "snapshot-frozen popularity top 500",
+  "blockbuster": "top 200 by revenue",
+  "big-budget": "budget>=100000000",
+  "mega-roi": "revenue/budget>=5 (both fields>$10k)",
+  "hit": "ratio 2.5-5 (both>$10k)",
+  "broke-even": "ratio 1-2.5 (both>$10k)",
+  "flop": "ratio<1 (both>$10k)",
+  "stacking": "box-office ROI bands mutually exclusive; blockbuster + big-budget + one ROI band may co-occur; all reception tags stack freely otherwise"
  },
  "rules": {
   "universal_floor": "one floor for all sections at film buff; per-section tuning deferred post-launch",

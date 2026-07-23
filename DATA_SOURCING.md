@@ -837,8 +837,34 @@ checked-in knob file.** Three distinct experiences BY DESIGN (MVP; tune in produ
 - Section reading order banked in pillar_tree (user final; SPORTS inserted between Faith and
   Arts & performance — flagged, unconfirmed). Board has live floor control + collapse toggle.
 - **DEFERRED post-launch (user):** per-section floor tweaks · Map restructure/condensing ·
-  level-name final confirm. ⏭️ NEXT in step ⑤: genre passthrough + reception & user rating
-  transform · franchise shelf · credits · facts · import delta report.
+  level-name final confirm. ⏭️ NEXT in step ⑤: franchise shelf · credits · facts · import
+  delta report.
+
+**STEP ⑤ PART 2 ✅ BANKED (user, 2026-07-24) — genres + reception, in adapter-config.json:**
+genres = passthrough (19, wt-100). **ALL 14 reception tags ship at MVP** — 13 as raw-field
+thresholds + **era-defining IN MVP** via the locked §8 recipe (user clarified: only their
+custom rating mechanism is post-MVP; era-defining and default TMDB ratings ship now).
+Display rating = raw vote_average. Box-office stacking rule recorded (ROI bands exclusive
+among themselves; blockbuster/big-budget stack freely — Avatar is all three, John Carter is
+big-budget flop).
+
+### Foreign-film ingest probe — MEASURED 2026-07-24 (back-pocket; nothing built)
+User asked to size a possible foreign-only corpus bucket. Results (scratchpad
+`foreign-probe.json`):
+- **A global "top-voted non-English" bucket is worthless: 93% overlap.** In TMDB's top
+  3,000 films by vote count only 204 are non-English (6.8% — measured proof of WHY vote
+  gates skew English), and **190 of those 204 are already in the corpus.** The 14 missing
+  are the vc 1,800–2,500 / va<7.2 slice (The Cat Returns, Taxi 2, Colonia, Look Who's
+  Back…) — fr 5, ja 2, it 2, de 2, da/es/sv 1 each.
+- **A stratified per-language bucket is the real formula if ever wanted** (the era-bucket
+  logic applied to geography: vote gates skew English like they skew modern). Top-60 per
+  language, in-corpus coverage: ja 54/60 · it 50 · fr 49 · es 47 · cn 41 · ko 44 · zh 31 ·
+  de 28 · sv 23 · da 21 · pt 20 · ru 19 · th 14 · tr 12 · **hi 11/60 (Bollywood is the
+  biggest gap)**. A 15-language top-60 bucket would add ~430 films, concentrated in
+  Hindi/Turkish/Thai/Russian/Portuguese/Scandinavian commercial cinema (per-language vc
+  floors are thin there: hi 266, tr 130, th 60 — TMDB voting is shallow in those markets).
+- UI framing when revisited: "original language / country of production" facts (already
+  100% coverage, land free in the facts adapter) rather than a "foreign" label.
 
 **HELD IDEA (user, 2026-07-24):** a future all-section-names pass — concise with a touch of
 flair, `Engines of Society` as the model. Board artifact cc16cb4a now has a collapse-sub-tags
