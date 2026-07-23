@@ -17,6 +17,10 @@
   "buff_zero_kw_films": 459,
   "sections_empty_at_buff": ["Style/Cinema waves"]
  },
+ "rating": {
+  "display": "raw TMDB vote_average — MVP default per user 2026-07-24",
+  "post_mvp": "user-owned distribution transform (and any §8 shrink/percentile machinery it keeps or replaces)"
+ },
  "rules": {
   "universal_floor": "one floor for all sections at film buff; per-section tuning deferred post-launch",
   "empty_section_hidden": "a section with zero tags above the active floor is not selectable in the UI (it would be empty), never an error",
