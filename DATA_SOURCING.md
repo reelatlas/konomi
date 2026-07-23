@@ -823,14 +823,22 @@ surface). API considers awaiting decisions: certifications · watch/providers ·
 for later: Casual/Buff/Cinephile · Matinee/Marquee/Criterion (brand caution) · Viewer/Buff/
 Auteur.
 
-**STEP ⑤ PART 1 ⏳ AWAITING RULINGS (artifact c3f4e8e9 `adapter-part-1-floors-levels`,
-2026-07-24):** measured tag-pool gating proposal — Moviegoer = genres + corpus identifiers
-only · Film buff = per-section display floors (default 15 · Map/Regions 20 · seven small
-sections unfloored) → 876 tags · Cinephile = all 1,120. Measured: 8,531 films, 8.7 tags/film
-mean, 338 zero-tag films ride genres+identifiers; floors prune browse dust (Map 132→42) not
-cards (8.7→8.4). Heat = percentile-within-section (guardrail honored); card cap deferred to
-UI. Open: Cinema-waves-at-buff (REC yes) · Identity floor 15-vs-10 (heritage micro-tags) ·
-zero-tag fallback confirm. On bank: config becomes a checked-in adapter JSON.
+**STEP ⑤ PART 1 ✅ DECIDED (user, 2026-07-24) — `tag-rules/adapter-config.json` is the
+checked-in knob file.** Three distinct experiences BY DESIGN (MVP; tune in production):
+- **Moviegoer = 33 tags** (19 genres + 14 reception; tag-kw OFF)
+- **Film buff = 437 tags** (UNIVERSAL floor 55 — severe on purpose; no per-section gating
+  for now) · buff cards average 6.7 tags · 459 films kw-less at buff → genre/reception ride
+- **Cinephile = 1,153 tags** (no floor — the full pool; the buff→cinephile jump is dramatic
+  and intended)
+- **Empty-section rule:** a section with nothing above the active floor is simply not
+  selectable in the UI (at 55 exactly one hides at buff: Cinema waves — max tag 30f).
+- **Zero-kw fallback CONFIRMED**; measured cause: 315 films have NO keywords on TMDB at all
+  (keywords are community-contributed) + 23 carry only sub-floor strings.
+- Section reading order banked in pillar_tree (user final; SPORTS inserted between Faith and
+  Arts & performance — flagged, unconfirmed). Board has live floor control + collapse toggle.
+- **DEFERRED post-launch (user):** per-section floor tweaks · Map restructure/condensing ·
+  level-name final confirm. ⏭️ NEXT in step ⑤: genre passthrough + reception & user rating
+  transform · franchise shelf · credits · facts · import delta report.
 
 **HELD IDEA (user, 2026-07-24):** a future all-section-names pass — concise with a touch of
 flair, `Engines of Society` as the model. Board artifact cc16cb4a now has a collapse-sub-tags

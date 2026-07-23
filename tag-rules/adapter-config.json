@@ -1,0 +1,28 @@
+{
+ "_comment": "Konomi film tag-pool adapter config — the tunable knobs for level gating. Decided 2026-07-24 (user); floor 55 is the STARTING value for MVP, revise freely. Per-section floor tuning and Map restructuring deliberately deferred until seen live in production.",
+ "version": 1,
+ "date": "2026-07-24",
+ "levels": {
+  "moviegoer": { "genres": true, "reception": true, "tag_kw": false },
+  "film buff": { "genres": true, "reception": true, "tag_kw": true, "floor": 55 },
+  "cinephile": { "genres": true, "reception": true, "tag_kw": true, "floor": null }
+ },
+ "measured_at_floor_55": {
+  "moviegoer_tags": 33,
+  "film_buff_tags": 437,
+  "film_buff_tag_kw": 404,
+  "cinephile_tags": 1153,
+  "cinephile_tag_kw": 1120,
+  "buff_tags_per_film_mean": 6.7,
+  "buff_zero_kw_films": 459,
+  "sections_empty_at_buff": ["Style/Cinema waves"]
+ },
+ "rules": {
+  "universal_floor": "one floor for all sections at film buff; per-section tuning deferred post-launch",
+  "empty_section_hidden": "a section with zero tags above the active floor is not selectable in the UI (it would be empty), never an error",
+  "zero_kw_fallback": "films with no tag-kw surface on genres + reception at every level — intended (315 corpus films have no TMDB keywords at all; 23 carry only sub-floor strings)",
+  "heat": "rarity/heat is percentile WITHIN section, never a global percentage (measured guardrail)",
+  "section_order": "display order = pillar_tree order in master.json",
+  "tag_terminology": "tags = collective (genres + reception + tag-kw); tag-kw when the keyword layer needs distinguishing"
+ }
+}
