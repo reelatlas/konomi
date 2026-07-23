@@ -4916,6 +4916,760 @@
    "note": "user rule: kept separate from crocodile"
   },
   {
+   "canonical": "villain",
+   "section": "Archetypes & People",
+   "count": 376,
+   "members": [
+    "villain",
+    "antagonistic",
+    "super villain",
+    "female villain",
+    "villainess",
+    "villain arrested",
+    "anti villain",
+    "tragic villain",
+    "masked villain",
+    "supervillain",
+    "world domination",
+    "henchmen",
+    "nemesis",
+    "evil plot",
+    "evil",
+    "perfect crime"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "hero",
+   "section": "Archetypes & People",
+   "count": 266,
+   "members": [
+    "hero",
+    "action hero",
+    "anti hero",
+    "war hero",
+    "tragic hero",
+    "heroine",
+    "teenage hero",
+    "hero's journey",
+    "folk hero",
+    "dark hero",
+    "reluctant hero",
+    "female hero",
+    "origin of hero",
+    "child hero",
+    "young heroes",
+    "one against many",
+    "heroic mission"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "serial killer",
+   "section": "Archetypes & People",
+   "count": 230,
+   "members": [
+    "serial killer",
+    "mass murder",
+    "series of murders",
+    "killing spree",
+    "multiple murder",
+    "murder spree",
+    "psycho killer",
+    "killing a dog",
+    "animal killing",
+    "sadistic killer",
+    "jack the ripper",
+    "hannibal lecter"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "teenager",
+   "section": "Archetypes & People",
+   "count": 194,
+   "members": [
+    "teenage girl",
+    "teenager",
+    "teenage boy",
+    "teen angst",
+    "troubled teen",
+    "pre-teen",
+    "runaway teen",
+    "disturbed teenager",
+    "teenage angst",
+    "teenage life",
+    "rebellious youth",
+    "youth",
+    "generation z"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "royalty",
+   "section": "Archetypes & People",
+   "count": 191,
+   "members": [
+    "monarchy",
+    "king",
+    "queen",
+    "king of england",
+    "british monarchy",
+    "royal family",
+    "evil queen",
+    "evil king",
+    "king of france",
+    "royalty",
+    "princess",
+    "prince",
+    "heir to the throne",
+    "kingdom",
+    "emperor",
+    "sultan",
+    "coronation",
+    "royal court",
+    "concubine",
+    "chinese emperor",
+    "czar / tsar / tzar",
+    "feudal lord"
+   ],
+   "pillar": "Story",
+   "note": "renamed from monarchy 2026-07-21 — people-dominant members, kept in Characters; monarchy/british monarchy stay as members"
+  },
+  {
+   "canonical": "protagonist",
+   "section": "Archetypes & People",
+   "count": 156,
+   "members": [
+    "female protagonist",
+    "teenage protagonist",
+    "child protagonist"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "prostitute",
+   "section": "Archetypes & People",
+   "count": 149,
+   "members": [
+    "prostitute",
+    "prostitution",
+    "illegal prostitution",
+    "male prostitution",
+    "child prostitution",
+    "forced prostitution",
+    "sex worker",
+    "escort",
+    "call girl",
+    "pimp",
+    "courtesan",
+    "gigolo",
+    "whorehouse",
+    "callboy"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "psychopath",
+   "section": "Archetypes & People",
+   "count": 137,
+   "members": [
+    "psychopath",
+    "sociopath",
+    "sadistic psychopath",
+    "psycho",
+    "female psychopath"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "child",
+   "section": "Archetypes & People",
+   "count": 114,
+   "members": [
+    "child",
+    "little boy",
+    "young boy",
+    "little girl",
+    "boy",
+    "young girl",
+    "kids",
+    "adult child friendship",
+    "boys",
+    "kids on their own",
+    "children's adventure",
+    "child's point of view",
+    "children's perspectives",
+    "helping children"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "witch",
+   "section": "Archetypes & People",
+   "count": 110,
+   "members": [
+    "witch",
+    "witchcraft",
+    "school of witchcraft",
+    "evil witch",
+    "witch burning",
+    "sorceress",
+    "coven (akelarre)"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "orphan",
+   "section": "Archetypes & People",
+   "count": 93,
+   "members": [
+    "orphan",
+    "orphanage",
+    "orphan siblings",
+    "foundling",
+    "children's home"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "genius",
+   "section": "Archetypes & People",
+   "count": 92,
+   "members": [
+    "child prodigy",
+    "precocious child",
+    "boy genius",
+    "math genius",
+    "genius",
+    "prodigy",
+    "mathematics",
+    "mathematician",
+    "smart kid",
+    "intelligent",
+    "intelligence",
+    "intellectual",
+    "talent",
+    "numbers",
+    "expert"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "prisoner",
+   "section": "Archetypes & People",
+   "count": 85,
+   "members": [
+    "prisoner",
+    "captive",
+    "convict",
+    "escaped convict",
+    "inmate",
+    "escaped prisoner",
+    "female prisoner",
+    "prisoner abuse",
+    "ex-detainee"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "student",
+   "section": "Archetypes & People",
+   "count": 75,
+   "members": [
+    "high school student",
+    "college student",
+    "student",
+    "medical student",
+    "law student",
+    "exchange student",
+    "schoolgirl",
+    "novice"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "vigilante",
+   "section": "Archetypes & People",
+   "count": 73,
+   "members": [
+    "vigilante",
+    "vigilante justice",
+    "masked vigilante",
+    "crime fighter",
+    "vigilantism"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "loner",
+   "section": "Archetypes & People",
+   "count": 62,
+   "members": [
+    "loner",
+    "misfit",
+    "outsider",
+    "lone wolf",
+    "hermit",
+    "spinster",
+    "unsociability"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "baby",
+   "section": "Archetypes & People",
+   "count": 59,
+   "members": [
+    "baby",
+    "baby-snatching",
+    "newborn baby",
+    "infant",
+    "abandoned baby"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "wizard",
+   "section": "Archetypes & People",
+   "count": 59,
+   "members": [
+    "wizard",
+    "sorcerer",
+    "magician",
+    "sorcery",
+    "warlock"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "buddy",
+   "section": "Archetypes & People",
+   "count": 53,
+   "members": [
+    "buddy",
+    "partner",
+    "partnership"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "stalker",
+   "section": "Archetypes & People",
+   "count": 48,
+   "members": [
+    "stalker",
+    "stalking"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "elderly",
+   "section": "Archetypes & People",
+   "count": 47,
+   "members": [
+    "elderly",
+    "old man",
+    "elderly man",
+    "old woman",
+    "elderly woman",
+    "aging man",
+    "retirement home",
+    "nursing home",
+    "old lady"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "mentor",
+   "section": "Archetypes & People",
+   "count": 43,
+   "members": [
+    "mentor",
+    "apprentice",
+    "mentor protégé relationship",
+    "master"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "aristocrat",
+   "section": "Archetypes & People",
+   "count": 38,
+   "members": [
+    "aristocrat",
+    "gentleman",
+    "countess",
+    "count",
+    "duke",
+    "baron",
+    "lordship",
+    "nobility",
+    "aristocracy"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "outlaw",
+   "section": "Archetypes & People",
+   "count": 36,
+   "members": [
+    "outlaw",
+    "robin hood",
+    "sherwood forest",
+    "bandit"
+   ],
+   "from_board": true,
+   "pillar": "Story"
+  },
+  {
+   "canonical": "evil child",
+   "section": "Archetypes & People",
+   "count": 34,
+   "members": [
+    "evil child",
+    "ghost child",
+    "child vampire",
+    "feral child",
+    "evil little girl"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "millionaire",
+   "pillar": "Story",
+   "section": "Archetypes & People",
+   "count": 33,
+   "members": [
+    "millionaire"
+   ]
+  },
+  {
+   "canonical": "hacker",
+   "section": "Archetypes & People",
+   "count": 32,
+   "members": [
+    "hacker",
+    "computer hacker"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "tycoon",
+   "pillar": "Story",
+   "section": "Archetypes & People",
+   "count": 32,
+   "members": [
+    "tycoon",
+    "billionaire",
+    "industrialist"
+   ]
+  },
+  {
+   "canonical": "juvenile delinquent",
+   "pillar": "Story",
+   "section": "Archetypes & People",
+   "count": 32,
+   "members": [
+    "juvenile delinquent",
+    "delinquency",
+    "delinquent",
+    "teenage rebellion"
+   ]
+  },
+  {
+   "canonical": "adventurer",
+   "pillar": "Story",
+   "section": "Archetypes & People",
+   "count": 31,
+   "members": [
+    "adventurer"
+   ]
+  },
+  {
+   "canonical": "retirement",
+   "pillar": "Story",
+   "section": "Archetypes & People",
+   "count": 30,
+   "members": [
+    "retirement",
+    "retiree",
+    "retired"
+   ]
+  },
+  {
+   "canonical": "dictator",
+   "section": "Archetypes & People",
+   "count": 29,
+   "members": [
+    "dictator",
+    "tyrant",
+    "warlord",
+    "evil dictator",
+    "evil tyrant"
+   ],
+   "from_board": true,
+   "pillar": "Story"
+  },
+  {
+   "canonical": "clown",
+   "section": "Archetypes & People",
+   "count": 29,
+   "members": [
+    "clown",
+    "killer clown",
+    "evil clown",
+    "fool"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "hippie",
+   "pillar": "Story",
+   "section": "Archetypes & People",
+   "count": 28,
+   "members": [
+    "hippie",
+    "free love",
+    "commune",
+    "bohemian"
+   ]
+  },
+  {
+   "canonical": "drifter",
+   "section": "Archetypes & People",
+   "count": 25,
+   "members": [
+    "drifter",
+    "stranger",
+    "mysterious stranger"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "femme fatale",
+   "section": "Archetypes & People",
+   "count": 25,
+   "members": [
+    "femme fatale"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "underdog",
+   "section": "Archetypes & People",
+   "count": 25,
+   "members": [
+    "underdog"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "outcast",
+   "pillar": "Story",
+   "section": "Archetypes & People",
+   "count": 23,
+   "members": [
+    "outcast",
+    "social outcast",
+    "loser"
+   ]
+  },
+  {
+   "canonical": "rebel",
+   "section": "Archetypes & People",
+   "count": 21,
+   "members": [
+    "rebel",
+    "teen rebel"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "prisoner of war",
+   "section": "Archetypes & People",
+   "count": 21,
+   "members": [
+    "prisoner of war"
+   ],
+   "backfill": true,
+   "pillar": "Story"
+  },
+  {
+   "canonical": "victim",
+   "section": "Archetypes & People",
+   "count": 18,
+   "members": [
+    "victim",
+    "burn victim"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "eccentric",
+   "section": "Archetypes & People",
+   "count": 18,
+   "members": [
+    "eccentric",
+    "eccentric man",
+    "eccentric woman"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "damsel in distress",
+   "section": "Archetypes & People",
+   "count": 18,
+   "members": [
+    "damsel in distress",
+    "woman in peril",
+    "woman in jeopardy"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "mischievous child",
+   "section": "Archetypes & People",
+   "count": 18,
+   "members": [
+    "mischievous child",
+    "spoiled child",
+    "mischievous children",
+    "child outsmarts adult"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "nerd",
+   "section": "Archetypes & People",
+   "count": 16,
+   "members": [
+    "nerd",
+    "geek"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "housewife",
+   "section": "Archetypes & People",
+   "count": 15,
+   "members": [
+    "housewife"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "peasant",
+   "section": "Archetypes & People",
+   "count": 15,
+   "members": [
+    "peasant"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "whistleblower",
+   "section": "Archetypes & People",
+   "count": 15,
+   "members": [
+    "whistleblower",
+    "informant"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "blonde",
+   "pillar": "Story",
+   "section": "Archetypes & People",
+   "count": 15,
+   "members": [
+    "blonde",
+    "dumb blonde"
+   ]
+  },
+  {
+   "canonical": "caveman",
+   "section": "Archetypes & People",
+   "count": 12,
+   "members": [
+    "caveman",
+    "cavemen",
+    "neanderthal",
+    "prehistoric man"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "slacker",
+   "pillar": "Story",
+   "section": "Archetypes & People",
+   "count": 12,
+   "members": [
+    "slacker"
+   ]
+  },
+  {
+   "canonical": "midlife",
+   "pillar": "Story",
+   "section": "Archetypes & People",
+   "count": 11,
+   "members": [
+    "middle age",
+    "forty something",
+    "thirty something"
+   ]
+  },
+  {
+   "canonical": "activist",
+   "section": "Archetypes & People",
+   "count": 10,
+   "members": [
+    "activist"
+   ],
+   "from_board": true,
+   "pillar": "Story"
+  },
+  {
+   "canonical": "heiress",
+   "pillar": "Story",
+   "section": "Archetypes & People",
+   "count": 10,
+   "members": [
+    "heiress"
+   ]
+  },
+  {
+   "canonical": "anarchist",
+   "section": "Archetypes & People",
+   "count": 9,
+   "members": [
+    "anarchist",
+    "anarchy"
+   ],
+   "from_board": true,
+   "pillar": "Story"
+  },
+  {
+   "canonical": "sidekick",
+   "section": "Archetypes & People",
+   "count": 8,
+   "members": [
+    "sidekick",
+    "animal sidekick"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "small person",
+   "pillar": "Story",
+   "section": "Archetypes & People",
+   "count": 6,
+   "members": [
+    "small person",
+    "midget"
+   ]
+  },
+  {
    "canonical": "music",
    "section": "Arts & Performance",
    "count": 200,
@@ -5124,2143 +5878,6 @@
     "country music"
    ],
    "pillar": "Story"
-  },
-  {
-   "canonical": "police",
-   "section": "Characters",
-   "count": 466,
-   "members": [
-    "police",
-    "police brutality",
-    "police corruption",
-    "cop",
-    "police chase",
-    "undercover cop",
-    "dirty cop",
-    "ex-cop",
-    "police operation",
-    "police chief",
-    "police station",
-    "rookie cop",
-    "corrupt cop",
-    "police academy",
-    "french police",
-    "bad cop",
-    "cops",
-    "police shootout",
-    "tough cop",
-    "police impersonator",
-    "police arrest",
-    "police surveillance",
-    "police procedural",
-    "police training",
-    "running from police",
-    "police vigilantism",
-    "police stakeout",
-    "police raid",
-    "law enforcement",
-    "good cop bad cop",
-    "police headquarter",
-    "robot cop",
-    "female cop",
-    "police dog",
-    "maverick cop",
-    "narcotics cop",
-    "female police officer",
-    "police officer",
-    "internal affairs",
-    "lapd",
-    "policeman",
-    "nypd",
-    "arrest",
-    "policewoman",
-    "s.w.a.t.",
-    "gendarmerie",
-    "arrested",
-    "dea agent",
-    "scotland yard",
-    "interpol"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "villain",
-   "section": "Characters",
-   "count": 376,
-   "members": [
-    "villain",
-    "antagonistic",
-    "super villain",
-    "female villain",
-    "villainess",
-    "villain arrested",
-    "anti villain",
-    "tragic villain",
-    "masked villain",
-    "supervillain",
-    "world domination",
-    "henchmen",
-    "nemesis",
-    "evil plot",
-    "evil",
-    "perfect crime"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "gangster",
-   "section": "Characters",
-   "count": 334,
-   "members": [
-    "gangster",
-    "organized crime",
-    "gang",
-    "street gang",
-    "crime boss",
-    "gang war",
-    "motorcycle gang",
-    "criminal gang",
-    "loan shark",
-    "angry mob",
-    "gang rape",
-    "gang leader",
-    "thug",
-    "gang member",
-    "youth gang",
-    "crime lord",
-    "gang violence",
-    "rival gang",
-    "crime syndicate",
-    "hoodlum",
-    "cholo",
-    "hooligan",
-    "gang warfare"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "hero",
-   "section": "Characters",
-   "count": 266,
-   "members": [
-    "hero",
-    "action hero",
-    "anti hero",
-    "war hero",
-    "tragic hero",
-    "heroine",
-    "teenage hero",
-    "hero's journey",
-    "folk hero",
-    "dark hero",
-    "reluctant hero",
-    "female hero",
-    "origin of hero",
-    "child hero",
-    "young heroes",
-    "one against many",
-    "heroic mission"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "detective",
-   "section": "Characters",
-   "count": 255,
-   "members": [
-    "detective",
-    "police detective",
-    "police inspector",
-    "private detective",
-    "private investigator",
-    "investigator",
-    "bumbling detective",
-    "amateur detective",
-    "detective comedy",
-    "private eye",
-    "detective inspector",
-    "female detective",
-    "homicide detective",
-    "narcotics detective",
-    "sherlock holmes",
-    "inspector",
-    "clouseau",
-    "psychological profiling",
-    "procedural"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "spy",
-   "section": "Characters",
-   "count": 243,
-   "members": [
-    "spy",
-    "government agent",
-    "secret agent",
-    "undercover agent",
-    "agent",
-    "special agent",
-    "female agent",
-    "woman agent",
-    "rogue agent",
-    "double agent",
-    "sleeper agent",
-    "corrupt agent",
-    "female spy",
-    "british spy",
-    "american spy",
-    "russian spy",
-    "secret mission",
-    "top secret",
-    "james bond",
-    "jack ryan",
-    "jason bourne",
-    "operative",
-    "mole",
-    "spycraft",
-    "cia agent",
-    "cia analyst",
-    "ex-cia agent",
-    "nsa agent",
-    "u.s. secret service agent",
-    "federal agent"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "worklife",
-   "section": "Characters",
-   "count": 234,
-   "members": [
-    "workplace",
-    "workplace comedy",
-    "workplace drama",
-    "boss",
-    "bad boss",
-    "employee",
-    "worker",
-    "manager",
-    "co-workers relationship",
-    "employer employee relationship",
-    "workplace romance",
-    "secretary",
-    "receptionist",
-    "intern",
-    "clerk",
-    "salesclerk",
-    "assistant",
-    "internship",
-    "personal assistant",
-    "colleague",
-    "janitor",
-    "taskmaster",
-    "conference",
-    "workshop",
-    "work",
-    "briefcase",
-    "assignment",
-    "career",
-    "job interview",
-    "life and career",
-    "new job",
-    "summer job",
-    "career woman",
-    "job",
-    "job promotion",
-    "unemployment",
-    "unemployed",
-    "loss of job",
-    "fired from the job",
-    "quitting a job",
-    "job hunting",
-    "job seeking",
-    "job-hopping",
-    "downsizing",
-    "laid off",
-    "forced retirement"
-   ],
-   "pillar": "Story",
-   "note": "custom label (user 2026-07-24): renamed from workplace after absorbing the career tag — one work-world home (office people + job-arc strings)"
-  },
-  {
-   "canonical": "serial killer",
-   "section": "Characters",
-   "count": 230,
-   "members": [
-    "serial killer",
-    "mass murder",
-    "series of murders",
-    "killing spree",
-    "multiple murder",
-    "murder spree",
-    "psycho killer",
-    "killing a dog",
-    "animal killing",
-    "sadistic killer",
-    "jack the ripper",
-    "hannibal lecter"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "teenager",
-   "section": "Characters",
-   "count": 194,
-   "members": [
-    "teenage girl",
-    "teenager",
-    "teenage boy",
-    "teen angst",
-    "troubled teen",
-    "pre-teen",
-    "runaway teen",
-    "disturbed teenager",
-    "teenage angst",
-    "teenage life",
-    "rebellious youth",
-    "youth",
-    "generation z"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "royalty",
-   "section": "Characters",
-   "count": 191,
-   "members": [
-    "monarchy",
-    "king",
-    "queen",
-    "king of england",
-    "british monarchy",
-    "royal family",
-    "evil queen",
-    "evil king",
-    "king of france",
-    "royalty",
-    "princess",
-    "prince",
-    "heir to the throne",
-    "kingdom",
-    "emperor",
-    "sultan",
-    "coronation",
-    "royal court",
-    "concubine",
-    "chinese emperor",
-    "czar / tsar / tzar",
-    "feudal lord"
-   ],
-   "pillar": "Story",
-   "note": "renamed from monarchy 2026-07-21 — people-dominant members, kept in Characters; monarchy/british monarchy stay as members"
-  },
-  {
-   "canonical": "writer",
-   "section": "Characters",
-   "count": 187,
-   "members": [
-    "aspiring writer",
-    "author",
-    "children's author",
-    "crime fiction writer",
-    "female writer",
-    "mystery writer",
-    "novelist",
-    "playwright",
-    "poet",
-    "poetry",
-    "screenwriter",
-    "travel writer",
-    "typewriter",
-    "writer",
-    "writer's block",
-    "writing",
-    "literature",
-    "plagiarism"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "journalist",
-   "section": "Characters",
-   "count": 185,
-   "members": [
-    "editor-in-chief",
-    "interview",
-    "investigative journalism",
-    "journalism",
-    "journalist",
-    "magazine",
-    "news reporter",
-    "newspaper",
-    "newspaper editor",
-    "newspaper man",
-    "newspaper reporter",
-    "publisher",
-    "reporter",
-    "tv reporter",
-    "news",
-    "news report",
-    "newswoman",
-    "war correspondent"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "politician",
-   "section": "Characters",
-   "count": 178,
-   "members": [
-    "politician",
-    "corrupt politician",
-    "president",
-    "usa president",
-    "vice president",
-    "russian president",
-    "congressman",
-    "senate",
-    "congress",
-    "member of parliament",
-    "presidential candidate",
-    "senator",
-    "u.s. senator",
-    "u.s. congress",
-    "prime minister",
-    "british prime minister",
-    "mayor",
-    "corrupt mayor",
-    "abraham lincoln",
-    "winston churchill",
-    "john f. kennedy",
-    "richard nixon",
-    "lobbyist",
-    "governor"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "scientist",
-   "section": "Characters",
-   "count": 162,
-   "members": [
-    "anthropologist",
-    "anthropology",
-    "astronomer",
-    "biologist",
-    "chemist",
-    "computer scientist",
-    "mad scientist",
-    "marine biologist",
-    "researcher",
-    "scientist",
-    "reanimation",
-    "botanist",
-    "geologist",
-    "linguist",
-    "zoologist",
-    "naturalist",
-    "meteorologist",
-    "paleontology",
-    "quantum mechanics",
-    "weather forecaster"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "protagonist",
-   "section": "Characters",
-   "count": 156,
-   "members": [
-    "female protagonist",
-    "teenage protagonist",
-    "child protagonist"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "assassin",
-   "section": "Characters",
-   "count": 150,
-   "members": [
-    "assassin",
-    "assassination",
-    "assassination attempt",
-    "female assassin",
-    "political assassination",
-    "professional assassin",
-    "assassination of president",
-    "assassination team",
-    "government assassin"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "criminal",
-   "section": "Characters",
-   "count": 150,
-   "members": [
-    "criminal",
-    "criminal mastermind",
-    "crime spree",
-    "criminal organization",
-    "crime horror",
-    "crime",
-    "crime thriller",
-    "true crime",
-    "ex-con",
-    "petty crimes",
-    "vandalism"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "prostitute",
-   "section": "Characters",
-   "count": 149,
-   "members": [
-    "prostitute",
-    "prostitution",
-    "illegal prostitution",
-    "male prostitution",
-    "child prostitution",
-    "forced prostitution",
-    "sex worker",
-    "escort",
-    "call girl",
-    "pimp",
-    "courtesan",
-    "gigolo",
-    "whorehouse",
-    "callboy"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "thief",
-   "section": "Characters",
-   "count": 148,
-   "members": [
-    "thief",
-    "master thief",
-    "theft",
-    "professional thief",
-    "gentleman thief",
-    "art thief",
-    "art theft",
-    "car theft",
-    "diamond theft",
-    "jewel thief",
-    "stealing",
-    "identity theft",
-    "pickpocket",
-    "shoplifting",
-    "drug stealing",
-    "looting",
-    "gang of thieves",
-    "cat burglar"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "musician",
-   "section": "Characters",
-   "count": 143,
-   "members": [
-    "composer",
-    "guitar",
-    "guitar player",
-    "musician",
-    "pianist",
-    "piano",
-    "piano lessons",
-    "playing piano",
-    "saxophone",
-    "songwriter",
-    "street musician",
-    "struggling musician",
-    "violin",
-    "violinist",
-    "rock star",
-    "rapper",
-    "songwriting",
-    "rocker",
-    "busker",
-    "mozart"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "artist",
-   "section": "Characters",
-   "count": 139,
-   "members": [
-    "art",
-    "art auction",
-    "art collector",
-    "art dealer",
-    "art history",
-    "artist",
-    "artists' life",
-    "aspiring artist",
-    "female artist",
-    "painter",
-    "painter as artist",
-    "painting",
-    "portrait of an artist",
-    "sculptor",
-    "sculpture",
-    "stolen painting",
-    "street artist",
-    "struggling artist",
-    "drawing",
-    "portrait",
-    "graffiti",
-    "leonardo da vinci",
-    "creative crisis",
-    "statue"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "psychopath",
-   "section": "Characters",
-   "count": 137,
-   "members": [
-    "psychopath",
-    "sociopath",
-    "sadistic psychopath",
-    "psycho",
-    "female psychopath"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "teacher",
-   "section": "Characters",
-   "count": 131,
-   "members": [
-    "teacher",
-    "music teacher",
-    "school teacher",
-    "high school teacher",
-    "tutor",
-    "female teacher",
-    "dance teacher",
-    "teacher student relationship",
-    "schoolteacher",
-    "teaching",
-    "teachers and students"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "doctor",
-   "section": "Characters",
-   "count": 128,
-   "members": [
-    "doctor",
-    "surgeon",
-    "plastic surgeon",
-    "emergency doctor",
-    "neurosurgeon",
-    "dentist",
-    "paramedic",
-    "doctor patient relationship",
-    "caregiver patient relationship",
-    "pediatrician",
-    "medical examiner"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "soldier",
-   "section": "Characters",
-   "count": 123,
-   "members": [
-    "soldier",
-    "soldiers",
-    "u.s. soldier",
-    "german soldier",
-    "russian soldier",
-    "british soldier",
-    "japanese soldier",
-    "child soldier",
-    "female soldier",
-    "wounded soldier",
-    "dead soldier",
-    "american soldiers"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "lawyer",
-   "section": "Characters",
-   "count": 121,
-   "members": [
-    "lawyer",
-    "crooked lawyer",
-    "divorce lawyer",
-    "prosecutor",
-    "defense attorney",
-    "district attorney",
-    "law firm"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "singer",
-   "section": "Characters",
-   "count": 117,
-   "members": [
-    "singer",
-    "jazz singer or musician",
-    "singer-songwriter",
-    "opera singer",
-    "aspiring singer",
-    "pop singer",
-    "women singer",
-    "nightclub singer",
-    "rock singer",
-    "boy band",
-    "pop star"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "child",
-   "section": "Characters",
-   "count": 114,
-   "members": [
-    "child",
-    "little boy",
-    "young boy",
-    "little girl",
-    "boy",
-    "young girl",
-    "kids",
-    "adult child friendship",
-    "boys",
-    "kids on their own",
-    "children's adventure",
-    "child's point of view",
-    "children's perspectives",
-    "helping children"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "witch",
-   "section": "Characters",
-   "count": 110,
-   "members": [
-    "witch",
-    "witchcraft",
-    "school of witchcraft",
-    "evil witch",
-    "witch burning",
-    "sorceress",
-    "coven (akelarre)"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "celebrity",
-   "pillar": "Story",
-   "section": "Characters",
-   "count": 99,
-   "members": [
-    "celebrity",
-    "celebrity interview",
-    "entertainer",
-    "movie star",
-    "paparazzi",
-    "press agent",
-    "press conference",
-    "diva",
-    "fading star",
-    "autograph",
-    "heart-throb",
-    "has been",
-    "pop culture"
-   ]
-  },
-  {
-   "canonical": "veteran",
-   "section": "Characters",
-   "count": 98,
-   "members": [
-    "veteran",
-    "war veteran",
-    "vietnam veteran",
-    "ex soldier",
-    "ex military",
-    "ex army",
-    "retired army man",
-    "military veteran",
-    "ww2 veteran",
-    "army veteran",
-    "iraq war veteran",
-    "civil war veteran",
-    "korean war veteran"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "orphan",
-   "section": "Characters",
-   "count": 93,
-   "members": [
-    "orphan",
-    "orphanage",
-    "orphan siblings",
-    "foundling",
-    "children's home"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "genius",
-   "section": "Characters",
-   "count": 92,
-   "members": [
-    "child prodigy",
-    "precocious child",
-    "boy genius",
-    "math genius",
-    "genius",
-    "prodigy",
-    "mathematics",
-    "mathematician",
-    "smart kid",
-    "intelligent",
-    "intelligence",
-    "intellectual",
-    "talent",
-    "numbers",
-    "expert"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "hitman",
-   "section": "Characters",
-   "count": 87,
-   "members": [
-    "hitman",
-    "contract killer",
-    "hired killer"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "clergyman",
-   "section": "Characters",
-   "count": 86,
-   "members": [
-    "priest",
-    "pastor",
-    "preacher",
-    "ex-priest",
-    "clergyman",
-    "reverend",
-    "bishop",
-    "minister",
-    "cardinal",
-    "televangelist"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "prisoner",
-   "section": "Characters",
-   "count": 85,
-   "members": [
-    "prisoner",
-    "captive",
-    "convict",
-    "escaped convict",
-    "inmate",
-    "escaped prisoner",
-    "female prisoner",
-    "prisoner abuse",
-    "ex-detainee"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "therapist",
-   "section": "Characters",
-   "count": 83,
-   "members": [
-    "psychiatrist",
-    "therapist",
-    "psychologist",
-    "psychotherapist"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "businessman",
-   "section": "Characters",
-   "count": 82,
-   "members": [
-    "businessman",
-    "corrupt businessman",
-    "entrepreneur",
-    "advertising executive",
-    "ceo",
-    "executive",
-    "business woman",
-    "accountant",
-    "salesman",
-    "yuppie",
-    "salesmen",
-    "business"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "military officer",
-   "section": "Characters",
-   "count": 81,
-   "members": [
-    "military officer",
-    "general",
-    "colonel",
-    "sergeant",
-    "lieutenant",
-    "army captain",
-    "army officer",
-    "army general",
-    "u.s. general",
-    "army sergeant",
-    "drill sergeant",
-    "commander",
-    "drill instructor",
-    "commandant",
-    "major",
-    "army colonel",
-    "gunnery sergeant",
-    "retired general",
-    "female general",
-    "chief warrant officer",
-    "nazi officer",
-    "german officer",
-    "british officer",
-    "austrian officer",
-    "naval officer",
-    "admiral",
-    "navy commander",
-    "navy lieutenant",
-    "naval flight officer"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "sheriff",
-   "pillar": "Story",
-   "section": "Characters",
-   "count": 80,
-   "members": [
-    "sheriff",
-    "small town sheriff",
-    "deputy sheriff",
-    "corrupt sheriff",
-    "u.s. marshal",
-    "marshal",
-    "texas ranger"
-   ],
-   "note": "the western-lawman shelf pulled out of police (rethink wave 6b), beside cowboy/gunslinger/outlaw"
-  },
-  {
-   "canonical": "photographer",
-   "section": "Characters",
-   "count": 79,
-   "members": [
-    "fashion photographer",
-    "photograph",
-    "photographer",
-    "photography",
-    "war photographer",
-    "photo",
-    "photo shoot",
-    "polaroid"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "driver",
-   "section": "Characters",
-   "count": 76,
-   "members": [
-    "taxi driver",
-    "truck driver",
-    "driver",
-    "bus driver",
-    "race car driver",
-    "chauffeur",
-    "transporter"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "student",
-   "section": "Characters",
-   "count": 75,
-   "members": [
-    "high school student",
-    "college student",
-    "student",
-    "medical student",
-    "law student",
-    "exchange student",
-    "schoolgirl",
-    "novice"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "vigilante",
-   "section": "Characters",
-   "count": 73,
-   "members": [
-    "vigilante",
-    "vigilante justice",
-    "masked vigilante",
-    "crime fighter",
-    "vigilantism"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "drug dealer",
-   "section": "Characters",
-   "count": 73,
-   "members": [
-    "drug dealer",
-    "drug lord",
-    "drug mule",
-    "drug kingpin"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "bodyguard",
-   "section": "Characters",
-   "count": 68,
-   "members": [
-    "bodyguard",
-    "security guard",
-    "protection",
-    "guard",
-    "protector",
-    "night watchman",
-    "security"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "con artist",
-   "section": "Characters",
-   "count": 66,
-   "members": [
-    "con artist",
-    "con man",
-    "scam",
-    "scam artist",
-    "swindle",
-    "grifter",
-    "con",
-    "con game",
-    "small time crook",
-    "crook",
-    "opportunist",
-    "impostor"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "loner",
-   "section": "Characters",
-   "count": 62,
-   "members": [
-    "loner",
-    "misfit",
-    "outsider",
-    "lone wolf",
-    "hermit",
-    "spinster",
-    "unsociability"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "baby",
-   "section": "Characters",
-   "count": 59,
-   "members": [
-    "baby",
-    "baby-snatching",
-    "newborn baby",
-    "infant",
-    "abandoned baby"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "wizard",
-   "section": "Characters",
-   "count": 59,
-   "members": [
-    "wizard",
-    "sorcerer",
-    "magician",
-    "sorcery",
-    "warlock"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "actor",
-   "section": "Characters",
-   "count": 56,
-   "members": [
-    "actor",
-    "actress",
-    "aspiring actor",
-    "aging actor",
-    "struggling actor",
-    "porn actor",
-    "famous actor",
-    "aspiring actress"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "dancer",
-   "section": "Characters",
-   "count": 54,
-   "members": [
-    "dancer",
-    "ballet dancer",
-    "ballerina",
-    "exotic dancer",
-    "cabaret dancer",
-    "go-go dancer",
-    "burlesque dancer",
-    "stripper",
-    "female stripping",
-    "dancing master",
-    "choreographer",
-    "choreography",
-    "swan lake"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "professor",
-   "section": "Characters",
-   "count": 54,
-   "members": [
-    "professor",
-    "college professor",
-    "literature professor",
-    "lecture"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "buddy",
-   "section": "Characters",
-   "count": 53,
-   "members": [
-    "buddy",
-    "partner",
-    "partnership"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "stalker",
-   "section": "Characters",
-   "count": 48,
-   "members": [
-    "stalker",
-    "stalking"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "hunter",
-   "section": "Characters",
-   "count": 47,
-   "members": [
-    "hunt",
-    "hunter",
-    "hunting",
-    "poacher",
-    "falconry",
-    "fur trapping"
-   ],
-   "pillar": "Story",
-   "note": "user rule: hunting+poacher fold into the hunter character tag"
-  },
-  {
-   "canonical": "elderly",
-   "section": "Characters",
-   "count": 47,
-   "members": [
-    "elderly",
-    "old man",
-    "elderly man",
-    "old woman",
-    "elderly woman",
-    "aging man",
-    "retirement home",
-    "nursing home",
-    "old lady"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "warrior",
-   "section": "Characters",
-   "count": 47,
-   "members": [
-    "warrior",
-    "female warrior",
-    "warrior woman",
-    "barbarian"
-   ],
-   "backfill": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "comedian",
-   "section": "Characters",
-   "count": 46,
-   "members": [
-    "comedian",
-    "stand-up comedy"
-   ],
-   "pillar": "Story",
-   "note": "user rule: comedian takes stand-up comedy"
-  },
-  {
-   "canonical": "pilot",
-   "section": "Characters",
-   "count": 44,
-   "members": [
-    "pilot",
-    "airplane pilot",
-    "helicopter pilot",
-    "test pilot"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "mentor",
-   "section": "Characters",
-   "count": 43,
-   "members": [
-    "mentor",
-    "apprentice",
-    "mentor protégé relationship",
-    "master"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "inventor",
-   "section": "Characters",
-   "count": 40,
-   "members": [
-    "invention",
-    "inventor",
-    "gadget"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "nanny",
-   "section": "Characters",
-   "count": 38,
-   "members": [
-    "nanny",
-    "babysitter",
-    "governess"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "aristocrat",
-   "section": "Characters",
-   "count": 38,
-   "members": [
-    "aristocrat",
-    "gentleman",
-    "countess",
-    "count",
-    "duke",
-    "baron",
-    "lordship",
-    "nobility",
-    "aristocracy"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "housekeeper",
-   "pillar": "Story",
-   "section": "Characters",
-   "count": 38,
-   "members": [
-    "housekeeper",
-    "maid",
-    "butler",
-    "cleaning lady"
-   ]
-  },
-  {
-   "canonical": "pirate",
-   "section": "Characters",
-   "count": 38,
-   "members": [
-    "pirate",
-    "air pirate",
-    "pirate gang",
-    "eye patch",
-    "hook",
-    "hook for a hand"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "nurse",
-   "section": "Characters",
-   "count": 38,
-   "members": [
-    "nurse",
-    "caregiver"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "cowboy",
-   "section": "Characters",
-   "count": 36,
-   "members": [
-    "cattle drive",
-    "cowboy",
-    "rodeo",
-    "bull riding"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "outlaw",
-   "section": "Characters",
-   "count": 36,
-   "members": [
-    "outlaw",
-    "robin hood",
-    "sherwood forest",
-    "bandit"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "archaeologist",
-   "section": "Characters",
-   "count": 35,
-   "members": [
-    "archaeologist",
-    "archaeological dig",
-    "archeology",
-    "artifact",
-    "egyptology",
-    "relic"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "knight",
-   "section": "Characters",
-   "count": 34,
-   "members": [
-    "knight",
-    "king arthur",
-    "excalibur",
-    "camelot",
-    "knights of the round table",
-    "lancelot",
-    "holy grail"
-   ],
-   "backfill": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "evil child",
-   "section": "Characters",
-   "count": 34,
-   "members": [
-    "evil child",
-    "ghost child",
-    "child vampire",
-    "feral child",
-    "evil little girl"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "millionaire",
-   "pillar": "Story",
-   "section": "Characters",
-   "count": 33,
-   "members": [
-    "millionaire"
-   ]
-  },
-  {
-   "canonical": "bounty hunter",
-   "section": "Characters",
-   "count": 33,
-   "members": [
-    "bounty hunter",
-    "tracker",
-    "bounty"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "manual labor",
-   "section": "Characters",
-   "count": 33,
-   "members": [
-    "factory worker",
-    "construction worker",
-    "construction",
-    "construction site",
-    "hammer",
-    "spanner"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "hacker",
-   "section": "Characters",
-   "count": 32,
-   "members": [
-    "hacker",
-    "computer hacker"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "astronaut",
-   "section": "Characters",
-   "count": 32,
-   "members": [
-    "astronaut"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "tycoon",
-   "pillar": "Story",
-   "section": "Characters",
-   "count": 32,
-   "members": [
-    "tycoon",
-    "billionaire",
-    "industrialist"
-   ]
-  },
-  {
-   "canonical": "juvenile delinquent",
-   "pillar": "Story",
-   "section": "Characters",
-   "count": 32,
-   "members": [
-    "juvenile delinquent",
-    "delinquency",
-    "delinquent",
-    "teenage rebellion"
-   ]
-  },
-  {
-   "canonical": "boxer",
-   "section": "Characters",
-   "count": 31,
-   "members": [
-    "boxer",
-    "boxing trainer",
-    "pro wrestlers"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "adventurer",
-   "pillar": "Story",
-   "section": "Characters",
-   "count": 31,
-   "members": [
-    "adventurer"
-   ]
-  },
-  {
-   "canonical": "samurai",
-   "section": "Characters",
-   "count": 30,
-   "members": [
-    "samurai",
-    "ronin",
-    "seppuku",
-    "bushi"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "retirement",
-   "pillar": "Story",
-   "section": "Characters",
-   "count": 30,
-   "members": [
-    "retirement",
-    "retiree",
-    "retired"
-   ]
-  },
-  {
-   "canonical": "waitress",
-   "section": "Characters",
-   "count": 29,
-   "members": [
-    "waitress"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "chef",
-   "section": "Characters",
-   "count": 29,
-   "members": [
-    "chef",
-    "baker",
-    "butcher",
-    "bakery"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "dictator",
-   "section": "Characters",
-   "count": 29,
-   "members": [
-    "dictator",
-    "tyrant",
-    "warlord",
-    "evil dictator",
-    "evil tyrant"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "clown",
-   "section": "Characters",
-   "count": 29,
-   "members": [
-    "clown",
-    "killer clown",
-    "evil clown",
-    "fool"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "gunslinger",
-   "section": "Characters",
-   "count": 28,
-   "members": [
-    "gunfighter",
-    "gunslinger"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "banker",
-   "section": "Characters",
-   "count": 28,
-   "members": [
-    "banker",
-    "stockbroker",
-    "bank manager",
-    "investment banker",
-    "broker",
-    "banking"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "hippie",
-   "pillar": "Story",
-   "section": "Characters",
-   "count": 28,
-   "members": [
-    "hippie",
-    "free love",
-    "commune",
-    "bohemian"
-   ]
-  },
-  {
-   "canonical": "architect",
-   "section": "Characters",
-   "count": 27,
-   "members": [
-    "architect",
-    "architecture"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "nun",
-   "section": "Characters",
-   "count": 27,
-   "members": [
-    "nun",
-    "mother superior"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "director",
-   "section": "Characters",
-   "count": 26,
-   "members": [
-    "film director",
-    "director",
-    "theater director",
-    "portrait of a filmmaker"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "coach",
-   "section": "Characters",
-   "count": 26,
-   "members": [
-    "coach",
-    "trainer",
-    "american football coach"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "mechanic",
-   "section": "Characters",
-   "count": 26,
-   "members": [
-    "mechanic",
-    "car mechanic",
-    "plumber",
-    "carpenter",
-    "blacksmith"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "sailor",
-   "section": "Characters",
-   "count": 26,
-   "members": [
-    "sailor",
-    "fisherman"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "drifter",
-   "section": "Characters",
-   "count": 25,
-   "members": [
-    "drifter",
-    "stranger",
-    "mysterious stranger"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "femme fatale",
-   "section": "Characters",
-   "count": 25,
-   "members": [
-    "femme fatale"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "underdog",
-   "section": "Characters",
-   "count": 25,
-   "members": [
-    "underdog"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "stuntman",
-   "section": "Characters",
-   "count": 24,
-   "members": [
-    "stuntman",
-    "stunt",
-    "daredevil",
-    "stunt flying"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "outcast",
-   "pillar": "Story",
-   "section": "Characters",
-   "count": 23,
-   "members": [
-    "outcast",
-    "social outcast",
-    "loser"
-   ]
-  },
-  {
-   "canonical": "ninja",
-   "section": "Characters",
-   "count": 23,
-   "members": [
-    "ninja",
-    "ninja fighter"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "hairdresser",
-   "section": "Characters",
-   "count": 23,
-   "members": [
-    "hairdresser",
-    "barber",
-    "barbershop",
-    "scissors"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "producer",
-   "section": "Characters",
-   "count": 22,
-   "members": [
-    "television producer",
-    "record producer",
-    "producer"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "rebel",
-   "section": "Characters",
-   "count": 21,
-   "members": [
-    "rebel",
-    "teen rebel"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "prisoner of war",
-   "section": "Characters",
-   "count": 21,
-   "members": [
-    "prisoner of war"
-   ],
-   "backfill": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "monk",
-   "section": "Characters",
-   "count": 19,
-   "members": [
-    "monk",
-    "shaolin monk"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "farmer",
-   "section": "Characters",
-   "count": 19,
-   "members": [
-    "farmer"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "victim",
-   "section": "Characters",
-   "count": 18,
-   "members": [
-    "victim",
-    "burn victim"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "eccentric",
-   "section": "Characters",
-   "count": 18,
-   "members": [
-    "eccentric",
-    "eccentric man",
-    "eccentric woman"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "damsel in distress",
-   "section": "Characters",
-   "count": 18,
-   "members": [
-    "damsel in distress",
-    "woman in peril",
-    "woman in jeopardy"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "mischievous child",
-   "section": "Characters",
-   "count": 18,
-   "members": [
-    "mischievous child",
-    "spoiled child",
-    "mischievous children",
-    "child outsmarts adult"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "model",
-   "section": "Characters",
-   "count": 17,
-   "members": [
-    "model",
-    "fashion model",
-    "advertising model"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "veterinarian",
-   "section": "Characters",
-   "count": 17,
-   "members": [
-    "veterinarian",
-    "veterinary"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "nerd",
-   "section": "Characters",
-   "count": 16,
-   "members": [
-    "nerd",
-    "geek"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "servant",
-   "section": "Characters",
-   "count": 15,
-   "members": [
-    "servant",
-    "master servant relationship"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "housewife",
-   "section": "Characters",
-   "count": 15,
-   "members": [
-    "housewife"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "peasant",
-   "section": "Characters",
-   "count": 15,
-   "members": [
-    "peasant"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "vikings (norsemen)",
-   "section": "Characters",
-   "count": 15,
-   "members": [
-    "vikings (norsemen)"
-   ],
-   "from_board": true,
-   "note": "board label was the short form \"vikings\"",
-   "pillar": "Story"
-  },
-  {
-   "canonical": "firefighter",
-   "section": "Characters",
-   "count": 15,
-   "members": [
-    "firefighter",
-    "firefighting",
-    "fire engine"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "social worker",
-   "section": "Characters",
-   "count": 15,
-   "members": [
-    "social worker",
-    "social services"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "whistleblower",
-   "section": "Characters",
-   "count": 15,
-   "members": [
-    "whistleblower",
-    "informant"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "blonde",
-   "pillar": "Story",
-   "section": "Characters",
-   "count": 15,
-   "members": [
-    "blonde",
-    "dumb blonde"
-   ]
-  },
-  {
-   "canonical": "caveman",
-   "section": "Characters",
-   "count": 12,
-   "members": [
-    "caveman",
-    "cavemen",
-    "neanderthal",
-    "prehistoric man"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "cheerleader",
-   "pillar": "Story",
-   "section": "Characters",
-   "count": 12,
-   "members": [
-    "cheerleader",
-    "cheerleading",
-    "cheering crowd"
-   ]
-  },
-  {
-   "canonical": "slacker",
-   "pillar": "Story",
-   "section": "Characters",
-   "count": 12,
-   "members": [
-    "slacker"
-   ]
-  },
-  {
-   "canonical": "engineer",
-   "section": "Characters",
-   "count": 11,
-   "members": [
-    "engineer",
-    "engineering"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "postman",
-   "section": "Characters",
-   "count": 11,
-   "members": [
-    "postman",
-    "delivery service",
-    "money delivery"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "dj",
-   "pillar": "Story",
-   "section": "Characters",
-   "count": 11,
-   "members": [
-    "dj",
-    "disc jockey",
-    "radio dj"
-   ]
-  },
-  {
-   "canonical": "midlife",
-   "pillar": "Story",
-   "section": "Characters",
-   "count": 11,
-   "members": [
-    "middle age",
-    "forty something",
-    "thirty something"
-   ]
-  },
-  {
-   "canonical": "idol group",
-   "pillar": "Story",
-   "section": "Characters",
-   "count": 11,
-   "members": [
-    "k-pop",
-    "idol group",
-    "girl group"
-   ]
-  },
-  {
-   "canonical": "bartender",
-   "section": "Characters",
-   "count": 10,
-   "members": [
-    "bartender"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "activist",
-   "section": "Characters",
-   "count": 10,
-   "members": [
-    "activist"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "heiress",
-   "pillar": "Story",
-   "section": "Characters",
-   "count": 10,
-   "members": [
-    "heiress"
-   ]
-  },
-  {
-   "canonical": "hotel staff",
-   "pillar": "Story",
-   "section": "Characters",
-   "count": 10,
-   "members": [
-    "concierge",
-    "valet",
-    "doorman"
-   ]
-  },
-  {
-   "canonical": "musketeer",
-   "section": "Characters",
-   "count": 9,
-   "members": [
-    "musketeer",
-    "three musketeers"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "anarchist",
-   "section": "Characters",
-   "count": 9,
-   "members": [
-    "anarchist",
-    "anarchy"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "sidekick",
-   "section": "Characters",
-   "count": 8,
-   "members": [
-    "sidekick",
-    "animal sidekick"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "landlord",
-   "pillar": "Story",
-   "section": "Characters",
-   "count": 8,
-   "members": [
-    "landlord",
-    "landlady"
-   ]
-  },
-  {
-   "canonical": "gladiator",
-   "section": "Characters",
-   "count": 7,
-   "members": [
-    "gladiator"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "caretaker",
-   "pillar": "Story",
-   "section": "Characters",
-   "count": 7,
-   "members": [
-    "caretaker"
-   ]
-  },
-  {
-   "canonical": "small person",
-   "pillar": "Story",
-   "section": "Characters",
-   "count": 6,
-   "members": [
-    "small person",
-    "midget"
-   ]
   },
   {
    "canonical": "murder",
@@ -7590,6 +6207,594 @@
     "airplane hijacking",
     "train hijacking"
    ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "courtroom",
+   "section": "Engines of Society",
+   "count": 198,
+   "members": [
+    "courtroom",
+    "trial",
+    "murder trial",
+    "court",
+    "court case",
+    "courtroom drama",
+    "judge",
+    "legal thriller",
+    "prosecution",
+    "legal drama",
+    "wrongful conviction",
+    "arbitrary law",
+    "testimony",
+    "jury trial",
+    "jury",
+    "supreme court",
+    "principal witness",
+    "courthouse",
+    "jurors",
+    "lawsuit",
+    "judiciary",
+    "sentence",
+    "witness"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "money",
+   "section": "Engines of Society",
+   "count": 184,
+   "members": [
+    "money",
+    "stolen money",
+    "bag of money",
+    "suitcase full of money",
+    "cash",
+    "dollar",
+    "money problems",
+    "prize money",
+    "debt",
+    "financial problem",
+    "bankrupt",
+    "bankruptcy",
+    "finances",
+    "repayment",
+    "tax collector",
+    "taxes",
+    "financial transactions",
+    "auction",
+    "deal"
+   ],
+   "from_board": true,
+   "pillar": "Story"
+  },
+  {
+   "canonical": "politics",
+   "section": "Engines of Society",
+   "count": 182,
+   "members": [
+    "politics",
+    "usa politics",
+    "british politics",
+    "russian politics",
+    "soviet politics",
+    "french politics",
+    "political crisis",
+    "political instability",
+    "political unrest",
+    "political intrigue",
+    "political scandal",
+    "political repression",
+    "political documentary",
+    "political party",
+    "race politics",
+    "power politics",
+    "united nations",
+    "embassy",
+    "campaign",
+    "martial law",
+    "freedom of speech",
+    "debate",
+    "u.s. embassy",
+    "european union",
+    "speech",
+    "city hall",
+    "public works",
+    "state of emergency",
+    "power struggle",
+    "power relations",
+    "fictitious country",
+    "conservative",
+    "democracy"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "intelligence agency",
+   "section": "Engines of Society",
+   "count": 163,
+   "members": [
+    "central intelligence agency (cia)",
+    "kgb",
+    "mi6",
+    "british secret service",
+    "national security agency (nsa)",
+    "mossad",
+    "stasi",
+    "gestapo",
+    "french gestapo",
+    "secret service",
+    "homeland security",
+    "dea",
+    "intelligence agency",
+    "secret intelligence service",
+    "intelligence service",
+    "mi5",
+    "national intelligence service (nis)",
+    "u.s. counterintelligence",
+    "ex kgb",
+    "intelligence officer",
+    "british intelligence"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "mafia",
+   "section": "Engines of Society",
+   "count": 160,
+   "members": [
+    "mafia",
+    "mobster",
+    "bratva (russian mafia)",
+    "yakuza",
+    "criminal underworld",
+    "mafia boss",
+    "triad",
+    "sicilian mafia",
+    "chinese mafia",
+    "mob boss",
+    "irish mob",
+    "mob",
+    "mob hit",
+    "anti-mafia",
+    "crime family",
+    "camorra",
+    "sicilian",
+    "godfather",
+    "kingpin",
+    "mafia war"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "moviebiz",
+   "pillar": "Story",
+   "section": "Engines of Society",
+   "count": 139,
+   "members": [
+    "film industry",
+    "film production",
+    "hollywood",
+    "hollywood star",
+    "media tycoon",
+    "movie business",
+    "movie set",
+    "movie studio",
+    "old hollywood",
+    "show business",
+    "tv production",
+    "projectionist",
+    "making of",
+    "behind the scenes",
+    "screenplay",
+    "outtakes",
+    "product placement"
+   ],
+   "note": "custom label (user); movie business + hollywood industry cluster"
+  },
+  {
+   "canonical": "corruption",
+   "section": "Engines of Society",
+   "count": 129,
+   "members": [
+    "corruption",
+    "corrupt officials",
+    "corrupt government",
+    "corrupt official",
+    "bribery",
+    "bribe",
+    "political corruption",
+    "government corruption"
+   ],
+   "from_board": true,
+   "pillar": "Story"
+  },
+  {
+   "canonical": "fbi",
+   "section": "Engines of Society",
+   "count": 117,
+   "members": [
+    "fbi",
+    "fbi operation",
+    "fbi agent"
+   ],
+   "from_board": true,
+   "pillar": "Story"
+  },
+  {
+   "canonical": "secret organization",
+   "section": "Engines of Society",
+   "count": 65,
+   "members": [
+    "secret organization",
+    "secret government organization",
+    "fictional government agency",
+    "secret society"
+   ],
+   "from_board": true,
+   "pillar": "Story"
+  },
+  {
+   "canonical": "television",
+   "pillar": "Story",
+   "section": "Engines of Society",
+   "count": 61,
+   "members": [
+    "game show",
+    "talent show",
+    "talk show",
+    "tv addicted person",
+    "tv episode",
+    "tv host",
+    "tv news anchor",
+    "tv ratings",
+    "tv show",
+    "tv special",
+    "sitcom",
+    "series finale",
+    "remote control"
+   ]
+  },
+  {
+   "canonical": "technology",
+   "pillar": "Story",
+   "section": "Engines of Society",
+   "count": 60,
+   "members": [
+    "high technology",
+    "machine",
+    "man vs machine",
+    "technology",
+    "high tech",
+    "techno thriller",
+    "analog"
+   ]
+  },
+  {
+   "canonical": "capitalism",
+   "section": "Engines of Society",
+   "count": 58,
+   "members": [
+    "capitalism",
+    "capitalist",
+    "late stage capitalism",
+    "anti-capitalist",
+    "financial crisis",
+    "economics",
+    "consumerism",
+    "commercialism",
+    "recession",
+    "economic crisis"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "government",
+   "section": "Engines of Society",
+   "count": 58,
+   "members": [
+    "government",
+    "bureaucracy",
+    "governance",
+    "secretary of defense",
+    "government agency"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "tyranny",
+   "section": "Engines of Society",
+   "count": 49,
+   "members": [
+    "authoritarian",
+    "authoritarian regime",
+    "totalitarian",
+    "totalitarian regime",
+    "tyranny",
+    "totalitarianism",
+    "dictatorship",
+    "franco regime (francoism)",
+    "vichy regime"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "internet",
+   "pillar": "Story",
+   "section": "Engines of Society",
+   "count": 40,
+   "members": [
+    "internet",
+    "internet chat",
+    "livestream",
+    "webcam",
+    "website",
+    "catfishing",
+    "e-mail",
+    "text messaging",
+    "online relationship"
+   ],
+   "note": "kept separate from social media (different film eras)"
+  },
+  {
+   "canonical": "radio",
+   "pillar": "Story",
+   "section": "Engines of Society",
+   "count": 33,
+   "members": [
+    "pirate radio",
+    "radio",
+    "radio presenter",
+    "radio show host",
+    "radio station",
+    "radio transmission",
+    "walkie talkie"
+   ]
+  },
+  {
+   "canonical": "social media",
+   "pillar": "Story",
+   "section": "Engines of Society",
+   "count": 32,
+   "members": [
+    "manipulation of the media",
+    "media",
+    "media manipulation",
+    "social media",
+    "social media influencer",
+    "facebook"
+   ]
+  },
+  {
+   "canonical": "communism",
+   "section": "Engines of Society",
+   "count": 32,
+   "members": [
+    "communism",
+    "chinese communism",
+    "stalinism",
+    "anti-communism"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "fascism",
+   "section": "Engines of Society",
+   "count": 31,
+   "members": [
+    "fascism",
+    "fascist",
+    "benito mussolini",
+    "anti-fascism"
+   ],
+   "from_board": true,
+   "pillar": "Story"
+  },
+  {
+   "canonical": "pornography",
+   "pillar": "Story",
+   "section": "Engines of Society",
+   "count": 29,
+   "members": [
+    "pornography",
+    "porn star",
+    "porn industry",
+    "pornographic video",
+    "softcore"
+   ],
+   "note": "shifted R&F -> Forces & Institutions (rethink wave 7): an industry, beside moviebiz"
+  },
+  {
+   "canonical": "advertising",
+   "pillar": "Story",
+   "section": "Engines of Society",
+   "count": 29,
+   "members": [
+    "advertising",
+    "commercial",
+    "publicist",
+    "advertising expert",
+    "advertising agency",
+    "publicity",
+    "sponsorship"
+   ]
+  },
+  {
+   "canonical": "fossil fuels",
+   "pillar": "Story",
+   "section": "Engines of Society",
+   "count": 28,
+   "members": [
+    "oil",
+    "petrol",
+    "gas",
+    "oil refinery",
+    "oil tanker",
+    "mining"
+   ]
+  },
+  {
+   "canonical": "cartel",
+   "section": "Engines of Society",
+   "count": 26,
+   "members": [
+    "drug cartel",
+    "mexican cartel",
+    "cartel"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "stock market",
+   "section": "Engines of Society",
+   "count": 25,
+   "members": [
+    "stock market",
+    "stock market crash",
+    "wall street",
+    "investment",
+    "stocks",
+    "securities, stocks and bonds"
+   ],
+   "pillar": "Story",
+   "note": "moved Locations -> Forces & Institutions (placement review 2026-07-24); absorbed the securities, stocks and bonds board tag"
+  },
+  {
+   "canonical": "labor union",
+   "section": "Engines of Society",
+   "count": 21,
+   "members": [
+    "labor union",
+    "union",
+    "labor strike",
+    "labor organizer",
+    "worker's rights",
+    "labor rights",
+    "strike"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "nasa",
+   "pillar": "Story",
+   "section": "Engines of Society",
+   "count": 20,
+   "members": [
+    "nasa",
+    "apollo program"
+   ],
+   "note": "satellite left loose by user"
+  },
+  {
+   "canonical": "corporation",
+   "pillar": "Story",
+   "section": "Engines of Society",
+   "count": 20,
+   "members": [
+    "corporation",
+    "big corporation",
+    "evil corporation",
+    "hostile takeover"
+   ]
+  },
+  {
+   "canonical": "real estate",
+   "section": "Engines of Society",
+   "count": 18,
+   "members": [
+    "real estate",
+    "real estate agent",
+    "estate agent",
+    "realtor"
+   ],
+   "pillar": "Story",
+   "note": "moved Setting/Locations -> Forces & Institutions (rethink wave 3): a business, not a place"
+  },
+  {
+   "canonical": "censorship",
+   "section": "Engines of Society",
+   "count": 17,
+   "members": [
+    "censorship",
+    "book burning",
+    "banned film"
+   ],
+   "from_board": true,
+   "pillar": "Story"
+  },
+  {
+   "canonical": "propaganda",
+   "section": "Engines of Society",
+   "count": 13,
+   "members": [
+    "propaganda",
+    "war propaganda",
+    "soviet realism"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "diplomacy",
+   "section": "Engines of Society",
+   "count": 12,
+   "members": [
+    "ambassador",
+    "diplomat",
+    "diplomacy"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "tribe",
+   "pillar": "Story",
+   "section": "Engines of Society",
+   "count": 12,
+   "members": [
+    "tribe",
+    "chieftain"
+   ]
+  },
+  {
+   "canonical": "charity",
+   "pillar": "Story",
+   "section": "Engines of Society",
+   "count": 11,
+   "members": [
+    "charity",
+    "fundraising",
+    "volunteer"
+   ]
+  },
+  {
+   "canonical": "insurance",
+   "pillar": "Story",
+   "section": "Engines of Society",
+   "count": 10,
+   "members": [
+    "insurance",
+    "insurance agent"
+   ]
+  },
+  {
+   "canonical": "energy",
+   "pillar": "Story",
+   "section": "Engines of Society",
+   "count": 8,
+   "members": [
+    "electricity",
+    "energy",
+    "electric shock"
+   ]
+  },
+  {
+   "canonical": "socialism",
+   "section": "Engines of Society",
+   "count": 7,
+   "members": [
+    "socialism",
+    "socialists"
+   ],
+   "from_board": true,
    "pillar": "Story"
   },
   {
@@ -8421,585 +7626,8 @@
    "pillar": "Story"
   },
   {
-   "canonical": "courtroom",
-   "section": "Forces & Institutions",
-   "count": 198,
-   "members": [
-    "courtroom",
-    "trial",
-    "murder trial",
-    "court",
-    "court case",
-    "courtroom drama",
-    "judge",
-    "legal thriller",
-    "prosecution",
-    "legal drama",
-    "wrongful conviction",
-    "arbitrary law",
-    "testimony",
-    "jury trial",
-    "jury",
-    "supreme court",
-    "principal witness",
-    "courthouse",
-    "jurors",
-    "lawsuit",
-    "judiciary",
-    "sentence",
-    "witness"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "money",
-   "section": "Forces & Institutions",
-   "count": 184,
-   "members": [
-    "money",
-    "stolen money",
-    "bag of money",
-    "suitcase full of money",
-    "cash",
-    "dollar",
-    "money problems",
-    "prize money",
-    "debt",
-    "financial problem",
-    "bankrupt",
-    "bankruptcy",
-    "finances",
-    "repayment",
-    "tax collector",
-    "taxes",
-    "financial transactions",
-    "auction",
-    "deal"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "politics",
-   "section": "Forces & Institutions",
-   "count": 182,
-   "members": [
-    "politics",
-    "usa politics",
-    "british politics",
-    "russian politics",
-    "soviet politics",
-    "french politics",
-    "political crisis",
-    "political instability",
-    "political unrest",
-    "political intrigue",
-    "political scandal",
-    "political repression",
-    "political documentary",
-    "political party",
-    "race politics",
-    "power politics",
-    "united nations",
-    "embassy",
-    "campaign",
-    "martial law",
-    "freedom of speech",
-    "debate",
-    "u.s. embassy",
-    "european union",
-    "speech",
-    "city hall",
-    "public works",
-    "state of emergency",
-    "power struggle",
-    "power relations",
-    "fictitious country",
-    "conservative",
-    "democracy"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "intelligence agency",
-   "section": "Forces & Institutions",
-   "count": 163,
-   "members": [
-    "central intelligence agency (cia)",
-    "kgb",
-    "mi6",
-    "british secret service",
-    "national security agency (nsa)",
-    "mossad",
-    "stasi",
-    "gestapo",
-    "french gestapo",
-    "secret service",
-    "homeland security",
-    "dea",
-    "intelligence agency",
-    "secret intelligence service",
-    "intelligence service",
-    "mi5",
-    "national intelligence service (nis)",
-    "u.s. counterintelligence",
-    "ex kgb",
-    "intelligence officer",
-    "british intelligence"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "mafia",
-   "section": "Forces & Institutions",
-   "count": 160,
-   "members": [
-    "mafia",
-    "mobster",
-    "bratva (russian mafia)",
-    "yakuza",
-    "criminal underworld",
-    "mafia boss",
-    "triad",
-    "sicilian mafia",
-    "chinese mafia",
-    "mob boss",
-    "irish mob",
-    "mob",
-    "mob hit",
-    "anti-mafia",
-    "crime family",
-    "camorra",
-    "sicilian",
-    "godfather",
-    "kingpin",
-    "mafia war"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "moviebiz",
-   "pillar": "Story",
-   "section": "Forces & Institutions",
-   "count": 139,
-   "members": [
-    "film industry",
-    "film production",
-    "hollywood",
-    "hollywood star",
-    "media tycoon",
-    "movie business",
-    "movie set",
-    "movie studio",
-    "old hollywood",
-    "show business",
-    "tv production",
-    "projectionist",
-    "making of",
-    "behind the scenes",
-    "screenplay",
-    "outtakes",
-    "product placement"
-   ],
-   "note": "custom label (user); movie business + hollywood industry cluster"
-  },
-  {
-   "canonical": "corruption",
-   "section": "Forces & Institutions",
-   "count": 129,
-   "members": [
-    "corruption",
-    "corrupt officials",
-    "corrupt government",
-    "corrupt official",
-    "bribery",
-    "bribe",
-    "political corruption",
-    "government corruption"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "fbi",
-   "section": "Forces & Institutions",
-   "count": 117,
-   "members": [
-    "fbi",
-    "fbi operation",
-    "fbi agent"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "secret organization",
-   "section": "Forces & Institutions",
-   "count": 65,
-   "members": [
-    "secret organization",
-    "secret government organization",
-    "fictional government agency",
-    "secret society"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "television",
-   "pillar": "Story",
-   "section": "Forces & Institutions",
-   "count": 61,
-   "members": [
-    "game show",
-    "talent show",
-    "talk show",
-    "tv addicted person",
-    "tv episode",
-    "tv host",
-    "tv news anchor",
-    "tv ratings",
-    "tv show",
-    "tv special",
-    "sitcom",
-    "series finale",
-    "remote control"
-   ]
-  },
-  {
-   "canonical": "technology",
-   "pillar": "Story",
-   "section": "Forces & Institutions",
-   "count": 60,
-   "members": [
-    "high technology",
-    "machine",
-    "man vs machine",
-    "technology",
-    "high tech",
-    "techno thriller",
-    "analog"
-   ]
-  },
-  {
-   "canonical": "capitalism",
-   "section": "Forces & Institutions",
-   "count": 58,
-   "members": [
-    "capitalism",
-    "capitalist",
-    "late stage capitalism",
-    "anti-capitalist",
-    "financial crisis",
-    "economics",
-    "consumerism",
-    "commercialism",
-    "recession",
-    "economic crisis"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "government",
-   "section": "Forces & Institutions",
-   "count": 58,
-   "members": [
-    "government",
-    "bureaucracy",
-    "governance",
-    "secretary of defense",
-    "government agency"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "tyranny",
-   "section": "Forces & Institutions",
-   "count": 49,
-   "members": [
-    "authoritarian",
-    "authoritarian regime",
-    "totalitarian",
-    "totalitarian regime",
-    "tyranny",
-    "totalitarianism",
-    "dictatorship",
-    "franco regime (francoism)",
-    "vichy regime"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "internet",
-   "pillar": "Story",
-   "section": "Forces & Institutions",
-   "count": 40,
-   "members": [
-    "internet",
-    "internet chat",
-    "livestream",
-    "webcam",
-    "website",
-    "catfishing",
-    "e-mail",
-    "text messaging",
-    "online relationship"
-   ],
-   "note": "kept separate from social media (different film eras)"
-  },
-  {
-   "canonical": "radio",
-   "pillar": "Story",
-   "section": "Forces & Institutions",
-   "count": 33,
-   "members": [
-    "pirate radio",
-    "radio",
-    "radio presenter",
-    "radio show host",
-    "radio station",
-    "radio transmission",
-    "walkie talkie"
-   ]
-  },
-  {
-   "canonical": "social media",
-   "pillar": "Story",
-   "section": "Forces & Institutions",
-   "count": 32,
-   "members": [
-    "manipulation of the media",
-    "media",
-    "media manipulation",
-    "social media",
-    "social media influencer",
-    "facebook"
-   ]
-  },
-  {
-   "canonical": "communism",
-   "section": "Forces & Institutions",
-   "count": 32,
-   "members": [
-    "communism",
-    "chinese communism",
-    "stalinism",
-    "anti-communism"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "fascism",
-   "section": "Forces & Institutions",
-   "count": 31,
-   "members": [
-    "fascism",
-    "fascist",
-    "benito mussolini",
-    "anti-fascism"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "pornography",
-   "pillar": "Story",
-   "section": "Forces & Institutions",
-   "count": 29,
-   "members": [
-    "pornography",
-    "porn star",
-    "porn industry",
-    "pornographic video",
-    "softcore"
-   ],
-   "note": "shifted R&F -> Forces & Institutions (rethink wave 7): an industry, beside moviebiz"
-  },
-  {
-   "canonical": "advertising",
-   "pillar": "Story",
-   "section": "Forces & Institutions",
-   "count": 29,
-   "members": [
-    "advertising",
-    "commercial",
-    "publicist",
-    "advertising expert",
-    "advertising agency",
-    "publicity",
-    "sponsorship"
-   ]
-  },
-  {
-   "canonical": "fossil fuels",
-   "pillar": "Story",
-   "section": "Forces & Institutions",
-   "count": 28,
-   "members": [
-    "oil",
-    "petrol",
-    "gas",
-    "oil refinery",
-    "oil tanker",
-    "mining"
-   ]
-  },
-  {
-   "canonical": "cartel",
-   "section": "Forces & Institutions",
-   "count": 26,
-   "members": [
-    "drug cartel",
-    "mexican cartel",
-    "cartel"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "stock market",
-   "section": "Forces & Institutions",
-   "count": 25,
-   "members": [
-    "stock market",
-    "stock market crash",
-    "wall street",
-    "investment",
-    "stocks",
-    "securities, stocks and bonds"
-   ],
-   "pillar": "Story",
-   "note": "moved Locations -> Forces & Institutions (placement review 2026-07-24); absorbed the securities, stocks and bonds board tag"
-  },
-  {
-   "canonical": "labor union",
-   "section": "Forces & Institutions",
-   "count": 21,
-   "members": [
-    "labor union",
-    "union",
-    "labor strike",
-    "labor organizer",
-    "worker's rights",
-    "labor rights",
-    "strike"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "nasa",
-   "pillar": "Story",
-   "section": "Forces & Institutions",
-   "count": 20,
-   "members": [
-    "nasa",
-    "apollo program"
-   ],
-   "note": "satellite left loose by user"
-  },
-  {
-   "canonical": "corporation",
-   "pillar": "Story",
-   "section": "Forces & Institutions",
-   "count": 20,
-   "members": [
-    "corporation",
-    "big corporation",
-    "evil corporation",
-    "hostile takeover"
-   ]
-  },
-  {
-   "canonical": "real estate",
-   "section": "Forces & Institutions",
-   "count": 18,
-   "members": [
-    "real estate",
-    "real estate agent",
-    "estate agent",
-    "realtor"
-   ],
-   "pillar": "Story",
-   "note": "moved Setting/Locations -> Forces & Institutions (rethink wave 3): a business, not a place"
-  },
-  {
-   "canonical": "censorship",
-   "section": "Forces & Institutions",
-   "count": 17,
-   "members": [
-    "censorship",
-    "book burning",
-    "banned film"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
-   "canonical": "propaganda",
-   "section": "Forces & Institutions",
-   "count": 13,
-   "members": [
-    "propaganda",
-    "war propaganda",
-    "soviet realism"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "diplomacy",
-   "section": "Forces & Institutions",
-   "count": 12,
-   "members": [
-    "ambassador",
-    "diplomat",
-    "diplomacy"
-   ],
-   "pillar": "Story"
-  },
-  {
-   "canonical": "tribe",
-   "pillar": "Story",
-   "section": "Forces & Institutions",
-   "count": 12,
-   "members": [
-    "tribe",
-    "chieftain"
-   ]
-  },
-  {
-   "canonical": "insurance",
-   "pillar": "Story",
-   "section": "Forces & Institutions",
-   "count": 10,
-   "members": [
-    "insurance",
-    "insurance agent"
-   ]
-  },
-  {
-   "canonical": "energy",
-   "pillar": "Story",
-   "section": "Forces & Institutions",
-   "count": 8,
-   "members": [
-    "electricity",
-    "energy",
-    "electric shock"
-   ]
-  },
-  {
-   "canonical": "socialism",
-   "section": "Forces & Institutions",
-   "count": 7,
-   "members": [
-    "socialism",
-    "socialists"
-   ],
-   "from_board": true,
-   "pillar": "Story"
-  },
-  {
    "canonical": "lgbt",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 177,
    "members": [
     "lgbt",
@@ -9018,7 +7646,7 @@
   },
   {
    "canonical": "gay",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 149,
    "members": [
     "gay theme",
@@ -9039,7 +7667,7 @@
   {
    "canonical": "wealth",
    "pillar": "Story",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 124,
    "members": [
     "wealth",
@@ -9063,7 +7691,7 @@
   },
   {
    "canonical": "racism",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 123,
    "members": [
     "racism",
@@ -9086,7 +7714,7 @@
   },
   {
    "canonical": "social class",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 119,
    "members": [
     "working class",
@@ -9112,7 +7740,7 @@
   },
   {
    "canonical": "poverty",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 84,
    "members": [
     "poverty",
@@ -9130,7 +7758,7 @@
   },
   {
    "canonical": "immigrant",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 68,
    "members": [
     "immigrant",
@@ -9149,7 +7777,7 @@
   },
   {
    "canonical": "native american",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 58,
    "members": [
     "native american",
@@ -9169,7 +7797,7 @@
   {
    "canonical": "sexuality",
    "pillar": "Story",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 56,
    "members": [
     "sexuality",
@@ -9185,7 +7813,7 @@
   {
    "canonical": "oppression",
    "pillar": "Story",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 53,
    "members": [
     "oppression",
@@ -9199,7 +7827,7 @@
   },
   {
    "canonical": "female empowerment",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 46,
    "members": [
     "strong woman",
@@ -9214,7 +7842,7 @@
   },
   {
    "canonical": "interracial",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 46,
    "members": [
     "interracial relationship",
@@ -9227,7 +7855,7 @@
   },
   {
    "canonical": "slavery",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 45,
    "members": [
     "slavery",
@@ -9242,7 +7870,7 @@
   },
   {
    "canonical": "discrimination",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 39,
    "members": [
     "discrimination",
@@ -9259,7 +7887,7 @@
   {
    "canonical": "counterculture",
    "pillar": "Story",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 38,
    "members": [
     "counter-culture",
@@ -9272,7 +7900,7 @@
   },
   {
    "canonical": "lesbian",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 32,
    "members": [
     "lesbian",
@@ -9284,7 +7912,7 @@
   },
   {
    "canonical": "homelessness",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 32,
    "members": [
     "homeless person",
@@ -9298,7 +7926,7 @@
   {
    "canonical": "cross dressing",
    "pillar": "Story",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 32,
    "members": [
     "cross dressing",
@@ -9308,7 +7936,7 @@
   },
   {
    "canonical": "feminism",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 26,
    "members": [
     "feminism",
@@ -9321,7 +7949,7 @@
   },
   {
    "canonical": "sexism",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 25,
    "members": [
     "sexism",
@@ -9333,7 +7961,7 @@
   {
    "canonical": "homophobia",
    "pillar": "Story",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 25,
    "members": [
     "homophobia"
@@ -9341,7 +7969,7 @@
   },
   {
    "canonical": "colonialism",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 24,
    "members": [
     "colonialism",
@@ -9355,7 +7983,7 @@
   },
   {
    "canonical": "refugee",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 20,
    "members": [
     "refugee",
@@ -9367,7 +7995,7 @@
   },
   {
    "canonical": "bisexual",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 20,
    "members": [
     "bisexuality",
@@ -9377,7 +8005,7 @@
   },
   {
    "canonical": "american",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 18,
    "members": [
     "american"
@@ -9387,7 +8015,7 @@
   },
   {
    "canonical": "italian",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 17,
    "members": [
     "italian"
@@ -9397,7 +8025,7 @@
   },
   {
    "canonical": "italian american",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 16,
    "members": [
     "italian american"
@@ -9407,7 +8035,7 @@
   },
   {
    "canonical": "coming out",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 16,
    "members": [
     "coming out",
@@ -9418,7 +8046,7 @@
   {
    "canonical": "masculinity",
    "pillar": "Story",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 16,
    "members": [
     "masculinity",
@@ -9427,7 +8055,7 @@
   },
   {
    "canonical": "transgender",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 15,
    "members": [
     "transgender",
@@ -9439,7 +8067,7 @@
   {
    "canonical": "indigenous peoples",
    "pillar": "Story",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 15,
    "members": [
     "indigenous peoples",
@@ -9450,7 +8078,7 @@
   {
    "canonical": "asian",
    "pillar": "Story",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 15,
    "members": [
     "asian woman",
@@ -9462,7 +8090,7 @@
   },
   {
    "canonical": "irish-american",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 13,
    "members": [
     "irish-american"
@@ -9472,7 +8100,7 @@
   },
   {
    "canonical": "chinese",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 12,
    "members": [
     "chinese"
@@ -9483,7 +8111,7 @@
   {
    "canonical": "irish",
    "pillar": "Story",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 12,
    "members": [
     "irish",
@@ -9492,7 +8120,7 @@
   },
   {
    "canonical": "civil rights",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 10,
    "members": [
     "black panther party",
@@ -9503,7 +8131,7 @@
   },
   {
    "canonical": "asian american",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 8,
    "members": [
     "asian american"
@@ -9513,7 +8141,7 @@
   },
   {
    "canonical": "african american",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 8,
    "members": [
     "african american"
@@ -9524,7 +8152,7 @@
   {
    "canonical": "antisemitism",
    "pillar": "Story",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 8,
    "members": [
     "antisemitism"
@@ -9533,7 +8161,7 @@
   {
    "canonical": "romani",
    "pillar": "Story",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 8,
    "members": [
     "gypsy"
@@ -9541,7 +8169,7 @@
   },
   {
    "canonical": "gender roles",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 7,
    "members": [
     "gender roles",
@@ -9551,7 +8179,7 @@
   },
   {
    "canonical": "mexican american",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 6,
    "members": [
     "mexican american"
@@ -9561,7 +8189,7 @@
   },
   {
    "canonical": "apartheid",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 6,
    "members": [
     "apartheid"
@@ -9572,7 +8200,7 @@
   },
   {
    "canonical": "korean",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 5,
    "members": [
     "korean"
@@ -9582,7 +8210,7 @@
   },
   {
    "canonical": "jewish american",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 4,
    "members": [
     "jewish american"
@@ -9592,7 +8220,7 @@
   },
   {
    "canonical": "greek",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 4,
    "members": [
     "greek"
@@ -9602,7 +8230,7 @@
   },
   {
    "canonical": "australian aboriginal",
-   "section": "Identity & Society",
+   "section": "Identity",
    "count": 3,
    "members": [
     "australian aboriginal"
@@ -10534,8 +9162,1391 @@
    "note": "user: noose is not always execution — sometimes self harm"
   },
   {
+   "canonical": "police",
+   "section": "Professions & Occupations",
+   "count": 466,
+   "members": [
+    "police",
+    "police brutality",
+    "police corruption",
+    "cop",
+    "police chase",
+    "undercover cop",
+    "dirty cop",
+    "ex-cop",
+    "police operation",
+    "police chief",
+    "police station",
+    "rookie cop",
+    "corrupt cop",
+    "police academy",
+    "french police",
+    "bad cop",
+    "cops",
+    "police shootout",
+    "tough cop",
+    "police impersonator",
+    "police arrest",
+    "police surveillance",
+    "police procedural",
+    "police training",
+    "running from police",
+    "police vigilantism",
+    "police stakeout",
+    "police raid",
+    "law enforcement",
+    "good cop bad cop",
+    "police headquarter",
+    "robot cop",
+    "female cop",
+    "police dog",
+    "maverick cop",
+    "narcotics cop",
+    "female police officer",
+    "police officer",
+    "internal affairs",
+    "lapd",
+    "policeman",
+    "nypd",
+    "arrest",
+    "policewoman",
+    "s.w.a.t.",
+    "gendarmerie",
+    "arrested",
+    "dea agent",
+    "scotland yard",
+    "interpol"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "gangster",
+   "section": "Professions & Occupations",
+   "count": 334,
+   "members": [
+    "gangster",
+    "organized crime",
+    "gang",
+    "street gang",
+    "crime boss",
+    "gang war",
+    "motorcycle gang",
+    "criminal gang",
+    "loan shark",
+    "angry mob",
+    "gang rape",
+    "gang leader",
+    "thug",
+    "gang member",
+    "youth gang",
+    "crime lord",
+    "gang violence",
+    "rival gang",
+    "crime syndicate",
+    "hoodlum",
+    "cholo",
+    "hooligan",
+    "gang warfare"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "detective",
+   "section": "Professions & Occupations",
+   "count": 255,
+   "members": [
+    "detective",
+    "police detective",
+    "police inspector",
+    "private detective",
+    "private investigator",
+    "investigator",
+    "bumbling detective",
+    "amateur detective",
+    "detective comedy",
+    "private eye",
+    "detective inspector",
+    "female detective",
+    "homicide detective",
+    "narcotics detective",
+    "sherlock holmes",
+    "inspector",
+    "clouseau",
+    "psychological profiling",
+    "procedural"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "spy",
+   "section": "Professions & Occupations",
+   "count": 243,
+   "members": [
+    "spy",
+    "government agent",
+    "secret agent",
+    "undercover agent",
+    "agent",
+    "special agent",
+    "female agent",
+    "woman agent",
+    "rogue agent",
+    "double agent",
+    "sleeper agent",
+    "corrupt agent",
+    "female spy",
+    "british spy",
+    "american spy",
+    "russian spy",
+    "secret mission",
+    "top secret",
+    "james bond",
+    "jack ryan",
+    "jason bourne",
+    "operative",
+    "mole",
+    "spycraft",
+    "cia agent",
+    "cia analyst",
+    "ex-cia agent",
+    "nsa agent",
+    "u.s. secret service agent",
+    "federal agent"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "worklife",
+   "section": "Professions & Occupations",
+   "count": 234,
+   "members": [
+    "workplace",
+    "workplace comedy",
+    "workplace drama",
+    "boss",
+    "bad boss",
+    "employee",
+    "worker",
+    "manager",
+    "co-workers relationship",
+    "employer employee relationship",
+    "workplace romance",
+    "secretary",
+    "receptionist",
+    "intern",
+    "clerk",
+    "salesclerk",
+    "assistant",
+    "internship",
+    "personal assistant",
+    "colleague",
+    "janitor",
+    "taskmaster",
+    "conference",
+    "workshop",
+    "work",
+    "briefcase",
+    "assignment",
+    "career",
+    "job interview",
+    "life and career",
+    "new job",
+    "summer job",
+    "career woman",
+    "job",
+    "job promotion",
+    "unemployment",
+    "unemployed",
+    "loss of job",
+    "fired from the job",
+    "quitting a job",
+    "job hunting",
+    "job seeking",
+    "job-hopping",
+    "downsizing",
+    "laid off",
+    "forced retirement"
+   ],
+   "pillar": "Story",
+   "note": "custom label (user 2026-07-24): renamed from workplace after absorbing the career tag — one work-world home (office people + job-arc strings)"
+  },
+  {
+   "canonical": "writer",
+   "section": "Professions & Occupations",
+   "count": 187,
+   "members": [
+    "aspiring writer",
+    "author",
+    "children's author",
+    "crime fiction writer",
+    "female writer",
+    "mystery writer",
+    "novelist",
+    "playwright",
+    "poet",
+    "poetry",
+    "screenwriter",
+    "travel writer",
+    "typewriter",
+    "writer",
+    "writer's block",
+    "writing",
+    "literature",
+    "plagiarism"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "journalist",
+   "section": "Professions & Occupations",
+   "count": 185,
+   "members": [
+    "editor-in-chief",
+    "interview",
+    "investigative journalism",
+    "journalism",
+    "journalist",
+    "magazine",
+    "news reporter",
+    "newspaper",
+    "newspaper editor",
+    "newspaper man",
+    "newspaper reporter",
+    "publisher",
+    "reporter",
+    "tv reporter",
+    "news",
+    "news report",
+    "newswoman",
+    "war correspondent"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "politician",
+   "section": "Professions & Occupations",
+   "count": 178,
+   "members": [
+    "politician",
+    "corrupt politician",
+    "president",
+    "usa president",
+    "vice president",
+    "russian president",
+    "congressman",
+    "senate",
+    "congress",
+    "member of parliament",
+    "presidential candidate",
+    "senator",
+    "u.s. senator",
+    "u.s. congress",
+    "prime minister",
+    "british prime minister",
+    "mayor",
+    "corrupt mayor",
+    "abraham lincoln",
+    "winston churchill",
+    "john f. kennedy",
+    "richard nixon",
+    "lobbyist",
+    "governor"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "scientist",
+   "section": "Professions & Occupations",
+   "count": 162,
+   "members": [
+    "anthropologist",
+    "anthropology",
+    "astronomer",
+    "biologist",
+    "chemist",
+    "computer scientist",
+    "mad scientist",
+    "marine biologist",
+    "researcher",
+    "scientist",
+    "reanimation",
+    "botanist",
+    "geologist",
+    "linguist",
+    "zoologist",
+    "naturalist",
+    "meteorologist",
+    "paleontology",
+    "quantum mechanics",
+    "weather forecaster"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "assassin",
+   "section": "Professions & Occupations",
+   "count": 150,
+   "members": [
+    "assassin",
+    "assassination",
+    "assassination attempt",
+    "female assassin",
+    "political assassination",
+    "professional assassin",
+    "assassination of president",
+    "assassination team",
+    "government assassin"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "criminal",
+   "section": "Professions & Occupations",
+   "count": 150,
+   "members": [
+    "criminal",
+    "criminal mastermind",
+    "crime spree",
+    "criminal organization",
+    "crime horror",
+    "crime",
+    "crime thriller",
+    "true crime",
+    "ex-con",
+    "petty crimes",
+    "vandalism"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "thief",
+   "section": "Professions & Occupations",
+   "count": 148,
+   "members": [
+    "thief",
+    "master thief",
+    "theft",
+    "professional thief",
+    "gentleman thief",
+    "art thief",
+    "art theft",
+    "car theft",
+    "diamond theft",
+    "jewel thief",
+    "stealing",
+    "identity theft",
+    "pickpocket",
+    "shoplifting",
+    "drug stealing",
+    "looting",
+    "gang of thieves",
+    "cat burglar"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "musician",
+   "section": "Professions & Occupations",
+   "count": 143,
+   "members": [
+    "composer",
+    "guitar",
+    "guitar player",
+    "musician",
+    "pianist",
+    "piano",
+    "piano lessons",
+    "playing piano",
+    "saxophone",
+    "songwriter",
+    "street musician",
+    "struggling musician",
+    "violin",
+    "violinist",
+    "rock star",
+    "rapper",
+    "songwriting",
+    "rocker",
+    "busker",
+    "mozart"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "artist",
+   "section": "Professions & Occupations",
+   "count": 139,
+   "members": [
+    "art",
+    "art auction",
+    "art collector",
+    "art dealer",
+    "art history",
+    "artist",
+    "artists' life",
+    "aspiring artist",
+    "female artist",
+    "painter",
+    "painter as artist",
+    "painting",
+    "portrait of an artist",
+    "sculptor",
+    "sculpture",
+    "stolen painting",
+    "street artist",
+    "struggling artist",
+    "drawing",
+    "portrait",
+    "graffiti",
+    "leonardo da vinci",
+    "creative crisis",
+    "statue"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "teacher",
+   "section": "Professions & Occupations",
+   "count": 131,
+   "members": [
+    "teacher",
+    "music teacher",
+    "school teacher",
+    "high school teacher",
+    "tutor",
+    "female teacher",
+    "dance teacher",
+    "teacher student relationship",
+    "schoolteacher",
+    "teaching",
+    "teachers and students"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "doctor",
+   "section": "Professions & Occupations",
+   "count": 128,
+   "members": [
+    "doctor",
+    "surgeon",
+    "plastic surgeon",
+    "emergency doctor",
+    "neurosurgeon",
+    "dentist",
+    "paramedic",
+    "doctor patient relationship",
+    "caregiver patient relationship",
+    "pediatrician",
+    "medical examiner"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "soldier",
+   "section": "Professions & Occupations",
+   "count": 123,
+   "members": [
+    "soldier",
+    "soldiers",
+    "u.s. soldier",
+    "german soldier",
+    "russian soldier",
+    "british soldier",
+    "japanese soldier",
+    "child soldier",
+    "female soldier",
+    "wounded soldier",
+    "dead soldier",
+    "american soldiers"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "lawyer",
+   "section": "Professions & Occupations",
+   "count": 121,
+   "members": [
+    "lawyer",
+    "crooked lawyer",
+    "divorce lawyer",
+    "prosecutor",
+    "defense attorney",
+    "district attorney",
+    "law firm"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "singer",
+   "section": "Professions & Occupations",
+   "count": 117,
+   "members": [
+    "singer",
+    "jazz singer or musician",
+    "singer-songwriter",
+    "opera singer",
+    "aspiring singer",
+    "pop singer",
+    "women singer",
+    "nightclub singer",
+    "rock singer",
+    "boy band",
+    "pop star"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "celebrity",
+   "pillar": "Story",
+   "section": "Professions & Occupations",
+   "count": 99,
+   "members": [
+    "celebrity",
+    "celebrity interview",
+    "entertainer",
+    "movie star",
+    "paparazzi",
+    "press agent",
+    "press conference",
+    "diva",
+    "fading star",
+    "autograph",
+    "heart-throb",
+    "has been",
+    "pop culture"
+   ]
+  },
+  {
+   "canonical": "veteran",
+   "section": "Professions & Occupations",
+   "count": 98,
+   "members": [
+    "veteran",
+    "war veteran",
+    "vietnam veteran",
+    "ex soldier",
+    "ex military",
+    "ex army",
+    "retired army man",
+    "military veteran",
+    "ww2 veteran",
+    "army veteran",
+    "iraq war veteran",
+    "civil war veteran",
+    "korean war veteran"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "hitman",
+   "section": "Professions & Occupations",
+   "count": 87,
+   "members": [
+    "hitman",
+    "contract killer",
+    "hired killer"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "clergyman",
+   "section": "Professions & Occupations",
+   "count": 86,
+   "members": [
+    "priest",
+    "pastor",
+    "preacher",
+    "ex-priest",
+    "clergyman",
+    "reverend",
+    "bishop",
+    "minister",
+    "cardinal",
+    "televangelist"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "therapist",
+   "section": "Professions & Occupations",
+   "count": 83,
+   "members": [
+    "psychiatrist",
+    "therapist",
+    "psychologist",
+    "psychotherapist"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "businessman",
+   "section": "Professions & Occupations",
+   "count": 82,
+   "members": [
+    "businessman",
+    "corrupt businessman",
+    "entrepreneur",
+    "advertising executive",
+    "ceo",
+    "executive",
+    "business woman",
+    "accountant",
+    "salesman",
+    "yuppie",
+    "salesmen",
+    "business"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "military officer",
+   "section": "Professions & Occupations",
+   "count": 81,
+   "members": [
+    "military officer",
+    "general",
+    "colonel",
+    "sergeant",
+    "lieutenant",
+    "army captain",
+    "army officer",
+    "army general",
+    "u.s. general",
+    "army sergeant",
+    "drill sergeant",
+    "commander",
+    "drill instructor",
+    "commandant",
+    "major",
+    "army colonel",
+    "gunnery sergeant",
+    "retired general",
+    "female general",
+    "chief warrant officer",
+    "nazi officer",
+    "german officer",
+    "british officer",
+    "austrian officer",
+    "naval officer",
+    "admiral",
+    "navy commander",
+    "navy lieutenant",
+    "naval flight officer"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "sheriff",
+   "pillar": "Story",
+   "section": "Professions & Occupations",
+   "count": 80,
+   "members": [
+    "sheriff",
+    "small town sheriff",
+    "deputy sheriff",
+    "corrupt sheriff",
+    "u.s. marshal",
+    "marshal",
+    "texas ranger"
+   ],
+   "note": "the western-lawman shelf pulled out of police (rethink wave 6b), beside cowboy/gunslinger/outlaw"
+  },
+  {
+   "canonical": "photographer",
+   "section": "Professions & Occupations",
+   "count": 79,
+   "members": [
+    "fashion photographer",
+    "photograph",
+    "photographer",
+    "photography",
+    "war photographer",
+    "photo",
+    "photo shoot",
+    "polaroid"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "driver",
+   "section": "Professions & Occupations",
+   "count": 76,
+   "members": [
+    "taxi driver",
+    "truck driver",
+    "driver",
+    "bus driver",
+    "race car driver",
+    "chauffeur",
+    "transporter"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "drug dealer",
+   "section": "Professions & Occupations",
+   "count": 73,
+   "members": [
+    "drug dealer",
+    "drug lord",
+    "drug mule",
+    "drug kingpin"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "bodyguard",
+   "section": "Professions & Occupations",
+   "count": 68,
+   "members": [
+    "bodyguard",
+    "security guard",
+    "protection",
+    "guard",
+    "protector",
+    "night watchman",
+    "security"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "con artist",
+   "section": "Professions & Occupations",
+   "count": 66,
+   "members": [
+    "con artist",
+    "con man",
+    "scam",
+    "scam artist",
+    "swindle",
+    "grifter",
+    "con",
+    "con game",
+    "small time crook",
+    "crook",
+    "opportunist",
+    "impostor"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "actor",
+   "section": "Professions & Occupations",
+   "count": 56,
+   "members": [
+    "actor",
+    "actress",
+    "aspiring actor",
+    "aging actor",
+    "struggling actor",
+    "porn actor",
+    "famous actor",
+    "aspiring actress"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "dancer",
+   "section": "Professions & Occupations",
+   "count": 54,
+   "members": [
+    "dancer",
+    "ballet dancer",
+    "ballerina",
+    "exotic dancer",
+    "cabaret dancer",
+    "go-go dancer",
+    "burlesque dancer",
+    "stripper",
+    "female stripping",
+    "dancing master",
+    "choreographer",
+    "choreography",
+    "swan lake"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "professor",
+   "section": "Professions & Occupations",
+   "count": 54,
+   "members": [
+    "professor",
+    "college professor",
+    "literature professor",
+    "lecture"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "hunter",
+   "section": "Professions & Occupations",
+   "count": 47,
+   "members": [
+    "hunt",
+    "hunter",
+    "hunting",
+    "poacher",
+    "falconry",
+    "fur trapping"
+   ],
+   "pillar": "Story",
+   "note": "user rule: hunting+poacher fold into the hunter character tag"
+  },
+  {
+   "canonical": "warrior",
+   "section": "Professions & Occupations",
+   "count": 47,
+   "members": [
+    "warrior",
+    "female warrior",
+    "warrior woman",
+    "barbarian"
+   ],
+   "backfill": true,
+   "pillar": "Story"
+  },
+  {
+   "canonical": "comedian",
+   "section": "Professions & Occupations",
+   "count": 46,
+   "members": [
+    "comedian",
+    "stand-up comedy"
+   ],
+   "pillar": "Story",
+   "note": "user rule: comedian takes stand-up comedy"
+  },
+  {
+   "canonical": "pilot",
+   "section": "Professions & Occupations",
+   "count": 44,
+   "members": [
+    "pilot",
+    "airplane pilot",
+    "helicopter pilot",
+    "test pilot"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "inventor",
+   "section": "Professions & Occupations",
+   "count": 40,
+   "members": [
+    "invention",
+    "inventor",
+    "gadget"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "nanny",
+   "section": "Professions & Occupations",
+   "count": 38,
+   "members": [
+    "nanny",
+    "babysitter",
+    "governess"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "housekeeper",
+   "pillar": "Story",
+   "section": "Professions & Occupations",
+   "count": 38,
+   "members": [
+    "housekeeper",
+    "maid",
+    "butler",
+    "cleaning lady"
+   ]
+  },
+  {
+   "canonical": "pirate",
+   "section": "Professions & Occupations",
+   "count": 38,
+   "members": [
+    "pirate",
+    "air pirate",
+    "pirate gang",
+    "eye patch",
+    "hook",
+    "hook for a hand"
+   ],
+   "from_board": true,
+   "pillar": "Story"
+  },
+  {
+   "canonical": "nurse",
+   "section": "Professions & Occupations",
+   "count": 38,
+   "members": [
+    "nurse",
+    "caregiver"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "cowboy",
+   "section": "Professions & Occupations",
+   "count": 36,
+   "members": [
+    "cattle drive",
+    "cowboy",
+    "rodeo",
+    "bull riding"
+   ],
+   "from_board": true,
+   "pillar": "Story"
+  },
+  {
+   "canonical": "archaeologist",
+   "section": "Professions & Occupations",
+   "count": 35,
+   "members": [
+    "archaeologist",
+    "archaeological dig",
+    "archeology",
+    "artifact",
+    "egyptology",
+    "relic"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "knight",
+   "section": "Professions & Occupations",
+   "count": 34,
+   "members": [
+    "knight",
+    "king arthur",
+    "excalibur",
+    "camelot",
+    "knights of the round table",
+    "lancelot",
+    "holy grail"
+   ],
+   "backfill": true,
+   "pillar": "Story"
+  },
+  {
+   "canonical": "bounty hunter",
+   "section": "Professions & Occupations",
+   "count": 33,
+   "members": [
+    "bounty hunter",
+    "tracker",
+    "bounty"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "manual labor",
+   "section": "Professions & Occupations",
+   "count": 33,
+   "members": [
+    "factory worker",
+    "construction worker",
+    "construction",
+    "construction site",
+    "hammer",
+    "spanner"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "astronaut",
+   "section": "Professions & Occupations",
+   "count": 32,
+   "members": [
+    "astronaut"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "boxer",
+   "section": "Professions & Occupations",
+   "count": 31,
+   "members": [
+    "boxer",
+    "boxing trainer",
+    "pro wrestlers"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "samurai",
+   "section": "Professions & Occupations",
+   "count": 30,
+   "members": [
+    "samurai",
+    "ronin",
+    "seppuku",
+    "bushi"
+   ],
+   "from_board": true,
+   "pillar": "Story"
+  },
+  {
+   "canonical": "waitress",
+   "section": "Professions & Occupations",
+   "count": 29,
+   "members": [
+    "waitress"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "chef",
+   "section": "Professions & Occupations",
+   "count": 29,
+   "members": [
+    "chef",
+    "baker",
+    "butcher",
+    "bakery"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "gunslinger",
+   "section": "Professions & Occupations",
+   "count": 28,
+   "members": [
+    "gunfighter",
+    "gunslinger"
+   ],
+   "from_board": true,
+   "pillar": "Story"
+  },
+  {
+   "canonical": "banker",
+   "section": "Professions & Occupations",
+   "count": 28,
+   "members": [
+    "banker",
+    "stockbroker",
+    "bank manager",
+    "investment banker",
+    "broker",
+    "banking"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "architect",
+   "section": "Professions & Occupations",
+   "count": 27,
+   "members": [
+    "architect",
+    "architecture"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "nun",
+   "section": "Professions & Occupations",
+   "count": 27,
+   "members": [
+    "nun",
+    "mother superior"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "director",
+   "section": "Professions & Occupations",
+   "count": 26,
+   "members": [
+    "film director",
+    "director",
+    "theater director",
+    "portrait of a filmmaker"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "coach",
+   "section": "Professions & Occupations",
+   "count": 26,
+   "members": [
+    "coach",
+    "trainer",
+    "american football coach"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "mechanic",
+   "section": "Professions & Occupations",
+   "count": 26,
+   "members": [
+    "mechanic",
+    "car mechanic",
+    "plumber",
+    "carpenter",
+    "blacksmith"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "sailor",
+   "section": "Professions & Occupations",
+   "count": 26,
+   "members": [
+    "sailor",
+    "fisherman"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "stuntman",
+   "section": "Professions & Occupations",
+   "count": 24,
+   "members": [
+    "stuntman",
+    "stunt",
+    "daredevil",
+    "stunt flying"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "ninja",
+   "section": "Professions & Occupations",
+   "count": 23,
+   "members": [
+    "ninja",
+    "ninja fighter"
+   ],
+   "from_board": true,
+   "pillar": "Story"
+  },
+  {
+   "canonical": "hairdresser",
+   "section": "Professions & Occupations",
+   "count": 23,
+   "members": [
+    "hairdresser",
+    "barber",
+    "barbershop",
+    "scissors"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "producer",
+   "section": "Professions & Occupations",
+   "count": 22,
+   "members": [
+    "television producer",
+    "record producer",
+    "producer"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "monk",
+   "section": "Professions & Occupations",
+   "count": 19,
+   "members": [
+    "monk",
+    "shaolin monk"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "farmer",
+   "section": "Professions & Occupations",
+   "count": 19,
+   "members": [
+    "farmer"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "model",
+   "section": "Professions & Occupations",
+   "count": 17,
+   "members": [
+    "model",
+    "fashion model",
+    "advertising model"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "veterinarian",
+   "section": "Professions & Occupations",
+   "count": 17,
+   "members": [
+    "veterinarian",
+    "veterinary"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "servant",
+   "section": "Professions & Occupations",
+   "count": 15,
+   "members": [
+    "servant",
+    "master servant relationship"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "vikings (norsemen)",
+   "section": "Professions & Occupations",
+   "count": 15,
+   "members": [
+    "vikings (norsemen)"
+   ],
+   "from_board": true,
+   "note": "board label was the short form \"vikings\"",
+   "pillar": "Story"
+  },
+  {
+   "canonical": "firefighter",
+   "section": "Professions & Occupations",
+   "count": 15,
+   "members": [
+    "firefighter",
+    "firefighting",
+    "fire engine"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "social worker",
+   "section": "Professions & Occupations",
+   "count": 15,
+   "members": [
+    "social worker",
+    "social services"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "cheerleader",
+   "pillar": "Story",
+   "section": "Professions & Occupations",
+   "count": 12,
+   "members": [
+    "cheerleader",
+    "cheerleading",
+    "cheering crowd"
+   ]
+  },
+  {
+   "canonical": "engineer",
+   "section": "Professions & Occupations",
+   "count": 11,
+   "members": [
+    "engineer",
+    "engineering"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "postman",
+   "section": "Professions & Occupations",
+   "count": 11,
+   "members": [
+    "postman",
+    "delivery service",
+    "money delivery"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "dj",
+   "pillar": "Story",
+   "section": "Professions & Occupations",
+   "count": 11,
+   "members": [
+    "dj",
+    "disc jockey",
+    "radio dj"
+   ]
+  },
+  {
+   "canonical": "idol group",
+   "pillar": "Story",
+   "section": "Professions & Occupations",
+   "count": 11,
+   "members": [
+    "k-pop",
+    "idol group",
+    "girl group"
+   ]
+  },
+  {
+   "canonical": "bartender",
+   "section": "Professions & Occupations",
+   "count": 10,
+   "members": [
+    "bartender"
+   ],
+   "pillar": "Story"
+  },
+  {
+   "canonical": "hotel staff",
+   "pillar": "Story",
+   "section": "Professions & Occupations",
+   "count": 10,
+   "members": [
+    "concierge",
+    "valet",
+    "doorman"
+   ]
+  },
+  {
+   "canonical": "musketeer",
+   "section": "Professions & Occupations",
+   "count": 9,
+   "members": [
+    "musketeer",
+    "three musketeers"
+   ],
+   "from_board": true,
+   "pillar": "Story"
+  },
+  {
+   "canonical": "landlord",
+   "pillar": "Story",
+   "section": "Professions & Occupations",
+   "count": 8,
+   "members": [
+    "landlord",
+    "landlady"
+   ]
+  },
+  {
+   "canonical": "gladiator",
+   "section": "Professions & Occupations",
+   "count": 7,
+   "members": [
+    "gladiator"
+   ],
+   "from_board": true,
+   "pillar": "Story"
+  },
+  {
+   "canonical": "caretaker",
+   "pillar": "Story",
+   "section": "Professions & Occupations",
+   "count": 7,
+   "members": [
+    "caretaker"
+   ]
+  },
+  {
    "canonical": "food",
-   "section": "Pursuits",
+   "section": "Pursuits & Hobbies",
    "count": 120,
    "members": [
     "cooking",
@@ -10571,7 +10582,7 @@
   {
    "canonical": "game",
    "pillar": "Story",
-   "section": "Pursuits",
+   "section": "Pursuits & Hobbies",
    "count": 116,
    "members": [
     "game",
@@ -10602,7 +10613,7 @@
   {
    "canonical": "travel",
    "pillar": "Story",
-   "section": "Pursuits",
+   "section": "Pursuits & Hobbies",
    "count": 110,
    "members": [
     "travel",
@@ -10626,7 +10637,7 @@
   {
    "canonical": "training",
    "pillar": "Story",
-   "section": "Pursuits",
+   "section": "Pursuits & Hobbies",
    "count": 53,
    "members": [
     "training",
@@ -10637,7 +10648,7 @@
   {
    "canonical": "vacation",
    "pillar": "Story",
-   "section": "Pursuits",
+   "section": "Pursuits & Hobbies",
    "count": 52,
    "members": [
     "interrupted vacation",
@@ -10650,7 +10661,7 @@
   {
    "canonical": "camping",
    "pillar": "Story",
-   "section": "Pursuits",
+   "section": "Pursuits & Hobbies",
    "count": 29,
    "members": [
     "camping",
@@ -10663,7 +10674,7 @@
   {
    "canonical": "astronomy",
    "pillar": "Story",
-   "section": "Pursuits",
+   "section": "Pursuits & Hobbies",
    "count": 19,
    "members": [
     "astronomy",
@@ -10671,17 +10682,6 @@
     "observatory",
     "eclipse",
     "solar eclipse"
-   ]
-  },
-  {
-   "canonical": "charity",
-   "pillar": "Story",
-   "section": "Pursuits",
-   "count": 11,
-   "members": [
-    "charity",
-    "fundraising",
-    "volunteer"
    ]
   },
   {
@@ -11812,6 +11812,17 @@
    "pillar": "Story"
   },
   {
+   "canonical": "poker",
+   "section": "Sports",
+   "count": 16,
+   "members": [
+    "poker",
+    "poker game"
+   ],
+   "pillar": "Story",
+   "note": "user 2026-07-24: kept OWN beside gambling — poker is a skill game without house odds, stands on its own"
+  },
+  {
    "canonical": "wrestling",
    "section": "Sports",
    "count": 15,
@@ -12725,17 +12736,6 @@
     "opium",
     "acid"
    ]
-  },
-  {
-   "canonical": "poker",
-   "section": "Vices",
-   "count": 16,
-   "members": [
-    "poker",
-    "poker game"
-   ],
-   "pillar": "Story",
-   "note": "user 2026-07-24: kept OWN beside gambling — poker is a skill game without house odds, stands on its own"
   },
   {
    "canonical": "army",
@@ -16229,6 +16229,11 @@
    "name": "rethink-wave-11-partial-banked",
    "date": "2026-07-24",
    "note": "STORY ARCHITECTURE partial bank per user (A2-A4; A1 Characters split under evaluation 2-way vs 3-way): NEW Crime section (19: murder 748f out of Events, + robbery/heist/kidnapping family + law-process chips investigation/undercover/falsely accused/on the run/interrogation/execution per user) · NEW Faith & Religion (8, out of F&I) · military orgs (army/navy/air force/marine/elite force) -> War & Conflict (war world consolidates ~22) · NEW Sports (20, incl. chess per user: mind sport) · NEW Arts & Performance (13, incl. fashion per user) · NEW Vices (7: drugs/alcohol/marijuana/psychedelics/smoking/gambling + poker riding WITH ITS OWN-TAG identity preserved — flag to user) · training stays Pursuits. PENDING: A1 Characters 2-way (Professions & Occupations vs Archetypes & People, DO-vs-ARE grain) or 3-way · renames for War & Conflict / Forces & Institutions / Pursuits-remainder (options going to user)."
+  },
+  {
+   "name": "rethink-COMPLETE",
+   "date": "2026-07-24",
+   "note": "COMPREHENSIVE RETHINK COMPLETE (user rulings, wave 11b final): Characters SPLIT 2-WAY on the DO-vs-ARE grain — Professions & Occupations (85: every work-defined person, legal or not — day jobs + crime-work + period fighters; western family together) + Archetypes & People (57: nature/role/stage-defined; judgment chips witch/wizard/outlaw/prisoner/vigilante/serial killer/psychopath ALL here per user). RENAMES: Forces & Institutions -> ENGINES OF SOCIETY (user name, flair accepted; +charity moved in) · Identity & Society -> IDENTITY · Pursuits -> PURSUITS & HOBBIES · War & Conflict KEEPS its name. poker -> Sports (skill game beside its kin, own-tag identity intact). HELD IDEA (user): a future all-section-names pass for concise-with-flare labels, Engines of Society as the model. FINAL SHAPE: Feel 2 sections (Mood 34 / Disposition 15) · Setting 7 (Era, Seasons & Holidays, Regions, Place, Natural World, Locations, Vehicles) · Story 17 (Archetypes & People, Professions & Occupations, Crime, Events & Actions, Themes, Mind & Health, Identity, R&F, Faith & Religion, Engines of Society, War & Conflict, Sports, Arts & Performance, Vices, Pursuits & Hobbies, A&N, O&W) · Style & Format 9 (Sub-genres, Wondrous Worlds, Creatures & Beings, Magic & the Supernatural, Format & Medium, Based On, Narrative Devices, Cinema Movements, Franchise). 1,120 canonicals / 6,561 strings / 0 loose / 0 hold. Roadmap: step 5 ADAPTER WORK is next (per-section display floors; franchise shelf from TMDB belongs_to_collection)."
   }
  ],
  "unassigned": [],
@@ -16339,22 +16344,23 @@
    "Natural World"
   ],
   "Story": [
-   "Characters",
    "Events & Actions",
-   "Forces & Institutions",
    "War & Conflict",
-   "Identity & Society",
    "Relationships & Family",
    "Mind & Health",
    "Themes",
-   "Pursuits",
    "Animals & Nature",
    "Objects & Weapons",
    "Crime",
    "Faith & Religion",
    "Sports",
    "Arts & Performance",
-   "Vices"
+   "Vices",
+   "Professions & Occupations",
+   "Archetypes & People",
+   "Engines of Society",
+   "Identity",
+   "Pursuits & Hobbies"
   ],
   "Style & Format": [
    "Sub-genres & Styles",
