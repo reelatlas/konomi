@@ -928,3 +928,71 @@ html.theme-transitioning *::before,
 html.theme-transitioning *::after {
   animation-play-state: paused !important;
 }
+
+/* ── Wordmark outline-draw (masthead hover) ─────────────────────────────
+   GRADUATED from the sandbox — tag: sandbox:wordmark-outline-draw/C-v5
+   (SANDBOX_GRADUATIONS.md; batch notes.md while it exists). Trace & fill:
+   while the masthead (.wm-host) is hovered, each letter — KONOMI then
+   ミックス, one stagger chain via each group's --i — drains its fill,
+   draws its outline (main stroke + the offset echo ghost, the RatingBadge
+   echo language), then floods back with a --secondary flash before
+   settling to its own fill color. Timing/geometry values arrive as
+   --wm-* custom properties set by Masthead.tsx from wordmarkDrawTuning.ts
+   (named constants per AGENTS.md) — nothing here is a magic literal.
+   Pure CSS by decision (animation ladder rungs 1-2; Motion's pathLength
+   equivalent buys nothing for a hover one-shot — Codex consulted).
+   pathLength="1" on every stroke normalizes the dash math. WATCH ITEM:
+   the 1px glow is a filter on animating paths — confirm on-device WebKit
+   (house lore) before trusting it; dropping .wm-stroke's filter is the
+   fallback. */
+.wm-latin { --wm-fillcol: var(--ink); }
+.wm-jp { --wm-fillcol: var(--primary); }
+.wm-ltr .wm-fill { fill: var(--wm-fillcol); }
+.wm-stroke {
+  fill: none;
+  stroke: var(--primary);
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  stroke-width: calc(var(--wm-sw) * 1px);
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  filter: drop-shadow(0 0 var(--wm-glow) var(--primary));
+}
+.wm-jp .wm-stroke { stroke-width: calc(var(--wm-sw) * var(--wm-jpsw) * 1px); }
+.wm-echo {
+  opacity: var(--wm-echoop);
+  transform: translate(var(--wm-echo), var(--wm-echo));
+}
+.wm-host:hover .wm-fill {
+  animation: wm-fillcycle var(--wm-cycle) both;
+  animation-delay: calc(var(--i) * var(--wm-stagger));
+}
+.wm-host:hover .wm-main {
+  animation: wm-draw var(--wm-cycle) both;
+  animation-delay: calc(var(--i) * var(--wm-stagger));
+}
+.wm-host:hover .wm-echo {
+  animation: wm-draw var(--wm-cycle) both;
+  animation-delay: calc(var(--i) * var(--wm-stagger) + var(--wm-echodelay));
+}
+@keyframes wm-fillcycle {
+  0% { fill: var(--wm-fillcol); fill-opacity: 1; }
+  10% { fill-opacity: 0; }
+  52% { fill-opacity: 0; fill: var(--secondary); }
+  66% { fill: var(--secondary); fill-opacity: 1; }
+  100% { fill: var(--wm-fillcol); fill-opacity: 1; }
+}
+@keyframes wm-draw {
+  0% { stroke-dashoffset: 1; stroke-opacity: 1; }
+  8% { stroke-dashoffset: 1; }
+  56% { stroke-dashoffset: 0; }
+  80% { stroke-dashoffset: 0; stroke-opacity: 1; }
+  100% { stroke-dashoffset: 0; stroke-opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wm-host:hover .wm-fill,
+  .wm-host:hover .wm-main,
+  .wm-host:hover .wm-echo {
+    animation: none;
+  }
+}

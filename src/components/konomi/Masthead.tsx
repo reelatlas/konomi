@@ -1,9 +1,39 @@
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import { DOMAINS } from "@/lib/konomi/domains";
 import type { ThemeKey } from "@/lib/konomi/types";
+import { WORDMARK_JP, WORDMARK_LATIN } from "@/lib/konomi/wordmarkPaths";
 import { useDomain } from "./domainContext";
 import { SideSwitchIcon } from "./icons";
 import { ThemeSwitcher } from "./ThemeSwitcher";
+import { WordmarkDraw } from "./WordmarkDraw";
+import {
+  WORDMARK_CYCLE_SCALE,
+  WORDMARK_DRAW_MS,
+  WORDMARK_ECHO_DELAY_MS,
+  WORDMARK_ECHO_OFFSET_PX,
+  WORDMARK_ECHO_OPACITY,
+  WORDMARK_GLOW_PX,
+  WORDMARK_JP_STROKE_SCALE,
+  WORDMARK_STAGGER_MS,
+  WORDMARK_STROKE_W,
+} from "./wordmarkDrawTuning";
+
+// The outline-draw's tuning constants, exported once as CSS custom
+// properties on the header — globals.css's .wm-* rules consume them, so
+// CSS stays the animation engine while wordmarkDrawTuning.ts remains the
+// single source of truth (tag: sandbox:wordmark-outline-draw/C-v5).
+const WORDMARK_DRAW_VARS = {
+  "--wm-dur": `${WORDMARK_DRAW_MS}ms`,
+  "--wm-cycle": `${Math.round(WORDMARK_DRAW_MS * WORDMARK_CYCLE_SCALE)}ms`,
+  "--wm-stagger": `${WORDMARK_STAGGER_MS}ms`,
+  "--wm-sw": `${WORDMARK_STROKE_W}`,
+  "--wm-jpsw": `${WORDMARK_JP_STROKE_SCALE}`,
+  "--wm-echo": `${WORDMARK_ECHO_OFFSET_PX}px`,
+  "--wm-echodelay": `${WORDMARK_ECHO_DELAY_MS}ms`,
+  "--wm-echoop": `${WORDMARK_ECHO_OPACITY}`,
+  "--wm-glow": `${WORDMARK_GLOW_PX}px`,
+} as CSSProperties;
 
 interface MastheadProps {
   theme: ThemeKey;
@@ -85,12 +115,17 @@ export function Masthead({ theme, onThemeChange, collapsed }: MastheadProps) {
         borderLeftWidth: "calc(var(--border-base) * (1 - var(--masthead-progress)))",
         borderRightWidth: "calc(var(--border-base) * (1 - var(--masthead-progress)))",
         borderBottomWidth: "var(--border-base)",
+        ...WORDMARK_DRAW_VARS,
       }}
       // mb-[space-2xl]: the masthead->recommendations gap is deliberately the
       // SAME 24px as every other frame gap in the app — one uniform gutter
       // everywhere (see KonomiApp/DESIGN_SYSTEM.md). Flat across the whole
       // morph; the tilt slants this edge cosmetically but the gap token stays 24.
-      className="bg-[var(--surface)] px-[var(--space-2xl)] pb-0 mb-[var(--space-2xl)]"
+      //
+      // wm-host: the hover scope for the wordmark outline-draw (globals.css
+      // .wm-* rules) — hovering anywhere on the masthead plays it. Touch has
+      // no trigger yet (deliberately open; hover-only for now).
+      className="wm-host bg-[var(--surface)] px-[var(--space-2xl)] pb-0 mb-[var(--space-2xl)]"
     >
       {/* Outer row: justify-between + items-center throughout, never wraps
           (flex-nowrap default) — the trailing ThemeSwitcher must never drop to
@@ -117,25 +152,38 @@ export function Masthead({ theme, onThemeChange, collapsed }: MastheadProps) {
             rowGap: "var(--space-xs)",
           }}
         >
-          <h1
-            className="font-display leading-[var(--leading-display)] m-0 uppercase"
-            style={{
-              fontSize: "calc(var(--text-wordmark) + (var(--text-xl) - var(--text-wordmark)) * var(--masthead-progress))",
-              letterSpacing:
-                "calc(var(--tracking-xs) + (var(--tracking-sm) - var(--tracking-xs)) * var(--masthead-progress))",
-            }}
-          >
-            KONOMI
+          {/* The wordmark is SVG letter paths now, not text — graduated from
+              the sandbox (tag: sandbox:wordmark-outline-draw/C-v5) for the
+              hover outline-draw, which needs real stroke geometry. The SAME
+              font-size morph calcs the text carried now drive the svg
+              HEIGHTS, scaled by each word's glyphExtentRatio so the glyphs
+              render at the exact size the text did — the scroll-morph is
+              untouched. Known accepted drift from the text version: letter
+              tracking is baked at its expanded value (no xs->sm morph), and
+              the svg's layout box is the glyph extent (0.915em) rather than
+              the old 0.86 line box, so the expanded row sits a few px
+              taller — both logged in SANDBOX_GRADUATIONS.md's drift log.
+              items-baseline still pairs the two words: each svg's bottom
+              edge IS its baseline (caps-only latin, baseline-resting kana,
+              tight viewBoxes). */}
+          <h1 className="m-0">
+            <WordmarkDraw
+              word={WORDMARK_LATIN}
+              indexOffset={0}
+              className="wm-latin"
+              style={{
+                height: `calc((var(--text-wordmark) + (var(--text-xl) - var(--text-wordmark)) * var(--masthead-progress)) * ${WORDMARK_LATIN.glyphExtentRatio})`,
+              }}
+            />
           </h1>
-          <span
-            className="font-body font-black leading-[var(--leading-tight)] text-[var(--primary)]"
+          <WordmarkDraw
+            word={WORDMARK_JP}
+            indexOffset={WORDMARK_LATIN.letters.length}
+            className="wm-jp"
             style={{
-              fontSize:
-                "calc(var(--text-wordmark-jp) + (var(--text-md) - var(--text-wordmark-jp)) * var(--masthead-progress))",
+              height: `calc((var(--text-wordmark-jp) + (var(--text-md) - var(--text-wordmark-jp)) * var(--masthead-progress)) * ${WORDMARK_JP.glyphExtentRatio})`,
             }}
-          >
-            ミックス
-          </span>
+          />
         </div>
         {/* self-center shrink-0: keeps the ThemeSwitcher vertically centered and
             forces all "not enough room" pressure onto the wordmark group, in

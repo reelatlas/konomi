@@ -8,9 +8,17 @@ to find the code site, this row, and (while it still exists) the sandbox batch's
 
 | Date | Provenance tag | From (sandbox batch) | Concept | To (code) | What / why |
 | ---- | -------------- | -------------------- | ------- | --------- | ---------- |
+| 2026-07-24 | `sandbox:wordmark-outline-draw/C-v5` | `_sandbox/animation/2026-07-24-wordmark-outline-draw` | C v5 (user-locked defaults) | `src/lib/konomi/wordmarkPaths.ts` + `WordmarkDraw.tsx` + `wordmarkDrawTuning.ts` + Masthead + `globals.css` .wm-* | **Status: IN PROGRESS — testing** (desktop verified; awaiting on-device iPhone check, esp. the glow filter + baseline pairing). Masthead wordmark becomes SVG letter paths (Anton + Zen Kaku 900, baked via opentype.js) with a hover trace-&-fill: drain → per-letter outline draw (+7px echo ghost, 1px glow) → secondary flood-flash → settle. 3300ms/220ms user-locked tuning. Scroll-morph untouched (same calcs drive svg heights). |
 | 2026-07-16 | `sandbox:theme-transition/A-v5` | `_sandbox/animation/2026-07-15-theme-transition` | A v5 | `src/lib/konomi/themeTransitionTuning.ts` + theme-switch effect (KonomiApp) + `globals.css` | **Outcome: SHIPPED (changed).** Theme-switch **cross-fade** (uniform, whole-app), re-mechanised as a View Transitions dissolve + a freeze of looping animations during it. A v5's **card spring-pop** was explored in 3 variants and **REVERTED** — see drift log. |
 
 ## Drift log
+
+- **2026-07-24 · `sandbox:wordmark-outline-draw/C-v5` · accepted drift at graduation** — (1) letter
+  tracking is baked into the paths at the expanded value (the text version morphed tracking
+  xs→sm on collapse; not reproducible in baked geometry — invisible at collapsed sizes). (2) The
+  svg layout box is the glyph extent (0.915em) vs the old 0.86 line box, so the expanded
+  masthead sits ~4px taller; measured, eyeballed fine. (3) Touch has no trigger yet (hover-only
+  — the touch story is an open decision).
 
 Graduated ≠ frozen — code values get tuned in the real app after graduation, and the
 sandbox concept stays reopenable. Post-graduation changes:
