@@ -46,4 +46,4 @@ export const WORDMARK_REVERSE_SPEED = 1.8;
 //               WORDMARK_FINISH_SPEED, then rest (hover = controlled pace,
 //               release = the rest plays out double-time)
 export const WORDMARK_RELEASE_MODE: "reverse" | "finish" = "finish";
-export const WORDMARK_FINISH_SPEED = 2;
+export const WORDMARK_FINISH_SPEED = 3;

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DOMAINS } from "@/lib/konomi/domains";
 import type { ThemeKey } from "@/lib/konomi/types";
 import { WORDMARK_JP, WORDMARK_LATIN } from "@/lib/konomi/wordmarkPaths";
@@ -128,13 +128,21 @@ export function Masthead({ theme, onThemeChange, collapsed }: MastheadProps) {
     (wordmarkRef.current?.getAnimations({ subtree: true }) ?? []).filter(
       (a): a is CSSAnimation => a instanceof CSSAnimation && a.animationName.startsWith("wm-"),
     );
+  // Belt-and-braces for the fresh-mount path: whenever the class turns ON,
+  // pin the just-created animations to controlled 1x after commit — a
+  // re-activation must NEVER inherit a stale fast/reverse rate, whatever
+  // the release path that preceded it.
+  useEffect(() => {
+    if (!wordmarkPlay) return;
+    for (const a of wordmarkAnims()) a.playbackRate = 1;
+  }, [wordmarkPlay]);
   const finePointer = (e: ReactPointerEvent) => e.pointerType === "mouse" || e.pointerType === "pen";
   function handleWordmarkEnter(e: ReactPointerEvent) {
     if (!finePointer(e)) return;
     reverseToken.current++;
     setWordmarkPlay(true);
     for (const a of wordmarkAnims()) {
-      a.updatePlaybackRate(1);
+      a.playbackRate = 1;
       a.play();
     }
   }
@@ -165,7 +173,7 @@ export function Masthead({ theme, onThemeChange, collapsed }: MastheadProps) {
       // completed run resting at its (rest-identical) end state -> restart
       reverseToken.current++;
       for (const a of anims) {
-        a.updatePlaybackRate(1);
+        a.playbackRate = 1;
         a.currentTime = 0;
         a.play();
       }
@@ -175,7 +183,7 @@ export function Masthead({ theme, onThemeChange, collapsed }: MastheadProps) {
       // mid-reverse -> resume forward from here
       reverseToken.current++;
       for (const a of anims) {
-        a.updatePlaybackRate(1);
+        a.playbackRate = 1;
         a.play();
       }
       return;
@@ -191,7 +199,11 @@ export function Masthead({ theme, onThemeChange, collapsed }: MastheadProps) {
     const token = ++reverseToken.current;
     const rate = WORDMARK_RELEASE_MODE === "finish" ? WORDMARK_FINISH_SPEED : -WORDMARK_REVERSE_SPEED;
     for (const a of anims) {
-      a.updatePlaybackRate(rate);
+      // Sync playbackRate setter, NOT updatePlaybackRate: the latter is the
+      // async/smooth variant whose pending rate can linger un-applied on a
+      // finished animation — the bug where a re-hover after a sped-up
+      // finish replayed at the fast rate traced to exactly that.
+      a.playbackRate = rate;
       a.play();
     }
     Promise.allSettled(anims.map((a) => a.finished)).then(() => {
