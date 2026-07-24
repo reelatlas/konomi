@@ -318,6 +318,6 @@ function tagInfo(name: string, category: string, seriesCount: number, minLevel: 
 // everything about how the film was received/regarded. The six box-office
 // tags are the closed banked set (per adapter-config stacking rules: the
 // four ROI bands are mutually exclusive; blockbuster/big-budget stack) —
-// any FUTURE reception tag lands in Renown unless added here.
+// any FUTURE reception tag lands in Impact unless added here.
 const BOX_OFFICE_RECEPTION = new Set(["blockbuster", "big-budget", "mega-roi", "hit", "broke-even", "flop"]);
-const receptionCategory = (name: string) => (BOX_OFFICE_RECEPTION.has(name) ? "Reception-Box office" : "Reception-Renown");
+const receptionCategory = (name: string) => (BOX_OFFICE_RECEPTION.has(name) ? "Reception-Box office" : "Reception-Impact");

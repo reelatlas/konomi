@@ -13300,21 +13300,13 @@
    "canonical": "indie film",
    "pillar": "Style",
    "section": "Sub-genres",
-   "count": 110,
+   "count": 53,
    "members": [
-    "art house",
-    "b movie",
-    "black cinema",
-    "contemplative cinema",
-    "experimental cinema",
     "independent film",
-    "new german cinema",
-    "psychotronic film",
-    "slow cinema",
     "low budget",
-    "psychotronic",
-    "view askewniverse"
-   ]
+    "b movie"
+   ],
+   "note": "pruned 2026-07-24: was over-folded (art/cult/identity/wave/franchise vocab); see sweep"
   },
   {
    "canonical": "parody",
@@ -15544,11 +15536,12 @@
    "canonical": "new wave cinema",
    "pillar": "Style",
    "section": "Cinema waves",
-   "count": 9,
+   "count": 12,
    "members": [
     "french new wave",
     "japanese new wave",
-    "czech new wave"
+    "czech new wave",
+    "new german cinema"
    ]
   },
   {
@@ -15808,6 +15801,29 @@
    ],
    "note": "kept as a plain single-keyword tag in Franchise — NOT a rollup; mcu/dcamu went to superhero",
    "pillar": "Style"
+  },
+  {
+   "canonical": "arthouse",
+   "pillar": "Style",
+   "section": "Sub-genres",
+   "count": 19,
+   "members": [
+    "art house",
+    "experimental cinema",
+    "contemplative cinema",
+    "slow cinema"
+   ],
+   "note": "split from indie film 2026-07-24 (sensibility ≠ production independence)"
+  },
+  {
+   "canonical": "black cinema",
+   "pillar": "Story",
+   "section": "Identity",
+   "count": 9,
+   "members": [
+    "black cinema"
+   ],
+   "note": "moved from indie film 2026-07-24: representation concept, not budget"
   }
  ],
  "sweeps": [
@@ -16255,6 +16271,11 @@
    "name": "section-reading-order",
    "date": "2026-07-24",
    "note": "SECTION READING ORDER banked (user final, adapter part 1): Feel Mood→Attitude · Setting when→where→natural/built→aboard · Story who→bonds/inner→happenings→forces→activities→things (SPORTS was missing from the user list — inserted between Faith and Arts & performance, FLAGGED for confirm) · Style genre→lore trio→craft pair→provenance. pillar_tree order now drives the board and all surfaces."
+  },
+  {
+   "id": "indie-film-split",
+   "date": "2026-07-24",
+   "summary": "indie film was over-folded (The Shining reached it via 'psychotronic film'). Split per user: indie film keeps [independent film, low budget, b movie]; NEW arthouse [art house, experimental cinema, contemplative cinema, slow cinema]; NEW black cinema (Story/Identity); 'new german cinema' folded into new wave cinema (Cinema waves). psychotronic + psychotronic film + view askewniverse removed and left UNMAPPED pending user ruling (cult-label research: computed-cult already REJECTED in DATA_SOURCING; grindhouse is the nearest existing canonical; askewniverse candidates: slacker or marijuana per the MCU-fold precedent)."
   }
  ],
  "unassigned": [],

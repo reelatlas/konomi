@@ -343,7 +343,10 @@ async function main() {
     return ((100 * n) / films.length).toFixed(1);
   };
   console.log("--- cross-checks ---");
-  console.log(`kw tags ${kwCount} (expect 1120) · kw at buff ${kwBuff} (expect 404)`);
+  // Baselines updated 2026-07-24 for the indie-film split sweep (+arthouse
+  // +black cinema = 1122; indie film's recomputed 53 fell below the buff
+  // floor 55, so buff kw 404 -> 403).
+  console.log(`kw tags ${kwCount} (expect 1122) · kw at buff ${kwBuff} (expect 403)`);
   console.log(`sagas ${byType["saga"] ?? 0} (expect 594) · films with saga_name ${films.filter((f) => f.saga_name).length} (expect 2170)`);
   console.log(`coverage: actors ${covered("actor")}% (§7 95.3) · directors ${covered("director")}% (§7 85.3) · studios ${covered("studio")}% (§7 92.4) · producers ${covered("producer")}% (§7 78.4) · cinematographers ${covered("cinematographer")}% (§7 72.6) · composers ${covered("composer")}% (§7 69.9)`);
   console.log(`certification present: ${films.filter((f) => f.certification).length} films · providers present: ${films.filter((f) => (f.watch_providers as unknown[]).length > 0).length} films`);

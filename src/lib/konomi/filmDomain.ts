@@ -19,14 +19,12 @@ const FILM_TAG_SECTIONS: TagSection[] = [
     key: "reception",
     label: "Reception",
     subsectionsAsTabs: true,
-    // "Renown" = how the film is regarded (acclaimed · era-defining ·
+    // "Impact" = how the film is regarded (acclaimed · era-defining ·
     // famous · divisive · infamous · underseen · niche favourite ·
     // buzzing); "Box office" = the money story (blockbuster · big-budget ·
-    // the four ROI bands). Labels are PROPOSED names — rename freely;
-    // alternates offered: Reputation / Word of mouth for the first,
-    // Fortunes / The take for the second.
+    // the four ROI bands). Names user-ruled 2026-07-24: "Impact" + "Box office".
     subsections: [
-      { label: "Renown", categories: ["Reception-Renown"] },
+      { label: "Impact", categories: ["Reception-Impact"] },
       { label: "Box office", categories: ["Reception-Box office"] },
     ],
   },
