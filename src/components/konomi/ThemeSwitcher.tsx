@@ -28,12 +28,11 @@ interface ThemeSwitcherProps {
 // pulsing ░▒▓ (PROPOSED — swap freely).
 const HOVER_GLYPHS: Record<ThemeKey, string[]> = {
   default: ["𖡼", "𖤣", "𖥧", "𖡼", "𓋼", "𖤣", "𖥧", "𓋼", "𓍊"],
-  // Tide v12 (user pattern 2026-07-24, comma-split into five composition
-  // frames): pared to the wave alone — ornament family + stroke, no
-  // mark/star layer (one glyph was rendering distractingly; layering can
-  // come back once the base wave reads right). (v1-v11 all tried live
-  // first; see git history.)
-  dark: ["࿐", "𓂃༉", "𓂃࿔", "࿔༉", "༉𓂃"],
+  // Tide v13 (user pattern 2026-07-24, comma-split into six composition
+  // frames): the pared wave with a bare-stroke beat third — the water
+  // flattens for one frame before the ornament forms roll back through.
+  // (v1-v12 all tried live first; see git history.)
+  dark: ["࿐", "𓂃༉", "𓂃", "𓂃࿔", "࿔༉", "༉𓂃"],
   third: ["░", "▒", "▓", "▒", "░"],
 };
 
