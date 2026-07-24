@@ -14,8 +14,10 @@ import {
   WORDMARK_ECHO_DELAY_MS,
   WORDMARK_ECHO_OFFSET_PX,
   WORDMARK_ECHO_OPACITY,
+  WORDMARK_FINISH_SPEED,
   WORDMARK_GLOW_PX,
   WORDMARK_JP_STROKE_SCALE,
+  WORDMARK_RELEASE_MODE,
   WORDMARK_REVERSE_SPEED,
   WORDMARK_STAGGER_MS,
   WORDMARK_STROKE_W,
@@ -138,7 +140,7 @@ export function Masthead({ theme, onThemeChange, collapsed }: MastheadProps) {
   }
   function handleWordmarkLeave(e: ReactPointerEvent) {
     if (!finePointer(e)) return;
-    const token = ++reverseToken.current;
+    reverseToken.current++;
     const anims = wordmarkAnims();
     // Completed-run cutoff (user ruling): if the whole word finished its
     // forward cycle, release just ends the effect — no reversal. Dropping
@@ -148,13 +150,7 @@ export function Masthead({ theme, onThemeChange, collapsed }: MastheadProps) {
       setWordmarkPlay(false);
       return;
     }
-    for (const a of anims) {
-      a.updatePlaybackRate(-WORDMARK_REVERSE_SPEED);
-      a.play(); // a finished forward animation needs play() to run backward from its end
-    }
-    Promise.allSettled(anims.map((a) => a.finished)).then(() => {
-      if (reverseToken.current === token) setWordmarkPlay(false);
-    });
+    releaseMidFlight(anims);
   }
   function handleWordmarkTap(e: ReactPointerEvent) {
     if (e.pointerType !== "touch") return;
@@ -184,10 +180,18 @@ export function Masthead({ theme, onThemeChange, collapsed }: MastheadProps) {
       }
       return;
     }
-    // mid-forward -> reverse (same path as a mouse leave)
+    // mid-forward -> release behavior (same path as a mouse leave)
+    releaseMidFlight(anims);
+  }
+  // Shared mid-flight release: per WORDMARK_RELEASE_MODE, either rewind to
+  // rest, or let the remainder play out forward at double-time — either
+  // way the class drops when the animations land at their terminal edge
+  // (start for reverse, end for finish; the end state is rest-identical).
+  function releaseMidFlight(anims: CSSAnimation[]) {
     const token = ++reverseToken.current;
+    const rate = WORDMARK_RELEASE_MODE === "finish" ? WORDMARK_FINISH_SPEED : -WORDMARK_REVERSE_SPEED;
     for (const a of anims) {
-      a.updatePlaybackRate(-WORDMARK_REVERSE_SPEED);
+      a.updatePlaybackRate(rate);
       a.play();
     }
     Promise.allSettled(anims.map((a) => a.finished)).then(() => {

@@ -38,3 +38,12 @@ export const WORDMARK_GLOW_PX = 1;
 // all — Masthead's leave handler drops the class instead (the cycle's end
 // state is visually identical to rest, so the cutoff is invisible).
 export const WORDMARK_REVERSE_SPEED = 1.8;
+
+// What release does mid-flight (EXPERIMENT 2026-07-24, user may revert —
+// flip back to "reverse" to restore the rewind):
+//   "reverse" — rewind to rest at WORDMARK_REVERSE_SPEED
+//   "finish"  — complete the remaining animation forward at
+//               WORDMARK_FINISH_SPEED, then rest (hover = controlled pace,
+//               release = the rest plays out double-time)
+export const WORDMARK_RELEASE_MODE: "reverse" | "finish" = "finish";
+export const WORDMARK_FINISH_SPEED = 2;
