@@ -28,13 +28,11 @@ interface ThemeSwitcherProps {
 // pulsing ░▒▓ (PROPOSED — swap freely).
 const HOVER_GLYPHS: Record<ThemeKey, string[]> = {
   default: ["𖡼", "𖤣", "𖥧", "𖡼", "𓋼", "𖤣", "𖥧", "𓋼", "𓍊"],
-  // Tide v22 (user pattern 2026-07-24): ornament, then three stroke-only
-  // beats where frame three carries a TRAILING SPACE — the wider frame
-  // centers its glyph a half-space left, so the stroke wiggles without
-  // any second glyph (whitespace-as-motion; GlyphCycle renders frame
-  // spaces literally via whitespace-pre). (v1-v21 all tried live first;
-  // see git history.)
-  dark: ["࿐", "𓂃", "𓂃 ", "𓂃"],
+  // Tide v23 (user, 2026-07-24): back to the v1 fish — 𓆝 𓆟 𓆞 swimming
+  // past, one per frame. The ornament/stroke/whitespace explorations
+  // (v2-v22) are all in git history if any technique is wanted again
+  // (frame holds, whitespace nudges — GlyphCycle keeps whitespace-pre).
+  dark: ["𓆝", "𓆟", "𓆞", "𓆝", "𓆟"],
   third: ["░", "▒", "▓", "▒", "░"],
 };
 
