@@ -28,13 +28,13 @@ interface ThemeSwitcherProps {
 // pulsing ░▒▓ (PROPOSED — swap freely).
 const HOVER_GLYPHS: Record<ThemeKey, string[]> = {
   default: ["𖡼", "𖤣", "𖥧", "𖡼", "𓋼", "𖤣", "𖥧", "𓋼", "𓍊"],
-  // Tide v9 (user pattern 2026-07-24, comma-split into nine composition
-  // frames — two-glyph beats almost throughout; ༉ now appears in the
-  // opening as well as the resolve). Frames kept VERBATIM from the user's
-  // cut (incl. leading/internal spaces; HTML collapses runs of spaces to
-  // one, and the combining mark ོ rides the space before it). (v1-v8 all
-  // tried live first; see git history.)
-  dark: ["࿐", "𓂃༉", "𓂃⋆", "𓂃 ོ⋆", "⋆ ོ", "  ོ⋆𓂃", "𓂃࿔", "࿔༉", "༉𓂃"],
+  // Tide v10 (user pattern 2026-07-24, comma-split into nine composition
+  // frames — the stroke now stays present through the mid-current flutter
+  // too, so every beat keeps an anchor). Frames kept VERBATIM from the
+  // user's cut (incl. leading/internal spaces; HTML collapses runs of
+  // spaces to one, and the combining mark ོ rides the space before it).
+  // (v1-v9 all tried live first; see git history.)
+  dark: ["࿐", "𓂃༉", "𓂃⋆", "𓂃 ོ⋆", "⋆ ོ𓂃", " ོ⋆𓂃", "𓂃࿔", "࿔༉", "༉𓂃"],
   third: ["░", "▒", "▓", "▒", "░"],
 };
 
