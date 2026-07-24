@@ -13,6 +13,12 @@ to find the code site, this row, and (while it still exists) the sandbox batch's
 
 ## Drift log
 
+- **2026-07-24 · `sandbox:wordmark-outline-draw/C-v5` · touch tap-toggle** — the class-based trigger
+  removed WebKit's emulated tap-hover that had made touch work incidentally (user caught it
+  on-device). Touch now has its own deliberate model: tap plays forward · tap mid-flight reverses ·
+  tap mid-reverse resumes forward · a completed run rests and the next tap restarts from frame one.
+  Mouse/pen keep enter/leave. Reverse speed softened 2 -> 1.8 same day; completed forward runs never
+  reverse on mouse-leave either (playState cutoff — end state == rest state, invisible).
 - **2026-07-24 · `sandbox:wordmark-outline-draw/C-v5` · release-reversal + scoped trigger (post-graduation
   tuning, same day)** — (1) Releasing the hover now REVERSES the animation from wherever it is at 2×
   forward speed (`WORDMARK_REVERSE_SPEED`), via the Web Animations API flipping playbackRate on the

@@ -114,8 +114,11 @@ export function Masthead({ theme, onThemeChange, collapsed }: MastheadProps) {
   // WAAPI, not Motion, by decision: these ARE the CSS keyframes — Motion
   // can't drive them, and playbackRate flipping is the platform's own
   // reversal primitive (surfaced per the animation rules). pointerType is
-  // gated to mouse/pen so touch keeps the prior no-trigger behavior (the
-  // touch story remains an open decision).
+  // gated to mouse/pen for enter/leave; TOUCH gets its own tap-toggle
+  // model (user ruling after the class-based trigger removed WebKit's
+  // emulated tap-hover that had made touch work incidentally): tap plays
+  // forward · tap mid-flight reverses · tap mid-reverse resumes forward ·
+  // a completed run rests, and the next tap restarts from frame one.
   const wordmarkRef = useRef<HTMLDivElement>(null);
   const [wordmarkPlay, setWordmarkPlay] = useState(false);
   const reverseToken = useRef(0);
@@ -148,6 +151,44 @@ export function Masthead({ theme, onThemeChange, collapsed }: MastheadProps) {
     for (const a of anims) {
       a.updatePlaybackRate(-WORDMARK_REVERSE_SPEED);
       a.play(); // a finished forward animation needs play() to run backward from its end
+    }
+    Promise.allSettled(anims.map((a) => a.finished)).then(() => {
+      if (reverseToken.current === token) setWordmarkPlay(false);
+    });
+  }
+  function handleWordmarkTap(e: ReactPointerEvent) {
+    if (e.pointerType !== "touch") return;
+    const anims = wordmarkAnims();
+    if (!wordmarkPlay || anims.length === 0) {
+      // rest -> play forward (fresh class mounts fresh animations)
+      reverseToken.current++;
+      setWordmarkPlay(true);
+      return;
+    }
+    if (anims.every((a) => a.playState === "finished")) {
+      // completed run resting at its (rest-identical) end state -> restart
+      reverseToken.current++;
+      for (const a of anims) {
+        a.updatePlaybackRate(1);
+        a.currentTime = 0;
+        a.play();
+      }
+      return;
+    }
+    if ((anims[0].playbackRate ?? 1) < 0) {
+      // mid-reverse -> resume forward from here
+      reverseToken.current++;
+      for (const a of anims) {
+        a.updatePlaybackRate(1);
+        a.play();
+      }
+      return;
+    }
+    // mid-forward -> reverse (same path as a mouse leave)
+    const token = ++reverseToken.current;
+    for (const a of anims) {
+      a.updatePlaybackRate(-WORDMARK_REVERSE_SPEED);
+      a.play();
     }
     Promise.allSettled(anims.map((a) => a.finished)).then(() => {
       if (reverseToken.current === token) setWordmarkPlay(false);
@@ -209,6 +250,7 @@ export function Masthead({ theme, onThemeChange, collapsed }: MastheadProps) {
           ref={wordmarkRef}
           onPointerEnter={handleWordmarkEnter}
           onPointerLeave={handleWordmarkLeave}
+          onPointerDown={handleWordmarkTap}
           className={["flex items-baseline flex-wrap min-w-0", wordmarkPlay ? "wm-play" : ""].join(" ")}
           style={{
             columnGap: "calc(var(--space-xl) - (var(--space-xl) - var(--space-md)) * var(--masthead-progress))",
