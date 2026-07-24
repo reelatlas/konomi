@@ -55,7 +55,12 @@ export function GlyphCycle({ glyphs, active }: GlyphCycleProps) {
   return (
     <span aria-hidden="true" className="inline-grid">
       {glyphs.map((g, i) => (
-        <span key={i} className="[grid-area:1/1] justify-self-center" style={{ visibility: i === shown ? "visible" : "hidden" }}>
+        // whitespace-pre: frame strings render their spaces LITERALLY —
+        // normal collapsing would trim a trailing space, and authored
+        // spaces are a real animation device here (a trailing space widens
+        // a frame, so centering nudges its glyph off-axis for one beat — a
+        // wiggle made of whitespace; user technique, tide v22).
+        <span key={i} className="[grid-area:1/1] justify-self-center whitespace-pre" style={{ visibility: i === shown ? "visible" : "hidden" }}>
           {g}
         </span>
       ))}
