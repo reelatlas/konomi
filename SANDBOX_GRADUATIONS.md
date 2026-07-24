@@ -8,11 +8,17 @@ to find the code site, this row, and (while it still exists) the sandbox batch's
 
 | Date | Provenance tag | From (sandbox batch) | Concept | To (code) | What / why |
 | ---- | -------------- | -------------------- | ------- | --------- | ---------- |
-| 2026-07-24 | `sandbox:wordmark-outline-draw/C-v5` | `_sandbox/animation/2026-07-24-wordmark-outline-draw` | C v5 (user-locked defaults) | `src/lib/konomi/wordmarkPaths.ts` + `WordmarkDraw.tsx` + `wordmarkDrawTuning.ts` + Masthead + `globals.css` .wm-* | **Status: IN PROGRESS — testing** (desktop verified; awaiting on-device iPhone check, esp. the glow filter + baseline pairing). Masthead wordmark becomes SVG letter paths (Anton + Zen Kaku 900, baked via opentype.js) with a hover trace-&-fill: drain → per-letter outline draw (+7px echo ghost, 1px glow) → secondary flood-flash → settle. 3300ms/220ms user-locked tuning. Scroll-morph untouched (same calcs drive svg heights). |
+| 2026-07-24 | `sandbox:wordmark-outline-draw/C-v5` | `_sandbox/animation/2026-07-24-wordmark-outline-draw` | C v5 (user-locked defaults) | `src/lib/konomi/wordmarkPaths.ts` + `WordmarkDraw.tsx` + `wordmarkDrawTuning.ts` + Masthead + `globals.css` .wm-* | **Outcome: SHIPPED (changed) 2026-07-24** — user-confirmed on desktop + device. Shipped beyond the sandbox snapshot: release-reversal (WAAPI playbackRate), trigger scoped to the lockup, a touch tap-toggle model, a settled two-variant release switch (`WORDMARK_RELEASE_MODE`: "reverse" main @1.8x · "finish" alternate @3x — one word to flip), and a completed-run cutoff. Full write-up in DESIGN_SYSTEM.md "Wordmark outline-draw". Masthead wordmark becomes SVG letter paths (Anton + Zen Kaku 900, baked via opentype.js) with a hover trace-&-fill: drain → per-letter outline draw (+7px echo ghost, 1px glow) → secondary flood-flash → settle. 3300ms/220ms user-locked tuning. Scroll-morph untouched (same calcs drive svg heights). |
 | 2026-07-16 | `sandbox:theme-transition/A-v5` | `_sandbox/animation/2026-07-15-theme-transition` | A v5 | `src/lib/konomi/themeTransitionTuning.ts` + theme-switch effect (KonomiApp) + `globals.css` | **Outcome: SHIPPED (changed).** Theme-switch **cross-fade** (uniform, whole-app), re-mechanised as a View Transitions dissolve + a freeze of looping animations during it. A v5's **card spring-pop** was explored in 3 variants and **REVERTED** — see drift log. |
 
 ## Drift log
 
+- **2026-07-24 · `sandbox:wordmark-outline-draw/C-v5` · FINAL: release mode settled** — after A/B-ing
+  both live, "reverse" (1.8×) is the main and "finish" (3×) the kept alternate behind
+  `WORDMARK_RELEASE_MODE` (one-word switch, both first-class). Also: finish speed 2→3×; the
+  rehover-after-finish fast-rate bug fixed (sync `playbackRate` setter, not async
+  `updatePlaybackRate()` — pending rates linger on finished animations — plus a 1× pin on every
+  fresh activation). Loop closed: SHIPPED (changed).
 - **2026-07-24 · `sandbox:wordmark-outline-draw/C-v5` · touch tap-toggle** — the class-based trigger
   removed WebKit's emulated tap-hover that had made touch work incidentally (user caught it
   on-device). Touch now has its own deliberate model: tap plays forward · tap mid-flight reverses ·

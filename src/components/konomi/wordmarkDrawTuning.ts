@@ -39,11 +39,16 @@ export const WORDMARK_GLOW_PX = 1;
 // state is visually identical to rest, so the cutoff is invisible).
 export const WORDMARK_REVERSE_SPEED = 1.8;
 
-// What release does mid-flight (EXPERIMENT 2026-07-24, user may revert —
-// flip back to "reverse" to restore the rewind):
-//   "reverse" — rewind to rest at WORDMARK_REVERSE_SPEED
-//   "finish"  — complete the remaining animation forward at
-//               WORDMARK_FINISH_SPEED, then rest (hover = controlled pace,
-//               release = the rest plays out double-time)
-export const WORDMARK_RELEASE_MODE: "reverse" | "finish" = "finish";
+// What a mid-flight release does — a SETTLED two-variant switch (user
+// ruling 2026-07-24 after A/B-ing both live: "reverse" is the main;
+// "finish" is the kept alternate — flip this ONE WORD to swap):
+//   "reverse" — the drawn animation rewinds to rest at
+//               WORDMARK_REVERSE_SPEED (release feels like letting go)
+//   "finish"  — the remainder plays out FORWARD at WORDMARK_FINISH_SPEED,
+//               then rests (hover = controlled pace, release = the rest
+//               of the performance double-times to the payoff)
+// Both run through the same handlers (Masthead's releaseMidFlight); a
+// COMPLETED forward run never reverses in either mode (playState cutoff —
+// the cycle's end state is visually identical to rest).
+export const WORDMARK_RELEASE_MODE: "reverse" | "finish" = "reverse";
 export const WORDMARK_FINISH_SPEED = 3;
