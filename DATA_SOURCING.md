@@ -880,6 +880,15 @@ queue w/ suggested homes / IA-pressure flags — rendered as an artifact board.
   Goldfinger (1960s · PG · James Bond shelf-true · Connery · mega-roi) · Fight Club (R ·
   era-defining · broke-even · fourth-wall kw) · Spirited Away (Ghibli studio tag ·
   era-defining · film-side record, isolation intact).
+- **RECEPTION GAP FOUND & FIXED (2026-07-24, user caught it counting the live Reception
+  tab):** the first promote implemented only era-defining of the four CORPUS-WIDE takes and
+  shipped 11 of the banked 14 — `infamous`, `buzzing`, `blockbuster` were missing entirely.
+  Added as pass 2b (recipes verbatim from reception_mvp): infamous = bottom 300 by va at
+  vc≥500 · buzzing = stored-payload popularity top 500 (snapshot-frozen by construction) ·
+  blockbuster = top 200 by revenue. Re-promote verified: exactly 300/500/200, era-defining
+  still 202, every other cross-check unchanged, 14 chips render in the pool. A full
+  section-audit script also verified all 34 kw sections live + in pillar_tree order,
+  People×6 and Origin×4 populated, Genres 19, Sagas 594 — AUDIT CLEAN.
 - **BUG FOUND & FIXED in verification**: 26 raw TMDB keyword strings carry stray trailing
   whitespace ("oil rig ") — promote + delta report now trim on read (the alias map holds
   trimmed forms; "exact corpus strings" = exact after whitespace normalization).

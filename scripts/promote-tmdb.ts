@@ -67,6 +67,15 @@ const KW_BUFF_FLOOR: number = config.levels["film buff"].floor; // 55
 const SAGA_SHELF_FLOOR: number = config.sagas.shelf_floor; // 2
 const CREDIT_FLOOR: number = config.credits.floor; // 3
 const ACTOR_ORDER_BAND = 10;
+// The three corpus-wide reception takes besides era-defining — recipes are
+// the banked adapter-config reception_mvp definitions, verbatim: infamous =
+// "bottom ~300 by va at vc>=500", buzzing = "snapshot-frozen popularity top
+// 500" (frozen because it ranks the stored payloads' popularity — a
+// re-promote doesn't re-fetch), blockbuster = "top 200 by revenue".
+const INFAMOUS_TAKE = 300;
+const INFAMOUS_VC_FLOOR = 500;
+const BUZZING_TAKE = 500;
+const BLOCKBUSTER_TAKE = 200;
 
 // crew job -> tag type (the §7 category set; writers measured dead, excluded)
 const CREW_JOBS: Record<string, string> = {
@@ -105,7 +114,7 @@ async function main() {
   const films: FilmRow[] = [];
   const filmTagKeys = new Map<number, Set<string>>(); // tmdb_id -> tag keys
   const tagMeta = new Map<string, { type: string; name: string; pillar?: string; section?: string; extra?: object; count: number }>();
-  const shrunkInputs: { tmdb_id: number; year: number | null; va: number; vc: number }[] = [];
+  const shrunkInputs: { tmdb_id: number; year: number | null; va: number; vc: number; popularity: number; revenue: number }[] = [];
   let latestFetch = "";
 
   const touch = (key: string, meta: { type: string; name: string; pillar?: string; section?: string; extra?: object }, filmId: number) => {
@@ -135,7 +144,12 @@ async function main() {
       const revenue = p.revenue ?? 0;
       filmTagKeys.set(row.tmdb_id, new Set());
 
-      // reception — the 13 per-film thresholds (era-defining joins in pass 2)
+      // reception — the 10 per-film thresholds. The four CORPUS-WIDE takes
+      // (era-defining, infamous, buzzing, blockbuster) join in pass 2 —
+      // they rank against the whole corpus, unknowable per-row. (An
+      // earlier version implemented only era-defining of the four and
+      // shipped 11 of the banked 14 — caught live by the user counting
+      // the Reception tab.)
       const reception: string[] = [];
       if (va >= 7.2 && vc >= 2000) reception.push("acclaimed");
       if (va >= 4.5 && va <= 6.5 && vc >= 600) reception.push("divisive");
@@ -150,7 +164,7 @@ async function main() {
         else reception.push("flop");
       }
       if (budget >= 100_000_000) reception.push("big-budget");
-      shrunkInputs.push({ tmdb_id: row.tmdb_id, year, va, vc });
+      shrunkInputs.push({ tmdb_id: row.tmdb_id, year, va, vc, popularity: p.popularity ?? 0, revenue });
 
       // saga
       const coll = p.belongs_to_collection;
@@ -229,6 +243,28 @@ async function main() {
   for (const x of shrunkInputs) if ((x.year ?? 0) > guardYear && eraDefining.has(x.tmdb_id)) eraDefining.delete(x.tmdb_id);
   for (const f of films) if (eraDefining.has(f.tmdb_id)) (f.reception as string[]).push("era-defining");
   console.log(`era-defining: ${eraDefining.size} films (expected ~205) · corpus mean ${C.toFixed(3)} · guard <= ${guardYear}`);
+
+  // ---- 2b. the other three corpus-wide reception takes (see constants above)
+  const infamous = new Set(
+    shrunkInputs
+      .filter((x) => x.vc >= INFAMOUS_VC_FLOOR)
+      .sort((a, b) => a.va - b.va)
+      .slice(0, INFAMOUS_TAKE)
+      .map((x) => x.tmdb_id),
+  );
+  const buzzing = new Set(
+    [...shrunkInputs].sort((a, b) => b.popularity - a.popularity).slice(0, BUZZING_TAKE).map((x) => x.tmdb_id),
+  );
+  const blockbuster = new Set(
+    shrunkInputs.filter((x) => x.revenue > 0).sort((a, b) => b.revenue - a.revenue).slice(0, BLOCKBUSTER_TAKE).map((x) => x.tmdb_id),
+  );
+  for (const f of films) {
+    const r = f.reception as string[];
+    if (infamous.has(f.tmdb_id)) r.push("infamous");
+    if (buzzing.has(f.tmdb_id)) r.push("buzzing");
+    if (blockbuster.has(f.tmdb_id)) r.push("blockbuster");
+  }
+  console.log(`infamous: ${infamous.size} · buzzing: ${buzzing.size} · blockbuster: ${blockbuster.size}`);
 
   // ---- 3. floors + levels
   const keepTag = (key: string, m: { type: string; count: number }) => {
