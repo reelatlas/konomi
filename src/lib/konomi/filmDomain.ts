@@ -145,14 +145,14 @@ export const filmDomain: Domain = {
   storagePrefix: "konomi:film",
   sections: FILM_TAG_SECTIONS,
   // Level names are the loosely-settled trio (see DATA_SOURCING). Hint text
-  // user-ruled 2026-07-24; hintGlyphs are the hold-hover flipbook frames
-  // (first frame = the ruled emoji; the follow-on frames are PROPOSED —
-  // swap freely). Cinephile's 🛷→❄→🔥 is the Citizen Kane arc: the sled,
-  // the snow globe, the furnace.
+  // user-ruled 2026-07-24, static single emoji (a 3-frame flipbook per
+  // level was tried and reverted same day — glyph animation here is a
+  // maybe-later; the machinery is hintGlyphs, see GlyphCycle, still live
+  // on the theme subtext).
   levels: [
-    { key: "1", label: "Moviegoer", hint: "where's my popcorn?", hintGlyphs: ["🍿", "🥤", "🎟"] },
-    { key: "2", label: "Film buff", hint: "stay for the credits", hintGlyphs: ["🎞️", "📽", "🎬"] },
-    { key: "3", label: "Cinephile", hint: "rosebud", hintGlyphs: ["🛷", "❄", "🔥"] },
+    { key: "1", label: "Moviegoer", hint: "where's my popcorn? 🍿" },
+    { key: "2", label: "Film buff", hint: "stay for the credits 🎞️" },
+    { key: "3", label: "Cinephile", hint: "rosebud 🛷" },
   ],
   isTagVisible: isFilmTagVisible,
   cardMeta: (item) =>

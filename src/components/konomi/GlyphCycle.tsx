@@ -17,12 +17,6 @@ import { useEffect, useState } from "react";
 // shows statically, which is exactly the pre-animation behavior.
 const GLYPH_CYCLE_INTERVAL_MS = 350;
 
-// The glyph's reserved box, in em (so it scales with the hint's own font
-// size). Sized for the widest frames in use (emoji ≈ 1.4-1.6em); every
-// frame centers inside it, so a narrow frame (░) simply gets breathing
-// room instead of moving its neighbors.
-const GLYPH_BOX_EM = 1.6;
-
 interface GlyphCycleProps {
   glyphs: string[];
   active: boolean;
@@ -48,14 +42,23 @@ export function GlyphCycle({ glyphs, active }: GlyphCycleProps) {
   // meaning, and a screen reader announcing each frame would be noise.
   // Modulo guards a stale index across a glyphs-array swap mid-flight.
   //
-  // Fixed-width inline-flex box, glyph centered: frames vary in advance
-  // width (emoji vs hieroglyph vs ░), and without the reservation each
-  // flip re-flowed its neighbors — worst in the collapsed masthead's
-  // RIGHT-anchored theme subtext, where the whole line slid sideways
-  // (requested: "the glyph stays centered within the space").
+  // ALL frames render stacked in one grid cell, non-current ones
+  // visibility-hidden: the box auto-sizes to THIS sequence's widest frame
+  // and every frame centers within it. That keeps flips from re-flowing
+  // the neighbors (the collapsed masthead's right-anchored subtext slid
+  // sideways without a reservation) while sizing the reservation to the
+  // actual sequence — a global fixed em was tried first and left visible
+  // dead air around narrow-glyph sets (reported live: konomi's garden
+  // frames swimming in an emoji-sized 1.6em box). Hidden frames are a
+  // handful of glyph spans — negligible.
+  const shown = active ? index % glyphs.length : 0;
   return (
-    <span aria-hidden="true" className="inline-flex justify-center" style={{ width: `${GLYPH_BOX_EM}em` }}>
-      {active ? (glyphs[index % glyphs.length] ?? "") : (glyphs[0] ?? "")}
+    <span aria-hidden="true" className="inline-grid">
+      {glyphs.map((g, i) => (
+        <span key={i} className="[grid-area:1/1] justify-self-center" style={{ visibility: i === shown ? "visible" : "hidden" }}>
+          {g}
+        </span>
+      ))}
     </span>
   );
 }
