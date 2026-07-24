@@ -28,10 +28,12 @@ interface ThemeSwitcherProps {
 // pulsing ░▒▓ (PROPOSED — swap freely).
 const HOVER_GLYPHS: Record<ThemeKey, string[]> = {
   default: ["𖡼", "𖤣", "𖥧", "𖡼", "𓋼", "𖤣", "𖥧", "𓋼", "𓍊"],
-  // Tide v40 (user pattern 2026-07-24, comma-split into seven frames): the
-  // underwater arc with a mirrored middle — ₊‧ flips to ‧₊ around the
-  // lone-dot center, so the pair swaps sides as it passes. (v1-v39 all
-  // tried live first; see git history.)
+  // Tide — FINAL (user, 2026-07-24, v40 of 40 live-tried cuts; the full
+  // saga and the flipbook system are documented in DESIGN_SYSTEM.md
+  // "Glyph flipbooks"): the jellyfish sheds a mote, bubbles drift through
+  // a mirrored palindrome middle (the pair swaps sides passing the
+  // lone-dot center — all underwater, no surface event), and it returns
+  // carrying the drift's own mote.
   dark: ["ଳ", "ଳ‧", "₊‧", "‧", "‧₊", "₊", "₊ଳ"],
   third: ["░", "▒", "▓", "▒", "░"],
 };
