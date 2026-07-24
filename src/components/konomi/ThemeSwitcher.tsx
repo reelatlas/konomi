@@ -28,12 +28,12 @@ interface ThemeSwitcherProps {
 // pulsing ░▒▓ (PROPOSED — swap freely).
 const HOVER_GLYPHS: Record<ThemeKey, string[]> = {
   default: ["𖡼", "𖤣", "𖥧", "𖡼", "𓋼", "𖤣", "𖥧", "𓋼", "𓍊"],
-  // Tide v2 (user pattern 2026-07-24), one glyph per frame (composition
-  // frames were tried first, then re-cut glyph-by-glyph to compare). NOTE:
-  // frame 5 is U+0F7C, a Tibetan COMBINING vowel mark standing alone —
-  // flagged for on-device eyeballing (some fonts render a bare combining
-  // mark with a dotted placeholder circle).
-  dark: ["࿐", "࿔", "*", "𓂃", "ོ", "⋆", "𓂃", "⛱"],
+  // Tide v3 (user pattern 2026-07-24, comma-split into three composition
+  // frames): a fish swimming past trailing bubbles — bubbles lead in on
+  // frame one, the fish alone mid-stroke, bubbles trail out on frame
+  // three. (v1 fish-only and v2 ornament/shoreline cuts both tried live
+  // first; see git history.)
+  dark: ["°‧ 𓆝", "𓆟", "𓆞 ·｡"],
   third: ["░", "▒", "▓", "▒", "░"],
 };
 
