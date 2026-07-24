@@ -28,15 +28,12 @@ interface ThemeSwitcherProps {
 // pulsing ░▒▓ (PROPOSED — swap freely).
 const HOVER_GLYPHS: Record<ThemeKey, string[]> = {
   default: ["𖡼", "𖤣", "𖥧", "𖡼", "𓋼", "𖤣", "𖥧", "𓋼", "𓍊"],
-  // Tide v11 (user pattern 2026-07-24, comma-split into twelve composition
-  // frames — a longer arc with a near-still center: the current thins to
-  // the lone ོ mark at frame six, then rebuilds). Frames kept VERBATIM
-  // from the user's cut (incl. leading/internal spaces; HTML collapses
-  // runs of spaces to one, and ོ rides the space before it — frame six is
-  // the COMBINING mark completely bare, the strongest dotted-circle
-  // rendering risk yet; eyeball on-device). (v1-v10 all tried live first;
-  // see git history.)
-  dark: ["࿐", "𓂃༉", "⋆𓂃", "𓂃 ོ⋆", " ོ⋆", "ོ", "⋆ ོ", "⋆ ོ𓂃", " ོ⋆𓂃", "𓂃࿔", "࿔༉", "༉𓂃"],
+  // Tide v12 (user pattern 2026-07-24, comma-split into five composition
+  // frames): pared to the wave alone — ornament family + stroke, no
+  // mark/star layer (one glyph was rendering distractingly; layering can
+  // come back once the base wave reads right). (v1-v11 all tried live
+  // first; see git history.)
+  dark: ["࿐", "𓂃༉", "𓂃࿔", "࿔༉", "༉𓂃"],
   third: ["░", "▒", "▓", "▒", "░"],
 };
 
