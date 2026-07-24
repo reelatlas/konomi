@@ -137,7 +137,11 @@ export function Masthead({ theme, onThemeChange, collapsed }: MastheadProps) {
     if (!finePointer(e)) return;
     const token = ++reverseToken.current;
     const anims = wordmarkAnims();
-    if (anims.length === 0) {
+    // Completed-run cutoff (user ruling): if the whole word finished its
+    // forward cycle, release just ends the effect — no reversal. Dropping
+    // the class is invisible here because the keyframes' end state (fill
+    // settled, stroke opacity 0) matches the rest state exactly.
+    if (anims.length === 0 || anims.every((a) => a.playState === "finished")) {
       setWordmarkPlay(false);
       return;
     }
