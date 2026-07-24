@@ -5064,9 +5064,10 @@
    "canonical": "slacker",
    "pillar": "Story",
    "section": "Archetypes & people",
-   "count": 12,
+   "count": 19,
    "members": [
-    "slacker"
+    "slacker",
+    "view askewniverse"
    ]
   },
   {
@@ -15824,6 +15825,17 @@
     "black cinema"
    ],
    "note": "moved from indie film 2026-07-24: representation concept, not budget"
+  },
+  {
+   "canonical": "psychotronic",
+   "pillar": "Style",
+   "section": "Cinema waves",
+   "count": 24,
+   "members": [
+    "psychotronic",
+    "psychotronic film"
+   ],
+   "note": "own canonical 2026-07-24: Weldon's drive-in/late-night wild-cinema canon — an exhibition culture beside grindhouse, not a genre and not indie"
   }
  ],
  "sweeps": [
@@ -16276,6 +16288,11 @@
    "id": "indie-film-split",
    "date": "2026-07-24",
    "summary": "indie film was over-folded (The Shining reached it via 'psychotronic film'). Split per user: indie film keeps [independent film, low budget, b movie]; NEW arthouse [art house, experimental cinema, contemplative cinema, slow cinema]; NEW black cinema (Story/Identity); 'new german cinema' folded into new wave cinema (Cinema waves). psychotronic + psychotronic film + view askewniverse removed and left UNMAPPED pending user ruling (cult-label research: computed-cult already REJECTED in DATA_SOURCING; grindhouse is the nearest existing canonical; askewniverse candidates: slacker or marijuana per the MCU-fold precedent)."
+  },
+  {
+   "id": "psychotronic-and-askewniverse-homed",
+   "date": "2026-07-24",
+   "summary": "The two strings held from the indie-film split are homed (user rulings): view askewniverse -> slacker (MCU-fold precedent: a franchise-universe string joins the concept it implies; Clerks IS slacker cinema). psychotronic + psychotronic film -> NEW canonical `psychotronic` in Style/Cinema waves beside grindhouse (Weldon's drive-in/late-night canon = an exhibition culture, not a genre; The Shining carrying it is true to the fan canon). Zero unmapped strings from the split remain."
   }
  ],
  "unassigned": [],
