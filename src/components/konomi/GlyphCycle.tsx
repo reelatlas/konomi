@@ -17,6 +17,12 @@ import { useEffect, useState } from "react";
 // shows statically, which is exactly the pre-animation behavior.
 const GLYPH_CYCLE_INTERVAL_MS = 350;
 
+// The glyph's reserved box, in em (so it scales with the hint's own font
+// size). Sized for the widest frames in use (emoji ≈ 1.4-1.6em); every
+// frame centers inside it, so a narrow frame (░) simply gets breathing
+// room instead of moving its neighbors.
+const GLYPH_BOX_EM = 1.6;
+
 interface GlyphCycleProps {
   glyphs: string[];
   active: boolean;
@@ -41,5 +47,15 @@ export function GlyphCycle({ glyphs, active }: GlyphCycleProps) {
   // aria-hidden: purely decorative — the hint text beside it carries the
   // meaning, and a screen reader announcing each frame would be noise.
   // Modulo guards a stale index across a glyphs-array swap mid-flight.
-  return <span aria-hidden="true">{active ? (glyphs[index % glyphs.length] ?? "") : (glyphs[0] ?? "")}</span>;
+  //
+  // Fixed-width inline-flex box, glyph centered: frames vary in advance
+  // width (emoji vs hieroglyph vs ░), and without the reservation each
+  // flip re-flowed its neighbors — worst in the collapsed masthead's
+  // RIGHT-anchored theme subtext, where the whole line slid sideways
+  // (requested: "the glyph stays centered within the space").
+  return (
+    <span aria-hidden="true" className="inline-flex justify-center" style={{ width: `${GLYPH_BOX_EM}em` }}>
+      {active ? (glyphs[index % glyphs.length] ?? "") : (glyphs[0] ?? "")}
+    </span>
+  );
 }
