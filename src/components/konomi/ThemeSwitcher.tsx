@@ -28,12 +28,12 @@ interface ThemeSwitcherProps {
 // pulsing ░▒▓ (PROPOSED — swap freely).
 const HOVER_GLYPHS: Record<ThemeKey, string[]> = {
   default: ["𖡼", "𖤣", "𖥧", "𖡼", "𓋼", "𖤣", "𖥧", "𓋼", "𓍊"],
-  // Tide v14 (user pattern 2026-07-24, comma-split into eleven composition
-  // frames, repeats intentional): a fuller swell cycle with solo beats —
-  // each ornament form gets a lone frame (𓂃, ࿔, ༉) between the paired
-  // ones, so the wave breathes: build, crest alone, recombine. (v1-v13
-  // all tried live first; see git history.)
-  dark: ["࿐", "༉𓂃", "𓂃༉", "𓂃", "𓂃࿔", "࿔", "࿔𓂃", "࿔𓂃༉", "𓂃༉", "༉", "༉𓂃"],
+  // Tide v15 (user pattern 2026-07-24, comma-split into twelve composition
+  // frames, repeats intentional): the swell now HOLDS ࿔𓂃 for a double
+  // beat (frames 7-8 = 700ms) and the full ornament ࿐ resurfaces
+  // mid-cycle (frame 9) before the ༉ resolve — two loop-points per pass.
+  // (v1-v14 all tried live first; see git history.)
+  dark: ["࿐", "༉𓂃", "𓂃༉", "𓂃", "𓂃࿔", "࿔", "࿔𓂃", "࿔𓂃", "࿐", "𓂃༉", "༉", "༉𓂃"],
   third: ["░", "▒", "▓", "▒", "░"],
 };
 
