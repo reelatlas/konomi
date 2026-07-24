@@ -28,14 +28,14 @@ interface ThemeSwitcherProps {
 // pulsing ░▒▓ (PROPOSED — swap freely).
 const HOVER_GLYPHS: Record<ThemeKey, string[]> = {
   default: ["𖡼", "𖤣", "𖥧", "𖡼", "𓋼", "𖤣", "𖥧", "𓋼", "𓍊"],
-  // Tide v4 (user pattern 2026-07-24, comma-split into seven composition
-  // frames): the ornament dissolves into a drifting current — the marks
-  // slide leftward through the frames and the ornament resurfaces at the
-  // loop point. Frames kept VERBATIM from the user's cut (incl. leading/
+  // Tide v5 (user pattern 2026-07-24, comma-split into seven composition
+  // frames): the ornament dissolves into a drifting current and resurfaces
+  // at the loop. Frames kept VERBATIM from the user's cut (incl. leading/
   // internal spaces; HTML collapses runs of spaces to one, and the
   // combining mark ོ rides the space before it). (v1 fish, v2 shoreline,
-  // v3 fish-with-bubbles all tried live first; see git history.)
-  dark: ["࿐", "࿔*𓂃", "*𓂃  ོ", "𓂃  ོ⋆", "  ོ⋆𓂃", "⋆𓂃*", "𓂃*࿔"],
+  // v3 fish-with-bubbles, v4 first drift cut all tried live first; see
+  // git history.)
+  dark: ["࿐", "࿔𓂃", "𓂃 ོ", "𓂃 ོ⋆", "  ོ𓂃⋆", " ོ⋆𓂃", "⋆𓂃࿔"],
   third: ["░", "▒", "▓", "▒", "░"],
 };
 
