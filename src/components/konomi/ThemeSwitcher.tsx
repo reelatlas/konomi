@@ -28,10 +28,11 @@ interface ThemeSwitcherProps {
 // pulsing ░▒▓ (PROPOSED — swap freely).
 const HOVER_GLYPHS: Record<ThemeKey, string[]> = {
   default: ["𖡼", "𖤣", "𖥧", "𖡼", "𓋼", "𖤣", "𖥧", "𓋼", "𓍊"],
-  // Tide v19 (user pattern 2026-07-24, comma-split into four composition
-  // frames): the most minimal cut — ornament, stroke, stroke+curl, curl.
-  // (v1-v18 all tried live first; see git history.)
-  dark: ["࿐", "𓂃", "𓂃༉", "༉"],
+  // Tide v20 (user pattern 2026-07-24, comma-split into four composition
+  // frames): ornament, flat stroke, then the curl entering LEFT of the
+  // stroke and crossing to its right — the loop back to ࿐ completes the
+  // wave. (v1-v19 all tried live first; see git history.)
+  dark: ["࿐", "𓂃", "༉𓂃", "𓂃༉"],
   third: ["░", "▒", "▓", "▒", "░"],
 };
 
