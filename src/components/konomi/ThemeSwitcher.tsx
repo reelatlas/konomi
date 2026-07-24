@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { THEMES, THEME_KEYS } from "@/lib/konomi/themes";
 import type { ThemeKey } from "@/lib/konomi/types";
+import { GlyphCycle } from "./GlyphCycle";
 
 interface ThemeSwitcherProps {
   value: ThemeKey;
@@ -20,11 +21,15 @@ interface ThemeSwitcherProps {
 
 // Decorative flourish shown only in the hover subtext below the swatches —
 // a one-off UI pairing for this interaction, not a design token (see
-// DESIGN_SYSTEM.md's "decorative one-offs" note).
-const HOVER_GLYPH: Record<ThemeKey, string> = {
-  default: "❀",
-  dark: "࿐",
-  third: "░",
+// DESIGN_SYSTEM.md's "decorative one-offs" note). Now a FLIPBOOK per theme
+// (user, 2026-07-24): hold-hover steps through the frames on an interval
+// and loops (GlyphCycle). Konomi = a garden growing in; Tide = fish
+// swimming past (both user-supplied sequences); Newsprint = ink density
+// pulsing ░▒▓ (PROPOSED — swap freely).
+const HOVER_GLYPHS: Record<ThemeKey, string[]> = {
+  default: ["𖡼", "𖤣", "𖥧", "𖡼", "𓋼", "𖤣", "𖥧", "𓋼", "𓍊"],
+  dark: ["𓆝", "𓆟", "𓆞", "𓆝", "𓆟"],
+  third: ["░", "▒", "▓", "▒", "░"],
 };
 
 export function ThemeSwitcher({ value, onChange, subtextPlacement = "bottom" }: ThemeSwitcherProps) {
@@ -135,7 +140,17 @@ export function ThemeSwitcher({ value, onChange, subtextPlacement = "bottom" }: 
           hovered ? "opacity-100" : "opacity-0",
         ].join(" ")}
       >
-        {hovered ? `${THEMES[hovered].name} ${HOVER_GLYPH[hovered]}` : ""}
+        {/* lowercase (user, 2026-07-24): display-only — THEMES keeps its
+            proper names for aria-labels etc.; the class does the casing.
+            key={hovered} restarts the flipbook from frame one when the
+            hovered swatch changes. */}
+        {hovered ? (
+          <>
+            <span className="lowercase">{THEMES[hovered].name}</span> <GlyphCycle key={hovered} glyphs={HOVER_GLYPHS[hovered]} active />
+          </>
+        ) : (
+          ""
+        )}
       </span>
     </div>
   );

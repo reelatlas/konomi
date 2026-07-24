@@ -144,12 +144,15 @@ export const filmDomain: Domain = {
   route: "/film",
   storagePrefix: "konomi:film",
   sections: FILM_TAG_SECTIONS,
-  // Level names are the loosely-settled trio (see DATA_SOURCING). Hints are
-  // PLACEHOLDER flair pending a real naming pass — rename freely.
+  // Level names are the loosely-settled trio (see DATA_SOURCING). Hint text
+  // user-ruled 2026-07-24; hintGlyphs are the hold-hover flipbook frames
+  // (first frame = the ruled emoji; the follow-on frames are PROPOSED —
+  // swap freely). Cinephile's 🛷→❄→🔥 is the Citizen Kane arc: the sled,
+  // the snow globe, the furnace.
   levels: [
-    { key: "1", label: "Moviegoer", hint: "popcorn ready 🍿" },
-    { key: "2", label: "Film buff", hint: "stays for the credits 🎞" },
-    { key: "3", label: "Cinephile", hint: "criterion closet regular ✦" },
+    { key: "1", label: "Moviegoer", hint: "where's my popcorn?", hintGlyphs: ["🍿", "🥤", "🎟"] },
+    { key: "2", label: "Film buff", hint: "stay for the credits", hintGlyphs: ["🎞️", "📽", "🎬"] },
+    { key: "3", label: "Cinephile", hint: "rosebud", hintGlyphs: ["🛷", "❄", "🔥"] },
   ],
   isTagVisible: isFilmTagVisible,
   cardMeta: (item) =>

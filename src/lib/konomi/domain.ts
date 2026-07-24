@@ -38,6 +38,10 @@ export interface LevelOption {
   key: LevelKey;
   label: string;
   hint: string;
+  // Optional hold-hover glyph flipbook appended after the hint text (see
+  // GlyphCycle). When absent, the hint renders as-is — the anime hints
+  // keep their inline glyphs/kaomoji untouched.
+  hintGlyphs?: string[];
 }
 
 export interface Domain {

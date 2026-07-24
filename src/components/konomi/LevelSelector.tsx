@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import type { LevelKey } from "@/lib/konomi/types";
 import { getAnimationDebugValues } from "./animationDebugStore";
 import { useDomain } from "./domainContext";
+import { GlyphCycle } from "./GlyphCycle";
 import { RollingLabel } from "./RollingLabel";
 import { useSupportsHover } from "./useSupportsHover";
 
@@ -157,7 +158,22 @@ export function LevelSelector({ value, onChange, collapsed }: LevelSelectorProps
             shown ? "opacity-100" : "opacity-0",
           ].join(" ")}
         >
-          {shown ? activeOption.hint : ""}
+          {/* hintGlyphs (film): hint text + the hold-hover flipbook, keyed
+              per option so switching levels restarts its cycle from frame
+              one. Anime hints have no glyph array and render unchanged. */}
+          {shown ? (
+            <>
+              {activeOption.hint}
+              {activeOption.hintGlyphs && (
+                <>
+                  {" "}
+                  <GlyphCycle key={activeOption.key} glyphs={activeOption.hintGlyphs} active={shown} />
+                </>
+              )}
+            </>
+          ) : (
+            ""
+          )}
         </span>
       </div>
     );
@@ -210,7 +226,20 @@ export function LevelSelector({ value, onChange, collapsed }: LevelSelectorProps
           hoveredOption ? "opacity-100" : "opacity-0",
         ].join(" ")}
       >
-        {hoveredOption?.hint ?? ""}
+        {/* Same hintGlyphs treatment as the collapsed hint above. */}
+        {hoveredOption ? (
+          <>
+            {hoveredOption.hint}
+            {hoveredOption.hintGlyphs && (
+              <>
+                {" "}
+                <GlyphCycle key={hoveredOption.key} glyphs={hoveredOption.hintGlyphs} active={Boolean(hovered)} />
+              </>
+            )}
+          </>
+        ) : (
+          ""
+        )}
       </span>
     </div>
   );
