@@ -28,11 +28,11 @@ interface ThemeSwitcherProps {
 // pulsing ░▒▓ (PROPOSED — swap freely).
 const HOVER_GLYPHS: Record<ThemeKey, string[]> = {
   default: ["𖡼", "𖤣", "𖥧", "𖡼", "𓋼", "𖤣", "𖥧", "𓋼", "𓍊"],
-  // Tide v28 (user pattern 2026-07-24, comma-split into six frames): v27
-  // with a departing beat — the jellyfish sheds a mote (ଳ‧) before
-  // sinking into the bubble drift, then resurfaces with one at its other
-  // side. (v1-v27 all tried live first; see git history.)
-  dark: ["ଳ", "ଳ‧", "‧₊", "˚⋅", "˚₊", "‧ଳ"],
+  // Tide v29 (user pattern 2026-07-24, comma-split into six frames): v28
+  // with the resurfacing mote swapped ‧ -> ₊ — the jellyfish returns with
+  // the low plus-mote at its side, matching the drift's ₊ beats. (v1-v28
+  // all tried live first; see git history.)
+  dark: ["ଳ", "ଳ‧", "‧₊", "˚⋅", "˚₊", "₊ଳ"],
   third: ["░", "▒", "▓", "▒", "░"],
 };
 
