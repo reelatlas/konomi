@@ -15,7 +15,21 @@ import type { LevelKey, TagInfo } from "./types";
 // assigns to credit/saga/origin tags — the two files are a contract.
 const FILM_TAG_SECTIONS: TagSection[] = [
   { key: "genres", label: "Genres" },
-  { key: "reception", label: "Reception", categories: ["Reception"] },
+  {
+    key: "reception",
+    label: "Reception",
+    subsectionsAsTabs: true,
+    // "Renown" = how the film is regarded (acclaimed · era-defining ·
+    // famous · divisive · infamous · underseen · niche favourite ·
+    // buzzing); "Box office" = the money story (blockbuster · big-budget ·
+    // the four ROI bands). Labels are PROPOSED names — rename freely;
+    // alternates offered: Reputation / Word of mouth for the first,
+    // Fortunes / The take for the second.
+    subsections: [
+      { label: "Renown", categories: ["Reception-Renown"] },
+      { label: "Box office", categories: ["Reception-Box office"] },
+    ],
+  },
   {
     key: "feel",
     label: "Feel",

@@ -252,7 +252,7 @@ export async function getFilmCatalog(): Promise<Catalog> {
   // reception ships at every level (moviegoer included); origin +
   // certification are film buff+ ("1" would be the one-line change).
   const synthTags: TagInfo[] = [
-    ...[...counts.reception.entries()].map(([name, n]) => tagInfo(name, "Reception", n, "1")),
+    ...[...counts.reception.entries()].map(([name, n]) => tagInfo(name, receptionCategory(name), n, "1")),
     ...[...counts.decade.entries()].map(([d, n]) => tagInfo(decadeTagName(d), "Origin-Decade", n, "2")),
     ...[...counts.country.entries()].map(([c, n]) => tagInfo(countryTagName(c), "Origin-Country", n, "2")),
     ...[...counts.language.entries()].map(([c, n]) => tagInfo(languageTagName(c), "Origin-Language", n, "2")),
@@ -313,3 +313,11 @@ export async function getFilmCatalog(): Promise<Catalog> {
 function tagInfo(name: string, category: string, seriesCount: number, minLevel: LevelKey): TagInfo {
   return { name, category, seriesCount, avgRank: null, isGenre: false, minLevel };
 }
+
+// Reception splits into two sub-tabs (user, 2026-07-24): the money tags vs
+// everything about how the film was received/regarded. The six box-office
+// tags are the closed banked set (per adapter-config stacking rules: the
+// four ROI bands are mutually exclusive; blockbuster/big-budget stack) —
+// any FUTURE reception tag lands in Renown unless added here.
+const BOX_OFFICE_RECEPTION = new Set(["blockbuster", "big-budget", "mega-roi", "hit", "broke-even", "flop"]);
+const receptionCategory = (name: string) => (BOX_OFFICE_RECEPTION.has(name) ? "Reception-Box office" : "Reception-Renown");
