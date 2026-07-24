@@ -28,12 +28,11 @@ interface ThemeSwitcherProps {
 // pulsing ░▒▓ (PROPOSED — swap freely).
 const HOVER_GLYPHS: Record<ThemeKey, string[]> = {
   default: ["𖡼", "𖤣", "𖥧", "𖡼", "𓋼", "𖤣", "𖥧", "𓋼", "𓍊"],
-  // Tide v27 (user pattern 2026-07-24, comma-split into five frames): new
-  // lead glyph — ଳ (Oriya LLA, the jellyfish shape) sinking into bubble
-  // specks and resurfacing with a mote at its side (user tightened the
-  // final frame's internal space away mid-iteration). (v1-v26 all tried
-  // live first; see git history.)
-  dark: ["ଳ", "‧₊", "˚⋅", "˚₊", "‧ଳ"],
+  // Tide v28 (user pattern 2026-07-24, comma-split into six frames): v27
+  // with a departing beat — the jellyfish sheds a mote (ଳ‧) before
+  // sinking into the bubble drift, then resurfaces with one at its other
+  // side. (v1-v27 all tried live first; see git history.)
+  dark: ["ଳ", "ଳ‧", "‧₊", "˚⋅", "˚₊", "‧ଳ"],
   third: ["░", "▒", "▓", "▒", "░"],
 };
 
