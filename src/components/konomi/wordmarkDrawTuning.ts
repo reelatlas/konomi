@@ -29,3 +29,11 @@ export const WORDMARK_ECHO_OPACITY = 0.32;
 // (user-locked at 1px). WATCH ITEM: this is a filter on animating paths —
 // verify on-device WebKit before trusting it (house lore re: filters).
 export const WORDMARK_GLOW_PX = 1;
+
+// Release behavior: letting go of the hover REVERSES the animation from
+// wherever it is (Web Animations API updatePlaybackRate on the same CSS
+// animations — see Masthead's handlers) at this multiple of forward
+// speed. 2 = whatever has played unwinds in half its elapsed time (a
+// fully-drawn letter's 5610ms cycle rewinds in ~2805ms; the visible
+// outline-undraw alone ≈ 1350ms).
+export const WORDMARK_REVERSE_SPEED = 2;

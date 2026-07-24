@@ -963,15 +963,20 @@ html.theme-transitioning *::after {
   opacity: var(--wm-echoop);
   transform: translate(var(--wm-echo), var(--wm-echo));
 }
-.wm-host:hover .wm-fill {
+/* Trigger = the wm-play class on the wordmark lockup (JS-managed by
+   Masthead's pointer handlers), NOT :hover — deliberately: release must
+   REVERSE these very animations via the Web Animations API, and a :hover
+   unmatch would cancel them before they could rewind. The class stays on
+   through the reversal and drops when the rewind reaches time 0. */
+.wm-play .wm-fill {
   animation: wm-fillcycle var(--wm-cycle) both;
   animation-delay: calc(var(--i) * var(--wm-stagger));
 }
-.wm-host:hover .wm-main {
+.wm-play .wm-main {
   animation: wm-draw var(--wm-cycle) both;
   animation-delay: calc(var(--i) * var(--wm-stagger));
 }
-.wm-host:hover .wm-echo {
+.wm-play .wm-echo {
   animation: wm-draw var(--wm-cycle) both;
   animation-delay: calc(var(--i) * var(--wm-stagger) + var(--wm-echodelay));
 }
@@ -990,9 +995,9 @@ html.theme-transitioning *::after {
   100% { stroke-dashoffset: 0; stroke-opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .wm-host:hover .wm-fill,
-  .wm-host:hover .wm-main,
-  .wm-host:hover .wm-echo {
+  .wm-play .wm-fill,
+  .wm-play .wm-main,
+  .wm-play .wm-echo {
     animation: none;
   }
 }

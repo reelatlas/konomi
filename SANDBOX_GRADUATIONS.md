@@ -13,6 +13,13 @@ to find the code site, this row, and (while it still exists) the sandbox batch's
 
 ## Drift log
 
+- **2026-07-24 · `sandbox:wordmark-outline-draw/C-v5` · release-reversal + scoped trigger (post-graduation
+  tuning, same day)** — (1) Releasing the hover now REVERSES the animation from wherever it is at 2×
+  forward speed (`WORDMARK_REVERSE_SPEED`), via the Web Animations API flipping playbackRate on the
+  same CSS animations — which required moving the trigger from header `:hover` to a JS-managed
+  `wm-play` class (a `:hover` unmatch cancels animations before they can rewind). (2) The trigger is
+  scoped to the KONOMI+ミックス lockup itself, not the whole masthead (user ruling). Vanilla WAAPI,
+  not Motion — playbackRate flipping is the platform's own reversal primitive for CSS keyframes.
 - **2026-07-24 · `sandbox:wordmark-outline-draw/C-v5` · accepted drift at graduation** — (1) letter
   tracking is baked into the paths at the expanded value (the text version morphed tracking
   xs→sm on collapse; not reproducible in baked geometry — invisible at collapsed sizes). (2) The

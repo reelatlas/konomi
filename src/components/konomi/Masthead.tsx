@@ -1,5 +1,6 @@
 import Link from "next/link";
-import type { CSSProperties } from "react";
+import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
+import { useRef, useState } from "react";
 import { DOMAINS } from "@/lib/konomi/domains";
 import type { ThemeKey } from "@/lib/konomi/types";
 import { WORDMARK_JP, WORDMARK_LATIN } from "@/lib/konomi/wordmarkPaths";
@@ -15,6 +16,7 @@ import {
   WORDMARK_ECHO_OPACITY,
   WORDMARK_GLOW_PX,
   WORDMARK_JP_STROKE_SCALE,
+  WORDMARK_REVERSE_SPEED,
   WORDMARK_STAGGER_MS,
   WORDMARK_STROKE_W,
 } from "./wordmarkDrawTuning";
@@ -96,6 +98,57 @@ export function Masthead({ theme, onThemeChange, collapsed }: MastheadProps) {
   // find; a 3+-side future would swap this for a menu.
   const domain = useDomain();
   const otherSide = Object.values(DOMAINS).find((d) => d.key !== domain.key);
+
+  // Wordmark outline-draw trigger (tag: sandbox:wordmark-outline-draw/C-v5,
+  // release-reversal added post-graduation — see the register's drift log).
+  // The trigger is a JS-managed class on the WORDMARK LOCKUP (not header
+  // :hover) for two reasons: the user wants the effect scoped to the
+  // KONOMI+ミックス text itself, and — the load-bearing one — reversal is
+  // impossible under pure :hover (unhover unmatches the rule and CANCELS
+  // the animations before anything can rewind them). With a class, pointer
+  // leave keeps the class on and instead REVERSES the very same CSS
+  // animations via the Web Animations API (updatePlaybackRate) at
+  // -WORDMARK_REVERSE_SPEED, dropping the class only once they've walked
+  // back to time 0. Re-entering mid-reverse flips them forward again from
+  // wherever they are (the token guards the stale class-removal). Vanilla
+  // WAAPI, not Motion, by decision: these ARE the CSS keyframes — Motion
+  // can't drive them, and playbackRate flipping is the platform's own
+  // reversal primitive (surfaced per the animation rules). pointerType is
+  // gated to mouse/pen so touch keeps the prior no-trigger behavior (the
+  // touch story remains an open decision).
+  const wordmarkRef = useRef<HTMLDivElement>(null);
+  const [wordmarkPlay, setWordmarkPlay] = useState(false);
+  const reverseToken = useRef(0);
+  const wordmarkAnims = () =>
+    (wordmarkRef.current?.getAnimations({ subtree: true }) ?? []).filter(
+      (a): a is CSSAnimation => a instanceof CSSAnimation && a.animationName.startsWith("wm-"),
+    );
+  const finePointer = (e: ReactPointerEvent) => e.pointerType === "mouse" || e.pointerType === "pen";
+  function handleWordmarkEnter(e: ReactPointerEvent) {
+    if (!finePointer(e)) return;
+    reverseToken.current++;
+    setWordmarkPlay(true);
+    for (const a of wordmarkAnims()) {
+      a.updatePlaybackRate(1);
+      a.play();
+    }
+  }
+  function handleWordmarkLeave(e: ReactPointerEvent) {
+    if (!finePointer(e)) return;
+    const token = ++reverseToken.current;
+    const anims = wordmarkAnims();
+    if (anims.length === 0) {
+      setWordmarkPlay(false);
+      return;
+    }
+    for (const a of anims) {
+      a.updatePlaybackRate(-WORDMARK_REVERSE_SPEED);
+      a.play(); // a finished forward animation needs play() to run backward from its end
+    }
+    Promise.allSettled(anims.map((a) => a.finished)).then(() => {
+      if (reverseToken.current === token) setWordmarkPlay(false);
+    });
+  }
   return (
     <header
       // border: bottom stays full width in both states; top/left/right thin
@@ -122,9 +175,12 @@ export function Masthead({ theme, onThemeChange, collapsed }: MastheadProps) {
       // everywhere (see KonomiApp/DESIGN_SYSTEM.md). Flat across the whole
       // morph; the tilt slants this edge cosmetically but the gap token stays 24.
       //
-      // wm-host: the hover scope for the wordmark outline-draw (globals.css
-      // .wm-* rules) — hovering anywhere on the masthead plays it. Touch has
-      // no trigger yet (deliberately open; hover-only for now).
+      // wm-host: carries the --wm-* tuning vars the .wm-* rules read
+      // (inherited by the lockup below). The TRIGGER is not here — it's the
+      // wm-play class on the wordmark lockup itself (pointer handlers
+      // above), scoped to the KONOMI+ミックス text per user ruling, and
+      // class-based so release can REVERSE the animations (see the
+      // handlers' comment). Touch has no trigger (deliberately open).
       className="wm-host bg-[var(--surface)] px-[var(--space-2xl)] pb-0 mb-[var(--space-2xl)]"
     >
       {/* Outer row: justify-between + items-center throughout, never wraps
@@ -146,7 +202,10 @@ export function Masthead({ theme, onThemeChange, collapsed }: MastheadProps) {
             side; the collapsed small text always fits, so wrap is inert there).
             columnGap eases 16px (space-xl) -> 8px (space-md). */}
         <div
-          className="flex items-baseline flex-wrap min-w-0"
+          ref={wordmarkRef}
+          onPointerEnter={handleWordmarkEnter}
+          onPointerLeave={handleWordmarkLeave}
+          className={["flex items-baseline flex-wrap min-w-0", wordmarkPlay ? "wm-play" : ""].join(" ")}
           style={{
             columnGap: "calc(var(--space-xl) - (var(--space-xl) - var(--space-md)) * var(--masthead-progress))",
             rowGap: "var(--space-xs)",
