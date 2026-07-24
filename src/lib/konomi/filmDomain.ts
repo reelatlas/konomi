@@ -150,7 +150,7 @@ export const filmDomain: Domain = {
   // maybe-later; the machinery is hintGlyphs, see GlyphCycle, still live
   // on the theme subtext).
   levels: [
-    { key: "1", label: "Moviegoer", hint: "where's my popcorn? 🍿" },
+    { key: "1", label: "Moviegoer", hint: "where is my popcorn? 🍿" },
     { key: "2", label: "Film buff", hint: "stay for the credits 🎞️" },
     { key: "3", label: "Cinephile", hint: "rosebud 🛷" },
   ],

@@ -219,7 +219,7 @@ Frames may be single glyphs or multi-glyph compositions ("scenes"). The user aut
 - **tide** — FINAL after **40 live-tried cuts** (fish → shoreline compositions → drifting-current ornament studies → whitespace minimalism → the jellyfish arc; every cut is a commit in git history): `ଳ → ଳ‧ → ₊‧ → ‧ → ‧₊ → ₊ → ₊ଳ` — the jellyfish sheds a mote, bubbles drift through a **mirrored palindrome middle** (the pair swaps sides passing the lone-dot center, entirely underwater, no surface event), and it returns carrying the drift's own mote. The 40-version iteration itself proved the workflow: paste a pattern → swap the array → measure → commit, ~1 min per cut.
 - **newsprint** — ink density pulsing: `░ ▒ ▓ ▒ ░` (assistant-proposed, user-kept).
 
-**Film level hints deliberately do NOT animate** — they're static single emoji (`"where's my popcorn? 🍿"` etc.). A 3-frame flipbook per level was tried and reverted same-day; the machinery remains (`LevelOption.hintGlyphs` in `domain.ts`, rendered by `LevelSelector` when present) as a decide-later, and the anime hints' inline glyphs/kaomoji were never touched.
+**Film level hints deliberately do NOT animate** — they're static single emoji (`"where is my popcorn? 🍿"` etc.). A 3-frame flipbook per level was tried and reverted same-day; the machinery remains (`LevelOption.hintGlyphs` in `domain.ts`, rendered by `LevelSelector` when present) as a decide-later, and the anime hints' inline glyphs/kaomoji were never touched.
 
 ### `ResultCard`'s lock/swap icon hints are the same idea, but three real differences from every version above
 
