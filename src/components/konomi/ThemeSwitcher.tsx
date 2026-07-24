@@ -28,11 +28,11 @@ interface ThemeSwitcherProps {
 // pulsing ░▒▓ (PROPOSED — swap freely).
 const HOVER_GLYPHS: Record<ThemeKey, string[]> = {
   default: ["𖡼", "𖤣", "𖥧", "𖡼", "𓋼", "𖤣", "𖥧", "𓋼", "𓍊"],
-  // Tide v37 (user pattern 2026-07-24, comma-split into seven frames): the
-  // apex splits in two — ∘˙, a hollow bubble with a droplet flicking off
-  // it, between the climb and the descent. (v1-v36 all tried live first;
-  // see git history.)
-  dark: ["ଳ", "ଳ‧", "₊‧", "∘˙", "˚‧", "₊", "₊ଳ"],
+  // Tide v39 (user pattern 2026-07-24, comma-split into six frames): the
+  // minimal bubble arc — shed, climb, a lone mid-water ‧, the low ₊, and
+  // the return; no surface beat at all. (v1-v38, incl. an uncommitted
+  // bare-˙-apex cut, all tried live first; see git history.)
+  dark: ["ଳ", "ଳ‧", "₊‧", "‧", "₊", "₊ଳ"],
   third: ["░", "▒", "▓", "▒", "░"],
 };
 
