@@ -28,11 +28,11 @@ interface ThemeSwitcherProps {
 // pulsing ░▒▓ (PROPOSED — swap freely).
 const HOVER_GLYPHS: Record<ThemeKey, string[]> = {
   default: ["𖡼", "𖤣", "𖥧", "𖡼", "𓋼", "𖤣", "𖥧", "𓋼", "𓍊"],
-  // Tide v35 (user pattern 2026-07-24, comma-split into seven frames): the
-  // apex bubble POPS — v34 with the surface frame swapped ˚ -> * (the
-  // burst), then the descent and return. (v1-v34 all tried live first;
-  // see git history.)
-  dark: ["ଳ", "ଳ‧", "₊‧", "*", "˚‧", "₊", "₊ଳ"],
+  // Tide v36 (user pattern 2026-07-24, comma-split into seven frames): the
+  // apex swells instead of popping — v35's * burst swapped for • (a full
+  // round bubble at the surface), then the descent and return. (v1-v35
+  // all tried live first; see git history.)
+  dark: ["ଳ", "ଳ‧", "₊‧", "•", "˚‧", "₊", "₊ଳ"],
   third: ["░", "▒", "▓", "▒", "░"],
 };
 
