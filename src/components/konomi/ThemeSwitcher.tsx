@@ -28,7 +28,12 @@ interface ThemeSwitcherProps {
 // pulsing ░▒▓ (PROPOSED — swap freely).
 const HOVER_GLYPHS: Record<ThemeKey, string[]> = {
   default: ["𖡼", "𖤣", "𖥧", "𖡼", "𓋼", "𖤣", "𖥧", "𓋼", "𓍊"],
-  dark: ["𓆝", "𓆟", "𓆞", "𓆝", "𓆟"],
+  // Tide v2 (user pattern 2026-07-24), split on spaces into three
+  // composition frames — frames may be multi-glyph strings, the flipbook
+  // doesn't care. NOTE: frame 3 opens with U+0F7C, a Tibetan COMBINING
+  // vowel mark — flagged for on-device eyeballing (some fonts render a
+  // bare combining mark with a dotted placeholder circle).
+  dark: ["࿐", "࿔*𓂃", "ོ⋆𓂃⛱"],
   third: ["░", "▒", "▓", "▒", "░"],
 };
 
