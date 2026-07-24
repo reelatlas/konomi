@@ -916,6 +916,45 @@ IA-pressure will say when) · stamp run dates into bucket records for provenance
 is pinned-snapshot semantics; re-runs select materially different sets) · era-defining's
 fetched_at guard auto-advances with rehydrates (already built).
 
+### Corpus fluff census + exclusion rules — EVALUATED, DECLINED 2026-07-24 (keep everything)
+
+After the director-rule audit (below), a full census of "not-quite-cinema" categories was
+measured and a two-tier exclusion mechanism designed — and the user ruled: **no exclusions,
+keep the corpus as-is.** Recorded so the research isn't redone and the design is liftable if
+ever revisited.
+
+**Census (of 8,531):** shorts <45min 235 (canon-dense: La Jetée, Un Chien Andalou, Wallace &
+Gromit) · Documentary genre 214 (Night and Fog, Grizzly Man) · TV Movie genre 146 (Duel,
+Threads) · kw stand-up comedy 34 · kw concert film 15 (incl. Stop Making Sense — canon) ·
+`payload.video=true` 26 (best DTV signal but catches Grindhouse/Twin Peaks: Missing Pieces —
+NEVER auto-fire it) · kw compilation 26 (Evangelion Death & Rebirth adjacent to real fluff) ·
+kw anthology 58 (Sin City — not fluff at all) · filmed theater 3 (incl. Hamilton). True
+irredeemable fluff ≈ 55–75 films (~0.8%) — the corpus is NOT meaningfully inflated.
+**Signal gotchas (measured):** kw "making of" catches Day for Night (Truffaut FICTION);
+recap detection can't mechanically separate AoT recap movies from The End of Evangelion /
+Madoka Rebellion (original theatrical works). Any future rule needs propose-first review.
+
+**The declined-but-liftable design:** one committed rule file (`tag-rules/corpus-exclusions.json`
+style) with Tier A crisp auto-exclude rules + Tier B nominate-only signals feeding a
+delta-report review queue + banked id list; enforced at BOTH promote (filters existing raw →
+catalog; raw untouched, append-only) and ingest (skips new candidates pre-hydrate, logs,
+delta-reports). Key mechanics facts verified: promote reads ALL raw rows and ignores
+`tmdb_ingest_exclusions`; the import WIPES that table each run (per-run ledger — durable
+curatorial rules must live in a committed file, never that table). Optional manual raw purge:
+script driven by the same file, dry-run first, payloads archived to JSON before delete.
+
+**Director-rule audit (same session, also no change):** rule = seed directors, qualifying =
+job==="Director" AND vc≥100, gate ≥5, cap top-15 by vote_count (cap is 15 TOTAL, not 15 new;
+producer credits can NEVER inflate the gate — per-credit-row job filter + film-id dedupe,
+verified in code). Measured: 849 directors passed · 4,537 expansion films (53%) · avg ~5.3 new
+films each · 22 contributed zero. What-ifs measured: floor 300 cuts 262 directors/2,167 films
+(Ozu, Mizoguchi, Kiarostami, Visconti, Tati, Demy, Kusturica, Lee Chang-dong — the 100–300
+band IS the world-cinema canon; TMDB vote counts are Anglo-popularity-biased); floor 500 cuts
+Wyler/Pasolini/Melville/Kieślowski/Lean tier. Miike's ~110 credits = Japan's V-Cinema DTV
+industry (real commercial productions; the vote floor + cap already exclude the unvalidated
+volume). **RULING: floors stand at 5 × 100 × 15 — the basement-camcorder failure mode cannot
+pass the existing gate.**
+
 **STEP ⑤ PART 3 ✅ BANKED (user, 2026-07-24) — the Sagas shelf, in adapter-config.json.**
 Measured from raw payloads (zero new requests): 25.4% of corpus (2,170 films) carries
 belongs_to_collection · 1,059 distinct collections · top: James Bond 20, Fast & Furious 11,
