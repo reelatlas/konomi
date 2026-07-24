@@ -101,11 +101,19 @@ export interface ThemeColors {
 export type MatchKey = "1" | "2" | "3";
 
 // Set only by a RECOMMEND click that can't produce results — never by
-// changing tags or min-match alone (those only drive live filtering of
-// what's already on screen). "impossible-min": tag count < min-match.
-// "no-match": min-match is achievable but the catalog rescore found nothing
-// new. See DESIGN_SYSTEM.md's "Mixer error system" for the full model.
-export type MixerError = "impossible-min" | "no-match" | null;
+// changing tags, min-match, or locks alone (those only drive live filtering
+// of what's already on screen). One error at a time, in guided-flow priority
+// order (surface the blocker that needs immediate action; fixing it reveals
+// the next one on the following press, never all at once):
+//   "impossible-min": tag count < min-match — nothing can even be attempted.
+//   "all-locked": every result slot is held by a lock (or every qualifying
+//     title is locked), so a roll has nowhere to land — unlocking is the fix.
+//   "no-new-matches": the mix works and cards are showing, but every
+//     qualifying title is already on screen — a roll would change nothing.
+//     Loosen the mix, or Clear ✕ to re-roll the same pool fresh.
+//   "no-match": nothing in the catalog qualifies at all.
+// See DESIGN_SYSTEM.md's "Mixer error system" for the full model.
+export type MixerError = "impossible-min" | "all-locked" | "no-new-matches" | "no-match" | null;
 
 // Tag pool visibility tier — "1" (Genres only) through "3" (All, the
 // existing baseline). Global, applies to both the pool and result cards.

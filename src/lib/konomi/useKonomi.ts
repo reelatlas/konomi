@@ -24,41 +24,51 @@ interface KonomiState {
   // distinguishes "a whole new batch" from "one card changed."
   recommendGen: number;
   // The index (within the just-produced `results`) of the first entry that
-  // ISN'T a locked card carried forward from before this RECOMMEND — i.e.
-  // the first genuinely new pick. Locked entries are now compacted to the
-  // FRONT (in their prior relative order), then the fresh picks fill the
-  // remaining slots (see recommend()'s own comment below), so this equals
-  // the number of locked cards carried forward: lock 3 of 5, hit RECOMMEND,
-  // and the 3 locks take slots 0-2 while the 2 new picks take slots 3-4 with
-  // this === 3. With no locks at all, every entry is fresh, so this is 0 —
-  // the same "scroll to the first card" reset as before locks existed.
+  // ISN'T carried forward from before this RECOMMEND — i.e. the first
+  // genuinely fresh pick. Carried-over entries (locks first, then any
+  // fallback repeats, each block in its prior relative order) are compacted
+  // to the FRONT, then the fresh picks fill the remaining slots (see
+  // recommend()'s own comment below), so this equals the carried count:
+  // lock 3 of 5, hit RECOMMEND with a deep pool, and the 3 locks take slots
+  // 0-2 while the 2 fresh picks take slots 3-4 with this === 3. With nothing
+  // carried at all, every entry is fresh, so this is 0 — the same "scroll to
+  // the first card" reset as before locks existed.
   // Bumped in lockstep with recommendGen (both set together, only on a
   // successful RECOMMEND), so the carousel always reads them from the same
   // state.
   firstNewIndex: number;
-  // Titles of every entry that was a genuinely fresh pool pick in the most
-  // recent RECOMMEND — used by the result-card enter animation
-  // (RecommendationsBody.tsx) so entrance eligibility is tied purely to
-  // "did this card arrive on the last RECOMMEND," fully decoupled from the
-  // live `locked` map. This matters because `locked` changes independently
-  // of `results` (a user can lock/unlock a card at any time, with no
-  // RECOMMEND in between) — if isEntering were derived from `!locked`
+  // Titles of every entry that was a genuinely fresh (not-on-screen-before)
+  // pool pick in the most recent RECOMMEND — used by the result-card enter
+  // animation (RecommendationsBody.tsx) so entrance eligibility is tied purely
+  // to "did this card newly arrive on the last RECOMMEND," fully decoupled
+  // from the live `locked` map. This matters because `locked` changes
+  // independently of `results` (a user can lock/unlock a card at any time,
+  // with no RECOMMEND in between) — if isEntering were derived from `!locked`
   // instead, unlocking a card would flip isEntering back to true and
-  // replay its entrance, confirmed live as a real bug. newTitles only
-  // changes here, in recommend()'s own loop, so lock/unlock toggles never
-  // touch it. Reset to [] in clearRecs() for hygiene (state describing a
-  // batch that's no longer current), though nothing currently depends on
-  // that specific reset for correctness — see recommend()'s own comment on
-  // why locked entries are naturally excluded from this set regardless.
+  // replay its entrance, confirmed live as a real bug. Fallback-tier repeats
+  // (recommend()'s short-pool re-serves of currently-shown cards) are
+  // excluded on purpose: a still-mounted card that carries the enter class
+  // and gets REORDERED has its keyframe restarted by the browser when React
+  // re-inserts its DOM node (observed live), which both fakes a "new card"
+  // entrance and masks the Motion FLIP slide — with no class, a moved repeat
+  // slides to its new slot instead, matching lock-compaction's slide.
+  // newTitles only changes here, in recommend()'s own loop, so lock/unlock
+  // toggles never touch it. Reset to [] in clearRecs() for hygiene (state
+  // describing a batch that's no longer current), though nothing currently
+  // depends on that specific reset for correctness — see recommend()'s own
+  // comment on why locked entries are naturally excluded regardless.
   newTitles: string[];
   // Titles that were on screen JUST BEFORE the most recent RECOMMEND — i.e.
   // the previous batch. Powers the results-header "new vs existing" split: a
   // current result whose title is in here reappeared (existing); one that isn't
   // is brand new this batch. Captured in recommend() from state.results at the
   // moment it runs (that array IS the previous batch, since `out` is built
-  // fresh). Distinct from newTitles, which is "pulled from the pool this call"
-  // and can include a re-pick of a previously-shown title — that case is
-  // exactly an "existing" result, so the two signals genuinely differ.
+  // fresh). Since the two-tier draw, an unlocked repeat can only come from the
+  // fallback tier, so "existing" > 0 in the header is now a precise "the pool
+  // ran short" signal rather than a chance re-roll. Kept as its own field
+  // (not derived from newTitles): the header's partition also covers locked
+  // cards, and the one-batch-deep memory is the deliberate scope — a card
+  // from two rolls ago genuinely counts as new again.
   prevResultTitles: string[];
   // Bumped once per CLEAR_RECS dispatch, mirroring recommendGen's own
   // pattern — an explicit "Clear ✕ just ran" signal for the exit
@@ -116,15 +126,17 @@ function selectedTags(slots: Slot[]): string[] {
 }
 
 // The only place `error` is ever SET — every other reducer branch below only
-// clears it. Two distinct failure modes, checked in priority order:
-// "impossible-min" (tag count can't reach the current min-match, checked
-// before even touching the catalog) and "no-match" (min-match is achievable
-// but a fresh catalog rescore found nothing new — checked regardless of
-// whether locked cards still fill some slots, since the question is "did a
-// new search succeed", not "is anything currently displayed"). On either
-// error, `results` is deliberately left untouched — stale results stay on
-// screen exactly as they were until a genuinely new RECOMMEND succeeds or
-// the user hits Clear ✕.
+// clears it. Four failure modes, checked in guided-flow priority order (see
+// MixerError in types.ts): "impossible-min" (tag count can't reach the
+// current min-match, checked before even touching the catalog), then
+// "all-locked" (locks fill every slot, or every qualifying title is locked —
+// a roll has nowhere to land), then "no-new-matches" (qualifying unlocked
+// cards exist but ALL of them are already on screen — a roll would be a pure
+// no-op reshuffle), then "no-match" (nothing qualifies at all). Only one
+// surfaces per press; fixing it and pressing again reveals the next blocker,
+// if any. On every error, `results` is deliberately left untouched — stale
+// results stay on screen exactly as they were until a genuinely new
+// RECOMMEND succeeds or the user hits Clear ✕.
 function recommend(state: KonomiState): KonomiState {
   const sel = selectedTags(state.slots);
   if (!sel.length) return state;
@@ -137,43 +149,102 @@ function recommend(state: KonomiState): KonomiState {
   state.results.forEach((r) => {
     if (lockedTitles.has(r.series.title)) keptTitles.add(r.series.title);
   });
-  const pool = scorePool(state.series, sel, min, keptTitles);
-  if (!pool.length) {
-    return { ...state, generated: true, error: "no-match" };
+  // Locks fill every slot: a roll has zero free positions regardless of what
+  // the pools hold, so error before even scoring the catalog. Unlocking (the
+  // one fix) clears this via TOGGLE_LOCK/UNLOCK_ALL below.
+  const lockedShown = state.results.filter((r) => keptTitles.has(r.series.title));
+  if (lockedShown.length >= DEFAULT_RESULT_COUNT) {
+    return { ...state, generated: true, error: "all-locked" };
+  }
+  // Two-tier draw: the FRESH tier excludes everything currently on screen
+  // (not just locks), so a roll can never re-serve a card the user is looking
+  // at — the same rule replaceCard() below always had for the single-card
+  // swap. The FALLBACK tier is the currently-shown unlocked cards themselves
+  // (still ≥ min-match, independently shuffled), used only when the fresh
+  // tier can't fill every slot — so a short pool degrades to "all the fresh
+  // ones first, then repeats", never to an artificially short row.
+  const shownTitles = new Set(state.results.map((r) => r.series.title));
+  const freshPool = scorePool(state.series, sel, min, shownTitles);
+  const fallbackPool = scorePool(state.results.map((r) => r.series), sel, min, keptTitles);
+  // Zero fresh picks possible → error with results untouched, never a pure
+  // no-op reshuffle (tested: an invisible "success" reads as a dead button).
+  // Which error follows the guided flow: repeats exist → "no-new-matches";
+  // if nothing qualifies anywhere it's a true "no-match"; otherwise
+  // qualifying content exists but it's all locked — and "all-locked" is
+  // shown ONLY when every card on screen is actually locked (visual truth).
+  // A shown-but-unlocked card that no longer qualifies (min raised after
+  // the cards appeared, or a lock carried across a tag change) means the
+  // user can SEE an open lock, so "all locked" would read as a lie —
+  // verified in a harness as a real reachable state — and the honest next
+  // blocker is "no-new-matches" (nothing new for this mix; loosen it or
+  // Clear ✕). Never silently drop that stale card here: error paths leave
+  // results untouched.
+  if (!freshPool.length) {
+    if (fallbackPool.length) {
+      return { ...state, generated: true, error: "no-new-matches" };
+    }
+    const lockedStillQualifies = lockedShown.some((r) => scoreSeries(r.series, sel) >= min);
+    if (!lockedStillQualifies) {
+      return { ...state, generated: true, error: "no-match" };
+    }
+    const everyShownLocked = lockedShown.length === state.results.length;
+    return { ...state, generated: true, error: everyShownLocked ? "all-locked" : "no-new-matches" };
   }
 
-  // Two-pass build: locked cards are COMPACTED to the front (in their prior
-  // relative order), then fresh pool picks fill whatever slots remain up to
-  // DEFAULT_RESULT_COUNT. This is the deliberate reorder requested — locks no
-  // longer keep their own scattered indices; they gather at the start so the
-  // brand-new results always form one contiguous block right after them, and
-  // the carousel can focus the first of that block (firstNewIndex below). If
-  // the pool runs short the row just ends early (compacting, no gaps), same as
-  // before. Walking state.results (not the locked map's own key order) for the
-  // first pass is what preserves the locks' on-screen relative order.
+  // Three-block build, up to DEFAULT_RESULT_COUNT: locked cards COMPACTED to
+  // the front (prior relative order), then fallback repeats (prior relative
+  // order), then the fresh picks as one contiguous block at the end, which
+  // the carousel can focus (firstNewIndex below). Locks no longer keep their
+  // own scattered indices — every carried-over card gathers at the start. If
+  // both tiers together run short the row just ends early (compacting, no
+  // gaps). Walking state.results (not the locked map's own key order) is what
+  // preserves each carried block's on-screen relative order.
   const out: ResultEntry[] = [];
   state.results.forEach((r) => {
     if (lockedTitles.has(r.series.title)) out.push({ series: r.series });
   });
-  // The first fresh pick always lands at exactly this index — the slot right
-  // after the last carried-forward lock (0 when nothing's locked). Captured
-  // before the second pass appends anything, so it's independent of how many
-  // picks the pool can actually supply.
-  const lockedCount = out.length;
-  // Every title actually pulled from `pool` this call — see newTitles' own
-  // comment on KonomiState. Locked entries are pushed in the first pass above,
-  // never here, so this set naturally excludes them without any extra check.
+  // Only FRESH-tier picks land in newTitles — see its comment on KonomiState.
+  // Fallback repeats are deliberately excluded: with no enter class, a moved
+  // repeat FLIP-slides to its new slot exactly like a lock sliding to the
+  // front, instead of the enter keyframe restarting on DOM re-insertion and
+  // masking that slide. Locked entries are pushed in the first pass above,
+  // never here, so they're naturally excluded without an extra check.
+  //
+  // SELECTION is fresh-first (repeats only get whatever slots the fresh tier
+  // can't fill), but the on-screen ORDER is locks → repeats → fresh: every
+  // carried-over card compacts to the front in one direction, in its prior
+  // relative order (the same rule lock compaction set), and the fresh block
+  // always sits contiguously at the end. A first version placed repeats at
+  // the tail instead, which made survivors slide in two opposite directions
+  // on the same roll — tested and rejected as confusing.
   const newTitles: string[] = [];
+  const freshPicks: ResultEntry[] = [];
   let pi = 0;
-  while (out.length < DEFAULT_RESULT_COUNT && pi < pool.length) {
-    out.push(pool[pi]);
-    newTitles.push(pool[pi].series.title);
+  while (out.length + freshPicks.length < DEFAULT_RESULT_COUNT && pi < freshPool.length) {
+    freshPicks.push(freshPool[pi]);
+    newTitles.push(freshPool[pi].series.title);
     pi++;
   }
-  // lockedCount when at least one fresh pick landed; 0 otherwise (an all-locked
-  // batch, or a pool that ran fully short — no new card to focus, so fall back
-  // to the first card, matching the pre-lock "scroll to the top" reset).
-  const firstNewIndex = newTitles.length > 0 ? lockedCount : 0;
+  // The shuffled fallbackPool decides WHICH repeats return when only some
+  // fit; walking state.results decides their order (prior on-screen order,
+  // pure compaction — no crossing slides).
+  const repeatSlots = DEFAULT_RESULT_COUNT - out.length - freshPicks.length;
+  const repeatTitles = new Set(
+    fallbackPool.slice(0, Math.max(0, repeatSlots)).map((r) => r.series.title),
+  );
+  state.results.forEach((r) => {
+    if (repeatTitles.has(r.series.title)) out.push({ series: r.series });
+  });
+  // Captured AFTER repeats, BEFORE fresh: the first genuinely fresh card
+  // lands right here (see firstNewIndex's comment on KonomiState).
+  const carriedCount = out.length;
+  freshPicks.forEach((r) => out.push(r));
+  // carriedCount (locks + repeats) when at least one fresh pick landed; 0
+  // otherwise (an all-locked batch, an all-repeat reshuffle of a fully-
+  // exhausted pool, or a pool that ran fully short — no new card to focus, so
+  // fall back to the first card, matching the pre-lock "scroll to the top"
+  // reset).
+  const firstNewIndex = newTitles.length > 0 ? carriedCount : 0;
   const outTitles = new Set(out.map((r) => r.series.title));
   const flipped: Record<string, boolean> = {};
   Object.keys(state.flipped).forEach((t) => {
@@ -196,19 +267,24 @@ function recommend(state: KonomiState): KonomiState {
 
 // Shared by every reducer branch that mutates `slots` — re-evaluates
 // whether an active error still applies to the CURRENT state, rather than
-// only clearing on the specific action that originally set it. "no-match"
-// clears unconditionally (any tag change is a fresh attempt worth trying
-// again). "impossible-min" clears the moment tag count no longer makes it
-// impossible: either tag count rises to >= min-match (adding a tag back,
-// Random ×3 refilling all slots) or tag count drops to exactly zero (the
-// global override, back to the plain disabled-no-error zero state — a
-// separate condition from ">= min-match", since min-match can never be
-// lower than "1", so zero tags never satisfies that check on its own).
-// Lowering min-match itself is a different clearing path, handled by
-// SET_MIN_MATCH below — min-match is a deliberate setting the app never
-// silently changes just because tags moved.
+// only clearing on the specific action that originally set it. The three
+// catalog-shaped errors ("no-match", "no-new-matches", "all-locked") all
+// clear unconditionally: any tag change is a fresh attempt worth trying
+// again, and a wrong optimistic clear is harmless — the next press
+// re-derives the true blocker (guided flow). This covers Clear-all-tags
+// (CLEAR_SLOTS) too: the error chip goes away and RECOMMEND falls back to
+// its plain zero-tags disabled state. "impossible-min" clears the moment
+// tag count no longer makes it impossible: either tag count rises to
+// >= min-match (adding a tag back, Random ×3 refilling all slots) or tag
+// count drops to exactly zero (the global override, back to the plain
+// disabled-no-error zero state — a separate condition from ">= min-match",
+// since min-match can never be lower than "1", so zero tags never satisfies
+// that check on its own). Lowering min-match itself is a different clearing
+// path, handled by SET_MIN_MATCH below — min-match is a deliberate setting
+// the app never silently changes just because tags moved. Unlocking is a
+// third path (TOGGLE_LOCK/UNLOCK_ALL), clearing only "all-locked".
 function clearErrorForTagChange(state: KonomiState, slots: Slot[]): MixerError {
-  if (state.error === "no-match") return null;
+  if (state.error === "no-match" || state.error === "no-new-matches" || state.error === "all-locked") return null;
   if (state.error === "impossible-min") {
     const tagCount = selectedTags(slots).length;
     const min = Number(state.minMatch);
@@ -345,12 +421,14 @@ function reducer(state: KonomiState, action: Action): KonomiState {
       // live-filters what's already on screen (computed in useKonomi below,
       // off the unchanged `results`), never triggers a fresh catalog
       // rescore or an error. It only clears errors that are no longer
-      // applicable: "no-match" clears on any min-match change (a fresh
-      // value is a fresh attempt), "impossible-min" clears only once
-      // lowered to something the current tag count can actually satisfy.
+      // applicable: the catalog-shaped errors ("no-match", "no-new-matches",
+      // "all-locked") clear on any min-match change (a fresh value is a
+      // fresh attempt — same optimistic rule as clearErrorForTagChange),
+      // "impossible-min" clears only once lowered to something the current
+      // tag count can actually satisfy.
       const tagCount = selectedTags(state.slots).length;
       let error = state.error;
-      if (error === "no-match") error = null;
+      if (error === "no-match" || error === "no-new-matches" || error === "all-locked") error = null;
       if (error === "impossible-min" && Number(action.key) <= tagCount) error = null;
       return { ...state, minMatch: action.key, error };
     }
@@ -366,15 +444,24 @@ function reducer(state: KonomiState, action: Action): KonomiState {
       const s = Array<Slot>(SLOT_COUNT).fill(null);
       return { ...state, slots: s, error: clearErrorForTagChange(state, s) };
     }
-    case "TOGGLE_LOCK":
-      return { ...state, locked: { ...state.locked, [action.title]: !state.locked[action.title] } };
+    case "TOGGLE_LOCK": {
+      const nowLocked = !state.locked[action.title];
+      // Unlocking is exactly the fix "all-locked" asks for, so it clears the
+      // error and re-enables RECOMMEND immediately; the next press
+      // re-derives the true state and surfaces "no-new-matches" if the pool
+      // is still exhausted (guided flow — one blocker at a time). Locking
+      // never sets anything here: errors are only ever set by a press.
+      const error = !nowLocked && state.error === "all-locked" ? null : state.error;
+      return { ...state, locked: { ...state.locked, [action.title]: nowLocked }, error };
+    }
     // Clears every lock at once (the results-header "unlock all" affordance).
     // A blanket reset to {} rather than a per-title unset: `locked` only ever
     // holds current results' locks, and the reducer already treats a missing
     // key as unlocked everywhere it reads the map, so {} is the honest empty
     // state — nothing downstream needs the removed titles to linger as `false`.
+    // Same "all-locked" clear as TOGGLE_LOCK's unlock direction.
     case "UNLOCK_ALL":
-      return { ...state, locked: {} };
+      return { ...state, locked: {}, error: state.error === "all-locked" ? null : state.error };
     case "TOGGLE_FLIP":
       return { ...state, flipped: { ...state.flipped, [action.title]: !state.flipped[action.title] } };
     case "SET_THEME":

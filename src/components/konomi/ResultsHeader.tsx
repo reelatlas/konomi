@@ -21,6 +21,13 @@ interface ResultsHeaderProps {
   existingCount: number;
   onUnlockAll: () => void;
   onClearRecs: () => void;
+  // True when EVERY current result is locked (any count — 1/1, 3/3, 5/5).
+  // Clear ✕ disables then: clearRecs keeps locked cards, so with all locked
+  // it changes nothing on screen — yet it clears the mixer error, silently
+  // re-enabling RECOMMEND as if something changed (reported). Unlocking
+  // (this row's own unlock-all, or a card's lock icon) is the real way
+  // forward, and doing either re-enables Clear ✕ immediately.
+  clearDisabled: boolean;
   onLevelChange: (level: LevelKey) => void;
 }
 
@@ -49,7 +56,7 @@ const UNLOCKED_FEEDBACK_MS = 1100;
 // (reported); always-reserving removes that whole mechanism AND the jump.
 // Cards also can't jump on Clear anymore because the row is simply always here,
 // not held up for the exit and then dropped.
-export function ResultsHeader({ hasResults, lockedCount, newCount, existingCount, onUnlockAll, onClearRecs, onLevelChange }: ResultsHeaderProps) {
+export function ResultsHeader({ hasResults, lockedCount, newCount, existingCount, onUnlockAll, onClearRecs, clearDisabled, onLevelChange }: ResultsHeaderProps) {
   // Transient "unlocked" confirmation after a click: the locked readout flips to
   // an open lock + the word "unlocked" for a beat, then settles back to the
   // closed lock + its (now 0) count. Timer ref so a rapid re-click resets it.
@@ -247,9 +254,14 @@ export function ResultsHeader({ hasResults, lockedCount, newCount, existingCount
                 ActionButton's padding-based sizing has no equivalent fixed
                 box, so swapping its own content for just an icon doesn't
                 get there on its own. */}
+            {/* clearDisabled (see the prop's own comment): ActionButton has
+                real native disabled handling; IconButton deliberately doesn't
+                (see its visuallyDisabled comment), so the icon form pairs
+                visuallyDisabled with an undefined onClick instead. */}
             <ActionButton
               variant="inverted"
               size="sm"
+              disabled={clearDisabled}
               onClick={onClearRecs}
               aria-label="Clear results"
               className="hidden min-[480px]:inline-flex relative z-[var(--z-raised)] shrink-0 grow-0"
@@ -259,11 +271,16 @@ export function ResultsHeader({ hasResults, lockedCount, newCount, existingCount
             <IconButton
               size="sm"
               border="base"
+              // Muted border when disabled, matching the ActionButton form's
+              // own disabled border (see ActionButton) and the Filter
+              // button's inactive border colour beside it.
+              borderColor={clearDisabled ? "var(--muted)" : undefined}
               backgroundColor="var(--ink)"
               textColor="var(--bg)"
               title="Clear results"
               aria-label="Clear results"
-              onClick={onClearRecs}
+              visuallyDisabled={clearDisabled}
+              onClick={clearDisabled ? undefined : onClearRecs}
               display="flex min-[480px]:hidden"
               className="relative z-[var(--z-raised)] shrink-0 grow-0"
             >

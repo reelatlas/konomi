@@ -51,11 +51,15 @@ interface ResultCardProps {
   // Gates the rise+fade-IN keyframe (animate-card-enter, globals.css). Exactly
   // `newTitles.includes(title) || isEnteringFromSwap`, computed by
   // RecommendationsBody: a card just sitting on screen never has this true on a
-  // genuine mount, and a CSS keyframe only plays once on mount and never
-  // replays on a later re-render/reorder — which is the whole reason the card
-  // enter/exit is CSS and not Motion here (AnimatePresence was replaying a
-  // present card's cached mount entrance on sibling shifts — the locked-card
-  // bug; see globals.css / CLAUDE.md).
+  // genuine mount, and a CSS keyframe never replays on a plain re-render —
+  // which is the whole reason the card enter/exit is CSS and not Motion here
+  // (AnimatePresence was replaying a present card's cached mount entrance on
+  // sibling shifts — the locked-card bug; see globals.css / CLAUDE.md).
+  // One caveat (observed live): a REORDER is not a plain re-render — React
+  // physically re-inserts the moved DOM node, which restarts a still-applied
+  // keyframe. Harmless here only because newTitles excludes every card that
+  // survives a reorder (locks and fallback repeats), so a moved card never
+  // carries this class — it FLIP-slides via layoutSlide instead.
   isEntering?: boolean;
   // Drives the rise-UP-and-fade-OUT keyframe (animate-card-exit). Set by
   // RecommendationsBody while a Clear ✕'s removed cards are still mid-exit (its

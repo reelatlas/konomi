@@ -22,6 +22,11 @@ const ERROR_SHIFT = "-translate-y-[15.5px]";
 export const ERROR_MESSAGE: Record<NonNullable<MixerError>, string> = {
   "impossible-min": "lower MIN MATCH",
   "no-match": "no series match",
+  // Zero-fresh-picks errors (see MixerError in types.ts): closer to
+  // "completion" than failure — the mix works, there's just nothing new a
+  // roll could show. Copy kept neutral for that reason.
+  "all-locked": "all locked",
+  "no-new-matches": "no new matches",
 };
 
 interface RecommendButtonProps {

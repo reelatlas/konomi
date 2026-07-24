@@ -638,8 +638,11 @@
    shifted it — so a LOCKED card visibly re-animated on a later RECOMMEND even
    though its result never changed (root-caused via CDP: same DOM node, no
    remount, yet it re-entered). A CSS keyframe plays once on mount and never
-   replays on reflow/reorder, so it sidesteps that presence-tracking behavior
-   entirely with less code. Keyframe (not transition) because a freshly-mounted
+   replays on a plain re-render/reflow, so it sidesteps that presence-tracking
+   behavior entirely with less code. (A REORDER is the one exception — React
+   re-inserting a moved node restarts a still-applied keyframe, observed live;
+   handled upstream by keeping reorder-surviving cards out of newTitles, see
+   RecommendationsBody.) Keyframe (not transition) because a freshly-mounted
    (enter) or about-to-unmount (exit) card has no painted "before" frame a
    transition could animate from. Enter rises INTO place from below; exit rises
    UP and out (the current direction — a deliberate mirror of the entrance, set

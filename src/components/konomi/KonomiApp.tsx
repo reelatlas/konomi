@@ -630,6 +630,10 @@ export function KonomiApp({ side, initialSeries, initialTags }: KonomiAppProps) 
               }
               onUnlockAll={k.unlockAll}
               onClearRecs={k.clearRecs}
+              // Every current result locked (see the prop's comment in
+              // ResultsHeader) — a Clear ✕ would keep them all, changing
+              // nothing while still clearing the mixer error.
+              clearDisabled={k.results.length > 0 && k.results.every((r) => k.locked[r.series.title])}
               onLevelChange={handleLevelChange}
             />
 

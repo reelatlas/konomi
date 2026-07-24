@@ -1087,17 +1087,22 @@ export function RecommendationsBody({
                     // plays the exit keyframe, not the enter, even if its title
                     // still happens to be in newTitles.
                     const isExiting = exitingTitles.has(entry.series.title);
-                    // Enter gating unchanged: newTitles (useKonomi.ts), or a dice
-                    // swap (justSwappedIndex, the same signal that seeds
+                    // Enter gating: newTitles (useKonomi.ts), or a dice swap
+                    // (justSwappedIndex, the same signal that seeds
                     // startWithSwapHint below). Decoupled from live lock state so
-                    // locking/unlocking never replays an entrance. Crucially, a
-                    // CSS keyframe only plays on mount and never replays on a
-                    // later re-render/reorder — so a settled or locked card never
-                    // re-animates while its title lingers in newTitles between
-                    // RECOMMENDs. That immunity is the whole reason the card
-                    // enter/exit is CSS and not AnimatePresence (which replayed a
-                    // present card's cached entrance on sibling shifts — the
-                    // locked-card bug; see globals.css / CLAUDE.md).
+                    // locking/unlocking never replays an entrance. A CSS keyframe
+                    // never replays on a plain re-render — so a settled card
+                    // never re-animates while its title lingers in newTitles
+                    // between RECOMMENDs. That immunity is the whole reason the
+                    // card enter/exit is CSS and not AnimatePresence (which
+                    // replayed a present card's cached entrance on sibling
+                    // shifts — the locked-card bug; see globals.css / CLAUDE.md).
+                    // A REORDER is the exception (observed live): React
+                    // re-inserts the moved node, restarting a still-applied
+                    // keyframe. Safe now because every card that can survive a
+                    // reorder — locks and fallback repeats — is excluded from
+                    // newTitles, so moved cards carry no enter class and
+                    // FLIP-slide (layoutSlide) instead.
                     const isEnteringFromSwap = justSwappedIndex === index;
                     const isEntering = !isExiting && (newTitles.includes(entry.series.title) || isEnteringFromSwap);
                     // Stagger delay for whichever keyframe is active — both enter

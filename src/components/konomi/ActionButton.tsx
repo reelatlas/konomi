@@ -109,7 +109,15 @@ export function ActionButton({ variant, accentColor, size = "md", disabled, onCl
       disabled={disabled}
       aria-label={ariaLabel}
       className={[
-        "border-[length:var(--border-base)] border-[var(--ink)] font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap",
+        "border-[length:var(--border-base)] font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap",
+        // Border colour swaps as ONE conditional emitter, never two competing
+        // border-color utilities in the same string (the undefined-cascade-
+        // order trap — see IconButton's `display` prop comment). Disabled uses
+        // --muted, the same inactive colour the Filter button's closed border/
+        // icon use (ResultsFilterButton) — requested for Clear ✕'s disabled
+        // state and applied to the shared disabled treatment uniformly, so a
+        // disabled button's frame reads as muted as its fill/text tokens.
+        disabled ? "border-[var(--muted)]" : "border-[var(--ink)]",
         SIZE_CLASSES[size],
         variantClasses,
         className ?? "",
