@@ -446,7 +446,7 @@ Level decides *which* tags show; sort decides *what order* — the two compose i
 
 **The level-change deselect edge case**: switching to a level that no longer shows a selected tag must behave exactly like manually deselecting it — cleared from its mixer slot, no longer influencing results, with zero other side effects. `useKonomi` exposes a generic `pruneTags(visible: Set<string>)` action (it doesn't know what a "level" is, just which names remain allowed) that's structurally identical to `TOGGLE_TAG`: it only ever touches `slots`, never `results`/`generated`. Whatever cards are currently showing (if any) stay exactly as they are — a pruned tag's score contribution and chip highlight disappear immediately since `ResultCard` recomputes both live off `selectedTags` on every render, not because the result set changed. Results only regenerate when the user explicitly hits RECOMMEND again, same as any other manual unselect, including the all-selected-tags-pruned case (that's not special-cased into a `clearRecs()` either — it leaves cards on screen at "0/0", exactly like manually removing your last tag while results are up already does). `KonomiApp` is the one place that composes this: its level-change handler calls `setLevelPref()` *and* computes the new visible set to pass into `pruneTags()` — the only reason `KonomiApp` needs to know about levels at all, everywhere else just reads/displays the current value.
 
-**Result cards** (`ResultCard.tsx`) apply the identical level filter + sort to their own tag chip list (via the `tagInfoByName` lookup — `useKonomi`'s former `tagRank: Map<string, number>` was widened to a full `Map<string, TagInfo>` since level-filtering needs `isGenre`/`seriesCount`, not just `avgRank`) — a card never shows a tag the pool wouldn't currently let you select.
+**Result cards** (`ResultCard.tsx`) apply the identical level filter + sort to their own tag chip list (via the `tagInfoById` lookup — historically `tagInfoByName`, renamed and re-keyed in the identity migration; `useKonomi`'s former `tagRank: Map<string, number>` was first widened to a full `Map<string, TagInfo>` since level-filtering needs `isGenre`/`seriesCount`, not just `avgRank`) — a card never shows a tag the pool wouldn't currently let you select. Since Phase 3a, `Series.tags` is the full membership-id list (genre ids included), so the card resolves ids → `TagInfo` with no separate genres merge.
 
 **`visiblePoolTagNames()`** (`tagPool.ts`) is the canonical definition of "visible in the pool at this level," and both the level-change prune cascade and Random ×3 use it rather than `isTagVisibleAtLevel` directly. The distinction matters: `isTagVisibleAtLevel` only checks a tag's own rank/count against the level, so a Technical- or Sexual Content-category tag could pass it at Level 2/3 despite never being mapped into any `TAG_SECTIONS` entry (those two categories are intentionally excluded from the pool entirely, at every level). `visiblePoolTagNames` unions `tagsForSection(...)` across every real section instead, so it can never produce a name the pool itself wouldn't render — closing a gap an earlier pass left in place (both surfaces used the looser per-tag check until this pass).
 
@@ -606,18 +606,52 @@ The KONOMI + ミックス wordmark is **SVG letter paths** now, not text — con
 
 **Watch item**: the 1px glow is a `drop-shadow` filter on animating paths — flagged for on-device WebKit scrutiny per house lore; dropping the filter from `.wm-stroke` is the fallback if it ever janks.
 
-## Series identity: `id`, not title — display titles legitimately collide
+## THE IDENTITY CONTRACT — ids key everything, display strings key nothing
 
-`Series.id` (anime: `anilist:<romaji>` — the catalog's unique natural key; film:
-`tmdb:<tmdb_id>`) exists because the film corpus holds multiple films with
-identical display titles — confirmed by two React duplicate-key errors in one
-live session ("Godzilla" 1954/2014, "King Kong vs. Godzilla"). Result cards
-key on `series.id` now. **Known, deliberately-parked edge**: locked/flipped/
-newTitles and the swap machinery (useKonomi.ts) still key on display title, so
-two same-title films on screen lock/flip together; migrate that state to `id`
-if it ever bites visibly. (The adapter's pagination comment predicted this
-exact hazard — "duplicate titles genuinely exist, remakes" — it just wasn't
-carried through to React identity until it fired.)
+Canonical text lives in `types.ts` (above `Series`); this is the design-doc
+record. Triggered 2026-07-25 by two live React duplicate-key errors during
+search feel-testing ("Godzilla", "King Kong vs. Godzilla") and escalated by
+the user to a stop-everything migration — correctly: the census measured
+**241 colliding film titles (504 rows, ~6% of the corpus)** and **498
+colliding film tag names (1,071 rows, ~7%** — Tarantino ×4 roles, two
+different actors both named Michael Gough). Anime measured **zero**
+collisions everywhere, which is why five months of title/name-keying never
+fired. The DB was id-correct from migration 0001; the adapters were the one
+boundary flattening identity to display strings.
+
+**The scheme** (opaque, provider-scoped; adapters mint from stable source
+keys, never display names): series `anilist:<anilist_id>` / `tmdb:<tmdb_id>`
+· tags `anilist-tag:<anilist_id>` / `tmdb-tag:<film_tags.key>` (the DB key
+is already `person:actor:1032`-style provider ids) · genres
+`<side>-genre:<name>` · synth `tmdb-synth:<kind>:<raw-value>` (raw values,
+so display renames stay free).
+
+**Shipped in one afternoon (Phases 0–3a, commits fc390fd/75f37d8/4e18478):**
+census + inventory · ids through both adapters · series state
+(locked/flipped/newIds/swap) id-keyed · `Series.tags` = membership ids
+(genre ids appended; scoring is one id-set test) · slots/selection/drag/chip
+keys/card chips id-keyed (`tagInfoById`) · film name-merge REMOVED — distinct
+same-named entities are distinct selectables (expected, ruled change: a chip
+no longer unions roles/entities; Enter-unique is unique-by-entity).
+**Ground-truth parity**: app membership counts == DB `film_count` exactly
+(De Niro actor 68 / producer 10; Tarantino 3/5/7/14; zero dangling ids both
+sides). Two engineering lessons: title→id swaps are string→string, so **tsc
+stays silent on missed call sites — the exhaustive grep sweep is the
+load-bearing check**; and parity against source-of-truth counts beats
+before/after diffing when the draw is shuffled.
+
+**Phase 3b (remaining — design, not plumbing), with review notes banked:**
+- Identical-label chips are a KNOWN interim state (user-accepted). 3b is NOT
+  role-only: same name can be **different people** (Michael Gough ×2 actors)
+  — role suffix fixes De Niro-actor-vs-producer; homonyms need another
+  signal (count, era, or TMDB disambiguation data if ever pulled).
+- When building 3b, expose a thin display hint on `TagInfo` (e.g. `role`)
+  minted at the adapter from `film_tags.type` (already on the raw row) —
+  **never parse ids in the UI**.
+- **Persist rule** (future deep-links/saved mixes): persist ids, never
+  names — slots are runtime-only today, keep the rule when that changes.
+- Tag display names are CASED in the DB ("Robert De Niro"); chips lowercase
+  via CSS and search normalizes — probe/test by lowercased name.
 
 ## Recommendations layout — a shared height token, and a small-viewport carousel
 

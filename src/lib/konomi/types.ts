@@ -24,8 +24,12 @@
 // adapters · series state id-keyed · tag payload/selection/scoring/slots/
 // drag/chips id-keyed, name-merge removed (parity-verified against DB
 // film_counts, incl. the expected un-merge deltas: De Niro actor 68 /
-// producer 10 as separate selectables). Remaining: Phase 3b — multi-role
-// display UX for identical-name chips (DESIGN_SYSTEM parking lot).
+// producer 10 as separate selectables). Remaining: Phase 3b — display
+// disambiguation for identical-name chips. 3b is NOT role-only: homonyms
+// are different PEOPLE (Michael Gough ×2 actors); the display hint comes
+// from film_tags.type minted at the adapter (e.g. TagInfo.role) — never
+// id-parsing in the UI. See DESIGN_SYSTEM "THE IDENTITY CONTRACT".
+// If mixes ever persist or deep-link: persist IDS, never names.
 
 export interface Series {
   // See THE IDENTITY CONTRACT above.
