@@ -73,7 +73,9 @@ export async function getCatalog(): Promise<Catalog> {
       title: row.title_english ?? row.title_romaji,
       year: row.year,
       eps: row.episodes,
-      tags: seriesTags.map((st) => st.tags.name),
+      // Membership IDS: tag ids + genre ids (Phase 3a, THE IDENTITY
+      // CONTRACT) — genres join so scoring is one membership test.
+      tags: [...seriesTags.map((st) => `anilist-tag:${st.tags.anilist_id}`), ...genres.map((g) => `anilist-genre:${g}`)],
       coverImageUrl: row.cover_image_url,
       genres,
       averageScore: row.average_score,

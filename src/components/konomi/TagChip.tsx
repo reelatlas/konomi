@@ -1,25 +1,29 @@
 interface TagChipProps {
+  // THE IDENTITY CONTRACT (types.ts): id keys everything — drag payload,
+  // toggle callback, data-tag; `name` is display-only.
+  id: string;
   name: string;
   active: boolean;
   size?: "base" | "small";
-  onToggle: (tag: string) => void;
+  onToggle: (tagId: string) => void;
 }
 
-export function TagChip({ name, active, size = "base", onToggle }: TagChipProps) {
+export function TagChip({ id, name, active, size = "base", onToggle }: TagChipProps) {
   const isBase = size === "base";
 
   return (
     <button
       type="button"
       draggable
-      data-tag={name}
+      data-tag={id}
+      data-name={name}
       onDragStart={(e) => {
-        e.dataTransfer.setData("text/plain", name);
+        e.dataTransfer.setData("text/plain", id);
         e.dataTransfer.effectAllowed = "copy";
       }}
       onClick={(e) => {
         e.stopPropagation();
-        onToggle(name);
+        onToggle(id);
       }}
       className={[
         "inline-flex items-center cursor-grab active:cursor-grabbing select-none lowercase font-mono font-bold",

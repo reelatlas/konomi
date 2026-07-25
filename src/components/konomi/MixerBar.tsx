@@ -34,6 +34,8 @@ import { TagSlot } from "./TagSlot";
 
 interface MixerBarProps {
   slots: Slot[];
+  // Resolves slot ids to display names (THE IDENTITY CONTRACT, types.ts).
+  tagInfoById: Map<string, TagInfo>;
   dragOverIndex: number;
   minMatch: MatchKey;
   filledCount: number;
@@ -50,7 +52,7 @@ interface MixerBarProps {
   onOpenEditMode: () => void;
   onCloseEditMode: () => void;
   allTags: TagInfo[];
-  selectedTags: string[];
+  selectedTagIds: string[];
   totalSeriesCount: number;
   onChipToggle: (tag: string) => void;
 }
@@ -187,6 +189,7 @@ const NAMED_EASE_TO_CUBIC_BEZIER: Record<string, string> = {
 
 export function MixerBar({
   slots,
+  tagInfoById,
   dragOverIndex,
   minMatch,
   filledCount,
@@ -203,7 +206,7 @@ export function MixerBar({
   onOpenEditMode,
   onCloseEditMode,
   allTags,
-  selectedTags,
+  selectedTagIds,
   totalSeriesCount,
   onChipToggle,
 }: MixerBarProps) {
@@ -2736,7 +2739,7 @@ export function MixerBar({
       >
         <TagPoolBody
           allTags={allTags}
-          selectedTags={selectedTags}
+          selectedTagIds={selectedTagIds}
           totalSeriesCount={totalSeriesCount}
           onChipToggle={onChipToggle}
           poolPanelHeightPx={effectiveHeightPx}
@@ -2993,6 +2996,9 @@ export function MixerBar({
                       key={index}
                       index={index}
                       tag={tag}
+                      // Display name resolved from the slot id — slots hold
+                      // TagInfo.ids since Phase 3a (THE IDENTITY CONTRACT).
+                      label={tag ? (tagInfoById.get(tag)?.name ?? tag) : null}
                       isDragOver={dragOverIndex === index}
                       onDragOver={onSlotDragOver}
                       onDragLeave={onSlotDragLeave}

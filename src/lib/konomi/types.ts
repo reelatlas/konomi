@@ -20,12 +20,12 @@
 // collide (1,071 rows, Tarantino ×4) — display strings are ~6-7% ambiguous
 // in this corpus. Anime measured 0 collisions everywhere, which is why
 // title-keying survived the anime era; it does not survive film.
-// Migration state: Phase 1 (ids carried through adapters) DONE · Phase 2
-// (series state: locked/flipped/newIds/swap → id-keyed) DONE · Phase 3a (tag
-// payload + selection → id; removes filmQueries' name-merge — NOTE the
-// expected behavior change: one chip stops unioning same-named entities/
-// roles, selecting actor-De Niro no longer matches producer-only credits)
-// · Phase 3b (multi-role display UX, see DESIGN_SYSTEM parking lot).
+// Migration state: Phases 1+2+3a ALL DONE (2026-07-25) — ids through
+// adapters · series state id-keyed · tag payload/selection/scoring/slots/
+// drag/chips id-keyed, name-merge removed (parity-verified against DB
+// film_counts, incl. the expected un-merge deltas: De Niro actor 68 /
+// producer 10 as separate selectables). Remaining: Phase 3b — multi-role
+// display UX for identical-name chips (DESIGN_SYSTEM parking lot).
 
 export interface Series {
   // See THE IDENTITY CONTRACT above.
@@ -37,6 +37,10 @@ export interface Series {
   // Anime-only (episode count); null for films — runtimeMin is the film
   // counterpart. Both feed the card meta line via Domain.cardMeta.
   eps: number | null;
+  // MEMBERSHIP IDS (Phase 3a): TagInfo.ids — the side's tag ids PLUS its
+  // genre ids ("<side>-genre:<name>"), so scoring is a single id-set
+  // membership test with no genre special case. `genres` below stays
+  // display names for card meta.
   tags: string[];
   coverImageUrl: string | null;
   genres: string[];
@@ -77,13 +81,15 @@ export interface ResultEntry {
 }
 
 // Catalog-level tag metadata for the tag pool UI — kept separate from
-// Series.tags (which stays plain string[], since scoring only ever needs tag
-// names, not category/popularity stats). Genres are represented here too
+// Series.tags (a plain string[] of MEMBERSHIP IDS — tag ids plus genre ids,
+// appended by the adapters — since scoring only needs membership, not
+// category/popularity stats). Genres are represented here too
 // (isGenre: true, avgRank: 100, category: null) so they flow through the same
 // pool/selection/mixer infrastructure as real tags — see queries.ts.
 export interface TagInfo {
-  // See THE IDENTITY CONTRACT above (Series). Phase 1: carried but not
-  // yet keying selection/scoring — that's Phase 3a.
+  // See THE IDENTITY CONTRACT above (Series). Keys everything since
+  // Phase 3a: slots, selection, scoring membership, chip React keys,
+  // drag payloads. `name` is display-only.
   id: string;
   name: string;
   category: string | null;
@@ -151,4 +157,6 @@ export type LevelKey = "1" | "2" | "3";
 // which tags show, sort decides what order).
 export type SortKey = "popular" | "unpopular" | "az" | "za";
 
+// A mixer slot holds a TagInfo.id (THE IDENTITY CONTRACT) — never a
+// display name. Display resolves through tagInfoById at render.
 export type Slot = string | null;

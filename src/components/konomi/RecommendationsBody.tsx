@@ -185,7 +185,7 @@ function rerollEmptyStateIndex(): void {
 interface RecommendationsBodyProps {
   results: ResultEntry[];
   hasResults: boolean;
-  selectedTags: string[];
+  selectedTagIds: string[];
   filledCount: number;
   minNum: number;
   recommendGen: number;
@@ -206,11 +206,11 @@ interface RecommendationsBodyProps {
   locked: Record<string, boolean>;
   flipped: Record<string, boolean>;
   canSwap: boolean;
-  onFlip: (title: string) => void;
-  onToggleLock: (title: string) => void;
-  onReplace: (title: string) => void;
+  onFlip: (id: string) => void;
+  onToggleLock: (id: string) => void;
+  onReplace: (id: string) => void;
   onChipToggle: (tag: string) => void;
-  tagInfoByName: Map<string, TagInfo>;
+  tagInfoById: Map<string, TagInfo>;
   totalSeriesCount: number;
   // Powers the Tag Density/Sort filters embedded in the empty-state box (see
   // FilterControls) — the same handler ResultsHeader threads into the results-
@@ -237,7 +237,7 @@ interface RecommendationsBodyProps {
 export function RecommendationsBody({
   results,
   hasResults,
-  selectedTags,
+  selectedTagIds,
   filledCount,
   minNum,
   recommendGen,
@@ -251,7 +251,7 @@ export function RecommendationsBody({
   onToggleLock,
   onReplace,
   onChipToggle,
-  tagInfoByName,
+  tagInfoById,
   totalSeriesCount,
   onLevelChange,
   editMode,
@@ -1135,14 +1135,14 @@ export function RecommendationsBody({
                   return displayedResults.map((entry, index) => {
                     // Exiting wins: a card removed by a Clear ✕ (in exitingIds)
                     // plays the exit keyframe, not the enter, even if its title
-                    // still happens to be in newTitles.
+                    // still happens to be in newIds.
                     const isExiting = exitingIds.has(entry.series.id);
-                    // Enter gating: newTitles (useKonomi.ts), or a dice swap
+                    // Enter gating: newIds (useKonomi.ts), or a dice swap
                     // (justSwappedIndex, the same signal that seeds
                     // startWithSwapHint below). Decoupled from live lock state so
                     // locking/unlocking never replays an entrance. A CSS keyframe
                     // never replays on a plain re-render — so a settled card
-                    // never re-animates while its title lingers in newTitles
+                    // never re-animates while its id lingers in newIds
                     // between RECOMMENDs. That immunity is the whole reason the
                     // card enter/exit is CSS and not AnimatePresence (which
                     // replayed a present card's cached entrance on sibling
@@ -1151,7 +1151,7 @@ export function RecommendationsBody({
                     // re-inserts the moved node, restarting a still-applied
                     // keyframe. Safe now because every card that can survive a
                     // reorder — locks and fallback repeats — is excluded from
-                    // newTitles, so moved cards carry no enter class and
+                    // newIds, so moved cards carry no enter class and
                     // FLIP-slide (layoutSlide) instead.
                     const isEnteringFromSwap = justSwappedIndex === index;
                     const isEntering = !isExiting && (newIds.includes(entry.series.id) || isEnteringFromSwap);
@@ -1174,7 +1174,7 @@ export function RecommendationsBody({
                         // known, documented edge (see Series.id).
                         key={entry.series.id}
                         entry={entry}
-                        selectedTags={selectedTags}
+                        selectedTagIds={selectedTagIds}
                         filledCount={filledCount}
                         minNum={minNum}
                         locked={Boolean(locked[entry.series.id])}
@@ -1193,7 +1193,7 @@ export function RecommendationsBody({
                         }}
                         startWithSwapHint={justSwappedIndex === index}
                         onChipToggle={onChipToggle}
-                        tagInfoByName={tagInfoByName}
+                        tagInfoById={tagInfoById}
                         totalSeriesCount={totalSeriesCount}
                         level={level}
                         sort={sort}

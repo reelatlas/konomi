@@ -104,8 +104,8 @@ function createInitialState(catalog: { series: Series[]; tags: TagInfo[] }): Kon
 }
 
 type Action =
-  | { type: "TOGGLE_TAG"; tag: string }
-  | { type: "PLACE_IN_SLOT"; index: number; tag: string }
+  | { type: "TOGGLE_TAG"; tagId: string }
+  | { type: "PLACE_IN_SLOT"; index: number; tagId: string }
   | { type: "CLEAR_SLOT"; index: number }
   | { type: "SET_DRAG_OVER"; index: number }
   | { type: "CLEAR_DRAG_OVER" }
@@ -121,7 +121,7 @@ type Action =
   | { type: "SET_THEME"; theme: ThemeKey }
   | { type: "PRUNE_TAGS"; visible: Set<string> };
 
-function selectedTags(slots: Slot[]): string[] {
+function selectedTagIds(slots: Slot[]): string[] {
   return slots.filter((s): s is string => Boolean(s));
 }
 
@@ -138,7 +138,7 @@ function selectedTags(slots: Slot[]): string[] {
 // results stay on screen exactly as they were until a genuinely new
 // RECOMMEND succeeds or the user hits Clear ✕.
 function recommend(state: KonomiState): KonomiState {
-  const sel = selectedTags(state.slots);
+  const sel = selectedTagIds(state.slots);
   if (!sel.length) return state;
   const min = Number(state.minMatch);
   if (sel.length < min) {
@@ -286,7 +286,7 @@ function recommend(state: KonomiState): KonomiState {
 function clearErrorForTagChange(state: KonomiState, slots: Slot[]): MixerError {
   if (state.error === "no-match" || state.error === "no-new-matches" || state.error === "all-locked") return null;
   if (state.error === "impossible-min") {
-    const tagCount = selectedTags(slots).length;
+    const tagCount = selectedTagIds(slots).length;
     const min = Number(state.minMatch);
     if (tagCount === 0 || tagCount >= min) return null;
   }
@@ -301,7 +301,7 @@ function replaceCard(state: KonomiState, id: string): KonomiState {
   if (index < 0) return state;
   const old = state.results[index];
   if (state.locked[old.series.id]) return state;
-  const sel = selectedTags(state.slots);
+  const sel = selectedTagIds(state.slots);
   if (!sel.length) return state;
   const min = Number(state.minMatch);
   const shown = new Set(state.results.map((r) => r.series.id));
@@ -379,20 +379,20 @@ function reducer(state: KonomiState, action: Action): KonomiState {
   switch (action.type) {
     case "TOGGLE_TAG": {
       const s = [...state.slots];
-      const i = s.indexOf(action.tag);
+      const i = s.indexOf(action.tagId);
       if (i >= 0) {
         s[i] = null;
       } else {
         const e = s.indexOf(null);
         if (e < 0) return state;
-        s[e] = action.tag;
+        s[e] = action.tagId;
       }
       return { ...state, slots: s, error: clearErrorForTagChange(state, s) };
     }
     case "PLACE_IN_SLOT": {
-      if (!action.tag) return state;
+      if (!action.tagId) return state;
       const s = [...state.slots];
-      const ex = s.indexOf(action.tag);
+      const ex = s.indexOf(action.tagId);
       if (ex === action.index) return state; // dropped back onto its own slot — no-op
       // Swap, not destroy: if the dragged tag came from another slot (ex >= 0)
       // and the target slot already held a different tag, that displaced tag
@@ -403,7 +403,7 @@ function reducer(state: KonomiState, action: Action): KonomiState {
       // overwritten/deselected, same as before this change.
       const displaced = s[action.index];
       if (ex >= 0) s[ex] = displaced;
-      s[action.index] = action.tag;
+      s[action.index] = action.tagId;
       return { ...state, slots: s, dragOverIndex: -1, error: clearErrorForTagChange(state, s) };
     }
     case "CLEAR_SLOT": {
@@ -426,7 +426,7 @@ function reducer(state: KonomiState, action: Action): KonomiState {
       // fresh attempt — same optimistic rule as clearErrorForTagChange),
       // "impossible-min" clears only once lowered to something the current
       // tag count can actually satisfy.
-      const tagCount = selectedTags(state.slots).length;
+      const tagCount = selectedTagIds(state.slots).length;
       let error = state.error;
       if (error === "no-match" || error === "no-new-matches" || error === "all-locked") error = null;
       if (error === "impossible-min" && Number(action.key) <= tagCount) error = null;
@@ -498,7 +498,7 @@ export function useKonomi(initialSeries: Series[], initialTags: TagInfo[]) {
     stateRef.current = state;
   });
 
-  const sel = useMemo(() => selectedTags(state.slots), [state.slots]);
+  const sel = useMemo(() => selectedTagIds(state.slots), [state.slots]);
   const filledCount = sel.length;
   const minNum = Number(state.minMatch);
 
@@ -512,16 +512,16 @@ export function useKonomi(initialSeries: Series[], initialTags: TagInfo[]) {
   // name -> TagInfo lookup so result cards can merge a series' tags and
   // genres into one list, then level-filter and sort it exactly like the
   // pool does (needs isGenre/seriesCount, not just avgRank — see ResultCard).
-  const tagInfoByName = useMemo(() => {
+  const tagInfoById = useMemo(() => {
     const m = new Map<string, TagInfo>();
-    state.tags.forEach((t) => m.set(t.name, t));
+    state.tags.forEach((t) => m.set(t.id, t));
     return m;
   }, [state.tags]);
 
   const actions = useMemo(
     () => ({
-      toggleTag: (tag: string) => dispatch({ type: "TOGGLE_TAG", tag }),
-      placeInSlot: (index: number, tag: string) => dispatch({ type: "PLACE_IN_SLOT", index, tag }),
+      toggleTag: (tagId: string) => dispatch({ type: "TOGGLE_TAG", tagId }),
+      placeInSlot: (index: number, tagId: string) => dispatch({ type: "PLACE_IN_SLOT", index, tagId }),
       clearSlot: (index: number) => dispatch({ type: "CLEAR_SLOT", index }),
       setDragOver: (index: number) => dispatch({ type: "SET_DRAG_OVER", index }),
       clearDragOver: () => dispatch({ type: "CLEAR_DRAG_OVER" }),
@@ -576,9 +576,9 @@ export function useKonomi(initialSeries: Series[], initialTags: TagInfo[]) {
     locked: state.locked,
     theme: state.theme,
     allTags: state.tags,
-    tagInfoByName,
+    tagInfoById,
     totalSeriesCount: state.series.length,
-    selectedTags: sel,
+    selectedTagIds: sel,
     filledCount,
     minNum,
     canSwap,

@@ -3,7 +3,7 @@
 import { animate, useMotionValue, type AnimationPlaybackControls } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { DOMAINS, type DomainKey } from "@/lib/konomi/domains";
-import { visiblePoolTagNames } from "@/lib/konomi/tagPool";
+import { visiblePoolTagIds } from "@/lib/konomi/tagPool";
 import { isThemeKey, THEME_STORAGE_KEY } from "@/lib/konomi/themes";
 import { THEME_TRANSITION } from "@/lib/konomi/themeTransitionTuning";
 import type { LevelKey, Series, TagInfo } from "@/lib/konomi/types";
@@ -430,17 +430,17 @@ export function KonomiApp({ side, initialSeries, initialTags }: KonomiAppProps) 
   // The only place level-change needs to touch both the preference store
   // and the mixer: persist the new level, then prune any selected tag the
   // new level no longer shows (see pruneTags' doc comment in useKonomi.ts).
-  // visiblePoolTagNames (not a raw isTagVisibleAtLevel filter) is what
+  // visiblePoolTagIds (not a raw isTagVisibleAtLevel filter) is what
   // correctly excludes Technical/Sexual Content too — see its doc comment.
   function handleLevelChange(next: LevelKey) {
     setLevelPref(domain.storagePrefix, next);
-    k.pruneTags(new Set(visiblePoolTagNames(domain, k.allTags, next, k.totalSeriesCount)));
+    k.pruneTags(new Set(visiblePoolTagIds(domain, k.allTags, next, k.totalSeriesCount)));
   }
 
   // Random ×3 must only ever pick from what the pool actually shows at the
   // current level — same canonical visible-name list as the prune cascade.
   function handleRandomTags() {
-    k.randomTags(visiblePoolTagNames(domain, k.allTags, level, k.totalSeriesCount));
+    k.randomTags(visiblePoolTagIds(domain, k.allTags, level, k.totalSeriesCount));
   }
 
   // Closes edit mode only on a successful RECOMMEND. An error (e.g.
@@ -642,7 +642,7 @@ export function KonomiApp({ side, initialSeries, initialTags }: KonomiAppProps) 
             <RecommendationsBody
               results={k.results}
               hasResults={k.hasResults}
-              selectedTags={k.selectedTags}
+              selectedTagIds={k.selectedTagIds}
               filledCount={k.filledCount}
               minNum={k.minNum}
               recommendGen={k.recommendGen}
@@ -656,7 +656,7 @@ export function KonomiApp({ side, initialSeries, initialTags }: KonomiAppProps) 
               onToggleLock={k.toggleLock}
               onReplace={k.replaceCard}
               onChipToggle={k.toggleTag}
-              tagInfoByName={k.tagInfoByName}
+              tagInfoById={k.tagInfoById}
               totalSeriesCount={k.totalSeriesCount}
               onLevelChange={handleLevelChange}
               editMode={editMode}
@@ -687,6 +687,7 @@ export function KonomiApp({ side, initialSeries, initialTags }: KonomiAppProps) 
             (a no-op, not a bug — see DESIGN_SYSTEM.md). */}
         <MixerBar
           slots={k.slots}
+          tagInfoById={k.tagInfoById}
           dragOverIndex={k.dragOverIndex}
           minMatch={k.minMatch}
           filledCount={k.filledCount}
@@ -703,7 +704,7 @@ export function KonomiApp({ side, initialSeries, initialTags }: KonomiAppProps) 
           onOpenEditMode={() => setEditMode(true)}
           onCloseEditMode={() => setEditMode(false)}
           allTags={k.allTags}
-          selectedTags={k.selectedTags}
+          selectedTagIds={k.selectedTagIds}
           totalSeriesCount={k.totalSeriesCount}
           onChipToggle={k.toggleTag}
         />

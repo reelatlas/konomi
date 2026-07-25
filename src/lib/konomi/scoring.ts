@@ -1,7 +1,9 @@
 import type { ResultEntry, Series } from "./types";
 
-export function scoreSeries(series: Series, selectedTags: string[]): number {
-  return selectedTags.filter((t) => series.tags.includes(t) || series.genres.includes(t)).length;
+export function scoreSeries(series: Series, selectedTagIds: string[]): number {
+  // series.tags holds membership IDS incl. genre ids (Phase 3a) — one
+  // membership test, no genre special case (adapters append genre ids).
+  return selectedTagIds.filter((t) => series.tags.includes(t)).length;
 }
 
 // Candidate pool = every series matching AT LEAST `min` of the selected tags.
@@ -11,12 +13,12 @@ export function scoreSeries(series: Series, selectedTags: string[]): number {
 // is visible and picks feel like fresh recommendations on every roll.
 export function scorePool(
   series: Series[],
-  selectedTags: string[],
+  selectedTagIds: string[],
   min: number,
   excludeIds: Set<string>,
 ): ResultEntry[] {
   return series
-    .filter((s) => !excludeIds.has(s.id) && scoreSeries(s, selectedTags) >= min)
+    .filter((s) => !excludeIds.has(s.id) && scoreSeries(s, selectedTagIds) >= min)
     .map((s) => ({ series: s, r: Math.random() }))
     .sort((a, b) => a.r - b.r)
     .map((x) => ({ series: x.series }));

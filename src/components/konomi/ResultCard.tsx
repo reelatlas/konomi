@@ -26,17 +26,17 @@ const BACK_FILL_SCALE_DOWN = 4;
 
 interface ResultCardProps {
   entry: ResultEntry;
-  selectedTags: string[];
+  selectedTagIds: string[];
   filledCount: number;
   minNum: number;
   locked: boolean;
   flipped: boolean;
   canSwap: boolean;
-  onFlip: (title: string) => void;
-  onToggleLock: (title: string) => void;
-  onReplace: (title: string) => void;
+  onFlip: (id: string) => void;
+  onToggleLock: (id: string) => void;
+  onReplace: (id: string) => void;
   onChipToggle: (tag: string) => void;
-  tagInfoByName: Map<string, TagInfo>;
+  tagInfoById: Map<string, TagInfo>;
   totalSeriesCount: number;
   level: LevelKey;
   sort: SortKey;
@@ -102,7 +102,7 @@ interface ResultCardProps {
 
 export function ResultCard({
   entry,
-  selectedTags,
+  selectedTagIds,
   filledCount,
   minNum,
   locked,
@@ -112,7 +112,7 @@ export function ResultCard({
   onToggleLock,
   onReplace,
   onChipToggle,
-  tagInfoByName,
+  tagInfoById,
   totalSeriesCount,
   level,
   sort,
@@ -151,15 +151,17 @@ export function ResultCard({
   // taken from entry.score, which is frozen at whatever moment this card was
   // last (re)generated and would otherwise go stale the instant tags change
   // without a RECOMMEND in between.
-  const score = scoreSeries(series, selectedTags);
+  const score = scoreSeries(series, selectedTagIds);
   // Genres display exactly like tags (same chip, same highlight-on-match),
   // filtered to the current level and sorted by the current sort — same
   // rules the pool itself uses, so a card never shows a tag the pool
   // wouldn't let you select at this level.
-  const cardTagInfos = [...series.tags, ...series.genres]
-    .map((name) => tagInfoByName.get(name))
+  // series.tags is the full membership id list (genre ids included since
+  // Phase 3a), so no separate genres merge is needed here anymore.
+  const cardTagInfos = series.tags
+    .map((id) => tagInfoById.get(id))
     .filter((t): t is TagInfo => t !== undefined && domain.isTagVisible(t, level, totalSeriesCount));
-  const cardTags = sortTags(cardTagInfos, sort).map((t) => t.name);
+  const cardTags = sortTags(cardTagInfos, sort);
   const perfect = score === filledCount && filledCount > 0;
   const scoreLabel = perfect ? "PERFECT" : `${score}/${filledCount}`;
   const swapDisabled = locked || !canSwap;
@@ -1173,7 +1175,7 @@ export function ResultCard({
               <TagScrollArea
                 key={cardTags.join("|")}
                 tags={cardTags}
-                selectedTags={selectedTags}
+                selectedTagIds={selectedTagIds}
                 onChipToggle={onChipToggle}
                 surfaceColor="transparent"
                 arrowBackgroundColor="var(--surface)"

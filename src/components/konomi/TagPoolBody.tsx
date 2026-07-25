@@ -12,7 +12,7 @@ import { useLevel, useSort } from "./tagPoolPrefs";
 
 interface TagPoolBodyProps {
   allTags: TagInfo[];
-  selectedTags: string[];
+  selectedTagIds: string[];
   totalSeriesCount: number;
   onChipToggle: (tag: string) => void;
   // MixerBar's resize-handle-driven height (default 50% of viewport on
@@ -117,17 +117,17 @@ const subKey = (label: string) => label.toLowerCase().replace(/[^a-z0-9]+/g, "-"
 
 function ChipRow({
   tags,
-  selectedTags,
+  selectedTagIds,
   onChipToggle,
 }: {
   tags: TagInfo[];
-  selectedTags: string[];
+  selectedTagIds: string[];
   onChipToggle: (tag: string) => void;
 }) {
   return (
     <div className="flex flex-wrap gap-[var(--space-md)]">
       {tags.map((tag) => (
-        <TagChip key={tag.name} name={tag.name} size="small" active={selectedTags.includes(tag.name)} onToggle={onChipToggle} />
+        <TagChip key={tag.id} id={tag.id} name={tag.name} size="small" active={selectedTagIds.includes(tag.id)} onToggle={onChipToggle} />
       ))}
     </div>
   );
@@ -179,12 +179,12 @@ function SearchCountLine({ shownHere, poolTotal, multiSection }: { shownHere: nu
 function CappedChipRow({
   tags,
   countLine,
-  selectedTags,
+  selectedTagIds,
   onChipToggle,
 }: {
   tags: TagInfo[];
   countLine: React.ReactNode;
-  selectedTags: string[];
+  selectedTagIds: string[];
   onChipToggle: (tag: string) => void;
 }) {
   const [visibleCount, setVisibleCount] = useState(BROWSE_CAP);
@@ -209,7 +209,7 @@ function CappedChipRow({
   const shown = truncated ? tags.slice(0, visibleCount) : tags;
   return (
     <div className="flex flex-col gap-[var(--space-md)]">
-      <ChipRow tags={shown} selectedTags={selectedTags} onChipToggle={onChipToggle} />
+      <ChipRow tags={shown} selectedTagIds={selectedTagIds} onChipToggle={onChipToggle} />
       {truncated && <div ref={sentinelRef} aria-hidden className="h-px" />}
       {countLine}
     </div>
@@ -235,7 +235,7 @@ function CappedChipRow({
 // in reduced form.
 export function TagPoolBody({
   allTags,
-  selectedTags,
+  selectedTagIds,
   totalSeriesCount,
   onChipToggle,
   poolPanelHeightPx,
@@ -426,13 +426,15 @@ export function TagPoolBody({
   // Names, not per-section counts, so a tag reachable via two sections
   // (none today, but the union rule in visiblePoolTagNames allows it)
   // still counts as one.
+  // Unique by ID (Phase 3a): two same-named entities (both De Niros) are
+  // two matches, so Enter stays inert until the query isolates one entity.
   const uniqueMatch = useMemo(() => {
     if (!searchActive) return null;
     const seen = new Set<string>();
     for (const { tags } of visibleSections) {
       for (const t of tags) {
         if (matchScore(t.name, normQuery) > 0) {
-          seen.add(t.name);
+          seen.add(t.id);
           if (seen.size > 1) return null;
         }
       }
@@ -609,7 +611,7 @@ export function TagPoolBody({
                 sections={visibleSections.map(({ section, tags }) => ({
                   key: section.key,
                   label: section.label,
-                  selectedCount: tags.filter((t) => selectedTags.includes(t.name)).length,
+                  selectedCount: tags.filter((t) => selectedTagIds.includes(t.id)).length,
                   dimmed: dimFor(section.key),
                 }))}
                 activeKey={active.section.key}
@@ -680,7 +682,7 @@ export function TagPoolBody({
               sections={visibleSubs.map(({ sub, slug, tags }) => ({
                 key: slug,
                 label: sub.label,
-                selectedCount: tags.filter((t) => selectedTags.includes(t.name)).length,
+                selectedCount: tags.filter((t) => selectedTagIds.includes(t.id)).length,
                 // Same search-dim as the primary tier, one level down.
                 dimmed: searchActive ? (searchByKey.get(active.section.key)?.subs?.find((su) => su.slug === slug)?.count ?? 0) === 0 : false,
               }))}
@@ -762,12 +764,12 @@ export function TagPoolBody({
                   countLine={
                     searchActive ? <SearchCountLine shownHere={activeGridTags.length} poolTotal={poolTotalMatches} multiSection={multipleLitTargets} /> : null
                   }
-                  selectedTags={selectedTags}
+                  selectedTagIds={selectedTagIds}
                   onChipToggle={onChipToggle}
                 />
               ) : (
                 <div className="flex flex-col gap-[var(--space-md)]">
-                  <ChipRow tags={activeGridTags} selectedTags={selectedTags} onChipToggle={onChipToggle} />
+                  <ChipRow tags={activeGridTags} selectedTagIds={selectedTagIds} onChipToggle={onChipToggle} />
                   {searchActive && <SearchCountLine shownHere={activeGridTags.length} poolTotal={poolTotalMatches} multiSection={multipleLitTargets} />}
                 </div>
               )}
@@ -786,7 +788,7 @@ export function TagPoolBody({
                     <span className="block font-mono text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] text-[var(--subtext)] uppercase mb-[var(--space-sm)]">
                       {sub.label}
                     </span>
-                    <ChipRow tags={subTags} selectedTags={selectedTags} onChipToggle={onChipToggle} />
+                    <ChipRow tags={subTags} selectedTagIds={selectedTagIds} onChipToggle={onChipToggle} />
                   </div>
                 );
               })}
@@ -806,12 +808,12 @@ export function TagPoolBody({
               countLine={
                 searchActive ? <SearchCountLine shownHere={activeGridTags.length} poolTotal={poolTotalMatches} multiSection={multipleLitTargets} /> : null
               }
-              selectedTags={selectedTags}
+              selectedTagIds={selectedTagIds}
               onChipToggle={onChipToggle}
             />
           ) : (
             <div className="flex flex-col gap-[var(--space-md)]">
-              <ChipRow tags={activeGridTags} selectedTags={selectedTags} onChipToggle={onChipToggle} />
+              <ChipRow tags={activeGridTags} selectedTagIds={selectedTagIds} onChipToggle={onChipToggle} />
               {searchActive && <SearchCountLine shownHere={activeGridTags.length} poolTotal={poolTotalMatches} multiSection={multipleLitTargets} />}
             </div>
           )}

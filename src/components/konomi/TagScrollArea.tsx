@@ -2,8 +2,8 @@ import { ScrollFadeArea } from "./ScrollFadeArea";
 import { TagChip } from "./TagChip";
 
 interface TagScrollAreaProps {
-  tags: string[];
-  selectedTags: string[];
+  tags: { id: string; name: string }[];
+  selectedTagIds: string[];
   onChipToggle: (tag: string) => void;
   // Forwarded straight to ScrollFadeArea's own surfaceColor (the fade
   // gradient) — defaults to that component's own default (--surface),
@@ -88,7 +88,7 @@ const TOP_RESERVE_PX = 14;
 // mechanics, and the one-row floor, keep working at every size in between.
 const TAG_AREA_HEIGHT = "h-[var(--result-card-tag-scroll-height)]";
 
-export function TagScrollArea({ tags, selectedTags, onChipToggle, surfaceColor, arrowBackgroundColor, fadeSize = 4 }: TagScrollAreaProps) {
+export function TagScrollArea({ tags, selectedTagIds, onChipToggle, surfaceColor, arrowBackgroundColor, fadeSize = 4 }: TagScrollAreaProps) {
   return (
     // scrollStep = exactly VISIBLE_ROWS worth of rows (99px), not the
     // viewport's own pixel height. Those aren't the same number — the
@@ -167,7 +167,7 @@ export function TagScrollArea({ tags, selectedTags, onChipToggle, surfaceColor, 
           opts into. */}
       <div className="flex flex-wrap content-start gap-[var(--space-sm)] [&_button]:snap-start">
         {tags.map((tag) => (
-          <TagChip key={tag} name={tag} size="small" active={selectedTags.includes(tag)} onToggle={onChipToggle} />
+          <TagChip key={tag.id} id={tag.id} name={tag.name} size="small" active={selectedTagIds.includes(tag.id)} onToggle={onChipToggle} />
         ))}
       </div>
     </ScrollFadeArea>

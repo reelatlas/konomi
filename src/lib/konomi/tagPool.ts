@@ -78,12 +78,12 @@ export function tagsForSection(
 // level-change deselect cascade) should use this, not isTagVisible
 // directly, so those surfaces can never drift from what the pool actually
 // renders.
-export function visiblePoolTagNames(domain: Domain, allTags: TagInfo[], level: LevelKey, totalCount: number): string[] {
-  const names = new Set<string>();
+export function visiblePoolTagIds(domain: Domain, allTags: TagInfo[], level: LevelKey, totalCount: number): string[] {
+  const ids = new Set<string>();
   for (const section of domain.sections) {
     for (const tag of tagsForSection(domain, allTags, section, level, totalCount)) {
-      names.add(tag.name);
+      ids.add(tag.id);
     }
   }
-  return [...names];
+  return [...ids];
 }

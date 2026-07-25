@@ -1,10 +1,14 @@
 interface TagSlotProps {
   index: number;
+  // The slot's TagInfo.id (identity: drag payload, fill check) — display
+  // comes from `label`, resolved by the caller via tagInfoById (THE
+  // IDENTITY CONTRACT, types.ts).
   tag: string | null;
+  label: string | null;
   isDragOver: boolean;
   onDragOver: (index: number) => void;
   onDragLeave: () => void;
-  onDrop: (index: number, tag: string) => void;
+  onDrop: (index: number, tagId: string) => void;
   onClick: (index: number) => void;
 }
 
@@ -22,7 +26,7 @@ function fontSizeClassFor(name: string): string {
   return "text-[length:var(--text-3xs)]";
 }
 
-export function TagSlot({ index, tag, isDragOver, onDragOver, onDragLeave, onDrop, onClick }: TagSlotProps) {
+export function TagSlot({ index, tag, label, isDragOver, onDragOver, onDragLeave, onDrop, onClick }: TagSlotProps) {
   const filled = Boolean(tag);
 
   return (
@@ -57,8 +61,8 @@ export function TagSlot({ index, tag, isDragOver, onDragOver, onDragLeave, onDro
         onDrop(index, e.dataTransfer.getData("text/plain"));
       }}
       onClick={() => onClick(index)}
-      title={filled ? (tag as string) : undefined}
-      aria-label={filled ? (tag as string) : `Empty slot ${index + 1}, tap to add a tag`}
+      title={filled ? (label ?? undefined) : undefined}
+      aria-label={filled ? (label ?? "tag") : `Empty slot ${index + 1}, tap to add a tag`}
       className={[
         // Fixed w AND h now, not flex-1/min-w: a plain w-[78px], the same
         // 78px this box already rendered at every breakpoint even before
@@ -133,10 +137,10 @@ export function TagSlot({ index, tag, isDragOver, onDragOver, onDragLeave, onDro
         <span
           className={[
             "pointer-events-none w-full text-center font-body font-black leading-[var(--leading-tight)] lowercase text-[var(--on-primary)]",
-            fontSizeClassFor(tag as string),
+            fontSizeClassFor(label ?? ""),
           ].join(" ")}
         >
-          {tag}
+          {label}
         </span>
       ) : (
         // No index number anymore either, same reasoning as dropping the

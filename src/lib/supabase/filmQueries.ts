@@ -88,7 +88,7 @@ interface RawFilmRow {
   poster_path: string | null;
   watch_providers: { name: string; logo_path: string | null }[] | null;
   watch_link: string | null;
-  film_tag_links: { film_tags: { name: string } | null }[] | null;
+  film_tag_links: { film_tags: { key: string } | null }[] | null;
 }
 
 interface RawFilmTagRow {
@@ -154,7 +154,7 @@ export async function getFilmCatalog(): Promise<Catalog> {
     // films. Series order doesn't matter downstream (scorePool shuffles).
     fetchAllPaged<RawFilmRow>(
       "films",
-      "tmdb_id, title, year, runtime, rating, genres, reception, certification, original_language, countries, decade, saga_name, overview, poster_path, watch_providers, watch_link, film_tag_links(film_tags(name))",
+      "tmdb_id, title, year, runtime, rating, genres, reception, certification, original_language, countries, decade, saga_name, overview, poster_path, watch_providers, watch_link, film_tag_links(film_tags(key))",
       "tmdb_id",
       PAGE,
     ),
@@ -185,33 +185,33 @@ export async function getFilmCatalog(): Promise<Catalog> {
 
   const series: Series[] = rows.map((row) => {
     const linked = (row.film_tag_links ?? [])
-      .map((l) => l.film_tags?.name)
+      .map((l) => (l.film_tags?.key ? `tmdb-tag:${l.film_tags.key}` : null))
       .filter((n): n is string => Boolean(n));
 
-    // Synthesized tag names for this film — they join `tags` so scoring
-    // matches them exactly like stored tags, with zero engine changes.
+    // Synthesized membership IDS for this film (Phase 3a) — they join
+    // `tags` so scoring matches them exactly like stored tags.
     const synthesized: string[] = [];
     for (const r of row.reception ?? []) {
-      synthesized.push(r);
+      synthesized.push(`tmdb-synth:reception:${r}`);
       bump(counts.reception, r);
     }
     if (row.decade) {
-      synthesized.push(decadeTagName(row.decade));
+      synthesized.push(`tmdb-synth:decade:${row.decade}`);
       bump(counts.decade, row.decade);
     }
     for (const c of row.countries ?? []) {
-      synthesized.push(countryTagName(c));
+      synthesized.push(`tmdb-synth:country:${c}`);
       bump(counts.country, c);
     }
     if (row.original_language) {
-      synthesized.push(languageTagName(row.original_language));
+      synthesized.push(`tmdb-synth:language:${row.original_language}`);
       bump(counts.language, row.original_language);
     }
     // One raw row carries "PG-13 " with a trailing space — trim on read,
     // same class of raw-data quirk the promote script trims on keywords.
     const cert = row.certification?.trim() || null;
     if (cert) {
-      synthesized.push(certTagName(cert));
+      synthesized.push(`tmdb-synth:cert:${cert}`);
       bump(counts.cert, cert);
     }
     for (const g of row.genres ?? []) bump(counts.genre, g);
@@ -226,7 +226,7 @@ export async function getFilmCatalog(): Promise<Catalog> {
       // duplicate name reaching the card's tag row was a real React
       // duplicate-key error (confirmed live). A film's tag list is
       // conceptually a set; scoring (includes-based) is unaffected.
-      tags: [...new Set([...linked, ...synthesized])],
+      tags: [...new Set([...linked, ...synthesized, ...(row.genres ?? []).map((g) => `tmdb-genre:${g}`)])],
       coverImageUrl: row.poster_path ? `${TMDB_IMG}/w500${row.poster_path}` : null,
       genres: row.genres ?? [],
       // ×10: TMDB's 0-10 vote_average onto the shared 0-100 scale — see
@@ -281,45 +281,16 @@ export async function getFilmCatalog(): Promise<Catalog> {
     isGenre: true,
   }));
 
-  // Merge stored tags that share a (category, name) pair — DISTINCT DB tags
-  // whose display names collide: two different actors both named "Michael
-  // Gough", TMDB's separate regional company records for "Netflix"/"Sony
-  // Pictures", two De Laurentiis producers. The app identifies tags by name
-  // (slots, scoring, chip keys), so two same-named chips in one sub-tab
-  // were both a real React duplicate-key error (confirmed live) and
-  // functionally identical anyway — selecting either matches films from
-  // both entities. One chip, with seriesCount recomputed as the TRUE
-  // number of films carrying the name (not a sum, which would double-count
-  // a film linked to both same-named tags); minLevel takes the most
-  // permissive of the group. Phase 3a of THE IDENTITY CONTRACT (types.ts)
-  // REMOVES this merge — until then the merged chip carries the first
-  // entity's id, a known Phase-1 placeholder. Expected 3a behavior change
-  // (not a regression): one chip stops unioning same-named entities/roles.
-  const dupNames = new Set<string>();
-  {
-    const seen = new Set<string>();
-    for (const t of storedTags) {
-      const k = `${t.category}::${t.name}`;
-      if (seen.has(k)) dupNames.add(t.name);
-      else seen.add(k);
-    }
-  }
-  const trueNameCounts = new Map<string, number>();
-  if (dupNames.size > 0) {
-    for (const s of series) for (const n of s.tags) if (dupNames.has(n)) trueNameCounts.set(n, (trueNameCounts.get(n) ?? 0) + 1);
-  }
-  const mergedStored = new Map<string, TagInfo>();
-  for (const t of storedTags) {
-    const k = `${t.category}::${t.name}`;
-    const existing = mergedStored.get(k);
-    if (!existing) {
-      mergedStored.set(k, dupNames.has(t.name) ? { ...t, seriesCount: trueNameCounts.get(t.name) ?? t.seriesCount } : t);
-    } else if (t.minLevel && existing.minLevel && Number(t.minLevel) < Number(existing.minLevel)) {
-      existing.minLevel = t.minLevel;
-    }
-  }
-
-  const tags = [...mergedStored.values(), ...synthTags, ...genreTags].sort((a, b) => a.name.localeCompare(b.name));
+  // NO name-merge (removed in Phase 3a of THE IDENTITY CONTRACT,
+  // types.ts): distinct DB entities sharing a display name — two actors
+  // both named "Michael Gough", the De Laurentiis producers, regional
+  // "Netflix" company records — are now distinct selectables with their
+  // own ids, counts, and memberships. Expected behavior change, ruled and
+  // documented: one chip no longer unions same-named entities/roles, so
+  // selecting actor-De Niro matches only his acting credits. Identical
+  // display names within one sub-tab are a KNOWN interim state until the
+  // multi-role/disambiguation UX (Phase 3b, DESIGN_SYSTEM parking lot).
+  const tags = [...storedTags, ...synthTags, ...genreTags].sort((a, b) => a.name.localeCompare(b.name));
 
   return { series, tags };
 }
