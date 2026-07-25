@@ -410,10 +410,17 @@ export function TagPoolBody({
   const searchByKey = new Map(searchSections.map((s) => [s.key, s]));
   const anyMatches = searchSections.some((s) => s.count > 0);
   // Pool-wide numbers for SearchCountLine: the denominator is matches
-  // across EVERY section (user's mental model — "my matches"), the ↓↑
-  // hint appears exactly when other sections hold some of them.
+  // across EVERY section (user's mental model — "my matches"). The plain
+  // total shows ONLY when there is exactly ONE lit selectable target
+  // (one flat section, or one sub-tab; user-ruled 2026-07-25 after "ben"
+  // lit a single section but three of its sub-tabs and read as complete)
+  // — which is the same set the ↓↑ keys cycle, so the arrows hint
+  // appears if-and-only-if the arrows actually have somewhere to go. A
+  // grouped-inline section (anime Theme) counts as one target: nothing
+  // inside it is separately selectable.
   const poolTotalMatches = searchSections.reduce((n, s) => n + s.count, 0);
-  const multiSectionMatches = searchSections.filter((s) => s.count > 0).length > 1;
+  const multipleLitTargets =
+    searchSections.reduce((n, s) => n + (s.count > 0 ? (s.subs ? s.subs.filter((su) => su.count > 0).length : 1) : 0), 0) > 1;
   // The Enter fast path: when exactly one tag matches across the whole
   // pool, Enter toggles it — type until unique, Enter, done, no pointer.
   // Names, not per-section counts, so a tag reachable via two sections
@@ -753,7 +760,7 @@ export function TagPoolBody({
                   key={gridResetKey}
                   tags={activeGridTags}
                   countLine={
-                    searchActive ? <SearchCountLine shownHere={activeGridTags.length} poolTotal={poolTotalMatches} multiSection={multiSectionMatches} /> : null
+                    searchActive ? <SearchCountLine shownHere={activeGridTags.length} poolTotal={poolTotalMatches} multiSection={multipleLitTargets} /> : null
                   }
                   selectedTags={selectedTags}
                   onChipToggle={onChipToggle}
@@ -761,7 +768,7 @@ export function TagPoolBody({
               ) : (
                 <div className="flex flex-col gap-[var(--space-md)]">
                   <ChipRow tags={activeGridTags} selectedTags={selectedTags} onChipToggle={onChipToggle} />
-                  {searchActive && <SearchCountLine shownHere={activeGridTags.length} poolTotal={poolTotalMatches} multiSection={multiSectionMatches} />}
+                  {searchActive && <SearchCountLine shownHere={activeGridTags.length} poolTotal={poolTotalMatches} multiSection={multipleLitTargets} />}
                 </div>
               )}
             </div>
@@ -786,7 +793,7 @@ export function TagPoolBody({
               {/* Grouped shape's count: the section total (sum of the
                   groups above), same pool-wide denominator. */}
               {searchActive && activeSectionMatches > 0 && (
-                <SearchCountLine shownHere={activeSectionMatches} poolTotal={poolTotalMatches} multiSection={multiSectionMatches} />
+                <SearchCountLine shownHere={activeSectionMatches} poolTotal={poolTotalMatches} multiSection={multipleLitTargets} />
               )}
             </div>
           ) : isCapped ? (
@@ -797,7 +804,7 @@ export function TagPoolBody({
               key={gridResetKey}
               tags={activeGridTags}
               countLine={
-                searchActive ? <SearchCountLine shownHere={activeGridTags.length} poolTotal={poolTotalMatches} multiSection={multiSectionMatches} /> : null
+                searchActive ? <SearchCountLine shownHere={activeGridTags.length} poolTotal={poolTotalMatches} multiSection={multipleLitTargets} /> : null
               }
               selectedTags={selectedTags}
               onChipToggle={onChipToggle}
@@ -805,7 +812,7 @@ export function TagPoolBody({
           ) : (
             <div className="flex flex-col gap-[var(--space-md)]">
               <ChipRow tags={activeGridTags} selectedTags={selectedTags} onChipToggle={onChipToggle} />
-              {searchActive && <SearchCountLine shownHere={activeGridTags.length} poolTotal={poolTotalMatches} multiSection={multiSectionMatches} />}
+              {searchActive && <SearchCountLine shownHere={activeGridTags.length} poolTotal={poolTotalMatches} multiSection={multipleLitTargets} />}
             </div>
           )}
         </ScrollFadeArea>
