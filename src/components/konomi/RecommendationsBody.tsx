@@ -1,12 +1,10 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { LevelKey, ResultEntry, TagInfo } from "@/lib/konomi/types";
 import { ActionButton } from "./ActionButton";
-import { useAnimationDebugValues } from "./animationDebugStore";
+import { namedEaseToCss, useAnimationDebugValues } from "./animationDebugStore";
 import {
-  CARD_ANIM_DURATION_MS,
-  CARD_ANIM_STAGGER_MS,
   getAnimatingPaceCount,
-  getEffectiveStaggerMs,
+  getSteppedStaggerMs,
   getVisibleCardTierCount,
 } from "./cardAnimTuning";
 import { useDomain } from "./domainContext";
@@ -267,11 +265,24 @@ export function RecommendationsBody({
   // Live-tweakable via AnimationDebugPanel.tsx — read at the top level (not
   // inside the IIFE below) since hooks can't be called from a nested
   // function, even one invoked synchronously during this same render.
-  // cardStaggerMs paces the card sweep below; cardDurationMs/cardDistancePx are
-  // also handed to the empty-state box's own enter/exit (see the box lifecycle
-  // block + its inline style further down) so the box moves on the SAME timing
-  // and travel as the cards it sweeps with — one debug slider would tune both.
-  const { cardStaggerMs, cardDurationMs, cardDistancePx } = useAnimationDebugValues();
+  // cardStaggerMs paces the card sweep below; the empty* set drives the
+  // empty-state box's own enter/exit (its lifecycle block + inline style
+  // further down) — SPLIT from the card values it used to borrow (2026-07-24
+  // rework) so the box's travel/curve/start can diverge from the sweep's.
+  const {
+    cardStaggerMs,
+    cardDurationMs,
+    staggerStepMs,
+    clearSlideDurationMs,
+    emptyEnterDurationMs,
+    emptyEnterDistancePx,
+    emptyEnterDelayMs,
+    emptyEnterEase,
+    emptyExitDurationMs,
+    emptyExitDistancePx,
+    emptyExitDelayMs,
+    emptyExitEase,
+  } = useAnimationDebugValues();
   // Hydration-safe: 0 on every server render and the client's own first
   // (hydration) render, then automatically resolves to the real random
   // pick right after — see getEmptyStateIndexServerSnapshot's own comment
@@ -327,9 +338,26 @@ export function RecommendationsBody({
   // (on touch, with no hover to naturally dismiss it) leaving it stuck
   // until the user tapped elsewhere.
   const [lastRecommendGenForSwapHint, setLastRecommendGenForSwapHint] = useState(recommendGen);
+  // True for exactly the window in which a Clear ✕'s survivor-compaction
+  // slide runs: set (batched with the displayedResults sync) in the settle
+  // timeout below, so the render that triggers Motion's FLIP re-measure
+  // already carries it, and ResultCard swaps in clearSlideDurationMs for
+  // that slide only. Cleared by its own timer once the slide is over, and
+  // render-phase-reset by a RECOMMEND (above pattern) so a roll landing
+  // inside the window uses the normal recommend-time duration.
+  const [postClearSlide, setPostClearSlide] = useState(false);
+  useEffect(() => {
+    if (!postClearSlide) return;
+    const t = setTimeout(() => setPostClearSlide(false), clearSlideDurationMs + 100);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- duration captured at window start is fine; only postClearSlide should re-fire this
+  }, [postClearSlide]);
   if (recommendGen !== lastRecommendGenForSwapHint) {
     setLastRecommendGenForSwapHint(recommendGen);
     setJustSwappedIndex(null);
+    // A RECOMMEND landing inside the post-Clear window must slide at the
+    // normal recommend-time duration, not Clear's — see postClearSlide above.
+    setPostClearSlide(false);
   }
   const visibleCardTierCount = useVisibleCardTierCount();
   // Card enter/exit is plain CSS keyframes now (ResultCard / globals.css), not
@@ -373,12 +401,22 @@ export function RecommendationsBody({
       locked,
       visibleCardTierCount,
     );
-    const effectiveStaggerMs = getEffectiveStaggerMs(CARD_ANIM_STAGGER_MS, paceCount);
+    // Live debug values (not the CARD_ANIM_* constants), so a panel-tuned
+    // exit isn't clipped or overheld by a timer still on the shipped numbers
+    // — the timer must match whatever the cards are actually declared to
+    // run. Captured at the moment the exit starts (this effect deliberately
+    // only fires on the exitingTitles transition).
+    const effectiveStaggerMs = getSteppedStaggerMs(cardStaggerMs, staggerStepMs, paceCount);
     // Last card to finish is the one with the largest delay = the last index
     // (L->R stagger), so total = duration + (count-1)*stagger.
     const lastIndex = Math.max(0, displayedResults.length - 1);
-    const totalMs = reduced ? 0 : CARD_ANIM_DURATION_MS + lastIndex * effectiveStaggerMs;
+    const totalMs = reduced ? 0 : cardDurationMs + lastIndex * effectiveStaggerMs;
     const t = setTimeout(() => {
+      // postClearSlide batched WITH the sync: this same render is the one
+      // whose displayedResults reference change triggers the survivors'
+      // FLIP re-measure, so it must already carry the flag for ResultCard
+      // to pick the post-Clear slide duration (see its declaration above).
+      setPostClearSlide(true);
       setDisplayedResults(results);
       setExitingTitles(new Set());
     }, totalMs);
@@ -456,15 +494,15 @@ export function RecommendationsBody({
   useEffect(() => {
     if (!boxExiting) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const t = setTimeout(() => setBoxExiting(false), reduced ? 0 : cardDurationMs);
+    const t = setTimeout(() => setBoxExiting(false), reduced ? 0 : emptyExitDelayMs + emptyExitDurationMs);
     return () => clearTimeout(t);
-  }, [boxExiting, cardDurationMs]);
+  }, [boxExiting, emptyExitDelayMs, emptyExitDurationMs]);
   useEffect(() => {
     if (!boxEntering) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const t = setTimeout(() => setBoxEntering(false), reduced ? 0 : cardDurationMs);
+    const t = setTimeout(() => setBoxEntering(false), reduced ? 0 : emptyEnterDelayMs + emptyEnterDurationMs);
     return () => clearTimeout(t);
-  }, [boxEntering, cardDurationMs]);
+  }, [boxEntering, emptyEnterDelayMs, emptyEnterDurationMs]);
   // The box stays in the DOM whenever there are no results (resting/entering) OR
   // while it's still playing its exit over the freshly-mounted grid. While the
   // grid co-renders (recommend exit, or the clear-overlap window before the
@@ -475,13 +513,22 @@ export function RecommendationsBody({
   // cards on clear). At rest it's a normal in-flow block again.
   const showEmptyBox = !hasResults || boxExiting;
   const emptyBoxOverlay = showResultsGrid;
+  // The box's OWN tuning values now (emptyEnter*/emptyExit*, per direction —
+  // animationDebugStore), no longer borrowed from the cards and no longer
+  // shared between the Clear-✕ entrance and the recommend-time exit — split
+  // so each moment's travel/curve/start is tunable on its own (the entrance
+  // is the one that needs to read as rising from behind the departing
+  // cards; at the cards' 12px it was effectively already in place).
+  // fill-mode "both" (globals.css) holds the from-state through the delay,
+  // so a delayed box stays invisible-below until its rise starts.
   const emptyBoxAnimClass = boxExiting ? "animate-empty-exit" : boxEntering ? "animate-empty-enter" : "";
   const emptyBoxAnimStyle =
     boxExiting || boxEntering
       ? {
-          ["--empty-anim-distance" as string]: `${cardDistancePx}px`,
-          animationDuration: `${cardDurationMs}ms`,
-          animationTimingFunction: "cubic-bezier(0, 0, 0.2, 1)",
+          ["--empty-anim-distance" as string]: `${boxExiting ? emptyExitDistancePx : emptyEnterDistancePx}px`,
+          animationDuration: `${boxExiting ? emptyExitDurationMs : emptyEnterDurationMs}ms`,
+          animationDelay: `${boxExiting ? emptyExitDelayMs : emptyEnterDelayMs}ms`,
+          animationTimingFunction: namedEaseToCss(boxExiting ? emptyExitEase : emptyEnterEase),
         }
       : undefined;
 
@@ -1081,7 +1128,10 @@ export function RecommendationsBody({
                     locked,
                     visibleCardTierCount,
                   );
-                  const effectiveStaggerMs = getEffectiveStaggerMs(cardStaggerMs, paceCount);
+                  // staggerStepMs (debug store): the pace rule as a direct
+                  // "ms per card fewer" step — 10 = shipped ratio's numbers,
+                  // 0 = flat stagger. See getSteppedStaggerMs's own comment.
+                  const effectiveStaggerMs = getSteppedStaggerMs(cardStaggerMs, staggerStepMs, paceCount);
                   return displayedResults.map((entry, index) => {
                     // Exiting wins: a card removed by a Clear ✕ (in exitingTitles)
                     // plays the exit keyframe, not the enter, even if its title
@@ -1164,6 +1214,7 @@ export function RecommendationsBody({
                         // on a resize render.
                         layoutSlide
                         layoutDependency={displayedResults}
+                        clearSlide={postClearSlide}
                       />
                     );
                   });

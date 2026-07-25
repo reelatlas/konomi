@@ -507,9 +507,11 @@ export function KonomiApp({ side, initialSeries, initialTags }: KonomiAppProps) 
       // root.
       className="h-[100svh] flex flex-col overflow-hidden overflow-x-clip px-[var(--space-2xl)] pb-[var(--space-2xl)] font-body text-[var(--ink)]"
     >
-      {/* AnimationDebugPanel removed for now, not deleted — see
-          AnimationDebugPanel.tsx/animationDebugStore.ts, both left intact.
-          Re-add `<AnimationDebugPanel />` here if it's needed again. */}
+      {/* AnimationDebugPanel unmounted again (2026-07-24 timing rework
+          complete — every value user-ruled and baked as the store's
+          defaults; see DESIGN_SYSTEM.md "Timing rework"). File + store left
+          intact, same as the first tuning era: re-add the import and
+          `<AnimationDebugPanel />` here to retune live. */}
 
       {/* flex-1 min-h-0: this column, not the root div above, is what
           fills 100svh minus this root's own pt/pb padding — a single flex

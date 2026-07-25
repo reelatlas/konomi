@@ -3,15 +3,14 @@ import { DEFAULT_RESULT_COUNT } from "@/lib/konomi/config";
 // Named constants for the result-card enter/exit animation
 // (RecommendationsBody.tsx / ResultCard.tsx) — same convention as
 // ROLL_DURATION_MS (RollingLabel.tsx) / EDIT_PANEL_TRANSITION_MS
-// (MixerBar.tsx). These were live-tweakable via a CardAnimDebugPanel
-// (useSyncExternalStore-backed store, matching RecommendationsBody.tsx's
-// own empty-state shuffle-bag pattern) while dialing in the feel; that
-// panel and its store plumbing were removed once these five values were
-// settled — see DESIGN_SYSTEM.md for the tuning story. Retune by editing
-// these numbers directly.
-export const CARD_ANIM_DURATION_MS = 300;
-export const CARD_ANIM_STAGGER_MS = 50;
-export const CARD_ANIM_DISTANCE_PX = 8;
+// (MixerBar.tsx). Values settled twice: the original pass via a
+// CardAnimDebugPanel (removed once settled), then re-tuned 2026-07-24 via
+// AnimationDebugPanel for the timing rework (300→600 / 50→90 / 8→12,
+// user-ruled). While that panel is mounted, the LIVE source is
+// animationDebugStore's defaults — keep these mirrors in sync with it.
+export const CARD_ANIM_DURATION_MS = 600;
+export const CARD_ANIM_STAGGER_MS = 60;
+export const CARD_ANIM_DISTANCE_PX = 12;
 // Cubic-bezier control points, not a CSS `cubic-bezier(...)` string —
 // ResultCard.tsx feeds these straight to Motion's `ease` (motion/react),
 // which takes the same four numbers a CSS cubic-bezier() would, just as a
@@ -21,20 +20,28 @@ export const CARD_ANIM_DISTANCE_PX = 8;
 export const CARD_ANIM_EASE_IN: [number, number, number, number] = [0, 0, 0.2, 1];
 export const CARD_ANIM_EASE_OUT: [number, number, number, number] = [0, 0, 0.2, 1];
 
-// CARD_ANIM_STAGGER_MS is the value AT DEFAULT_RESULT_COUNT (5) cards — as
-// fewer cards are actually sweeping (a narrower carousel tier, some locked
-// and excluded — see getAnimatingPaceCount below), the sweep tightens
-// proportionally rather than staying fixed: fewer cards already read as a
-// shorter row, so the same absolute stagger would either drag the sweep
-// out disproportionately (exit) or make the cascade barely register
-// (enter, only 2-3 cards). Proportional to DEFAULT_RESULT_COUNT, not a
-// hardcoded lookup table, so retuning CARD_ANIM_STAGGER_MS above rescales
-// every card-count case with it — 5→full value, 4→4/5, 3→3/5, matching
-// "reduce by ~10ms per card fewer" at the 50ms default (50/5 = 10ms/card)
-// without hardcoding that 10ms anywhere.
-export function getEffectiveStaggerMs(staggerMs: number, cardCount: number): number {
-  return (staggerMs * cardCount) / DEFAULT_RESULT_COUNT;
+// Stagger scaling is RETIRED (step 0, user-ruled 2026-07-24): the stagger
+// is flat at every width and lock count. History: the original model scaled
+// proportionally ×(count/5) (getEffectiveStaggerMs, removed); the rework
+// first generalized that to a per-card step, then tuning settled on step 0 —
+// the "fewer cards → tighter cascade" idea didn't survive contact with the
+// slower 600/60 sweep. getSteppedStaggerMs and this constant stay as the
+// one-number seam to bring scaling back (raise the step) rather than
+// re-deriving the machinery.
+export const CARD_ANIM_STAGGER_STEP_MS = 0;
+
+export function getSteppedStaggerMs(staggerMs: number, stepMs: number, cardCount: number): number {
+  return Math.max(0, staggerMs - stepMs * (DEFAULT_RESULT_COUNT - cardCount));
 }
+
+// The reorder FLIP slide (locks/repeats compacting, ResultCard's
+// layout="position"): 700ms on RECOMMEND, deliberately slower than the
+// 600ms enter/exit sweep; 380ms after a Clear ✕ (user-ruled 2026-07-24) —
+// Clear's slide runs sequentially AFTER the exit sweep, in isolation,
+// where the same duration reads much slower than it does overlapping a
+// RECOMMEND's enter sweep, so it gets roughly half the time.
+export const CARD_SLIDE_DURATION_MS = 700;
+export const CARD_CLEAR_SLIDE_DURATION_MS = 380;
 
 // Mirrors ResultCard.tsx's own card-width breakpoints exactly
 // (max-[1152px]/min-[993px]/min-[741px]/min-[501px]) — re-derive both

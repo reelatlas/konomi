@@ -82,7 +82,7 @@ interface RollingLabelProps {
 // (below) — this constant only still exists as ANIMATION_DEBUG_DEFAULTS'
 // own source of truth (animationDebugStore.ts) and for any caller that
 // doesn't care about live-tweaking.
-export const ROLL_DURATION_MS = 220;
+export const ROLL_DURATION_MS = 120;
 
 export function RollingLabel({ value, sizeToWidestOf, className }: RollingLabelProps) {
   // Live-tweakable via AnimationDebugPanel.tsx — see animationDebugStore.ts's

@@ -3,7 +3,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { scoreSeries } from "@/lib/konomi/scoring";
 import { sortTags } from "@/lib/konomi/tagPool";
 import type { LevelKey, ResultEntry, SortKey, TagInfo } from "@/lib/konomi/types";
-import { useAnimationDebugValues } from "./animationDebugStore";
+import { NAMED_EASE_BEZIER, namedEaseToCss, useAnimationDebugValues } from "./animationDebugStore";
 import { useDomain } from "./domainContext";
 import { ArrowsShuffleIcon, LockClosedIcon, LockOpenIcon } from "./icons";
 import { IconButton } from "./IconButton";
@@ -92,6 +92,12 @@ interface ResultCardProps {
   // changes on a genuine reorder (RECOMMEND, or a Clear ✕'s settle), so Motion
   // measures+animates then and skips resize renders entirely.
   layoutDependency?: unknown;
+  // True only during a Clear ✕'s survivor-compaction window
+  // (RecommendationsBody's postClearSlide): the FLIP below then runs at
+  // clearSlideDurationMs instead of slideDurationMs — Clear's slide plays
+  // sequentially after the exit sweep, in isolation, where the same
+  // duration reads slower than it does overlapping a RECOMMEND.
+  clearSlide?: boolean;
 }
 
 export function ResultCard({
@@ -116,6 +122,7 @@ export function ResultCard({
   animationDelayMs,
   layoutSlide,
   layoutDependency,
+  clearSlide,
 }: ResultCardProps) {
   // Live-tweakable via AnimationDebugPanel.tsx — see animationDebugStore.ts's
   // own top-of-file comment for why (a temporary tuning aid, remove once
@@ -292,10 +299,14 @@ export function ResultCard({
   const meta = domain.cardMeta(series);
   // Enter/exit are plain CSS keyframes (animate-card-enter / animate-card-exit,
   // globals.css), applied on the card wrapper below with inline duration/delay/
-  // distance from the live tuning store. isExiting is checked BEFORE isEntering
-  // (a card removed by a Clear ✕ on the very render it also would have entered
-  // must exit, not enter). ease is the shipped default cubic-bezier(0,0,.2,1)
-  // (== the store's "easeOut") for both; only duration/delay/distance are live.
+  // distance/ease from the live tuning store. isExiting is checked BEFORE
+  // isEntering (a card removed by a Clear ✕ on the very render it also would
+  // have entered must exit, not enter). Ease goes through namedEaseToCss —
+  // the store holds Motion-style NAMES, and a CSS keyframe needs a real
+  // timing-function string (this line used to hardcode the shipped bezier,
+  // which left the panel's ease dropdowns silently dead — verified live).
+  // The defaults ("easeOut" = the shipped cubic-bezier(0,0,.2,1), see
+  // NAMED_EASE_BEZIER) still reproduce shipped behavior untouched.
   const cardAnimClass = isExiting ? "animate-card-exit" : isEntering ? "animate-card-enter" : "";
   const cardAnimStyle =
     isEntering || isExiting
@@ -303,7 +314,7 @@ export function ResultCard({
           ["--card-anim-distance" as string]: `${animationDebug.cardDistancePx}px`,
           animationDuration: `${animationDebug.cardDurationMs}ms`,
           animationDelay: `${animationDelayMs ?? 0}ms`,
-          animationTimingFunction: "cubic-bezier(0, 0, 0.2, 1)",
+          animationTimingFunction: namedEaseToCss(isExiting ? animationDebug.cardEaseIn : animationDebug.cardEaseOut),
         }
       : undefined;
 
@@ -464,15 +475,29 @@ export function ResultCard({
           and only transiently during the slide. Enabled only on the grid tier
           (layoutSlide) and off under reduced motion; layoutDependency gates
           re-measurement to real reorders (see the props' own comments). Timing
-          matches the card enter/exit (cardDurationMs, cubic-bezier(0,0,.2,1))
-          so the slide reads as one motion with the rest of the sweep. A new
-          card mounting here has no prior box, so Motion doesn't FLIP it — it
-          just lands and plays its CSS enter, so the two mechanisms never fight
-          on the same element. */}
+          is now its OWN pair of debug values (slideDurationMs/slideEase, added
+          for the 2026-07 timing rework so the slide is tunable independently
+          of the enter/exit sweep) — the defaults still mirror the enter/exit
+          (300ms / easeOut ≈ cubic-bezier(0,0,.2,1)), so untouched sliders
+          reproduce the previous coupled behavior exactly. A new card mounting
+          here has no prior box, so Motion doesn't FLIP it — it just lands and
+          plays its CSS enter, so the two mechanisms never fight on the same
+          element. */}
       <motion.div
         layout={layoutSlide && !prefersReduced ? "position" : false}
         layoutDependency={layoutDependency}
-        transition={{ layout: { duration: animationDebug.cardDurationMs / 1000, ease: [0, 0, 0.2, 1] } }}
+        // ease through NAMED_EASE_BEZIER (not the raw Motion name): the map's
+        // "easeOut" is the app's shipped cubic-bezier(0,0,.2,1), so the
+        // default slide curve stays byte-identical to what shipped — Motion's
+        // own stock easeOut (0,0,0.58,1) is a subtly different curve.
+        // Duration: the post-Clear compaction window (clearSlide) gets its
+        // own value — see the prop's comment above.
+        transition={{
+          layout: {
+            duration: (clearSlide ? animationDebug.clearSlideDurationMs : animationDebug.slideDurationMs) / 1000,
+            ease: NAMED_EASE_BEZIER[animationDebug.slideEase],
+          },
+        }}
         className={["relative w-full h-full [perspective:1100px]", cardAnimClass].join(" ")}
         style={cardAnimStyle}
       >

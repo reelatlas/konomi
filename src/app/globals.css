@@ -711,10 +711,13 @@
    exitingTitles mount-through-exit mechanism — and for the same reason it's CSS
    keyframes, not AnimatePresence (see the card block above: a keyframe plays
    once on mount and never replays on reflow, and the app treats a plain timer as
-   more reliable than animationend on-device). Distance/duration/easing are inline
-   on the box (RecommendationsBody), read from the SAME animationDebug store the
-   cards use (cardDistancePx/cardDurationMs) so both move as one unit and a future
-   debug slider tunes them together; only name/fill-mode are static here. */
+   more reliable than animationend on-device). Distance/duration/delay/easing are
+   inline on the box (RecommendationsBody) from the animationDebug store's OWN
+   empty* values — split from the card values it originally borrowed (2026-07-24
+   rework: at the cards' travel the box read as already-in-place on Clear, so its
+   rise distance/curve/start are now independently tunable); only name/fill-mode
+   are static here. fill-mode "both" also holds the below-and-invisible from-state
+   through any start delay. */
 @keyframes empty-state-enter {
   from {
     opacity: 0;
