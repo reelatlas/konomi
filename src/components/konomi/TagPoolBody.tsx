@@ -48,6 +48,26 @@ interface TagPoolBodyProps {
   isPoolPanelResizing?: boolean;
 }
 
+// One gap for BOTH vertical relationships in this body: primary tab strip
+// -> film subsection strip, and the whole tab block -> chip area. Kept
+// deliberately identical, not tuned per relationship.
+//
+// The film sub-tab tier once *looked* like it had a much bigger gap above
+// it than a plain section's chips do. That was never this constant — it
+// was a phantom 9px inside SectionTabStrip's own button (an inline strut
+// sized from an inherited font that renders nothing; see that file's
+// comment on the button's `flex`). Fixing the cause there left a ~4px
+// residual, measured live: a plain section's chips start 18.3px below the
+// section label's ink, the sub-tier's own ink starts 22.2px below it,
+// because a text label's ink sits inside its line box while a chip starts
+// at a hard border edge with no leading.
+//
+// That 4px is deliberately NOT compensated with a tighter tier gap. The
+// two states are never on screen together — switching sections reflows the
+// whole panel anyway — so the difference has no moment where it's visible,
+// and a tuned per-tier value would silently rot the first time the
+// sub-label's size or family changes. One token, no exceptions. If this is
+// ever revisited, re-measure rendered ink (not box) geometry first.
 const STRIP_GAP = 12; // --space-lg
 // Bootstrap-only fallback for rowHeightPx (below) before the first real
 // ResizeObserver measurement lands — STRIP_GAP + SectionTabStrip's own

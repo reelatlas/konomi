@@ -183,7 +183,22 @@ export function SectionTabStrip({
               tabIndex={active ? 0 : -1}
               type="button"
               onClick={() => onChange(section.key)}
-              className="shrink-0 cursor-pointer"
+              // flex, not the button's default inline-block: an inline-block
+              // button lays its child out in an INLINE formatting context,
+              // which reserves a strut sized from the BUTTON's own inherited
+              // font — 16px body text at line-height 24px, a font that never
+              // renders a single glyph here. The line box then resolves to
+              // max(strut 24px, content 15px) = 24px, and because it's
+              // baseline-aligned the 9px of phantom space lands ~8px ABOVE
+              // the label and ~1px below. Measured live: it made the film
+              // sub-tab tier sit 11.9px lower than a plain section's chips
+              // do, with no box in the tree accounting for it. A flex
+              // container has no line box and therefore no strut, so the
+              // button hugs its real content. The primary tier is unaffected
+              // (verified live, still exactly 30px): Anton's own 30px line
+              // box already exceeded the 24px strut, so the strut was never
+              // load-bearing there.
+              className="flex shrink-0 cursor-pointer items-center"
             >
               {/* Primary: same font/size/style as the old CollapsibleSection
                   header labels (font-display text-lg uppercase tracking-sm)
