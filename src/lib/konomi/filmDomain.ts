@@ -109,11 +109,13 @@ const FILM_TAG_SECTIONS: TagSection[] = [
     key: "franchise",
     label: "Franchise",
     categories: ["Franchise"],
+    capped: true, // ~600 entities — see TagSection.capped
   },
   {
     key: "people",
     label: "People",
     subsectionsAsTabs: true,
+    capped: true, // ~13k entities across sub-tabs — see TagSection.capped
     subsections: [
       { label: "Actors", categories: ["People-Actors"] },
       { label: "Directors", categories: ["People-Directors"] },

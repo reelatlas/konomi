@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useRef, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { genreTags, sortTags, tagsForCategories, tagsForSection } from "@/lib/konomi/tagPool";
 import { bestScore, filterByQuery, matchScore, normalizeQuery } from "@/lib/konomi/tagSearch";
 import type { TagInfo } from "@/lib/konomi/types";
@@ -103,6 +103,17 @@ const CHIP_AREA_MIN = 60;
 // produces no rule at all (confirmed live as a real bug once, before this
 // was a literal).
 const CHIP_AREA_HEIGHT = "h-[50dvh]";
+// Initial page size for sections that opt into TagSection.capped (film
+// People/Franchise — see that flag's comment for why it's per-section, not
+// global). The top N under the ACTIVE SORT render eagerly; scrolling near
+// the bottom appends another page (CappedChipRow). One shared constant, not
+// per-call literals, per the design-system centralization rule.
+const BROWSE_CAP = 50;
+
+// Subsection label → slug ("Time of year" → "time-of-year") — doubles as
+// the element-id fragment for the sub-tier's aria wiring (ids can't hold
+// spaces). Module-scope: pure, and memoized derivations depend on it.
+const subKey = (label: string) => label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
 function ChipRow({
   tags,
@@ -118,6 +129,69 @@ function ChipRow({
       {tags.map((tag) => (
         <TagChip key={tag.name} name={tag.name} size="small" active={selectedTags.includes(tag.name)} onToggle={onChipToggle} />
       ))}
+    </div>
+  );
+}
+
+// ChipRow for TagSection.capped sections (film People/Franchise): mounts
+// only the first BROWSE_CAP tags (top-N under the caller's already-applied
+// sort) and appends another page whenever the sentinel under the grid
+// scrolls near view — eagerly mounting Actors' 6.9k chips was the measured
+// cause of the resize-drag lag. Pagination state lives HERE so resets are
+// pure remounts: section/sub switches reset via the tabpanel's existing
+// key, sort/level/query changes via the parent's gridResetKey — no reset
+// effects, the same key-remount idiom the panel already uses for scroll.
+// The IntersectionObserver needs no handle to ScrollFadeArea's internal
+// scroll element: with root:null, intersection is computed AFTER ancestor
+// overflow clipping, so the sentinel only reads "visible" once actually
+// scrolled into the clipped area. The count line under the grid does
+// double duty: cap communication in browse ("top 50 of 6,862"), and a
+// match-count readout while searching — the first piece of the parked
+// match-count-indicator idea.
+function CappedChipRow({
+  tags,
+  searching,
+  selectedTags,
+  onChipToggle,
+}: {
+  tags: TagInfo[];
+  searching: boolean;
+  selectedTags: string[];
+  onChipToggle: (tag: string) => void;
+}) {
+  const [visibleCount, setVisibleCount] = useState(BROWSE_CAP);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const truncated = tags.length > visibleCount;
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return; // fully expanded — sentinel unmounted
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) setVisibleCount((c) => c + BROWSE_CAP);
+      },
+      // Pre-load one row-ish early so the append lands before the user
+      // hits the visual bottom. Margin is viewport-relative, close enough.
+      { rootMargin: "160px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+    // visibleCount in deps re-arms the observer after each append (the
+    // sentinel moved; a fresh observation avoids a stale initial record).
+  }, [truncated, visibleCount]);
+  const shown = truncated ? tags.slice(0, visibleCount) : tags;
+  return (
+    <div className="flex flex-col gap-[var(--space-md)]">
+      <ChipRow tags={shown} selectedTags={selectedTags} onChipToggle={onChipToggle} />
+      {truncated && <div ref={sentinelRef} aria-hidden className="h-px" />}
+      {(truncated || searching) && (
+        <span className="font-mono text-[length:var(--text-2xs)] text-[var(--subtext)]" aria-live="polite">
+          {searching
+            ? truncated
+              ? `${shown.length.toLocaleString()} of ${tags.length.toLocaleString()} matches — scroll for more, or narrow`
+              : `${tags.length.toLocaleString()} ${tags.length === 1 ? "match" : "matches"}`
+            : `top ${shown.length.toLocaleString()} of ${tags.length.toLocaleString()} — scroll for more, or search`}
+        </span>
+      )}
     </div>
   );
 }
@@ -191,10 +265,23 @@ export function TagPoolBody({
   // Every section with at least one tag at the current level — hidden
   // entirely (not shown as a disabled tab), matching the old collapsible
   // version's "hidden, not just collapsed, empty sections" behavior.
-  const visibleSections = domain.sections.map((section) => ({
-    section,
-    tags: tagsForSection(domain, allTags, section, level, totalSeriesCount),
-  })).filter(({ tags }) => tags.length > 0);
+  // Memoized (with every derivation below that hangs off it) since the
+  // resize-lag fix: MixerBar's resize drag re-renders this component on
+  // every RAF tick via poolPanelHeightPx, and before memoization each tick
+  // re-scanned the full pool — user-felt as site-wide lag while dragging
+  // with a search query live. None of these inputs change during a drag,
+  // so every tick now reuses the same arrays (and their stable refs are
+  // what let the downstream memos hold too).
+  const visibleSections = useMemo(
+    () =>
+      domain.sections
+        .map((section) => ({
+          section,
+          tags: tagsForSection(domain, allTags, section, level, totalSeriesCount),
+        }))
+        .filter(({ tags }) => tags.length > 0),
+    [domain, allTags, level, totalSeriesCount],
+  );
 
   // A Tag Density / Level change can make the currently-active section
   // disappear entirely (e.g. every non-Genres section is empty at "Casual",
@@ -225,17 +312,21 @@ export function TagPoolBody({
   // render-phase converge-in-one-pass pattern as the section fallback
   // above (after the set, the condition is false on the immediate
   // re-render, so it can't loop).
-  const subKey = (label: string) => label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
   const subTabsMode = Boolean(active?.section.subsectionsAsTabs && active.section.subsections);
-  const visibleSubs = subTabsMode
-    ? active.section
-        .subsections!.map((sub) => ({
-          sub,
-          slug: subKey(sub.label),
-          tags: tagsForCategories(domain, allTags, sub.categories, level, totalSeriesCount),
-        }))
-        .filter(({ tags }) => tags.length > 0)
-    : [];
+  const activeSection = active?.section;
+  const visibleSubs = useMemo(
+    () =>
+      subTabsMode && activeSection?.subsections
+        ? activeSection.subsections
+            .map((sub) => ({
+              sub,
+              slug: subKey(sub.label),
+              tags: tagsForCategories(domain, allTags, sub.categories, level, totalSeriesCount),
+            }))
+            .filter(({ tags }) => tags.length > 0)
+        : [],
+    [subTabsMode, activeSection, domain, allTags, level, totalSeriesCount],
+  );
   const storedSubSlug = active ? activeSubKeys[active.section.key] : undefined;
   const activeSub = visibleSubs.find(({ slug }) => slug === storedSubSlug) ?? visibleSubs[0];
   if (subTabsMode && activeSub && storedSubSlug !== activeSub.slug) {
@@ -273,20 +364,29 @@ export function TagPoolBody({
   // Parameterized on the query (not closed over normQuery) because it runs
   // in two places: per render for the dim/empty model, and inside the
   // onChange handler for the auto-move decision (see handleQueryChange).
-  const buildSearchSections = (nq: string): SectionSearch[] =>
-    visibleSections.map(({ section, tags }) => ({
-      key: section.key,
-      count: filterByQuery(tags, nq).length,
-      best: bestScore(tags, nq),
-      subs:
-        section.subsectionsAsTabs && section.subsections
-          ? section.subsections
-              .map((sub) => ({ sub, tags: tagsForCategories(domain, allTags, sub.categories, level, totalSeriesCount) }))
-              .filter(({ tags }) => tags.length > 0)
-              .map(({ sub, tags }) => ({ slug: subKey(sub.label), count: filterByQuery(tags, nq).length, best: bestScore(tags, nq) }))
-          : null,
-    }));
-  const searchSections: SectionSearch[] = searchActive ? buildSearchSections(normQuery) : [];
+  // useCallback + the useMemo below are part of the resize-lag fix (see
+  // visibleSections): before them, every resize-drag RAF tick re-ran this
+  // full-pool scan even though the query hadn't changed.
+  const buildSearchSections = useCallback(
+    (nq: string): SectionSearch[] =>
+      visibleSections.map(({ section, tags }) => ({
+        key: section.key,
+        count: filterByQuery(tags, nq).length,
+        best: bestScore(tags, nq),
+        subs:
+          section.subsectionsAsTabs && section.subsections
+            ? section.subsections
+                .map((sub) => ({ sub, tags: tagsForCategories(domain, allTags, sub.categories, level, totalSeriesCount) }))
+                .filter(({ tags }) => tags.length > 0)
+                .map(({ sub, tags }) => ({ slug: subKey(sub.label), count: filterByQuery(tags, nq).length, best: bestScore(tags, nq) }))
+            : null,
+      })),
+    [visibleSections, domain, allTags, level, totalSeriesCount],
+  );
+  const searchSections: SectionSearch[] = useMemo(
+    () => (searchActive ? buildSearchSections(normQuery) : []),
+    [searchActive, normQuery, buildSearchSections],
+  );
   const searchByKey = new Map(searchSections.map((s) => [s.key, s]));
   const anyMatches = searchSections.some((s) => s.count > 0);
   // The Enter fast path: when exactly one tag matches across the whole
@@ -294,19 +394,19 @@ export function TagPoolBody({
   // Names, not per-section counts, so a tag reachable via two sections
   // (none today, but the union rule in visiblePoolTagNames allows it)
   // still counts as one.
-  let uniqueMatch: string | null = null;
-  if (searchActive) {
+  const uniqueMatch = useMemo(() => {
+    if (!searchActive) return null;
     const seen = new Set<string>();
-    outer: for (const { tags } of visibleSections) {
+    for (const { tags } of visibleSections) {
       for (const t of tags) {
         if (matchScore(t.name, normQuery) > 0) {
           seen.add(t.name);
-          if (seen.size > 1) break outer;
+          if (seen.size > 1) return null;
         }
       }
     }
-    uniqueMatch = seen.size === 1 ? [...seen].at(0)! : null;
-  }
+    return seen.size === 1 ? [...seen].at(0)! : null;
+  }, [searchActive, normQuery, visibleSections]);
 
   // Auto-move: "stay if you can, move if you must." Runs INSIDE the
   // onChange handler — the keystroke IS the event this navigation responds
@@ -423,6 +523,27 @@ export function TagPoolBody({
   // dim tab is clicked (0 matches here) in the mixer's guided-error voice.
   const activeSectionMatches = searchActive && active ? (searchByKey.get(active.section.key)?.count ?? 0) : -1;
   const applyQuery = (tags: TagInfo[]) => (searchActive ? filterByQuery(tags, normQuery) : tags);
+
+  // The active grid's final list (filter → sort), memoized for the same
+  // resize-tick reason as visibleSections — sorting Actors' 6.9k tags on
+  // every drag frame was real work. Covers the sub-tab-active and flat
+  // shapes; the inline-grouped shape (anime Theme) keeps its per-group
+  // inline computation below — small lists, never capped.
+  const isCapped = Boolean(active?.section.capped);
+  const activeSub_ = activeSub; // narrow for the memo closure
+  const activeGridTags = useMemo(() => {
+    if (!activeSection) return [];
+    const q = searchActive ? normQuery : "";
+    if (subTabsMode && activeSub_) return sortTags(filterByQuery(activeSub_.tags, q), sort);
+    if (activeSection.subsections) return []; // inline-grouped shape renders its own groups
+    const base =
+      activeSection.key === "genres" ? genreTags(allTags) : tagsForCategories(domain, allTags, activeSection.categories ?? [], level, totalSeriesCount);
+    return sortTags(filterByQuery(base, q), sort);
+  }, [activeSection, activeSub_, subTabsMode, searchActive, normQuery, sort, allTags, domain, level, totalSeriesCount]);
+  // Resets CappedChipRow's pagination when the list's meaning changes out
+  // from under it without a section/sub switch (those already remount via
+  // the tabpanel's own key): sort, level, or the live query.
+  const gridResetKey = `${level}:${sort}:${searchActive ? normQuery : ""}`;
 
   return (
     <div className="flex flex-col min-w-0" style={{ gap: STRIP_GAP }}>
@@ -591,7 +712,22 @@ export function TagPoolBody({
               role={showSubStrip ? "tabpanel" : undefined}
               aria-labelledby={showSubStrip ? `tagpool-sub-tab-${activeSub.slug}` : undefined}
             >
-              <ChipRow tags={sortTags(applyQuery(activeSub.tags), sort)} selectedTags={selectedTags} onChipToggle={onChipToggle} />
+              {searchActive && activeGridTags.length === 0 ? (
+                // The section has matches (the ===0 branch above didn't
+                // fire) but THIS sub-tab has none — a dim sub-tab was
+                // clicked. v1 only checked at the section tier and showed
+                // a silent blank grid here (user-reported); same guided
+                // message, one tier down.
+                <div className="flex justify-center py-[var(--space-2xl)]">
+                  <span className="font-mono text-[length:var(--text-xs)] text-[var(--subtext)]">
+                    {`no "${normQuery}" here — check the lit tabs`}
+                  </span>
+                </div>
+              ) : isCapped ? (
+                <CappedChipRow key={gridResetKey} tags={activeGridTags} searching={searchActive} selectedTags={selectedTags} onChipToggle={onChipToggle} />
+              ) : (
+                <ChipRow tags={activeGridTags} selectedTags={selectedTags} onChipToggle={onChipToggle} />
+              )}
             </div>
           ) : active.section.subsections ? (
             <div className="flex flex-col gap-[var(--space-lg)]">
@@ -612,19 +748,13 @@ export function TagPoolBody({
                 );
               })}
             </div>
+          ) : isCapped ? (
+            // Flat capped section (Franchise). Section-level zero matches
+            // is already handled by the hint branch above, so this list is
+            // never silently empty during a search.
+            <CappedChipRow key={gridResetKey} tags={activeGridTags} searching={searchActive} selectedTags={selectedTags} onChipToggle={onChipToggle} />
           ) : (
-            <ChipRow
-              tags={sortTags(
-                applyQuery(
-                  active.section.key === "genres"
-                    ? genreTags(allTags)
-                    : tagsForCategories(domain, allTags, active.section.categories ?? [], level, totalSeriesCount),
-                ),
-                sort,
-              )}
-              selectedTags={selectedTags}
-              onChipToggle={onChipToggle}
-            />
+            <ChipRow tags={activeGridTags} selectedTags={selectedTags} onChipToggle={onChipToggle} />
           )}
         </ScrollFadeArea>
       </div>

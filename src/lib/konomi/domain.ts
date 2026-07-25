@@ -32,6 +32,18 @@ export interface TagSection {
   // pattern; Story alone has 17 sections, unusable as one vertical scroll).
   // Empty subsections are hidden either way, same rule as empty sections.
   subsectionsAsTabs?: boolean;
+  // Opt-in browse cap (BROWSE_CAP in TagPoolBody): the grid initially
+  // renders only the top N tags under the active sort and appends more as
+  // the user scrolls, instead of eagerly mounting the whole list.
+  // Deliberately per-section, NOT a global rule (user-ruled 2026-07-25):
+  // only the measured offenders opt in — film People (~13k tags across
+  // sub-tabs; Actors alone 6.9k) and Franchise (~600) — because eagerly
+  // mounting those grids caused real, user-felt lag (worst during a
+  // panel resize-drag with a search query live). Every other section
+  // renders in full exactly as before; reconsider per section as data
+  // scales. Cap applies per active sub-tab grid (Actors top 50,
+  // Directors top 50), never to the anime-style inline-grouped shape.
+  capped?: boolean;
 }
 
 export interface LevelOption {
