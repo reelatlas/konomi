@@ -21,7 +21,7 @@
 // in this corpus. Anime measured 0 collisions everywhere, which is why
 // title-keying survived the anime era; it does not survive film.
 // Migration state: Phase 1 (ids carried through adapters) DONE · Phase 2
-// (series state: locked/flipped/newTitles/swap → id) · Phase 3a (tag
+// (series state: locked/flipped/newIds/swap → id-keyed) DONE · Phase 3a (tag
 // payload + selection → id; removes filmQueries' name-merge — NOTE the
 // expected behavior change: one chip stops unioning same-named entities/
 // roles, selecting actor-De Niro no longer matches producer-only credits)

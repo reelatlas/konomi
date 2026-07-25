@@ -57,7 +57,7 @@ interface KonomiState {
   // describing a batch that's no longer current), though nothing currently
   // depends on that specific reset for correctness — see recommend()'s own
   // comment on why locked entries are naturally excluded regardless.
-  newTitles: string[];
+  newIds: string[];
   // Titles that were on screen JUST BEFORE the most recent RECOMMEND — i.e.
   // the previous batch. Powers the results-header "new vs existing" split: a
   // current result whose title is in here reappeared (existing); one that isn't
@@ -69,7 +69,7 @@ interface KonomiState {
   // (not derived from newTitles): the header's partition also covers locked
   // cards, and the one-batch-deep memory is the deliberate scope — a card
   // from two rolls ago genuinely counts as new again.
-  prevResultTitles: string[];
+  prevResultIds: string[];
   // Bumped once per CLEAR_RECS dispatch, mirroring recommendGen's own
   // pattern — an explicit "Clear ✕ just ran" signal for the exit
   // animation, rather than the component having to infer it by diffing
@@ -97,8 +97,8 @@ function createInitialState(catalog: { series: Series[]; tags: TagInfo[] }): Kon
     error: null,
     recommendGen: 0,
     firstNewIndex: 0,
-    newTitles: [],
-    prevResultTitles: [],
+    newIds: [],
+    prevResultIds: [],
     clearGen: 0,
   };
 }
@@ -111,13 +111,13 @@ type Action =
   | { type: "CLEAR_DRAG_OVER" }
   | { type: "SET_MIN_MATCH"; key: MatchKey }
   | { type: "RECOMMEND" }
-  | { type: "REPLACE_CARD"; title: string }
+  | { type: "REPLACE_CARD"; id: string }
   | { type: "CLEAR_RECS" }
   | { type: "RANDOM_TAGS"; visible: string[] }
   | { type: "CLEAR_SLOTS" }
-  | { type: "TOGGLE_LOCK"; title: string }
+  | { type: "TOGGLE_LOCK"; id: string }
   | { type: "UNLOCK_ALL" }
-  | { type: "TOGGLE_FLIP"; title: string }
+  | { type: "TOGGLE_FLIP"; id: string }
   | { type: "SET_THEME"; theme: ThemeKey }
   | { type: "PRUNE_TAGS"; visible: Set<string> };
 
@@ -144,15 +144,15 @@ function recommend(state: KonomiState): KonomiState {
   if (sel.length < min) {
     return { ...state, generated: true, error: "impossible-min" };
   }
-  const lockedTitles = new Set(Object.keys(state.locked).filter((k) => state.locked[k]));
-  const keptTitles = new Set<string>();
+  const lockedIds = new Set(Object.keys(state.locked).filter((k) => state.locked[k]));
+  const keptIds = new Set<string>();
   state.results.forEach((r) => {
-    if (lockedTitles.has(r.series.title)) keptTitles.add(r.series.title);
+    if (lockedIds.has(r.series.id)) keptIds.add(r.series.id);
   });
   // Locks fill every slot: a roll has zero free positions regardless of what
   // the pools hold, so error before even scoring the catalog. Unlocking (the
   // one fix) clears this via TOGGLE_LOCK/UNLOCK_ALL below.
-  const lockedShown = state.results.filter((r) => keptTitles.has(r.series.title));
+  const lockedShown = state.results.filter((r) => keptIds.has(r.series.id));
   if (lockedShown.length >= DEFAULT_RESULT_COUNT) {
     return { ...state, generated: true, error: "all-locked" };
   }
@@ -163,9 +163,9 @@ function recommend(state: KonomiState): KonomiState {
   // (still ≥ min-match, independently shuffled), used only when the fresh
   // tier can't fill every slot — so a short pool degrades to "all the fresh
   // ones first, then repeats", never to an artificially short row.
-  const shownTitles = new Set(state.results.map((r) => r.series.title));
-  const freshPool = scorePool(state.series, sel, min, shownTitles);
-  const fallbackPool = scorePool(state.results.map((r) => r.series), sel, min, keptTitles);
+  const shownIds = new Set(state.results.map((r) => r.series.id));
+  const freshPool = scorePool(state.series, sel, min, shownIds);
+  const fallbackPool = scorePool(state.results.map((r) => r.series), sel, min, keptIds);
   // Zero fresh picks possible → error with results untouched, never a pure
   // no-op reshuffle (tested: an invisible "success" reads as a dead button).
   // Which error follows the guided flow: repeats exist → "no-new-matches";
@@ -201,7 +201,7 @@ function recommend(state: KonomiState): KonomiState {
   // preserves each carried block's on-screen relative order.
   const out: ResultEntry[] = [];
   state.results.forEach((r) => {
-    if (lockedTitles.has(r.series.title)) out.push({ series: r.series });
+    if (lockedIds.has(r.series.id)) out.push({ series: r.series });
   });
   // Only FRESH-tier picks land in newTitles — see its comment on KonomiState.
   // Fallback repeats are deliberately excluded: with no enter class, a moved
@@ -217,23 +217,23 @@ function recommend(state: KonomiState): KonomiState {
   // always sits contiguously at the end. A first version placed repeats at
   // the tail instead, which made survivors slide in two opposite directions
   // on the same roll — tested and rejected as confusing.
-  const newTitles: string[] = [];
+  const newIds: string[] = [];
   const freshPicks: ResultEntry[] = [];
   let pi = 0;
   while (out.length + freshPicks.length < DEFAULT_RESULT_COUNT && pi < freshPool.length) {
     freshPicks.push(freshPool[pi]);
-    newTitles.push(freshPool[pi].series.title);
+    newIds.push(freshPool[pi].series.id);
     pi++;
   }
   // The shuffled fallbackPool decides WHICH repeats return when only some
   // fit; walking state.results decides their order (prior on-screen order,
   // pure compaction — no crossing slides).
   const repeatSlots = DEFAULT_RESULT_COUNT - out.length - freshPicks.length;
-  const repeatTitles = new Set(
-    fallbackPool.slice(0, Math.max(0, repeatSlots)).map((r) => r.series.title),
+  const repeatIds = new Set(
+    fallbackPool.slice(0, Math.max(0, repeatSlots)).map((r) => r.series.id),
   );
   state.results.forEach((r) => {
-    if (repeatTitles.has(r.series.title)) out.push({ series: r.series });
+    if (repeatIds.has(r.series.id)) out.push({ series: r.series });
   });
   // Captured AFTER repeats, BEFORE fresh: the first genuinely fresh card
   // lands right here (see firstNewIndex's comment on KonomiState).
@@ -244,11 +244,11 @@ function recommend(state: KonomiState): KonomiState {
   // exhausted pool, or a pool that ran fully short — no new card to focus, so
   // fall back to the first card, matching the pre-lock "scroll to the top"
   // reset).
-  const firstNewIndex = newTitles.length > 0 ? carriedCount : 0;
-  const outTitles = new Set(out.map((r) => r.series.title));
+  const firstNewIndex = newIds.length > 0 ? carriedCount : 0;
+  const outIds = new Set(out.map((r) => r.series.id));
   const flipped: Record<string, boolean> = {};
   Object.keys(state.flipped).forEach((t) => {
-    if (outTitles.has(t) && state.flipped[t]) flipped[t] = true;
+    if (outIds.has(t) && state.flipped[t]) flipped[t] = true;
   });
   return {
     ...state,
@@ -258,10 +258,10 @@ function recommend(state: KonomiState): KonomiState {
     error: null,
     recommendGen: state.recommendGen + 1,
     firstNewIndex,
-    newTitles,
+    newIds,
     // The batch that was showing before this RECOMMEND — state.results is still
     // the old array here (out is separate), so this captures the prior titles.
-    prevResultTitles: state.results.map((r) => r.series.title),
+    prevResultIds: state.results.map((r) => r.series.id),
   };
 }
 
@@ -296,15 +296,15 @@ function clearErrorForTagChange(state: KonomiState, slots: Slot[]): MixerError {
 // Targets by title, not array index — the same stable identifier
 // `TOGGLE_LOCK`/`TOGGLE_FLIP` already use, so a swap can't be thrown off by
 // whatever positional assumptions the rendering layer happens to make.
-function replaceCard(state: KonomiState, title: string): KonomiState {
-  const index = state.results.findIndex((r) => r.series.title === title);
+function replaceCard(state: KonomiState, id: string): KonomiState {
+  const index = state.results.findIndex((r) => r.series.id === id);
   if (index < 0) return state;
   const old = state.results[index];
-  if (state.locked[old.series.title]) return state;
+  if (state.locked[old.series.id]) return state;
   const sel = selectedTags(state.slots);
   if (!sel.length) return state;
   const min = Number(state.minMatch);
-  const shown = new Set(state.results.map((r) => r.series.title));
+  const shown = new Set(state.results.map((r) => r.series.id));
   const pool = scorePool(state.series, sel, min, shown);
   if (!pool.length) return state;
   const res = [...state.results];
@@ -312,15 +312,15 @@ function replaceCard(state: KonomiState, title: string): KonomiState {
   const locked = { ...state.locked };
   const flipped = { ...state.flipped };
   if (old) {
-    delete locked[old.series.title];
-    delete flipped[old.series.title];
+    delete locked[old.series.id];
+    delete flipped[old.series.id];
   }
   return { ...state, results: res, locked, flipped };
 }
 
 function clearRecs(state: KonomiState): KonomiState {
-  const lockedTitles = new Set(Object.keys(state.locked).filter((k) => state.locked[k]));
-  const kept = state.results.filter((r) => lockedTitles.has(r.series.title));
+  const lockedIds = new Set(Object.keys(state.locked).filter((k) => state.locked[k]));
+  const kept = state.results.filter((r) => lockedIds.has(r.series.id));
   // clearGen bumps on every call, regardless of which branch below runs —
   // see its own comment on KonomiState. The result-card exit animation
   // reads this to know Clear ✕ just fired, distinct from any other action
@@ -331,15 +331,15 @@ function clearRecs(state: KonomiState): KonomiState {
   // KonomiState for why nothing currently depends on this specific reset
   // for correctness (locked entries were never in it to begin with).
   if (!kept.length) {
-    return { ...state, results: [], generated: false, locked: {}, flipped: {}, error: null, clearGen, newTitles: [] };
+    return { ...state, results: [], generated: false, locked: {}, flipped: {}, error: null, clearGen, newIds: [] };
   }
   const locked: Record<string, boolean> = {};
   const flipped: Record<string, boolean> = {};
   kept.forEach((r) => {
-    locked[r.series.title] = true;
-    if (state.flipped[r.series.title]) flipped[r.series.title] = true;
+    locked[r.series.id] = true;
+    if (state.flipped[r.series.id]) flipped[r.series.id] = true;
   });
-  return { ...state, results: kept, generated: true, locked, flipped, error: null, clearGen, newTitles: [] };
+  return { ...state, results: kept, generated: true, locked, flipped, error: null, clearGen, newIds: [] };
 }
 
 // Generic "clear any slot whose tag isn't in this set" — used when the tag
@@ -435,7 +435,7 @@ function reducer(state: KonomiState, action: Action): KonomiState {
     case "RECOMMEND":
       return recommend(state);
     case "REPLACE_CARD":
-      return replaceCard(state, action.title);
+      return replaceCard(state, action.id);
     case "CLEAR_RECS":
       return clearRecs(state);
     case "RANDOM_TAGS":
@@ -445,14 +445,14 @@ function reducer(state: KonomiState, action: Action): KonomiState {
       return { ...state, slots: s, error: clearErrorForTagChange(state, s) };
     }
     case "TOGGLE_LOCK": {
-      const nowLocked = !state.locked[action.title];
+      const nowLocked = !state.locked[action.id];
       // Unlocking is exactly the fix "all-locked" asks for, so it clears the
       // error and re-enables RECOMMEND immediately; the next press
       // re-derives the true state and surfaces "no-new-matches" if the pool
       // is still exhausted (guided flow — one blocker at a time). Locking
       // never sets anything here: errors are only ever set by a press.
       const error = !nowLocked && state.error === "all-locked" ? null : state.error;
-      return { ...state, locked: { ...state.locked, [action.title]: nowLocked }, error };
+      return { ...state, locked: { ...state.locked, [action.id]: nowLocked }, error };
     }
     // Clears every lock at once (the results-header "unlock all" affordance).
     // A blanket reset to {} rather than a per-title unset: `locked` only ever
@@ -463,7 +463,7 @@ function reducer(state: KonomiState, action: Action): KonomiState {
     case "UNLOCK_ALL":
       return { ...state, locked: {}, error: state.error === "all-locked" ? null : state.error };
     case "TOGGLE_FLIP":
-      return { ...state, flipped: { ...state.flipped, [action.title]: !state.flipped[action.title] } };
+      return { ...state, flipped: { ...state.flipped, [action.id]: !state.flipped[action.id] } };
     case "SET_THEME":
       return { ...state, theme: action.theme };
     case "PRUNE_TAGS":
@@ -502,12 +502,12 @@ export function useKonomi(initialSeries: Series[], initialTags: TagInfo[]) {
   const filledCount = sel.length;
   const minNum = Number(state.minMatch);
 
-  const shownTitles = useMemo(() => new Set(state.results.map((r) => r.series.title)), [state.results]);
+  const shownIds = useMemo(() => new Set(state.results.map((r) => r.series.id)), [state.results]);
 
   const canSwap = useMemo(() => {
     if (filledCount === 0) return false;
-    return state.series.some((s) => !shownTitles.has(s.title) && scoreSeries(s, sel) >= minNum);
-  }, [filledCount, shownTitles, sel, minNum, state.series]);
+    return state.series.some((s) => !shownIds.has(s.id) && scoreSeries(s, sel) >= minNum);
+  }, [filledCount, shownIds, sel, minNum, state.series]);
 
   // name -> TagInfo lookup so result cards can merge a series' tags and
   // genres into one list, then level-filter and sort it exactly like the
@@ -554,13 +554,13 @@ export function useKonomi(initialSeries: Series[], initialTags: TagInfo[]) {
         dispatch({ type: "RECOMMEND" });
         return error;
       },
-      replaceCard: (title: string) => dispatch({ type: "REPLACE_CARD", title }),
+      replaceCard: (id: string) => dispatch({ type: "REPLACE_CARD", id }),
       clearRecs: () => dispatch({ type: "CLEAR_RECS" }),
       randomTags: (visible: string[]) => dispatch({ type: "RANDOM_TAGS", visible }),
       clearSlots: () => dispatch({ type: "CLEAR_SLOTS" }),
-      toggleLock: (title: string) => dispatch({ type: "TOGGLE_LOCK", title }),
+      toggleLock: (id: string) => dispatch({ type: "TOGGLE_LOCK", id }),
       unlockAll: () => dispatch({ type: "UNLOCK_ALL" }),
-      toggleFlip: (title: string) => dispatch({ type: "TOGGLE_FLIP", title }),
+      toggleFlip: (id: string) => dispatch({ type: "TOGGLE_FLIP", id }),
       setTheme: (theme: ThemeKey) => dispatch({ type: "SET_THEME", theme }),
       pruneTags: (visible: Set<string>) => dispatch({ type: "PRUNE_TAGS", visible }),
     }),
@@ -586,8 +586,8 @@ export function useKonomi(initialSeries: Series[], initialTags: TagInfo[]) {
     mixerError: state.error,
     recommendGen: state.recommendGen,
     firstNewIndex: state.firstNewIndex,
-    newTitles: state.newTitles,
-    prevResultTitles: state.prevResultTitles,
+    newIds: state.newIds,
+    prevResultIds: state.prevResultIds,
     clearGen: state.clearGen,
     ...actions,
   };

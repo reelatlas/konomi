@@ -80,7 +80,7 @@ export function getVisibleCardTierCount(width: number): number {
 // cosmetic "how tight should the sweep read right now" question, so it's
 // correct (and requested) for it to react live to lock changes even though
 // isEntering itself must not.
-export function getAnimatingPaceCount(titles: string[], locked: Record<string, boolean>, visibleTierCount: number): number {
-  const windowTitles = titles.slice(0, Math.min(visibleTierCount, titles.length));
-  return windowTitles.filter((t) => !locked[t]).length;
+export function getAnimatingPaceCount(ids: string[], locked: Record<string, boolean>, visibleTierCount: number): number {
+  const windowIds = ids.slice(0, Math.min(visibleTierCount, ids.length));
+  return windowIds.filter((t) => !locked[t]).length;
 }

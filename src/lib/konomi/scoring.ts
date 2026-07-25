@@ -13,10 +13,10 @@ export function scorePool(
   series: Series[],
   selectedTags: string[],
   min: number,
-  excludeTitles: Set<string>,
+  excludeIds: Set<string>,
 ): ResultEntry[] {
   return series
-    .filter((s) => !excludeTitles.has(s.title) && scoreSeries(s, selectedTags) >= min)
+    .filter((s) => !excludeIds.has(s.id) && scoreSeries(s, selectedTags) >= min)
     .map((s) => ({ series: s, r: Math.random() }))
     .sort((a, b) => a.r - b.r)
     .map((x) => ({ series: x.series }));

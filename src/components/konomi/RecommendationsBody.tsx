@@ -199,7 +199,7 @@ interface RecommendationsBodyProps {
   // own comment on KonomiState (useKonomi.ts). Gates the enter animation;
   // deliberately not derived from `locked`, so a lock/unlock toggle never
   // replays a card's entrance.
-  newTitles: string[];
+  newIds: string[];
   // Bumped once per Clear ✕ — see this field's own comment on KonomiState.
   // Drives the exit-animation orchestration below.
   clearGen: number;
@@ -242,7 +242,7 @@ export function RecommendationsBody({
   minNum,
   recommendGen,
   firstNewIndex,
-  newTitles,
+  newIds,
   clearGen,
   locked,
   flipped,
@@ -317,7 +317,7 @@ export function RecommendationsBody({
   // ResultCard instance that mounts there can seed its own hoveredIcon
   // state to "swap" (see ResultCard's own startWithSwapHint comment) —
   // confirmed live as a real bug otherwise: ResultCard keys each card by
-  // series.title (see the map below), and swap replaces that title, so
+  // series.id (see the map below), and swap replaces that id, so
   // React tears down the old instance and mounts a brand new one for the
   // new series — resetting ResultCard's own local hoveredIcon state along
   // with it, unlike lock (which never changes the title, so the same
@@ -364,7 +364,7 @@ export function RecommendationsBody({
   // Motion/AnimatePresence — so this component owns keeping a Clear-✕'d card
   // mounted through its exit itself, via a lagging displayedResults copy (the
   // pre-Motion mechanism, restored). On a Clear ✕ (clearGen bump) any removed
-  // titles go into exitingTitles and keep rendering out of displayedResults —
+  // titles go into exitingIds and keep rendering out of displayedResults —
   // playing animate-card-exit — until the settle timer below drops them; any
   // OTHER results change (a fresh RECOMMEND, a single-card swap) syncs
   // displayedResults immediately with no exit choreography (this app's
@@ -373,31 +373,31 @@ export function RecommendationsBody({
   // codebase uses to satisfy the react-hooks rules.
   const [displayedResults, setDisplayedResults] = useState(results);
   const [lastClearGen, setLastClearGen] = useState(clearGen);
-  const [exitingTitles, setExitingTitles] = useState<ReadonlySet<string>>(new Set());
+  const [exitingIds, setExitingIds] = useState<ReadonlySet<string>>(new Set());
   if (clearGen !== lastClearGen) {
     setLastClearGen(clearGen);
-    const stillThere = new Set(results.map((r) => r.series.title));
-    const removed = displayedResults.filter((r) => !stillThere.has(r.series.title));
+    const stillThere = new Set(results.map((r) => r.series.id));
+    const removed = displayedResults.filter((r) => !stillThere.has(r.series.id));
     if (removed.length > 0) {
       // displayedResults left as the full pre-clear set, so the removed cards
       // keep rendering (and animating out) until the settle effect finalizes.
-      setExitingTitles(new Set(removed.map((r) => r.series.title)));
+      setExitingIds(new Set(removed.map((r) => r.series.id)));
     } else {
       setDisplayedResults(results);
     }
-  } else if (results !== displayedResults && exitingTitles.size === 0) {
+  } else if (results !== displayedResults && exitingIds.size === 0) {
     setDisplayedResults(results);
   }
   // Finalizes a Clear ✕ once its exit animation has actually finished — a plain
   // timer matching the declared duration, NOT animationend/transitionend (this
   // app treats animation-completion events as unreliable on real devices; see
   // MixerBar/RollingLabel history). Only re-fires on a genuine empty->non-empty
-  // exitingTitles transition, not every render.
+  // exitingIds transition, not every render.
   useEffect(() => {
-    if (exitingTitles.size === 0) return;
+    if (exitingIds.size === 0) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const paceCount = getAnimatingPaceCount(
-      displayedResults.map((r) => r.series.title),
+      displayedResults.map((r) => r.series.id),
       locked,
       visibleCardTierCount,
     );
@@ -405,7 +405,7 @@ export function RecommendationsBody({
     // exit isn't clipped or overheld by a timer still on the shipped numbers
     // — the timer must match whatever the cards are actually declared to
     // run. Captured at the moment the exit starts (this effect deliberately
-    // only fires on the exitingTitles transition).
+    // only fires on the exitingIds transition).
     const effectiveStaggerMs = getSteppedStaggerMs(cardStaggerMs, staggerStepMs, paceCount);
     // Last card to finish is the one with the largest delay = the last index
     // (L->R stagger), so total = duration + (count-1)*stagger.
@@ -418,11 +418,11 @@ export function RecommendationsBody({
       // to pick the post-Clear slide duration (see its declaration above).
       setPostClearSlide(true);
       setDisplayedResults(results);
-      setExitingTitles(new Set());
+      setExitingIds(new Set());
     }, totalMs);
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-fires on exitingTitles itself changing, see comment above
-  }, [exitingTitles]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-fires on exitingIds itself changing, see comment above
+  }, [exitingIds]);
   // ScrollFadeArea (horizontal orientation) now owns the scroll/fade/arrow
   // mechanics here — the same primitive the Tag Pool's section tab strip
   // uses (SectionTabStrip.tsx) — via getScrollStep/scrollResetKey/arrow*
@@ -447,14 +447,14 @@ export function RecommendationsBody({
   // hasResults alone would flip false the instant Clear ✕ dispatches (see
   // useKonomi.ts), showing the empty-state placeholder *before* the exiting
   // cards below have finished their own animation. Staying "true" for the extra
-  // beat while exitingTitles is non-empty keeps the grid (and displayedResults'
+  // beat while exitingIds is non-empty keeps the grid (and displayedResults'
   // still-mounted, animating-out cards) on screen for that whole window. A
   // no-op for a partial clear (some cards locked): hasResults is already true
   // there regardless, since the locked cards keep `results` non-empty.
-  const showResultsGrid = hasResults || exitingTitles.size > 0;
+  const showResultsGrid = hasResults || exitingIds.size > 0;
 
   // Empty-state box enter/exit — Path A (CSS keyframes, mirroring the cards'
-  // own displayedResults/exitingTitles mount-through-exit mechanism above, NOT
+  // own displayedResults/exitingIds mount-through-exit mechanism above, NOT
   // AnimatePresence; see globals.css empty-state-enter/exit). The box animates
   // as one more object in the SAME upward sweep as the cards:
   //   • RECOMMEND (empty -> results): the box is knocked up and out. hasResults
@@ -1103,10 +1103,10 @@ export function RecommendationsBody({
               <div aria-hidden className="hidden max-[1152px]:block max-[1152px]:w-[6px] flex-none [scroll-snap-align:start]" />
               {/* Card enter/exit is plain CSS keyframes now (ResultCard /
                   globals.css), not AnimatePresence. Departing cards stay mounted
-                  through their exit via the lagging displayedResults/exitingTitles
+                  through their exit via the lagging displayedResults/exitingIds
                   above: a Clear ✕ leaves them in this map tagged isExiting until
                   the settle timer drops them; a RECOMMEND/swap replacement isn't
-                  in exitingTitles, so it's simply no longer rendered (instant
+                  in exitingIds, so it's simply no longer rendered (instant
                   removal — this app's deliberate asymmetry, only Clear ✕ animates
                   a departure). Iterating displayedResults (NOT results) is what
                   keeps the exiting cards in the DOM through their animation. */}
@@ -1124,7 +1124,7 @@ export function RecommendationsBody({
                   // once here, outside the per-card map below, since it's the
                   // same for every card this render.
                   const paceCount = getAnimatingPaceCount(
-                    displayedResults.map((r) => r.series.title),
+                    displayedResults.map((r) => r.series.id),
                     locked,
                     visibleCardTierCount,
                   );
@@ -1133,10 +1133,10 @@ export function RecommendationsBody({
                   // 0 = flat stagger. See getSteppedStaggerMs's own comment.
                   const effectiveStaggerMs = getSteppedStaggerMs(cardStaggerMs, staggerStepMs, paceCount);
                   return displayedResults.map((entry, index) => {
-                    // Exiting wins: a card removed by a Clear ✕ (in exitingTitles)
+                    // Exiting wins: a card removed by a Clear ✕ (in exitingIds)
                     // plays the exit keyframe, not the enter, even if its title
                     // still happens to be in newTitles.
-                    const isExiting = exitingTitles.has(entry.series.title);
+                    const isExiting = exitingIds.has(entry.series.id);
                     // Enter gating: newTitles (useKonomi.ts), or a dice swap
                     // (justSwappedIndex, the same signal that seeds
                     // startWithSwapHint below). Decoupled from live lock state so
@@ -1154,7 +1154,7 @@ export function RecommendationsBody({
                     // newTitles, so moved cards carry no enter class and
                     // FLIP-slide (layoutSlide) instead.
                     const isEnteringFromSwap = justSwappedIndex === index;
-                    const isEntering = !isExiting && (newTitles.includes(entry.series.title) || isEnteringFromSwap);
+                    const isEntering = !isExiting && (newIds.includes(entry.series.id) || isEnteringFromSwap);
                     // Stagger delay for whichever keyframe is active — both enter
                     // and exit sweep L->R (index * stagger); a swap entrance has
                     // no stagger (single card). Unused when neither is active.
@@ -1177,8 +1177,8 @@ export function RecommendationsBody({
                         selectedTags={selectedTags}
                         filledCount={filledCount}
                         minNum={minNum}
-                        locked={Boolean(locked[entry.series.title])}
-                        flipped={Boolean(flipped[entry.series.title])}
+                        locked={Boolean(locked[entry.series.id])}
+                        flipped={Boolean(flipped[entry.series.id])}
                         canSwap={canSwap}
                         onFlip={onFlip}
                         onToggleLock={onToggleLock}

@@ -321,13 +321,14 @@ export function ResultCard({
   return (
     <article
       data-title={series.title}
+      data-id={series.id}
       // data-result-card: lets MixerBar's click-outside-closes-edit-mode
       // listener allowlist this whole card (body, the lock/dice icon
       // buttons, the tag chips — everything rendered inside it) as one
       // zone via a single closest() check, rather than special-casing each
       // control inside it. See MixerBar.tsx's own comment on the allowlist.
       data-result-card
-      onClick={() => onFlip(series.title)}
+      onClick={() => onFlip(series.id)}
       // h-[var(--result-card-height)], not a literal h-[421px]: shared with
       // RecommendationsSection's empty-state placeholder so the two can
       // never drift out of sync (see the token's own comment in
@@ -777,6 +778,7 @@ export function ResultCard({
                 size="sm"
                 aria-label={lockHint}
                 data-title={series.title}
+      data-id={series.id}
                 onClick={(e) => {
                   e.stopPropagation();
                   // e.currentTarget.focus(): mobile Safari/Chrome don't
@@ -796,7 +798,7 @@ export function ResultCard({
                   // correctly for the *next* tap, on whichever icon it
                   // lands on, every time.
                   e.currentTarget.focus();
-                  onToggleLock(series.title);
+                  onToggleLock(series.id);
                 }}
                 // supportsHover-gated, not unconditional: real touch
                 // devices still fire synthetic mouseenter/mouseleave as
@@ -899,7 +901,7 @@ export function ResultCard({
                   // can't be trusted to focus it natively on mobile, so
                   // force it explicitly every time.
                   e.currentTarget.focus();
-                  onReplace(series.title);
+                  onReplace(series.id);
                 }}
                 // supportsHover-gated — see lock's own onMouseEnter/
                 // onMouseLeave comment above for the full mechanism this

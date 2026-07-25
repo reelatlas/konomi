@@ -616,18 +616,18 @@ export function KonomiApp({ side, initialSeries, initialTags }: KonomiAppProps) 
               hasResults={k.hasResults}
               // Partition the current results into locked / new / existing (they
               // sum to results.length). A result is LOCKED if held; else EXISTING
-              // if its title was in the previous batch (prevResultTitles), else
+              // if its id was in the previous batch (prevResultIds), else
               // NEW. Locked wins over existing so a carried-over lock is counted
               // once, as locked (see ResultsHeader's own comment).
-              lockedCount={k.results.filter((r) => k.locked[r.series.title]).length}
+              lockedCount={k.results.filter((r) => k.locked[r.series.id]).length}
               newCount={
                 k.results.filter(
-                  (r) => !k.locked[r.series.title] && !k.prevResultTitles.includes(r.series.title),
+                  (r) => !k.locked[r.series.id] && !k.prevResultIds.includes(r.series.id),
                 ).length
               }
               existingCount={
                 k.results.filter(
-                  (r) => !k.locked[r.series.title] && k.prevResultTitles.includes(r.series.title),
+                  (r) => !k.locked[r.series.id] && k.prevResultIds.includes(r.series.id),
                 ).length
               }
               onUnlockAll={k.unlockAll}
@@ -635,7 +635,7 @@ export function KonomiApp({ side, initialSeries, initialTags }: KonomiAppProps) 
               // Every current result locked (see the prop's comment in
               // ResultsHeader) — a Clear ✕ would keep them all, changing
               // nothing while still clearing the mixer error.
-              clearDisabled={k.results.length > 0 && k.results.every((r) => k.locked[r.series.title])}
+              clearDisabled={k.results.length > 0 && k.results.every((r) => k.locked[r.series.id])}
               onLevelChange={handleLevelChange}
             />
 
@@ -647,7 +647,7 @@ export function KonomiApp({ side, initialSeries, initialTags }: KonomiAppProps) 
               minNum={k.minNum}
               recommendGen={k.recommendGen}
               firstNewIndex={k.firstNewIndex}
-              newTitles={k.newTitles}
+              newIds={k.newIds}
               clearGen={k.clearGen}
               locked={k.locked}
               flipped={k.flipped}
