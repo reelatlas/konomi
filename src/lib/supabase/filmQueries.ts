@@ -92,6 +92,7 @@ interface RawFilmRow {
 }
 
 interface RawFilmTagRow {
+  key: string; // stable typed identity: person:actor:1032, saga:645, studio:2, kw:heist
   type: string;
   name: string;
   section: string | null;
@@ -146,7 +147,7 @@ export async function getFilmCatalog(): Promise<Catalog> {
   // already computed by the promote script, so no client-side stat pass is
   // needed the way the anime side derives seriesCount/avgRank.
   const [tagRows, rows] = await Promise.all([
-    fetchAllPaged<RawFilmTagRow>("film_tags", "type, name, section, film_count, min_level", "id", 1000),
+    fetchAllPaged<RawFilmTagRow>("film_tags", "key, type, name, section, film_count, min_level", "id", 1000),
     // Ordered by tmdb_id, not title: range pagination needs a UNIQUE sort
     // column or rows can straddle page boundaries on ties (duplicate
     // titles genuinely exist — remakes), silently duplicating/dropping
@@ -160,6 +161,7 @@ export async function getFilmCatalog(): Promise<Catalog> {
   ]);
 
   const storedTags: TagInfo[] = tagRows.map((t) => ({
+    id: `tmdb-tag:${t.key}`, // minted from the DB key, never the display name (THE IDENTITY CONTRACT, types.ts)
     name: t.name,
     // kw rows carry their master-ruled section; credit/saga rows carry
     // null and get their home from their type.
@@ -257,17 +259,21 @@ export async function getFilmCatalog(): Promise<Catalog> {
   // Synthesized TagInfo entries. Level gates per adapter-config.json:
   // reception ships at every level (moviegoer included); origin +
   // certification are film buff+ ("1" would be the one-line change).
+  // Synth ids come from the RAW stable value (reception key, decade
+  // string, ISO country/language code, cert) — display renames (decadeTagName
+  // & co.) stay free to change without breaking identity.
   const synthTags: TagInfo[] = [
-    ...[...counts.reception.entries()].map(([name, n]) => tagInfo(name, receptionCategory(name), n, "1")),
-    ...[...counts.decade.entries()].map(([d, n]) => tagInfo(decadeTagName(d), "Origin-Decade", n, "2")),
-    ...[...counts.country.entries()].map(([c, n]) => tagInfo(countryTagName(c), "Origin-Country", n, "2")),
-    ...[...counts.language.entries()].map(([c, n]) => tagInfo(languageTagName(c), "Origin-Language", n, "2")),
-    ...[...counts.cert.entries()].map(([c, n]) => tagInfo(certTagName(c), "Origin-Rated", n, "2")),
+    ...[...counts.reception.entries()].map(([name, n]) => tagInfo(`tmdb-synth:reception:${name}`, name, receptionCategory(name), n, "1")),
+    ...[...counts.decade.entries()].map(([d, n]) => tagInfo(`tmdb-synth:decade:${d}`, decadeTagName(d), "Origin-Decade", n, "2")),
+    ...[...counts.country.entries()].map(([c, n]) => tagInfo(`tmdb-synth:country:${c}`, countryTagName(c), "Origin-Country", n, "2")),
+    ...[...counts.language.entries()].map(([c, n]) => tagInfo(`tmdb-synth:language:${c}`, languageTagName(c), "Origin-Language", n, "2")),
+    ...[...counts.cert.entries()].map(([c, n]) => tagInfo(`tmdb-synth:cert:${c}`, certTagName(c), "Origin-Rated", n, "2")),
   ];
 
   // Genres mirror the anime convention exactly: isGenre: true short-circuits
   // every level check (wt-100, always visible), category null.
   const genreTags: TagInfo[] = [...counts.genre.entries()].map(([name, count]) => ({
+    id: `tmdb-genre:${name}`,
     name,
     category: null,
     seriesCount: count,
@@ -285,8 +291,10 @@ export async function getFilmCatalog(): Promise<Catalog> {
   // both entities. One chip, with seriesCount recomputed as the TRUE
   // number of films carrying the name (not a sum, which would double-count
   // a film linked to both same-named tags); minLevel takes the most
-  // permissive of the group. If per-entity identity ever matters, that's
-  // the key-based-matching refactor, not a rendering patch.
+  // permissive of the group. Phase 3a of THE IDENTITY CONTRACT (types.ts)
+  // REMOVES this merge — until then the merged chip carries the first
+  // entity's id, a known Phase-1 placeholder. Expected 3a behavior change
+  // (not a regression): one chip stops unioning same-named entities/roles.
   const dupNames = new Set<string>();
   {
     const seen = new Set<string>();
@@ -316,8 +324,8 @@ export async function getFilmCatalog(): Promise<Catalog> {
   return { series, tags };
 }
 
-function tagInfo(name: string, category: string, seriesCount: number, minLevel: LevelKey): TagInfo {
-  return { name, category, seriesCount, avgRank: null, isGenre: false, minLevel };
+function tagInfo(id: string, name: string, category: string, seriesCount: number, minLevel: LevelKey): TagInfo {
+  return { id, name, category, seriesCount, avgRank: null, isGenre: false, minLevel };
 }
 
 // Reception splits into two sub-tabs (user, 2026-07-24): the money tags vs

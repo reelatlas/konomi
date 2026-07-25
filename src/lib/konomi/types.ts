@@ -4,17 +4,31 @@
 // fills the shared core, plus its own optional fields below; presentation
 // differences (eps vs runtime, rating scale) live in the Domain's cardMeta
 // mapping, not in per-side card components.
+// ---- THE IDENTITY CONTRACT (locked 2026-07-25, census-backed) ----
+// Every selectable and every series-tag membership is id-addressable;
+// display strings NEVER key anything — not React keys, not state maps,
+// not scoring. Ids are opaque provider-scoped strings so the two sides
+// (and any future source) can never collide with each other:
+//   series   anilist:<anilist_id>            tmdb:<tmdb_id>
+//   tags     anilist-tag:<anilist_id>        tmdb-tag:<film_tags.key>
+//   genres   anilist-genre:<name>            tmdb-genre:<name>
+//   synth    —                               tmdb-synth:<kind>:<value>
+// film_tags.key is already the stable typed identity (person:actor:1032,
+// saga:645, studio:2, kw:heist — provider ids, not display names); mint
+// from it, never from a display name. Measured motivation: 241 film
+// titles collide (504 rows, Godzilla/Dracula/…) and 498 film tag names
+// collide (1,071 rows, Tarantino ×4) — display strings are ~6-7% ambiguous
+// in this corpus. Anime measured 0 collisions everywhere, which is why
+// title-keying survived the anime era; it does not survive film.
+// Migration state: Phase 1 (ids carried through adapters) DONE · Phase 2
+// (series state: locked/flipped/newTitles/swap → id) · Phase 3a (tag
+// payload + selection → id; removes filmQueries' name-merge — NOTE the
+// expected behavior change: one chip stops unioning same-named entities/
+// roles, selecting actor-De Niro no longer matches producer-only credits)
+// · Phase 3b (multi-role display UX, see DESIGN_SYSTEM parking lot).
+
 export interface Series {
-  // Stable unique identity — the anime side's romaji title (unique in that
-  // catalog, doubles as the natural key it was already ordered by), the
-  // film side's tmdb_id. Added 2026-07-25 after two real React
-  // duplicate-key errors in one session: the film corpus legitimately
-  // holds multiple films with identical display titles ("Godzilla" 1954/
-  // 2014, "King Kong vs. Godzilla"), so `title` alone cannot be a React
-  // key. NOTE the wider hazard is only PARTIALLY closed: locked/flipped/
-  // newTitles and the swap machinery still key on display title
-  // (useKonomi.ts), so same-title films lock/flip together — a known
-  // edge, parked; migrate that state to `id` if it ever bites visibly.
+  // See THE IDENTITY CONTRACT above.
   id: string;
   title: string;
   // Nullable because AniList genuinely lacks these for some entries (e.g.
@@ -68,6 +82,9 @@ export interface ResultEntry {
 // (isGenre: true, avgRank: 100, category: null) so they flow through the same
 // pool/selection/mixer infrastructure as real tags — see queries.ts.
 export interface TagInfo {
+  // See THE IDENTITY CONTRACT above (Series). Phase 1: carried but not
+  // yet keying selection/scoring — that's Phase 3a.
+  id: string;
   name: string;
   category: string | null;
   seriesCount: number;
