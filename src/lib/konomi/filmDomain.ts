@@ -87,12 +87,28 @@ const FILM_TAG_SECTIONS: TagSection[] = [
       { label: "Filmcraft", categories: ["Filmcraft"] },
       { label: "Cinema waves", categories: ["Cinema waves"] },
       { label: "Based on", categories: ["Based on"] },
-      // The banked "ONE Sagas home": the ≥2-film saga shelf (type: saga,
-      // moviegoer, assigned category "Sagas" in filmQueries) merges here
-      // with the 5 franchise-mechanics kw (sequel/prequel/remake/reboot/
-      // spin off), whose stored section is also "Sagas".
-      { label: "Sagas", categories: ["Sagas"] },
+      // The 5 franchise-mechanics kw (sequel/prequel/remake/reboot/spin
+      // off) — taste tags about a film's relation to another film, sitting
+      // beside "Based on" (where it came from / what line it belongs to).
+      // Until the Sagas dissolve (master.json sweep "sagas-dissolve",
+      // 2026-07-25) these shared one "Sagas" section with the ~595 named
+      // franchise entities, which now live in the top-level Franchise
+      // section below.
+      { label: "Lineage", categories: ["Lineage"] },
     ],
+  },
+  {
+    // The named-saga shelf (type: saga, moviegoer, assigned category
+    // "Franchise" in filmQueries — read-time, the rows carry no section in
+    // the DB). Its own top-level section, NOT a People subsection: People's
+    // sub-tabs are all credit roles and these are works, and entity-vs-
+    // taste is the axis the search treatment keys off (see the
+    // sagas-dissolve ruling). Placed beside People so the two entity
+    // sections read as one zone ahead of Origin. Flat list — one category,
+    // no sub-tier.
+    key: "franchise",
+    label: "Franchise",
+    categories: ["Franchise"],
   },
   {
     key: "people",

@@ -45,7 +45,7 @@
   "shelf_floor": 2,
   "shelf_size": "594 sagas covering 1,705 films",
   "singletons": "465 card-only: saga name displays on the film card as a read-only value, DISABLED as a tag (not draggable/selectable — as a recommend input it could only return the film itself); floor is corpus-relative so future imports can graduate a singleton to the shelf (delta report will surface it)",
-  "grouping": "ONE Sagas home: the named-saga shelf (search + rank — top ~20 by film count, search reaches all 594) beside the 5 franchise-mechanics tag-kw (sequel/prequel/remake/reboot/spin off)",
+  "grouping": "SPLIT 2026-07-25 (supersedes the 'ONE Sagas home' ruling — see master.json sweep 'sagas-dissolve'): the named-saga shelf is its own TOP-LEVEL UI section 'Franchise' (read-time section in filmQueries.ts); the 5 franchise-mechanics tag-kw (sequel/prequel/remake/reboot/spin off) moved to Style section 'Lineage'",
   "label": "strip trailing ' Collection' from TMDB names (James Bond Collection -> James Bond)",
   "levels": "all levels including moviegoer (franchises are the most mainstream handle)",
   "promote": "each >=2 saga promotes as a tag (type: saga, members = its corpus film ids) — add-tag slots, recommend, and random work with zero engine special-casing",

@@ -15753,7 +15753,7 @@
   },
   {
    "canonical": "sequel",
-   "section": "Sagas",
+   "section": "Lineage",
    "count": 732,
    "members": [
     "sequel"
@@ -15763,7 +15763,7 @@
   },
   {
    "canonical": "remake",
-   "section": "Sagas",
+   "section": "Lineage",
    "count": 229,
    "members": [
     "remake",
@@ -15776,7 +15776,7 @@
   },
   {
    "canonical": "prequel",
-   "section": "Sagas",
+   "section": "Lineage",
    "count": 69,
    "members": [
     "prequel",
@@ -15786,7 +15786,7 @@
   },
   {
    "canonical": "reboot",
-   "section": "Sagas",
+   "section": "Lineage",
    "count": 52,
    "members": [
     "reboot"
@@ -15795,7 +15795,7 @@
   },
   {
    "canonical": "spin off",
-   "section": "Sagas",
+   "section": "Lineage",
    "count": 51,
    "members": [
     "spin off"
@@ -16293,6 +16293,11 @@
    "id": "psychotronic-and-askewniverse-homed",
    "date": "2026-07-24",
    "summary": "The two strings held from the indie-film split are homed (user rulings): view askewniverse -> slacker (MCU-fold precedent: a franchise-universe string joins the concept it implies; Clerks IS slacker cinema). psychotronic + psychotronic film -> NEW canonical `psychotronic` in Style/Cinema waves beside grindhouse (Weldon's drive-in/late-night canon = an exhibition culture, not a genre; The Shining carrying it is true to the fan canon). Zero unmapped strings from the split remain."
+  },
+  {
+   "name": "sagas-dissolve",
+   "date": "2026-07-25",
+   "note": "SAGAS DISSOLVED (user-ruled): the section mixed two tag kinds — taste tags (franchise mechanics) and entity tags (~595 named sagas/collections, <1% coverage each, constraints not ingredients). Split: the 5 mechanics kw (sequel/prequel/remake/reboot/spin off) -> NEW Style section LINEAGE (name user-picked over Family tree / Sequels & remakes; sits beside Based on: where it came from / what line it belongs to). The named-saga shelf (type: saga, read-time section in filmQueries.ts) -> NEW TOP-LEVEL UI section FRANCHISE (name over Collection — avoids collision with a plausible future user-collections feature; NOT placed in People, which stays pure credit roles). Franchise is not a pillar_tree section (credit/saga-type, filmQueries contract, like People-*/Origin-*). Supersedes adapter-config 'ONE Sagas home' grouping. Motivation banked: search strategy work 2026-07-25 — entity sections get search-first treatment by size."
   }
  ],
  "unassigned": [],
@@ -16429,7 +16434,7 @@
    "Filmcraft",
    "Cinema waves",
    "Based on",
-   "Sagas"
+   "Lineage"
   ]
  }
 }

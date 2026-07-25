@@ -34,7 +34,11 @@ const MIN_LEVEL_MAP: Record<string, LevelKey> = { moviegoer: "1", "film buff": "
 // home is a UI decision, assigned here via type. The category strings are
 // the contract with filmDomain's section tree; change both together.
 const TYPE_CATEGORY: Record<string, string> = {
-  saga: "Sagas", // merges with kw section "Sagas" (sequel/prequel/remake/reboot/spin off) — the banked "ONE Sagas home"
+  // Its own top-level "Franchise" section since the Sagas dissolve
+  // (master.json sweep "sagas-dissolve", 2026-07-25): entity tags split
+  // out; the 5 mechanics kw (sequel/prequel/remake/reboot/spin off) now
+  // live in Style → "Lineage" via their stored master-ruled section.
+  saga: "Franchise",
   actor: "People-Actors",
   director: "People-Directors",
   producer: "People-Producers",

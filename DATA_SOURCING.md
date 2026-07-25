@@ -797,6 +797,35 @@ existing category. Finish the current artifact's buckets FIRST, then revisit.
 Artifact: https://claude.ai/code/artifact/15f8e86f-1a93-4073-a816-96f8b3117a19
 
 
+## ✅ SAGAS DISSOLVED → LINEAGE + FRANCHISE — SHIPPED & VERIFIED (2026-07-25)
+
+**The "ONE Sagas home" ruling (adapter design, 2026-07-24) is superseded.** Sagas mixed two
+tag kinds with opposite mechanics: taste tags (the 5 franchise-mechanics kw) and entity tags
+(~594 named sagas at <1% coverage each — in a 3-slot mix an entity tag is invisible at
+MIN MATCH 1 and determinative at 3: a constraint, never an ingredient). The split
+(user-ruled, motivated by the film search strategy work — entity sections get search-first
+treatment):
+
+- **Style → Lineage** (name user-picked over Family tree / Sequels & remakes): sequel ·
+  remake · prequel · reboot · spin off. Sits beside Based on — *where it came from / what
+  line it belongs to*. Stored-section change on exactly 5 canonicals in `master.json`
+  (sweep `sagas-dissolve`) + pillar_tree; re-promoted.
+- **Franchise** (name over Collection — avoids colliding with a plausible future
+  user-collections feature): the 594-saga shelf as its own **top-level UI section** between
+  Style and People — NOT a People subsection (People stays pure credit roles). No DB
+  change: saga rows carry null section; `filmQueries.ts` TYPE_CATEGORY maps
+  `saga: "Franchise"` read-time, and `filmDomain.ts` adds the flat section. Franchise is
+  deliberately absent from pillar_tree (credit/saga-type contract, like People-*/Origin-*).
+
+**Verified**: promote cross-checks all green (kw 1,123 · sagas 594 · coverage matches §7);
+DB: section=Lineage exactly 5, section=Sagas 0, all 594 saga rows null-section; live census
+at Cinephile — Style 215 (Lineage 5), Franchise 594, every other section count unchanged,
+total 15,207 identical pre/post. Moviegoer now = Genres · Reception · Franchise (Style
+correctly hidden — its kw are all buff+; franchises stay the most mainstream handle).
+
+**Level-floor note carried forward**: at Moviegoer the pool is 19 genres + 14 reception +
+594 franchises — franchise-heavy by design for now; revisit with the floors pass.
+
 ## ⏸️ RESUME HERE — SESSION CHECKPOINT (2026-07-24 · RETHINK ✅ + NAMES ✅ — structure FINAL)
 
 **State: `tag-rules/master.json` = 1,120 canonicals / 6,561 member strings / 0 loose / 0 hold.**
