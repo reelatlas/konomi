@@ -133,29 +133,57 @@ function ChipRow({
   );
 }
 
+// The one search count line ("5 of 32 matches · ↓↑ for more or narrow" /
+// "32 matches") — copy user-ruled 2026-07-25, exact wording including the
+// comma-less hint. `shownHere` = tags mounted in the CURRENT grid;
+// `poolTotal` = matches across EVERY section (the user's mental model:
+// "my matches", not per-grid accounting); `multiSection` = matches live
+// in other sections too, which is when the ↓↑ hint earns its place (it
+// doubles as the first shipped keyboard instruction). Single-section
+// case shows the plain total even if locally truncated — the fill-ahead
+// scroll behavior makes "there's more below" self-evident, per the same
+// ruling that DELETED the two earlier per-grid lines ("top N of Y" in
+// browse, "N of M — scroll" in search): the below-grid position kept
+// them a page beyond the fold, structurally unseeable, and the user
+// chose removal over relocation. Bottom placement is deliberate too:
+// visible exactly when a query is narrow enough that the results are
+// manageable — a reward, not a nag (user-ruled; revisit-later is noted).
+function SearchCountLine({ shownHere, poolTotal, multiSection }: { shownHere: number; poolTotal: number; multiSection: boolean }) {
+  return (
+    <span className="font-mono text-[length:var(--text-2xs)] text-[var(--subtext)]" aria-live="polite">
+      {multiSection
+        ? `${shownHere.toLocaleString()} of ${poolTotal.toLocaleString()} matches · ↓↑ for more or narrow`
+        : `${poolTotal.toLocaleString()} ${poolTotal === 1 ? "match" : "matches"}`}
+    </span>
+  );
+}
+
 // ChipRow for TagSection.capped sections (film People/Franchise): mounts
 // only the first BROWSE_CAP tags (top-N under the caller's already-applied
 // sort) and appends another page whenever the sentinel under the grid
 // scrolls near view — eagerly mounting Actors' 6.9k chips was the measured
-// cause of the resize-drag lag. Pagination state lives HERE so resets are
-// pure remounts: section/sub switches reset via the tabpanel's existing
-// key, sort/level/query changes via the parent's gridResetKey — no reset
+// cause of the resize-drag lag. In practice the IntersectionObserver also
+// fires while the sentinel is ALREADY visible on mount, so a tall panel
+// auto-fills to the viewport plus one page before waiting for real
+// scrolling — unplanned, kept deliberately (user-ruled 2026-07-25): it's
+// the mature form of infinite scroll (no dead space under the chips), and
+// the perf goal holds — DOM scales with panel size + actual scroll depth,
+// never the full list. Pagination state lives HERE so resets are pure
+// remounts: section/sub switches reset via the tabpanel's existing key,
+// sort/level/query changes via the parent's gridResetKey — no reset
 // effects, the same key-remount idiom the panel already uses for scroll.
-// The IntersectionObserver needs no handle to ScrollFadeArea's internal
-// scroll element: with root:null, intersection is computed AFTER ancestor
-// overflow clipping, so the sentinel only reads "visible" once actually
-// scrolled into the clipped area. The count line under the grid does
-// double duty: cap communication in browse ("top 50 of 6,862"), and a
-// match-count readout while searching — the first piece of the parked
-// match-count-indicator idea.
+// root:null works because intersection is computed AFTER ancestor
+// overflow clipping. `countLine` is a slot: the count needs pool-wide
+// numbers only the parent has, and uncapped grids render the same line —
+// so the parent owns it and this component just places it under the grid.
 function CappedChipRow({
   tags,
-  searching,
+  countLine,
   selectedTags,
   onChipToggle,
 }: {
   tags: TagInfo[];
-  searching: boolean;
+  countLine: React.ReactNode;
   selectedTags: string[];
   onChipToggle: (tag: string) => void;
 }) {
@@ -183,15 +211,7 @@ function CappedChipRow({
     <div className="flex flex-col gap-[var(--space-md)]">
       <ChipRow tags={shown} selectedTags={selectedTags} onChipToggle={onChipToggle} />
       {truncated && <div ref={sentinelRef} aria-hidden className="h-px" />}
-      {(truncated || searching) && (
-        <span className="font-mono text-[length:var(--text-2xs)] text-[var(--subtext)]" aria-live="polite">
-          {searching
-            ? truncated
-              ? `${shown.length.toLocaleString()} of ${tags.length.toLocaleString()} matches — scroll for more, or narrow`
-              : `${tags.length.toLocaleString()} ${tags.length === 1 ? "match" : "matches"}`
-            : `top ${shown.length.toLocaleString()} of ${tags.length.toLocaleString()} — scroll for more, or search`}
-        </span>
-      )}
+      {countLine}
     </div>
   );
 }
@@ -389,6 +409,11 @@ export function TagPoolBody({
   );
   const searchByKey = new Map(searchSections.map((s) => [s.key, s]));
   const anyMatches = searchSections.some((s) => s.count > 0);
+  // Pool-wide numbers for SearchCountLine: the denominator is matches
+  // across EVERY section (user's mental model — "my matches"), the ↓↑
+  // hint appears exactly when other sections hold some of them.
+  const poolTotalMatches = searchSections.reduce((n, s) => n + s.count, 0);
+  const multiSectionMatches = searchSections.filter((s) => s.count > 0).length > 1;
   // The Enter fast path: when exactly one tag matches across the whole
   // pool, Enter toggles it — type until unique, Enter, done, no pointer.
   // Names, not per-section counts, so a tag reachable via two sections
@@ -697,7 +722,7 @@ export function TagPoolBody({
             // cause-targeted-recovery shape as RECOMMEND's error chips.
             <div className="flex justify-center py-[var(--space-2xl)]">
               <span className="font-mono text-[length:var(--text-xs)] text-[var(--subtext)]">
-                {anyMatches ? `no "${normQuery}" here — check the lit tabs` : `no "${normQuery}" anywhere in the pool`}
+                {anyMatches ? `"${normQuery}" not here · check lit tabs` : `"${normQuery}" not in the pool`}
               </span>
             </div>
           ) : subTabsMode && activeSub ? (
@@ -720,13 +745,24 @@ export function TagPoolBody({
                 // message, one tier down.
                 <div className="flex justify-center py-[var(--space-2xl)]">
                   <span className="font-mono text-[length:var(--text-xs)] text-[var(--subtext)]">
-                    {`no "${normQuery}" here — check the lit tabs`}
+                    {`"${normQuery}" not here · check lit tabs`}
                   </span>
                 </div>
               ) : isCapped ? (
-                <CappedChipRow key={gridResetKey} tags={activeGridTags} searching={searchActive} selectedTags={selectedTags} onChipToggle={onChipToggle} />
+                <CappedChipRow
+                  key={gridResetKey}
+                  tags={activeGridTags}
+                  countLine={
+                    searchActive ? <SearchCountLine shownHere={activeGridTags.length} poolTotal={poolTotalMatches} multiSection={multiSectionMatches} /> : null
+                  }
+                  selectedTags={selectedTags}
+                  onChipToggle={onChipToggle}
+                />
               ) : (
-                <ChipRow tags={activeGridTags} selectedTags={selectedTags} onChipToggle={onChipToggle} />
+                <div className="flex flex-col gap-[var(--space-md)]">
+                  <ChipRow tags={activeGridTags} selectedTags={selectedTags} onChipToggle={onChipToggle} />
+                  {searchActive && <SearchCountLine shownHere={activeGridTags.length} poolTotal={poolTotalMatches} multiSection={multiSectionMatches} />}
+                </div>
               )}
             </div>
           ) : active.section.subsections ? (
@@ -747,14 +783,30 @@ export function TagPoolBody({
                   </div>
                 );
               })}
+              {/* Grouped shape's count: the section total (sum of the
+                  groups above), same pool-wide denominator. */}
+              {searchActive && activeSectionMatches > 0 && (
+                <SearchCountLine shownHere={activeSectionMatches} poolTotal={poolTotalMatches} multiSection={multiSectionMatches} />
+              )}
             </div>
           ) : isCapped ? (
             // Flat capped section (Franchise). Section-level zero matches
             // is already handled by the hint branch above, so this list is
             // never silently empty during a search.
-            <CappedChipRow key={gridResetKey} tags={activeGridTags} searching={searchActive} selectedTags={selectedTags} onChipToggle={onChipToggle} />
+            <CappedChipRow
+              key={gridResetKey}
+              tags={activeGridTags}
+              countLine={
+                searchActive ? <SearchCountLine shownHere={activeGridTags.length} poolTotal={poolTotalMatches} multiSection={multiSectionMatches} /> : null
+              }
+              selectedTags={selectedTags}
+              onChipToggle={onChipToggle}
+            />
           ) : (
-            <ChipRow tags={activeGridTags} selectedTags={selectedTags} onChipToggle={onChipToggle} />
+            <div className="flex flex-col gap-[var(--space-md)]">
+              <ChipRow tags={activeGridTags} selectedTags={selectedTags} onChipToggle={onChipToggle} />
+              {searchActive && <SearchCountLine shownHere={activeGridTags.length} poolTotal={poolTotalMatches} multiSection={multiSectionMatches} />}
+            </div>
           )}
         </ScrollFadeArea>
       </div>
