@@ -528,7 +528,31 @@ export function ResultCard({
       >
         <div
           className={[
-            "absolute inset-0 [backface-visibility:hidden] border-[length:var(--border-base)] border-[var(--ink)] overflow-hidden flex flex-col transition-opacity duration-200 bg-[var(--surface)] shadow-[var(--elev-4)]",
+            "absolute inset-0 [backface-visibility:hidden] border-[length:var(--border-base)] border-[var(--ink)] overflow-hidden flex flex-col transition-opacity duration-200 shadow-[var(--elev-4)]",
+            // UNDERPAINT, not decoration: on an image-bearing card every
+            // pixel of this face is covered by the filmstrip/scrims/veil, so
+            // this background's only visible role is bleeding through
+            // sub-pixel antialiasing cracks wherever the card rests at a
+            // fractional device position — reported live at >100% browser
+            // zoom (non-integer scale puts every edge on fractional device
+            // pixels: hairlines at the cover/tag seam and inside the right/
+            // bottom borders), and equally reachable at 100% via the
+            // expanded masthead (fractional row y, measured 518.359375) and
+            // the grid's ~1153-1262px fractional downscale band. Engines
+            // don't guarantee seamless abutment on fractional boundaries,
+            // and snapping the fluid geometry to whole pixels is the
+            // over-correction AGENTS.md warns against — so the underpaint
+            // MATCHES the dark frame the seams/borders are meant to read as
+            // (on-secondary: the guaranteed-dark-in-every-theme role the
+            // scrims already use), making any crack invisible by
+            // construction. Verified pixel-identical to the old --surface
+            // underpaint at 100% (same-card A/B via live stash toggle, three
+            // passes, zero diff on every sampled row) and eyeball-confirmed
+            // indistinguishable — this changes nothing at integer scale,
+            // only what leaks at fractional scale. No-image cards keep
+            // --surface: their tag area is transparent and this bg IS its
+            // intended light backdrop there.
+            hasImage && !reflectionBroken ? "bg-[var(--on-secondary)]" : "bg-[var(--surface)]",
             flipped ? "opacity-0 pointer-events-none z-[var(--z-base)]" : "opacity-100 pointer-events-auto z-[var(--z-raised)]",
           ].join(" ")}
         >
