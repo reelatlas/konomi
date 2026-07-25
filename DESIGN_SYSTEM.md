@@ -606,6 +606,19 @@ The KONOMI + ミックス wordmark is **SVG letter paths** now, not text — con
 
 **Watch item**: the 1px glow is a `drop-shadow` filter on animating paths — flagged for on-device WebKit scrutiny per house lore; dropping the filter from `.wm-stroke` is the fallback if it ever janks.
 
+## Series identity: `id`, not title — display titles legitimately collide
+
+`Series.id` (anime: `anilist:<romaji>` — the catalog's unique natural key; film:
+`tmdb:<tmdb_id>`) exists because the film corpus holds multiple films with
+identical display titles — confirmed by two React duplicate-key errors in one
+live session ("Godzilla" 1954/2014, "King Kong vs. Godzilla"). Result cards
+key on `series.id` now. **Known, deliberately-parked edge**: locked/flipped/
+newTitles and the swap machinery (useKonomi.ts) still key on display title, so
+two same-title films on screen lock/flip together; migrate that state to `id`
+if it ever bites visibly. (The adapter's pagination comment predicted this
+exact hazard — "duplicate titles genuinely exist, remakes" — it just wasn't
+carried through to React identity until it fired.)
+
 ## Recommendations layout — a shared height token, and a small-viewport carousel
 
 ### The empty-state placeholder and `ResultCard` share `--result-card-height`, not a duplicated measurement

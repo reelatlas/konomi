@@ -68,6 +68,7 @@ export async function getCatalog(): Promise<Catalog> {
     });
 
     return {
+      id: `anilist:${row.title_romaji}`, // romaji is the catalog's unique natural key (its sort column)
       title: row.title_english ?? row.title_romaji,
       year: row.year,
       eps: row.episodes,

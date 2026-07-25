@@ -1165,7 +1165,14 @@ export function RecommendationsBody({
                         : index * effectiveStaggerMs;
                     return (
                       <ResultCard
-                        key={entry.series.title}
+                        // series.id, NOT title: the film corpus holds
+                        // real same-title films ("Godzilla" 1954/2014,
+                        // "King Kong vs. Godzilla") — two hit React's
+                        // duplicate-key error in one live session. The
+                        // rest of the card machinery (locked/flipped/
+                        // newTitles/data-title) still keys on title — a
+                        // known, documented edge (see Series.id).
+                        key={entry.series.id}
                         entry={entry}
                         selectedTags={selectedTags}
                         filledCount={filledCount}

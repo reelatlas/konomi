@@ -5,6 +5,17 @@
 // differences (eps vs runtime, rating scale) live in the Domain's cardMeta
 // mapping, not in per-side card components.
 export interface Series {
+  // Stable unique identity — the anime side's romaji title (unique in that
+  // catalog, doubles as the natural key it was already ordered by), the
+  // film side's tmdb_id. Added 2026-07-25 after two real React
+  // duplicate-key errors in one session: the film corpus legitimately
+  // holds multiple films with identical display titles ("Godzilla" 1954/
+  // 2014, "King Kong vs. Godzilla"), so `title` alone cannot be a React
+  // key. NOTE the wider hazard is only PARTIALLY closed: locked/flipped/
+  // newTitles and the swap machinery still key on display title
+  // (useKonomi.ts), so same-title films lock/flip together — a known
+  // edge, parked; migrate that state to `id` if it ever bites visibly.
+  id: string;
   title: string;
   // Nullable because AniList genuinely lacks these for some entries (e.g.
   // "Not Yet Released" media) — components must handle the null case.

@@ -72,6 +72,7 @@ const languageTagName = (code: string) => `in ${languageName(code)}`;
 const certTagName = (cert: string) => `rated ${cert}`;
 
 interface RawFilmRow {
+  tmdb_id: number;
   title: string;
   year: number | null;
   runtime: number | null;
@@ -152,7 +153,7 @@ export async function getFilmCatalog(): Promise<Catalog> {
     // films. Series order doesn't matter downstream (scorePool shuffles).
     fetchAllPaged<RawFilmRow>(
       "films",
-      "title, year, runtime, rating, genres, reception, certification, original_language, countries, decade, saga_name, overview, poster_path, watch_providers, watch_link, film_tag_links(film_tags(name))",
+      "tmdb_id, title, year, runtime, rating, genres, reception, certification, original_language, countries, decade, saga_name, overview, poster_path, watch_providers, watch_link, film_tag_links(film_tags(name))",
       "tmdb_id",
       PAGE,
     ),
@@ -214,6 +215,7 @@ export async function getFilmCatalog(): Promise<Catalog> {
     for (const g of row.genres ?? []) bump(counts.genre, g);
 
     return {
+      id: `tmdb:${row.tmdb_id}`,
       title: row.title,
       year: row.year,
       eps: null,
