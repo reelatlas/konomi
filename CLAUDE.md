@@ -97,6 +97,33 @@ rAF, layout animation, drag/resize motion):
 Do not hand-roll animation patterns Motion already covers without checking the
 Motion skill first.
 
+### Data sourcing / APIs / the shared catalog
+
+Read `DATA_SOURCING.md` before touching how data is pulled, stored, or promoted:
+- changing an import script (`scripts/import-anilist.ts`, `scripts/import-tmdb.ts`)
+- adding a tag category, changing a tag floor, or weighting tags
+- anything involving AniList or TMDB API capabilities
+
+It records **measured** API facts (what can and can't be ranked, hard limits),
+the raw → adapter → shared-catalog split and why, the film corpus definition,
+and a **rejected-alternatives** section — check that before re-proposing an idea
+(`cult` as a vote window, exclusive seed buckets, a payload GIN index) that was
+already tried and measured. It also carries the empirical tag distributions:
+use **floors, not means** (a mean said Producer was dead; it isn't), and note
+that no keyword covers even 13% of the corpus, so any rarity/heat scale must be
+per-section, never a global percentage.
+
+The **film tag pool IA** (11 sections, three section shapes, Franchise ≥3) and
+the **Reception rating methodology** (Bayesian shrink m=1000 + percentile-within-
+decade + impact path + recency guard from `fetched_at`) are settled in §7–8 —
+read them before building any film promote/adapter logic or changing a reception
+threshold. **Tag consolidation is in progress in §9** — the 123-canonical alias
+ledger, cross-section moves, the split-for-precision Theme subsections, and the
+locked process rules (consolidate-before-floor, dedup-union-not-sum,
+rules-not-edits). §9's "Current state & how to resume" is the pickup point for
+continuing the section-by-section pruning (Crime is the big open one). Remaining
+open decisions are in §10.
+
 ### Data viz / charts (d3)
 
 Before building any visualization (bubble cluster, treemap, heatmap, etc.):
