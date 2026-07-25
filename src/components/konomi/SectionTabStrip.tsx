@@ -7,6 +7,14 @@ export interface SectionTabItem {
   key: string;
   label: string;
   selectedCount: number;
+  // Search-dim ("search prunes the nav", TagPoolBody): while a search
+  // query is live, tabs whose section holds no matching tag dim rather
+  // than hide — hiding would reflow the strip on every keystroke (tabs
+  // sliding under the pointer), dimming keeps geometry frozen while
+  // signaling where matches live. Dimmed tabs stay fully clickable by
+  // design: clicking one shows its (empty-with-hint) panel honestly
+  // rather than dead-ending the click. Absent/false outside search.
+  dimmed?: boolean;
 }
 
 interface SectionTabStripProps {
@@ -198,7 +206,16 @@ export function SectionTabStrip({
               // (verified live, still exactly 30px): Anton's own 30px line
               // box already exceeded the 24px strut, so the strut was never
               // load-bearing there.
-              className="flex shrink-0 cursor-pointer items-center"
+              // Dim via opacity, not a color swap: it composes with the
+              // existing active/inactive ink/muted pair (both states dim
+              // uniformly) and with the badge, without minting a third
+              // text color. Plain CSS transition (ladder rung 1 — a
+              // discrete A→B state toggle); motion-reduce turns it off.
+              className={[
+                "flex shrink-0 cursor-pointer items-center",
+                "transition-opacity motion-reduce:transition-none",
+                section.dimmed ? "opacity-35" : "opacity-100",
+              ].join(" ")}
             >
               {/* Primary: same font/size/style as the old CollapsibleSection
                   header labels (font-display text-lg uppercase tracking-sm)

@@ -366,6 +366,28 @@ export function CloseIcon({ className }: IconProps) {
   );
 }
 
+// A magnifier — circle + handle — standard "search" glyph. TagPoolBody's
+// tab-row search trigger. 16×16 stroke, matching FilterIcon/CloseIcon
+// exactly (same row-control family).
+export function SearchIcon({ className }: IconProps) {
+  return (
+    <svg
+      className={className}
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="11" cy="11" r="6.5" />
+      <path d="m16 16 4.5 4.5" />
+    </svg>
+  );
+}
+
 // A funnel silhouette — wide mouth narrowing to a short stem — standard
 // "filter" glyph. ResultsHeader's Filter button, which opens the Tag
 // Density/Sort popover.

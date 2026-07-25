@@ -544,7 +544,18 @@ export function MixerBar({
   useEffect(() => {
     if (!editMode) return;
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") onCloseEditModeRef.current();
+      // !defaultPrevented, NOT stopPropagation-based shielding: the app
+      // hydrates at document (Next App Router), so React's delegated
+      // listeners live on the SAME node as this document listener — and
+      // stopPropagation never silences other listeners on the same node
+      // (that's stopImmediatePropagation, which React handlers can't
+      // reach). Confirmed live: TagPoolBody's search input consumed an
+      // Escape (clear-query stage) with stopPropagation and this still
+      // closed the whole panel. A consumed Escape marks itself via
+      // preventDefault, which same-node ordering can't erase — so anyone
+      // consuming Escape below (search's clear→collapse ladder) prevents
+      // default, and this close only fires for unclaimed Escapes.
+      if (e.key === "Escape" && !e.defaultPrevented) onCloseEditModeRef.current();
     }
     function handlePointerDown(e: MouseEvent) {
       const target = e.target as Node;

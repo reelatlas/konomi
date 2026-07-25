@@ -1,7 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useRef, useState } from "react";
 import { genreTags, sortTags, tagsForCategories, tagsForSection } from "@/lib/konomi/tagPool";
+import { bestScore, filterByQuery, matchScore, normalizeQuery } from "@/lib/konomi/tagSearch";
 import type { TagInfo } from "@/lib/konomi/types";
 import { useDomain } from "./domainContext";
+import { IconButton } from "./IconButton";
+import { SearchIcon } from "./icons";
 import { ScrollFadeArea } from "./ScrollFadeArea";
 import { SectionTabStrip } from "./SectionTabStrip";
 import { TagChip } from "./TagChip";
@@ -243,6 +246,184 @@ export function TagPoolBody({
   // one subsection's chips plain.
   const showSubStrip = subTabsMode && visibleSubs.length > 1;
 
+  // ---- Tag search ("search prunes the nav" — full spec + rationale in
+  // DESIGN_SYSTEM.md "Tag pool search"). Search is GLOBAL, always: there
+  // is no scope control. The nav itself is the results display — tabs and
+  // sub-tabs whose sections hold no match DIM (SectionTabStrip's `dimmed`;
+  // never hidden, so the strip's geometry can't reflow under the pointer),
+  // and the chip grid filters in place. No dropdown, no results page: the
+  // pool panel is already a grid of selectable entities, so selection
+  // stays the one existing interaction (chip toggle).
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  // useDeferredValue, not a hand-rolled debounce: keeps each keystroke's
+  // input paint immediate while the big grid re-filters (People renders
+  // ~6.9k chips uncapped — user-ruled no cap in v1) at deferred priority.
+  const deferredQuery = useDeferredValue(query);
+  const normQuery = normalizeQuery(deferredQuery);
+  const searchActive = searchOpen && normQuery.length > 0;
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Per-section match model, rebuilt per render while a query is live.
+  // One full pass over the pool per keystroke (~15k cheap string checks) —
+  // measured fine; the render of the big grids, not this scan, is the
+  // cost, and useDeferredValue above is what manages that.
+  type SubSearch = { slug: string; count: number; best: number };
+  type SectionSearch = { key: string; count: number; best: number; subs: SubSearch[] | null };
+  // Parameterized on the query (not closed over normQuery) because it runs
+  // in two places: per render for the dim/empty model, and inside the
+  // onChange handler for the auto-move decision (see handleQueryChange).
+  const buildSearchSections = (nq: string): SectionSearch[] =>
+    visibleSections.map(({ section, tags }) => ({
+      key: section.key,
+      count: filterByQuery(tags, nq).length,
+      best: bestScore(tags, nq),
+      subs:
+        section.subsectionsAsTabs && section.subsections
+          ? section.subsections
+              .map((sub) => ({ sub, tags: tagsForCategories(domain, allTags, sub.categories, level, totalSeriesCount) }))
+              .filter(({ tags }) => tags.length > 0)
+              .map(({ sub, tags }) => ({ slug: subKey(sub.label), count: filterByQuery(tags, nq).length, best: bestScore(tags, nq) }))
+          : null,
+    }));
+  const searchSections: SectionSearch[] = searchActive ? buildSearchSections(normQuery) : [];
+  const searchByKey = new Map(searchSections.map((s) => [s.key, s]));
+  const anyMatches = searchSections.some((s) => s.count > 0);
+  // The Enter fast path: when exactly one tag matches across the whole
+  // pool, Enter toggles it — type until unique, Enter, done, no pointer.
+  // Names, not per-section counts, so a tag reachable via two sections
+  // (none today, but the union rule in visiblePoolTagNames allows it)
+  // still counts as one.
+  let uniqueMatch: string | null = null;
+  if (searchActive) {
+    const seen = new Set<string>();
+    outer: for (const { tags } of visibleSections) {
+      for (const t of tags) {
+        if (matchScore(t.name, normQuery) > 0) {
+          seen.add(t.name);
+          if (seen.size > 1) break outer;
+        }
+      }
+    }
+    uniqueMatch = seen.size === 1 ? [...seen].at(0)! : null;
+  }
+
+  // Auto-move: "stay if you can, move if you must." Runs INSIDE the
+  // onChange handler — the keystroke IS the event this navigation responds
+  // to — so it fires exactly once per query change and never re-evaluates
+  // on unrelated renders: clicking a dim tab to inspect it is never
+  // fought, and per-keystroke section teleporting can't happen. (An
+  // effect-based version was written first and rejected by this repo's
+  // react-hooks/set-state-in-effect rule — correctly: this is an event
+  // response, so it belongs in the event handler.) Rules: an exact match
+  // pulls the view to its section unless the active section has one too;
+  // otherwise hop only when the active section has ZERO matches, to the
+  // section with the best score (exact > word-prefix > substring), ties
+  // broken by nav order — never by match count, which reorders
+  // unpredictably as a query grows. Then the same stay-if-you-can rule
+  // one tier down for the target's sub-tab. Clearing (backspace to empty)
+  // never moves the view.
+  const handleQueryChange = (raw: string) => {
+    setQuery(raw);
+    const nq = normalizeQuery(raw);
+    if (!nq) return;
+    const sections = buildSearchSections(nq);
+    if (sections.length === 0) return;
+    const globalBest = Math.max(...sections.map((s) => s.best));
+    if (globalBest === 0) return; // nothing matches anywhere — stay put
+    const activeKey = active?.section.key;
+    const current = sections.find((s) => s.key === activeKey);
+    let targetKey = activeKey;
+    if (globalBest === 3 && (current?.best ?? 0) < 3) {
+      targetKey = sections.find((s) => s.best === 3)!.key;
+    } else if ((current?.count ?? 0) === 0) {
+      targetKey = sections.find((s) => s.best === globalBest)!.key;
+    }
+    if (targetKey && targetKey !== activeKey) setActiveSectionKey(targetKey);
+    const target = sections.find((s) => s.key === targetKey);
+    if (target?.subs) {
+      const stored = target.subs.find((su) => su.slug === activeSubKeys[target.key]);
+      if (!stored || stored.count === 0) {
+        const subBest = Math.max(...target.subs.map((su) => (su.count > 0 ? su.best : 0)));
+        const pick = target.subs.find((su) => su.count > 0 && su.best === subBest);
+        if (pick) setActiveSubKeys((prev) => ({ ...prev, [target.key]: pick.slug }));
+      }
+    }
+  };
+
+  // ↑↓ cycle the lit (matching) sections, walking a section's lit sub-tabs
+  // before moving to the next section; Enter = the unique-match toggle;
+  // Esc = clear-then-close (two-stage). All on the input itself — the
+  // chip grid keeps its own existing focus behavior untouched in v1.
+  const litPairs = (): { key: string; slug?: string }[] => {
+    const out: { key: string; slug?: string }[] = [];
+    for (const s of searchSections) {
+      if (s.count === 0) continue;
+      if (s.subs) {
+        for (const su of s.subs) if (su.count > 0) out.push({ key: s.key, slug: su.slug });
+      } else {
+        out.push({ key: s.key });
+      }
+    }
+    return out;
+  };
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Escape") {
+      // Two-stage (clear → collapse), and each consumed stage must
+      // stopPropagation: MixerBar has a WINDOW-level Escape that closes
+      // the whole edit panel (confirmed live — without this, the second
+      // Esc collapsed the panel out from under the search). React's
+      // stopPropagation marks the native event, so the window listener
+      // never fires for a consumed stage. Once search is already closed
+      // the key falls through untouched — so the full ladder reads:
+      // clear query → close search → (MixerBar) close panel. Collapse
+      // also blurs, otherwise focus stays trapped in the w-0 input and
+      // the third stage could never reach MixerBar.
+      if (query) {
+        e.preventDefault();
+        e.stopPropagation();
+        setQuery("");
+      } else if (searchOpen) {
+        e.preventDefault();
+        e.stopPropagation();
+        setSearchOpen(false);
+        searchInputRef.current?.blur();
+      }
+      return;
+    }
+    if (!searchActive) return;
+    if (e.key === "Enter") {
+      if (uniqueMatch) onChipToggle(uniqueMatch);
+      return;
+    }
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      const pairs = litPairs();
+      if (!pairs.length) return;
+      const idx = pairs.findIndex((p) => p.key === active?.section.key && (!p.slug || p.slug === activeSub?.slug));
+      const next = pairs[(idx + (e.key === "ArrowDown" ? 1 : -1) + pairs.length) % pairs.length];
+      setActiveSectionKey(next.key);
+      if (next.slug) setActiveSubKeys((prev) => ({ ...prev, [next.key]: next.slug! }));
+    }
+  };
+  // Toggle only — no close-on-blur: a blur handler races the toggle
+  // button's own click (blur closes, the re-rendered click reopens), and
+  // an open empty field is harmless chrome. Esc or the icon closes.
+  const toggleSearch = () => {
+    if (searchOpen) {
+      setSearchOpen(false);
+      setQuery("");
+    } else {
+      setSearchOpen(true);
+      searchInputRef.current?.focus(); // always mounted (w-0 closed), focusable immediately
+    }
+  };
+  const dimFor = (key: string) => (searchActive ? (searchByKey.get(key)?.count ?? 0) === 0 : false);
+  // Active section's match count — drives the honest empty state when a
+  // dim tab is clicked (0 matches here) in the mixer's guided-error voice.
+  const activeSectionMatches = searchActive && active ? (searchByKey.get(active.section.key)?.count ?? 0) : -1;
+  const applyQuery = (tags: TagInfo[]) => (searchActive ? filterByQuery(tags, normQuery) : tags);
+
   return (
     <div className="flex flex-col min-w-0" style={{ gap: STRIP_GAP }}>
       {/* Tabs row — SectionTabStrip on the left, MixerBar's resize grip/
@@ -265,17 +446,67 @@ export function TagPoolBody({
           section renders one, with no extra measurement code. */}
       <div ref={rowRef} className="flex flex-col min-w-0" style={{ gap: STRIP_GAP }}>
         <div className="flex items-center justify-between gap-x-[var(--space-lg)] min-w-0">
-          <div className="min-w-0 w-fit">
-            <SectionTabStrip
-              sections={visibleSections.map(({ section, tags }) => ({
-                key: section.key,
-                label: section.label,
-                selectedCount: tags.filter((t) => selectedTags.includes(t.name)).length,
-              }))}
-              activeKey={active.section.key}
-              onChange={setActiveSectionKey}
-              visible={editMode}
-            />
+          {/* Strip + search share one min-w-0 flex child so the strip's
+              ScrollFadeArea still detects overflow against everything to
+              its right (trailingControls AND the search cluster), the
+              same min-w-0 mechanism the row already relied on. */}
+          <div className="flex items-center gap-[var(--space-md)] min-w-0">
+            <div className="min-w-0 w-fit">
+              <SectionTabStrip
+                sections={visibleSections.map(({ section, tags }) => ({
+                  key: section.key,
+                  label: section.label,
+                  selectedCount: tags.filter((t) => selectedTags.includes(t.name)).length,
+                  dimmed: dimFor(section.key),
+                }))}
+                activeKey={active.section.key}
+                onChange={setActiveSectionKey}
+                visible={editMode}
+              />
+            </div>
+            {/* Search: icon at rest, expands to a field — right end of the
+                tab strip it operates on. The input is ALWAYS mounted at
+                w-0 so open/close is a plain CSS width/opacity transition
+                (ladder rung 1: discrete A→B toggle — no Motion) and
+                focus() can land synchronously in the opening click.
+                Whole-pixel geometry: 24px input in the 30px row, 200px
+                open width. First text input in the app — the box recipe
+                (thin ink border, surface bg, mono text) mirrors the
+                small-control family (TagChip/SortSelect) rather than
+                inventing a new treatment. */}
+            <div className="flex items-center shrink-0">
+              <IconButton
+                size="sm"
+                border="none"
+                backgroundColor="transparent"
+                title="Search tags"
+                aria-label={searchOpen ? "Close tag search" : "Search tags"}
+                aria-expanded={searchOpen}
+                onClick={toggleSearch}
+              >
+                <SearchIcon className={searchOpen ? "text-[var(--ink)]" : "text-[var(--muted)]"} />
+              </IconButton>
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={query}
+                onChange={(e) => handleQueryChange(e.target.value)}
+                onKeyDown={handleSearchKeyDown}
+                aria-label="Search all tag sections"
+                placeholder="search all tags…"
+                spellCheck={false}
+                autoCapitalize="none"
+                autoCorrect="off"
+                className={[
+                  "h-[24px] font-mono text-[length:var(--text-sm)] bg-[var(--surface)] text-[var(--ink)]",
+                  "placeholder:text-[var(--subtext)] outline-none",
+                  "transition-[width,opacity,padding] motion-reduce:transition-none overflow-hidden",
+                  searchOpen
+                    ? "w-[200px] px-[var(--space-md)] opacity-100 border-[length:var(--border-thin)] border-[var(--ink)]"
+                    : "w-0 px-0 opacity-0 border-0 pointer-events-none",
+                ].join(" ")}
+              />
+            </div>
           </div>
           {trailingControls}
         </div>
@@ -297,6 +528,8 @@ export function TagPoolBody({
                 key: slug,
                 label: sub.label,
                 selectedCount: tags.filter((t) => selectedTags.includes(t.name)).length,
+                // Same search-dim as the primary tier, one level down.
+                dimmed: searchActive ? (searchByKey.get(active.section.key)?.subs?.find((su) => su.slug === slug)?.count ?? 0) === 0 : false,
               }))}
               activeKey={activeSub!.slug}
               onChange={(slug) => setActiveSubKeys((prev) => ({ ...prev, [active.section.key]: slug }))}
@@ -335,7 +568,18 @@ export function TagPoolBody({
           restrictTouchAction
           pauseMeasurementWhileResizing={isPoolPanelResizing}
         >
-          {subTabsMode && activeSub ? (
+          {activeSectionMatches === 0 ? (
+            // A dim tab was clicked (or the query matches nothing at all):
+            // answer honestly instead of dead-ending on a blank grid, in
+            // the mixer's guided-error voice — and when matches exist
+            // elsewhere, name the remedy (the lit tabs), the same
+            // cause-targeted-recovery shape as RECOMMEND's error chips.
+            <div className="flex justify-center py-[var(--space-2xl)]">
+              <span className="font-mono text-[length:var(--text-xs)] text-[var(--subtext)]">
+                {anyMatches ? `no "${normQuery}" here — check the lit tabs` : `no "${normQuery}" anywhere in the pool`}
+              </span>
+            </div>
+          ) : subTabsMode && activeSub ? (
             // Sub-tab tier active: one subsection's chips, flat. The inner
             // div is the sub strip's own tabpanel (ids match idBase
             // "tagpool-sub"); the outer panel above stays the primary
@@ -347,12 +591,16 @@ export function TagPoolBody({
               role={showSubStrip ? "tabpanel" : undefined}
               aria-labelledby={showSubStrip ? `tagpool-sub-tab-${activeSub.slug}` : undefined}
             >
-              <ChipRow tags={sortTags(activeSub.tags, sort)} selectedTags={selectedTags} onChipToggle={onChipToggle} />
+              <ChipRow tags={sortTags(applyQuery(activeSub.tags), sort)} selectedTags={selectedTags} onChipToggle={onChipToggle} />
             </div>
           ) : active.section.subsections ? (
             <div className="flex flex-col gap-[var(--space-lg)]">
               {active.section.subsections.map((sub) => {
-                const subTags = sortTags(tagsForCategories(domain, allTags, sub.categories, level, totalSeriesCount), sort);
+                // applyQuery inside the existing empty-group null-return:
+                // during a search, a group with no matches drops out with
+                // its label — the inline-grouped shape (anime Theme)
+                // filters cleanly with zero extra machinery.
+                const subTags = sortTags(applyQuery(tagsForCategories(domain, allTags, sub.categories, level, totalSeriesCount)), sort);
                 if (!subTags.length) return null;
                 return (
                   <div key={sub.label}>
@@ -367,9 +615,11 @@ export function TagPoolBody({
           ) : (
             <ChipRow
               tags={sortTags(
-                active.section.key === "genres"
-                  ? genreTags(allTags)
-                  : tagsForCategories(domain, allTags, active.section.categories ?? [], level, totalSeriesCount),
+                applyQuery(
+                  active.section.key === "genres"
+                    ? genreTags(allTags)
+                    : tagsForCategories(domain, allTags, active.section.categories ?? [], level, totalSeriesCount),
+                ),
                 sort,
               )}
               selectedTags={selectedTags}
