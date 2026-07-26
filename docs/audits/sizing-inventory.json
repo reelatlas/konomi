@@ -1,0 +1,2180 @@
+{
+ "meta": {
+  "generated": "2026-07-26T22:23:36.128Z",
+  "commit": "8de284c",
+  "treeDirty": true,
+  "url": "http://localhost:3000/film",
+  "primaryCapture": {
+   "viewport": "1400x1000",
+   "dpr": 1,
+   "theme": "default",
+   "side": "film",
+   "level": "3 (seeded)"
+  },
+  "note": "Frozen pre-migration baseline (see docs/audits/SIZING_AUDIT.md). Geometry captured in default theme only — themes are color-only by type (ThemeColors). Mobile pass is EMULATED (390x844@3); on-device iPhone remains ground truth."
+ },
+ "warnings": [],
+ "controls": [
+  {
+   "id": "popover/level-segment",
+   "component": "LevelSelector (full)",
+   "file": "src/components/konomi/LevelSelector.tsx",
+   "authored": {
+    "height": {
+     "v": "none — py-md(8)+leading-16+border-base×2",
+     "kind": "derived",
+     "src": "py-[var(--space-md)] leading-[16px]"
+    },
+    "font": {
+     "v": "--text-xs 11px",
+     "kind": "token"
+    },
+    "border": {
+     "v": "--border-base 2.5px",
+     "kind": "token"
+    },
+    "shadow": {
+     "v": "--elev-2 3px",
+     "kind": "token"
+    }
+   },
+   "measured": {
+    "resting": {
+     "w": 264.17,
+     "h": 36,
+     "fontSize": "16px",
+     "fontFamily": "Zen Kaku Gothic New",
+     "fontWeight": "400",
+     "lineHeight": "24px",
+     "letterSpacing": "normal",
+     "padding": "0px 0px 0px 0px",
+     "border": "2px",
+     "borderColor": "rgb(25, 18, 37)",
+     "radius": "0px",
+     "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(25, 18, 37) 3px 3px 0px 0px",
+     "background": "rgba(0, 0, 0, 0)",
+     "effectiveBg": "rgb(252, 250, 255)",
+     "color": "rgb(25, 18, 37)",
+     "outline": "none",
+     "opacity": "1",
+     "cursor": "auto",
+     "transition": "none",
+     "iconSize": null,
+     "iconLabelGap": null
+    },
+    "contrast": 17.55,
+    "states": {}
+   }
+  },
+  {
+   "id": "popover/level-option",
+   "component": "LevelSelector option btn",
+   "file": "src/components/konomi/LevelSelector.tsx",
+   "authored": {
+    "height": {
+     "v": "derived (see segment)",
+     "kind": "derived"
+    },
+    "padX": {
+     "v": "--space-lg 12px",
+     "kind": "token"
+    },
+    "padY": {
+     "v": "--space-md 8px",
+     "kind": "token"
+    }
+   },
+   "measured": {
+    "resting": {
+     "w": 85.39,
+     "h": 32,
+     "fontSize": "11px",
+     "fontFamily": "IBM Plex Mono",
+     "fontWeight": "700",
+     "lineHeight": "16px",
+     "letterSpacing": "0.22px",
+     "padding": "8px 12px 8px 12px",
+     "border": "0px",
+     "borderColor": "rgb(25, 18, 37)",
+     "radius": "0px",
+     "boxShadow": "none",
+     "background": "rgb(252, 250, 255)",
+     "effectiveBg": "rgb(252, 250, 255)",
+     "color": "rgb(25, 18, 37)",
+     "outline": "none",
+     "opacity": "1",
+     "cursor": "pointer",
+     "transition": "none",
+     "iconSize": null,
+     "iconLabelGap": null
+    },
+    "contrast": 17.55,
+    "states": {
+     "hover": {
+      "w": 85.39,
+      "h": 32,
+      "fontSize": "11px",
+      "fontFamily": "IBM Plex Mono",
+      "fontWeight": "700",
+      "lineHeight": "16px",
+      "letterSpacing": "0.22px",
+      "padding": "8px 12px 8px 12px",
+      "border": "0px",
+      "borderColor": "rgb(25, 18, 37)",
+      "radius": "0px",
+      "boxShadow": "none",
+      "background": "rgb(252, 250, 255)",
+      "effectiveBg": "rgb(252, 250, 255)",
+      "color": "rgb(25, 18, 37)",
+      "outline": "none",
+      "opacity": "1",
+      "cursor": "pointer",
+      "transition": "none",
+      "iconSize": null,
+      "iconLabelGap": null
+     },
+     "focusVisible": {
+      "w": 85.39,
+      "h": 32,
+      "fontSize": "11px",
+      "fontFamily": "IBM Plex Mono",
+      "fontWeight": "700",
+      "lineHeight": "16px",
+      "letterSpacing": "0.22px",
+      "padding": "8px 12px 8px 12px",
+      "border": "0px",
+      "borderColor": "rgb(25, 18, 37)",
+      "radius": "0px",
+      "boxShadow": "none",
+      "background": "rgb(252, 250, 255)",
+      "effectiveBg": "rgb(252, 250, 255)",
+      "color": "rgb(25, 18, 37)",
+      "outline": "1px auto offset 0px",
+      "opacity": "1",
+      "cursor": "pointer",
+      "transition": "none",
+      "iconSize": null,
+      "iconLabelGap": null
+     },
+     "active": {
+      "w": 85.39,
+      "h": 32,
+      "fontSize": "11px",
+      "fontFamily": "IBM Plex Mono",
+      "fontWeight": "700",
+      "lineHeight": "16px",
+      "letterSpacing": "0.22px",
+      "padding": "8px 12px 8px 12px",
+      "border": "0px",
+      "borderColor": "rgb(25, 18, 37)",
+      "radius": "0px",
+      "boxShadow": "none",
+      "background": "rgb(252, 250, 255)",
+      "effectiveBg": "rgb(252, 250, 255)",
+      "color": "rgb(25, 18, 37)",
+      "outline": "none",
+      "opacity": "1",
+      "cursor": "pointer",
+      "transition": "none",
+      "iconSize": null,
+      "iconLabelGap": null
+     }
+    }
+   }
+  },
+  {
+   "id": "popover/sort-select",
+   "component": "SortSelect",
+   "file": "src/components/konomi/SortSelect.tsx",
+   "authored": {
+    "height": {
+     "v": "none — same py-md+leading-16 derivation",
+     "kind": "derived",
+     "src": "py-[var(--space-md)]"
+    },
+    "font": {
+     "v": "--text-xs 11px",
+     "kind": "token"
+    },
+    "border": {
+     "v": "--border-base 2.5px",
+     "kind": "token"
+    },
+    "shadow": {
+     "v": "--elev-2 3px",
+     "kind": "token"
+    }
+   },
+   "measured": {
+    "resting": {
+     "w": 102,
+     "h": 36,
+     "fontSize": "11px",
+     "fontFamily": "IBM Plex Mono",
+     "fontWeight": "700",
+     "lineHeight": "16px",
+     "letterSpacing": "0.22px",
+     "padding": "8px 24px 8px 12px",
+     "border": "2px",
+     "borderColor": "rgb(25, 18, 37)",
+     "radius": "0px",
+     "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(25, 18, 37) 3px 3px 0px 0px",
+     "background": "rgb(252, 250, 255)",
+     "effectiveBg": "rgb(252, 250, 255)",
+     "color": "rgb(25, 18, 37)",
+     "outline": "none",
+     "opacity": "1",
+     "cursor": "pointer",
+     "transition": "none",
+     "iconSize": null,
+     "iconLabelGap": null
+    },
+    "contrast": 17.55,
+    "states": {
+     "hover": {
+      "w": 102,
+      "h": 36,
+      "fontSize": "11px",
+      "fontFamily": "IBM Plex Mono",
+      "fontWeight": "700",
+      "lineHeight": "16px",
+      "letterSpacing": "0.22px",
+      "padding": "8px 24px 8px 12px",
+      "border": "2px",
+      "borderColor": "rgb(25, 18, 37)",
+      "radius": "0px",
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(25, 18, 37) 3px 3px 0px 0px",
+      "background": "rgb(252, 250, 255)",
+      "effectiveBg": "rgb(252, 250, 255)",
+      "color": "rgb(25, 18, 37)",
+      "outline": "none",
+      "opacity": "1",
+      "cursor": "pointer",
+      "transition": "none",
+      "iconSize": null,
+      "iconLabelGap": null
+     },
+     "focusVisible": {
+      "w": 102,
+      "h": 36,
+      "fontSize": "11px",
+      "fontFamily": "IBM Plex Mono",
+      "fontWeight": "700",
+      "lineHeight": "16px",
+      "letterSpacing": "0.22px",
+      "padding": "8px 24px 8px 12px",
+      "border": "2px",
+      "borderColor": "rgb(25, 18, 37)",
+      "radius": "0px",
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(25, 18, 37) 3px 3px 0px 0px",
+      "background": "rgb(252, 250, 255)",
+      "effectiveBg": "rgb(252, 250, 255)",
+      "color": "rgb(25, 18, 37)",
+      "outline": "1px auto offset 0px",
+      "opacity": "1",
+      "cursor": "pointer",
+      "transition": "none",
+      "iconSize": null,
+      "iconLabelGap": null
+     }
+    }
+   }
+  },
+  {
+   "id": "header/search-field",
+   "component": "ResultsHeader input",
+   "file": "src/components/konomi/ResultsHeader.tsx",
+   "authored": {
+    "height": {
+     "v": "24px",
+     "kind": "literal",
+     "src": "h-[24px]"
+    },
+    "width": {
+     "v": "min(200px,40vw)",
+     "kind": "literal",
+     "src": "w-[min(200px,40vw)]"
+    },
+    "font": {
+     "v": "--text-sm 12px",
+     "kind": "token"
+    },
+    "padX": {
+     "v": "--space-md 8px",
+     "kind": "token"
+    },
+    "border": {
+     "v": "--border-thin 2px",
+     "kind": "token"
+    }
+   },
+   "measured": {
+    "resting": {
+     "w": 200,
+     "h": 24,
+     "fontSize": "12px",
+     "fontFamily": "IBM Plex Mono",
+     "fontWeight": "400",
+     "lineHeight": "18px",
+     "letterSpacing": "normal",
+     "padding": "0px 8px 0px 8px",
+     "border": "2px",
+     "borderColor": "rgb(169, 133, 226)",
+     "radius": "0px",
+     "boxShadow": "none",
+     "background": "rgb(252, 250, 255)",
+     "effectiveBg": "rgb(252, 250, 255)",
+     "color": "rgb(25, 18, 37)",
+     "outline": "none",
+     "opacity": "1",
+     "cursor": "text",
+     "transition": "none",
+     "iconSize": null,
+     "iconLabelGap": null
+    },
+    "contrast": 17.55,
+    "states": {
+     "hover": {
+      "w": 200,
+      "h": 24,
+      "fontSize": "12px",
+      "fontFamily": "IBM Plex Mono",
+      "fontWeight": "400",
+      "lineHeight": "18px",
+      "letterSpacing": "normal",
+      "padding": "0px 8px 0px 8px",
+      "border": "2px",
+      "borderColor": "rgb(169, 133, 226)",
+      "radius": "0px",
+      "boxShadow": "none",
+      "background": "rgb(252, 250, 255)",
+      "effectiveBg": "rgb(252, 250, 255)",
+      "color": "rgb(25, 18, 37)",
+      "outline": "none",
+      "opacity": "1",
+      "cursor": "text",
+      "transition": "none",
+      "iconSize": null,
+      "iconLabelGap": null
+     },
+     "focusVisible": {
+      "w": 200,
+      "h": 24,
+      "fontSize": "12px",
+      "fontFamily": "IBM Plex Mono",
+      "fontWeight": "400",
+      "lineHeight": "18px",
+      "letterSpacing": "normal",
+      "padding": "0px 8px 0px 8px",
+      "border": "2px",
+      "borderColor": "rgb(169, 133, 226)",
+      "radius": "0px",
+      "boxShadow": "none",
+      "background": "rgb(252, 250, 255)",
+      "effectiveBg": "rgb(252, 250, 255)",
+      "color": "rgb(25, 18, 37)",
+      "outline": "none",
+      "opacity": "1",
+      "cursor": "text",
+      "transition": "none",
+      "iconSize": null,
+      "iconLabelGap": null
+     }
+    }
+   }
+  },
+  {
+   "id": "header/tagpool-btn",
+   "component": "ActionButton sm outline|filled",
+   "file": "src/components/konomi/ActionButton.tsx",
+   "authored": {
+    "height": {
+     "v": "30px",
+     "kind": "literal",
+     "src": "SIZE_CLASSES.sm h-[30px]"
+    },
+    "font": {
+     "v": "--text-xs 11px",
+     "kind": "token"
+    },
+    "padX": {
+     "v": "--space-lg 12px",
+     "kind": "token"
+    },
+    "border": {
+     "v": "--border-base 2.5px",
+     "kind": "token"
+    },
+    "shadow": {
+     "v": "--elev-2 3px",
+     "kind": "token"
+    }
+   },
+   "measured": {
+    "resting": {
+     "w": 108.09,
+     "h": 30,
+     "fontSize": "11px",
+     "fontFamily": "IBM Plex Mono",
+     "fontWeight": "700",
+     "lineHeight": "16.5px",
+     "letterSpacing": "0.66px",
+     "padding": "0px 12px 0px 12px",
+     "border": "2px",
+     "borderColor": "rgb(25, 18, 37)",
+     "radius": "0px",
+     "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(25, 18, 37) 3px 3px 0px 0px",
+     "background": "rgb(228, 215, 244)",
+     "effectiveBg": "rgb(228, 215, 244)",
+     "color": "rgb(25, 18, 37)",
+     "outline": "none",
+     "opacity": "1",
+     "cursor": "pointer",
+     "transition": "none",
+     "iconSize": "16px×16px",
+     "iconLabelGap": "6px"
+    },
+    "contrast": 13.27,
+    "states": {
+     "hover": {
+      "w": 108.09,
+      "h": 30,
+      "fontSize": "11px",
+      "fontFamily": "IBM Plex Mono",
+      "fontWeight": "700",
+      "lineHeight": "16.5px",
+      "letterSpacing": "0.66px",
+      "padding": "0px 12px 0px 12px",
+      "border": "2px",
+      "borderColor": "rgb(25, 18, 37)",
+      "radius": "0px",
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(25, 18, 37) 3px 3px 0px 0px",
+      "background": "rgb(228, 215, 244)",
+      "effectiveBg": "rgb(228, 215, 244)",
+      "color": "rgb(25, 18, 37)",
+      "outline": "none",
+      "opacity": "1",
+      "cursor": "pointer",
+      "transition": "none",
+      "iconSize": "16px×16px",
+      "iconLabelGap": "6px"
+     },
+     "focusVisible": {
+      "w": 108.09,
+      "h": 30,
+      "fontSize": "11px",
+      "fontFamily": "IBM Plex Mono",
+      "fontWeight": "700",
+      "lineHeight": "16.5px",
+      "letterSpacing": "0.66px",
+      "padding": "0px 12px 0px 12px",
+      "border": "2px",
+      "borderColor": "rgb(25, 18, 37)",
+      "radius": "0px",
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(25, 18, 37) 3px 3px 0px 0px",
+      "background": "rgb(228, 215, 244)",
+      "effectiveBg": "rgb(228, 215, 244)",
+      "color": "rgb(25, 18, 37)",
+      "outline": "1px auto offset 0px",
+      "opacity": "1",
+      "cursor": "pointer",
+      "transition": "none",
+      "iconSize": "16px×16px",
+      "iconLabelGap": "6px"
+     },
+     "active": {
+      "w": 108.09,
+      "h": 30,
+      "fontSize": "11px",
+      "fontFamily": "IBM Plex Mono",
+      "fontWeight": "700",
+      "lineHeight": "16.5px",
+      "letterSpacing": "0.66px",
+      "padding": "0px 12px 0px 12px",
+      "border": "2px",
+      "borderColor": "rgb(25, 18, 37)",
+      "radius": "0px",
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(25, 18, 37) 3px 3px 0px 0px",
+      "background": "rgb(228, 215, 244)",
+      "effectiveBg": "rgb(228, 215, 244)",
+      "color": "rgb(25, 18, 37)",
+      "outline": "none",
+      "opacity": "1",
+      "cursor": "pointer",
+      "transition": "none",
+      "iconSize": "16px×16px",
+      "iconLabelGap": "6px"
+     }
+    }
+   }
+  },
+  {
+   "id": "header/filter-btn",
+   "component": "IconButton sm",
+   "file": "src/components/konomi/IconButton.tsx",
+   "authored": {
+    "height": {
+     "v": "30",
+     "kind": "literal",
+     "src": "SIZE_PX.sm = 30 (raw number, not a token)"
+    },
+    "border": {
+     "v": "--border-base 2.5px",
+     "kind": "token"
+    },
+    "shadow": {
+     "v": "none",
+     "kind": "literal"
+    },
+    "icon": {
+     "v": "16px",
+     "kind": "literal",
+     "src": "icons.tsx width/height=16"
+    }
+   },
+   "measured": {
+    "resting": {
+     "w": 30,
+     "h": 30,
+     "fontSize": "16px",
+     "fontFamily": "Zen Kaku Gothic New",
+     "fontWeight": "400",
+     "lineHeight": "24px",
+     "letterSpacing": "normal",
+     "padding": "0px 0px 0px 0px",
+     "border": "2px",
+     "borderColor": "rgb(169, 133, 226)",
+     "radius": "0px",
+     "boxShadow": "none",
+     "background": "rgba(0, 0, 0, 0)",
+     "effectiveBg": "rgb(239, 231, 248)",
+     "color": "rgb(25, 18, 37)",
+     "outline": "none",
+     "opacity": "1",
+     "cursor": "pointer",
+     "transition": "none",
+     "iconSize": "16px×16px",
+     "iconLabelGap": null
+    },
+    "contrast": 15.12,
+    "states": {
+     "hover": {
+      "w": 30,
+      "h": 30,
+      "fontSize": "16px",
+      "fontFamily": "Zen Kaku Gothic New",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "padding": "0px 0px 0px 0px",
+      "border": "2px",
+      "borderColor": "rgb(169, 133, 226)",
+      "radius": "0px",
+      "boxShadow": "none",
+      "background": "rgba(0, 0, 0, 0)",
+      "effectiveBg": "rgb(239, 231, 248)",
+      "color": "rgb(25, 18, 37)",
+      "outline": "none",
+      "opacity": "1",
+      "cursor": "pointer",
+      "transition": "none",
+      "iconSize": "16px×16px",
+      "iconLabelGap": null
+     },
+     "focusVisible": {
+      "w": 30,
+      "h": 30,
+      "fontSize": "16px",
+      "fontFamily": "Zen Kaku Gothic New",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "padding": "0px 0px 0px 0px",
+      "border": "2px",
+      "borderColor": "rgb(169, 133, 226)",
+      "radius": "0px",
+      "boxShadow": "none",
+      "background": "rgba(0, 0, 0, 0)",
+      "effectiveBg": "rgb(239, 231, 248)",
+      "color": "rgb(25, 18, 37)",
+      "outline": "1px auto offset 0px",
+      "opacity": "1",
+      "cursor": "pointer",
+      "transition": "none",
+      "iconSize": "16px×16px",
+      "iconLabelGap": null
+     },
+     "active": {
+      "w": 30,
+      "h": 30,
+      "fontSize": "16px",
+      "fontFamily": "Zen Kaku Gothic New",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "padding": "0px 0px 0px 0px",
+      "border": "2px",
+      "borderColor": "rgb(169, 133, 226)",
+      "radius": "0px",
+      "boxShadow": "none",
+      "background": "rgba(0, 0, 0, 0)",
+      "effectiveBg": "rgb(239, 231, 248)",
+      "color": "rgb(25, 18, 37)",
+      "outline": "none",
+      "opacity": "1",
+      "cursor": "pointer",
+      "transition": "none",
+      "iconSize": "16px×16px",
+      "iconLabelGap": null
+     }
+    }
+   }
+  },
+  {
+   "id": "header/clear-btn",
+   "component": "ActionButton sm inverted",
+   "file": "src/components/konomi/ResultsHeader.tsx",
+   "authored": {
+    "height": {
+     "v": "30px",
+     "kind": "literal",
+     "src": "SIZE_CLASSES.sm"
+    },
+    "font": {
+     "v": "--text-xs 11px",
+     "kind": "token"
+    },
+    "shadow": {
+     "v": "none (inverted variant)",
+     "kind": "literal"
+    }
+   },
+   "measured": {
+    "resting": {
+     "w": 78.84,
+     "h": 30,
+     "fontSize": "11px",
+     "fontFamily": "IBM Plex Mono",
+     "fontWeight": "700",
+     "lineHeight": "16.5px",
+     "letterSpacing": "0.66px",
+     "padding": "0px 12px 0px 12px",
+     "border": "2px",
+     "borderColor": "rgb(25, 18, 37)",
+     "radius": "0px",
+     "boxShadow": "none",
+     "background": "rgb(25, 18, 37)",
+     "effectiveBg": "rgb(25, 18, 37)",
+     "color": "rgb(239, 231, 248)",
+     "outline": "none",
+     "opacity": "1",
+     "cursor": "pointer",
+     "transition": "none",
+     "iconSize": null,
+     "iconLabelGap": null
+    },
+    "contrast": 15.12,
+    "states": {
+     "hover": {
+      "w": 78.84,
+      "h": 30,
+      "fontSize": "11px",
+      "fontFamily": "IBM Plex Mono",
+      "fontWeight": "700",
+      "lineHeight": "16.5px",
+      "letterSpacing": "0.66px",
+      "padding": "0px 12px 0px 12px",
+      "border": "2px",
+      "borderColor": "rgb(25, 18, 37)",
+      "radius": "0px",
+      "boxShadow": "none",
+      "background": "rgb(25, 18, 37)",
+      "effectiveBg": "rgb(25, 18, 37)",
+      "color": "rgb(239, 231, 248)",
+      "outline": "none",
+      "opacity": "1",
+      "cursor": "pointer",
+      "transition": "none",
+      "iconSize": null,
+      "iconLabelGap": null
+     },
+     "focusVisible": {
+      "w": 78.84,
+      "h": 30,
+      "fontSize": "11px",
+      "fontFamily": "IBM Plex Mono",
+      "fontWeight": "700",
+      "lineHeight": "16.5px",
+      "letterSpacing": "0.66px",
+      "padding": "0px 12px 0px 12px",
+      "border": "2px",
+      "borderColor": "rgb(25, 18, 37)",
+      "radius": "0px",
+      "boxShadow": "none",
+      "background": "rgb(25, 18, 37)",
+      "effectiveBg": "rgb(25, 18, 37)",
+      "color": "rgb(239, 231, 248)",
+      "outline": "1px auto offset 0px",
+      "opacity": "1",
+      "cursor": "pointer",
+      "transition": "none",
+      "iconSize": null,
+      "iconLabelGap": null
+     }
+    }
+   }
+  },
+  {
+   "id": "header/meta-readout",
+   "component": "ResultsHeader metadata",
+   "file": "src/components/konomi/ResultsHeader.tsx",
+   "authored": {
+    "height": {
+     "v": "content (18px icon box)",
+     "kind": "derived"
+    },
+    "font": {
+     "v": "--text-xs 11px",
+     "kind": "token"
+    }
+   },
+   "measured": {
+    "resting": {
+     "w": 29.05,
+     "h": 18,
+     "fontSize": "11px",
+     "fontFamily": "IBM Plex Mono",
+     "fontWeight": "400",
+     "lineHeight": "16.5px",
+     "letterSpacing": "0.44px",
+     "padding": "0px 0px 0px 0px",
+     "border": "0px",
+     "borderColor": "rgb(169, 133, 226)",
+     "radius": "0px",
+     "boxShadow": "none",
+     "background": "rgba(0, 0, 0, 0)",
+     "effectiveBg": "rgb(239, 231, 248)",
+     "color": "rgb(169, 133, 226)",
+     "outline": "none",
+     "opacity": "1",
+     "cursor": "default",
+     "transition": "color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
+     "iconSize": "18px×18px",
+     "iconLabelGap": "normal"
+    },
+    "contrast": 2.44,
+    "states": {
+     "hover": {
+      "w": 29.05,
+      "h": 18,
+      "fontSize": "11px",
+      "fontFamily": "IBM Plex Mono",
+      "fontWeight": "400",
+      "lineHeight": "16.5px",
+      "letterSpacing": "0.44px",
+      "padding": "0px 0px 0px 0px",
+      "border": "0px",
+      "borderColor": "rgb(169, 133, 226)",
+      "radius": "0px",
+      "boxShadow": "none",
+      "background": "rgba(0, 0, 0, 0)",
+      "effectiveBg": "rgb(239, 231, 248)",
+      "color": "rgb(169, 133, 226)",
+      "outline": "none",
+      "opacity": "1",
+      "cursor": "default",
+      "transition": "color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
+      "iconSize": "18px×18px",
+      "iconLabelGap": "normal"
+     }
+    }
+   }
+  },
+  {
+   "id": "panel/section-tab",
+   "component": "SectionTabStrip primary",
+   "file": "src/components/konomi/SectionTabStrip.tsx",
+   "authored": {
+    "height": {
+     "v": "content (Anton --text-lg line box)",
+     "kind": "derived"
+    },
+    "font": {
+     "v": "--text-lg 20px display",
+     "kind": "token"
+    }
+   },
+   "measured": {
+    "resting": {
+     "w": 57.3,
+     "h": 30,
+     "fontSize": "16px",
+     "fontFamily": "Zen Kaku Gothic New",
+     "fontWeight": "400",
+     "lineHeight": "24px",
+     "letterSpacing": "normal",
+     "padding": "0px 0px 0px 0px",
+     "border": "0px",
+     "borderColor": "rgb(25, 18, 37)",
+     "radius": "0px",
+     "boxShadow": "none",
+     "background": "rgba(0, 0, 0, 0)",
+     "effectiveBg": "rgb(252, 250, 255)",
+     "color": "rgb(25, 18, 37)",
+     "outline": "none",
+     "opacity": "1",
+     "cursor": "pointer",
+     "transition": "opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1)",
+     "iconSize": null,
+     "iconLabelGap": "6px"
+    },
+    "contrast": 17.55,
+    "states": {
+     "hover": {
+      "w": 57.3,
+      "h": 30,
+      "fontSize": "16px",
+      "fontFamily": "Zen Kaku Gothic New",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "padding": "0px 0px 0px 0px",
+      "border": "0px",
+      "borderColor": "rgb(25, 18, 37)",
+      "radius": "0px",
+      "boxShadow": "none",
+      "background": "rgba(0, 0, 0, 0)",
+      "effectiveBg": "rgb(252, 250, 255)",
+      "color": "rgb(25, 18, 37)",
+      "outline": "none",
+      "opacity": "1",
+      "cursor": "pointer",
+      "transition": "opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1)",
+      "iconSize": null,
+      "iconLabelGap": "6px"
+     },
+     "focusVisible": {
+      "w": 57.3,
+      "h": 30,
+      "fontSize": "16px",
+      "fontFamily": "Zen Kaku Gothic New",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "padding": "0px 0px 0px 0px",
+      "border": "0px",
+      "borderColor": "rgb(25, 18, 37)",
+      "radius": "0px",
+      "boxShadow": "none",
+      "background": "rgba(0, 0, 0, 0)",
+      "effectiveBg": "rgb(252, 250, 255)",
+      "color": "rgb(25, 18, 37)",
+      "outline": "2px solid offset -2px",
+      "opacity": "1",
+      "cursor": "pointer",
+      "transition": "opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1)",
+      "iconSize": null,
+      "iconLabelGap": "6px"
+     }
+    }
+   }
+  },
+  {
+   "id": "panel/sub-tab",
+   "component": "SectionTabStrip secondary",
+   "file": "src/components/konomi/SectionTabStrip.tsx",
+   "authored": {
+    "height": {
+     "v": "content (mono 2xs line box)",
+     "kind": "derived"
+    },
+    "font": {
+     "v": "--text-2xs 10px",
+     "kind": "token"
+    }
+   },
+   "measured": {
+    "resting": {
+     "w": 61.61,
+     "h": 15,
+     "fontSize": "16px",
+     "fontFamily": "Zen Kaku Gothic New",
+     "fontWeight": "400",
+     "lineHeight": "24px",
+     "letterSpacing": "normal",
+     "padding": "0px 0px 0px 0px",
+     "border": "0px",
+     "borderColor": "rgb(25, 18, 37)",
+     "radius": "0px",
+     "boxShadow": "none",
+     "background": "rgba(0, 0, 0, 0)",
+     "effectiveBg": "rgb(252, 250, 255)",
+     "color": "rgb(25, 18, 37)",
+     "outline": "none",
+     "opacity": "1",
+     "cursor": "pointer",
+     "transition": "opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1)",
+     "iconSize": null,
+     "iconLabelGap": "6px"
+    },
+    "contrast": 17.55,
+    "states": {
+     "hover": {
+      "w": 61.61,
+      "h": 15,
+      "fontSize": "16px",
+      "fontFamily": "Zen Kaku Gothic New",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "padding": "0px 0px 0px 0px",
+      "border": "0px",
+      "borderColor": "rgb(25, 18, 37)",
+      "radius": "0px",
+      "boxShadow": "none",
+      "background": "rgba(0, 0, 0, 0)",
+      "effectiveBg": "rgb(252, 250, 255)",
+      "color": "rgb(25, 18, 37)",
+      "outline": "none",
+      "opacity": "1",
+      "cursor": "pointer",
+      "transition": "opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1)",
+      "iconSize": null,
+      "iconLabelGap": "6px"
+     },
+     "focusVisible": {
+      "w": 61.61,
+      "h": 15,
+      "fontSize": "16px",
+      "fontFamily": "Zen Kaku Gothic New",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "padding": "0px 0px 0px 0px",
+      "border": "0px",
+      "borderColor": "rgb(25, 18, 37)",
+      "radius": "0px",
+      "boxShadow": "none",
+      "background": "rgba(0, 0, 0, 0)",
+      "effectiveBg": "rgb(252, 250, 255)",
+      "color": "rgb(25, 18, 37)",
+      "outline": "2px solid offset -2px",
+      "opacity": "1",
+      "cursor": "pointer",
+      "transition": "opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1)",
+      "iconSize": null,
+      "iconLabelGap": "6px"
+     }
+    }
+   }
+  },
+  {
+   "id": "panel/chip-small",
+   "component": "TagChip small",
+   "file": "src/components/konomi/TagChip.tsx",
+   "authored": {
+    "height": {
+     "v": "none — py-xs(4)+line+border-thin×2",
+     "kind": "derived",
+     "src": "px-[var(--space-md)] py-[var(--space-xs)]"
+    },
+    "font": {
+     "v": "--text-2xs 10px",
+     "kind": "token"
+    },
+    "border": {
+     "v": "--border-thin 2px",
+     "kind": "token"
+    },
+    "radius": {
+     "v": "--radius-chip 2px",
+     "kind": "token"
+    }
+   },
+   "measured": {
+    "resting": {
+     "w": 94.41,
+     "h": 27,
+     "fontSize": "10px",
+     "fontFamily": "IBM Plex Mono",
+     "fontWeight": "700",
+     "lineHeight": "15px",
+     "letterSpacing": "0.2px",
+     "padding": "4px 8px 4px 8px",
+     "border": "2px",
+     "borderColor": "rgb(25, 18, 37)",
+     "radius": "2px",
+     "boxShadow": "none",
+     "background": "rgb(228, 215, 244)",
+     "effectiveBg": "rgb(228, 215, 244)",
+     "color": "rgb(25, 18, 37)",
+     "outline": "none",
+     "opacity": "1",
+     "cursor": "grab",
+     "transition": "none",
+     "iconSize": null,
+     "iconLabelGap": null
+    },
+    "contrast": 13.27,
+    "states": {
+     "hover": {
+      "w": 94.41,
+      "h": 27,
+      "fontSize": "10px",
+      "fontFamily": "IBM Plex Mono",
+      "fontWeight": "700",
+      "lineHeight": "15px",
+      "letterSpacing": "0.2px",
+      "padding": "4px 8px 4px 8px",
+      "border": "2px",
+      "borderColor": "rgb(25, 18, 37)",
+      "radius": "2px",
+      "boxShadow": "none",
+      "background": "rgb(228, 215, 244)",
+      "effectiveBg": "rgb(228, 215, 244)",
+      "color": "rgb(25, 18, 37)",
+      "outline": "none",
+      "opacity": "1",
+      "cursor": "grab",
+      "transition": "none",
+      "iconSize": null,
+      "iconLabelGap": null
+     },
+     "focusVisible": {
+      "w": 94.41,
+      "h": 27,
+      "fontSize": "10px",
+      "fontFamily": "IBM Plex Mono",
+      "fontWeight": "700",
+      "lineHeight": "15px",
+      "letterSpacing": "0.2px",
+      "padding": "4px 8px 4px 8px",
+      "border": "2px",
+      "borderColor": "rgb(25, 18, 37)",
+      "radius": "2px",
+      "boxShadow": "none",
+      "background": "rgb(228, 215, 244)",
+      "effectiveBg": "rgb(228, 215, 244)",
+      "color": "rgb(25, 18, 37)",
+      "outline": "1px auto offset 0px",
+      "opacity": "1",
+      "cursor": "grab",
+      "transition": "none",
+      "iconSize": null,
+      "iconLabelGap": null
+     },
+     "active": {
+      "w": 94.41,
+      "h": 27,
+      "fontSize": "10px",
+      "fontFamily": "IBM Plex Mono",
+      "fontWeight": "700",
+      "lineHeight": "15px",
+      "letterSpacing": "0.2px",
+      "padding": "4px 8px 4px 8px",
+      "border": "2px",
+      "borderColor": "rgb(25, 18, 37)",
+      "radius": "2px",
+      "boxShadow": "none",
+      "background": "rgb(228, 215, 244)",
+      "effectiveBg": "rgb(228, 215, 244)",
+      "color": "rgb(25, 18, 37)",
+      "outline": "none",
+      "opacity": "1",
+      "cursor": "grabbing",
+      "transition": "none",
+      "iconSize": null,
+      "iconLabelGap": null
+     }
+    }
+   }
+  },
+  {
+   "id": "panel/icon-btn",
+   "component": "IconButton sm border=none (snap/close/grip)",
+   "file": "src/components/konomi/TagPoolOverlay.tsx",
+   "authored": {
+    "height": {
+     "v": "30 (SIZE_PX.sm)",
+     "kind": "literal"
+    },
+    "border": {
+     "v": "none",
+     "kind": "literal"
+    },
+    "icon": {
+     "v": "16px",
+     "kind": "literal"
+    }
+   },
+   "measured": {
+    "resting": {
+     "w": 30,
+     "h": 30,
+     "fontSize": "16px",
+     "fontFamily": "Zen Kaku Gothic New",
+     "fontWeight": "400",
+     "lineHeight": "24px",
+     "letterSpacing": "normal",
+     "padding": "0px 0px 0px 0px",
+     "border": "0px",
+     "borderColor": "rgb(25, 18, 37)",
+     "radius": "0px",
+     "boxShadow": "none",
+     "background": "rgba(0, 0, 0, 0)",
+     "effectiveBg": "rgb(252, 250, 255)",
+     "color": "rgb(25, 18, 37)",
+     "outline": "none",
+     "opacity": "1",
+     "cursor": "pointer",
+     "transition": "none",
+     "iconSize": "16px×16px",
+     "iconLabelGap": null
+    },
+    "contrast": 17.55,
+    "states": {
+     "hover": {
+      "w": 30,
+      "h": 30,
+      "fontSize": "16px",
+      "fontFamily": "Zen Kaku Gothic New",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "padding": "0px 0px 0px 0px",
+      "border": "0px",
+      "borderColor": "rgb(25, 18, 37)",
+      "radius": "0px",
+      "boxShadow": "none",
+      "background": "rgba(0, 0, 0, 0)",
+      "effectiveBg": "rgb(252, 250, 255)",
+      "color": "rgb(25, 18, 37)",
+      "outline": "none",
+      "opacity": "1",
+      "cursor": "pointer",
+      "transition": "none",
+      "iconSize": "16px×16px",
+      "iconLabelGap": null
+     },
+     "focusVisible": {
+      "w": 30,
+      "h": 30,
+      "fontSize": "16px",
+      "fontFamily": "Zen Kaku Gothic New",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "padding": "0px 0px 0px 0px",
+      "border": "0px",
+      "borderColor": "rgb(25, 18, 37)",
+      "radius": "0px",
+      "boxShadow": "none",
+      "background": "rgba(0, 0, 0, 0)",
+      "effectiveBg": "rgb(252, 250, 255)",
+      "color": "rgb(25, 18, 37)",
+      "outline": "2px solid offset -2px",
+      "opacity": "1",
+      "cursor": "pointer",
+      "transition": "none",
+      "iconSize": "16px×16px",
+      "iconLabelGap": null
+     }
+    }
+   }
+  },
+  {
+   "id": "mixbar/slot",
+   "component": "TagSlot",
+   "file": "src/components/konomi/TagSlot.tsx",
+   "authored": {
+    "height": {
+     "v": "--control-h-md 44px",
+     "kind": "token"
+    },
+    "width": {
+     "v": "78px",
+     "kind": "literal",
+     "src": "w-[78px]"
+    },
+    "border": {
+     "v": "--border-base 2.5px",
+     "kind": "token"
+    },
+    "shadow": {
+     "v": "elev-3-accent 4px (filled) / none (empty)",
+     "kind": "token"
+    },
+    "font": {
+     "v": "auto-shrink sm→3xs (12→9px)",
+     "kind": "token"
+    }
+   },
+   "measured": {
+    "resting": {
+     "w": 78,
+     "h": 44,
+     "fontSize": "16px",
+     "fontFamily": "Zen Kaku Gothic New",
+     "fontWeight": "400",
+     "lineHeight": "24px",
+     "letterSpacing": "normal",
+     "padding": "0px 6px 0px 6px",
+     "border": "2px",
+     "borderColor": "rgb(25, 18, 37)",
+     "radius": "0px",
+     "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(228, 244, 111) 4px 4px 0px 0px",
+     "background": "rgb(86, 79, 214)",
+     "effectiveBg": "rgb(86, 79, 214)",
+     "color": "rgb(25, 18, 37)",
+     "outline": "none",
+     "opacity": "1",
+     "cursor": "grab",
+     "transition": "transform, translate, scale, rotate 0.075s cubic-bezier(0.4, 0, 0.2, 1)",
+     "iconSize": null,
+     "iconLabelGap": null
+    },
+    "contrast": 3.02,
+    "states": {
+     "hover": {
+      "w": 78,
+      "h": 44,
+      "fontSize": "16px",
+      "fontFamily": "Zen Kaku Gothic New",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "padding": "0px 6px 0px 6px",
+      "border": "2px",
+      "borderColor": "rgb(25, 18, 37)",
+      "radius": "0px",
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(228, 244, 111) 4px 4px 0px 0px",
+      "background": "rgb(86, 79, 214)",
+      "effectiveBg": "rgb(86, 79, 214)",
+      "color": "rgb(25, 18, 37)",
+      "outline": "none",
+      "opacity": "1",
+      "cursor": "grab",
+      "transition": "transform, translate, scale, rotate 0.075s cubic-bezier(0.4, 0, 0.2, 1)",
+      "iconSize": null,
+      "iconLabelGap": null
+     }
+    }
+   }
+  },
+  {
+   "id": "mixbar/clear-btn",
+   "component": "ActionButton md outline",
+   "file": "src/components/konomi/MixerBar.tsx",
+   "authored": {
+    "height": {
+     "v": "--control-h-md 44px",
+     "kind": "token"
+    },
+    "font": {
+     "v": "--text-xs 11px",
+     "kind": "token"
+    },
+    "padX": {
+     "v": "--space-xl 16px",
+     "kind": "token"
+    },
+    "border": {
+     "v": "--border-base 2.5px",
+     "kind": "token"
+    },
+    "shadow": {
+     "v": "--elev-2 3px",
+     "kind": "token"
+    },
+    "iconGap": {
+     "v": "--space-sm 6px",
+     "kind": "token"
+    }
+   },
+   "measured": {
+    "resting": {
+     "w": 94.31,
+     "h": 44,
+     "fontSize": "11px",
+     "fontFamily": "IBM Plex Mono",
+     "fontWeight": "700",
+     "lineHeight": "16.5px",
+     "letterSpacing": "0.66px",
+     "padding": "0px 16px 0px 16px",
+     "border": "2px",
+     "borderColor": "rgb(25, 18, 37)",
+     "radius": "0px",
+     "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(25, 18, 37) 3px 3px 0px 0px",
+     "background": "rgba(0, 0, 0, 0)",
+     "effectiveBg": "rgb(252, 250, 255)",
+     "color": "rgb(25, 18, 37)",
+     "outline": "none",
+     "opacity": "1",
+     "cursor": "pointer",
+     "transition": "none",
+     "iconSize": "16px×16px",
+     "iconLabelGap": "6px"
+    },
+    "contrast": 17.55,
+    "states": {
+     "hover": {
+      "w": 94.31,
+      "h": 44,
+      "fontSize": "11px",
+      "fontFamily": "IBM Plex Mono",
+      "fontWeight": "700",
+      "lineHeight": "16.5px",
+      "letterSpacing": "0.66px",
+      "padding": "0px 16px 0px 16px",
+      "border": "2px",
+      "borderColor": "rgb(25, 18, 37)",
+      "radius": "0px",
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(25, 18, 37) 3px 3px 0px 0px",
+      "background": "rgba(0, 0, 0, 0)",
+      "effectiveBg": "rgb(252, 250, 255)",
+      "color": "rgb(25, 18, 37)",
+      "outline": "none",
+      "opacity": "1",
+      "cursor": "pointer",
+      "transition": "none",
+      "iconSize": "16px×16px",
+      "iconLabelGap": "6px"
+     },
+     "focusVisible": {
+      "w": 94.31,
+      "h": 44,
+      "fontSize": "11px",
+      "fontFamily": "IBM Plex Mono",
+      "fontWeight": "700",
+      "lineHeight": "16.5px",
+      "letterSpacing": "0.66px",
+      "padding": "0px 16px 0px 16px",
+      "border": "2px",
+      "borderColor": "rgb(25, 18, 37)",
+      "radius": "0px",
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(25, 18, 37) 3px 3px 0px 0px",
+      "background": "rgba(0, 0, 0, 0)",
+      "effectiveBg": "rgb(252, 250, 255)",
+      "color": "rgb(25, 18, 37)",
+      "outline": "1px auto offset 0px",
+      "opacity": "1",
+      "cursor": "pointer",
+      "transition": "none",
+      "iconSize": "16px×16px",
+      "iconLabelGap": "6px"
+     },
+     "active": {
+      "w": 94.31,
+      "h": 44,
+      "fontSize": "11px",
+      "fontFamily": "IBM Plex Mono",
+      "fontWeight": "700",
+      "lineHeight": "16.5px",
+      "letterSpacing": "0.66px",
+      "padding": "0px 16px 0px 16px",
+      "border": "2px",
+      "borderColor": "rgb(25, 18, 37)",
+      "radius": "0px",
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(25, 18, 37) 3px 3px 0px 0px",
+      "background": "rgba(0, 0, 0, 0)",
+      "effectiveBg": "rgb(252, 250, 255)",
+      "color": "rgb(25, 18, 37)",
+      "outline": "none",
+      "opacity": "1",
+      "cursor": "pointer",
+      "transition": "none",
+      "iconSize": "16px×16px",
+      "iconLabelGap": "6px"
+     }
+    }
+   }
+  },
+  {
+   "id": "mixbar/minmatch-segment",
+   "component": "MatchSelector (full)",
+   "file": "src/components/konomi/MatchSelector.tsx",
+   "authored": {
+    "height": {
+     "v": "none — py-md+leading-16+border derivation",
+     "kind": "derived",
+     "src": "py-[var(--space-md)] leading-[16px]"
+    },
+    "border": {
+     "v": "--border-base 2.5px",
+     "kind": "token"
+    },
+    "shadow": {
+     "v": "--elev-2 3px",
+     "kind": "token"
+    }
+   },
+   "measured": {
+    "resting": {
+     "w": 100.48,
+     "h": 36,
+     "fontSize": "16px",
+     "fontFamily": "Zen Kaku Gothic New",
+     "fontWeight": "400",
+     "lineHeight": "24px",
+     "letterSpacing": "normal",
+     "padding": "0px 0px 0px 0px",
+     "border": "2px",
+     "borderColor": "rgb(25, 18, 37)",
+     "radius": "0px",
+     "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(25, 18, 37) 3px 3px 0px 0px",
+     "background": "rgba(0, 0, 0, 0)",
+     "effectiveBg": "rgb(252, 250, 255)",
+     "color": "rgb(25, 18, 37)",
+     "outline": "none",
+     "opacity": "1",
+     "cursor": "auto",
+     "transition": "none",
+     "iconSize": null,
+     "iconLabelGap": null
+    },
+    "contrast": 17.55,
+    "states": {}
+   }
+  },
+  {
+   "id": "mixbar/random-btn",
+   "component": "ActionButton md filled",
+   "file": "src/components/konomi/MixerBar.tsx",
+   "authored": {
+    "height": {
+     "v": "--control-h-md 44px",
+     "kind": "token"
+    },
+    "shadow": {
+     "v": "--elev-2 3px",
+     "kind": "token"
+    },
+    "iconGap": {
+     "v": "--space-sm 6px",
+     "kind": "token"
+    }
+   },
+   "measured": {
+    "resting": {
+     "w": 101.56,
+     "h": 44,
+     "fontSize": "11px",
+     "fontFamily": "IBM Plex Mono",
+     "fontWeight": "700",
+     "lineHeight": "16.5px",
+     "letterSpacing": "0.66px",
+     "padding": "0px 16px 0px 16px",
+     "border": "2px",
+     "borderColor": "rgb(25, 18, 37)",
+     "radius": "0px",
+     "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(25, 18, 37) 3px 3px 0px 0px",
+     "background": "rgb(228, 215, 244)",
+     "effectiveBg": "rgb(228, 215, 244)",
+     "color": "rgb(25, 18, 37)",
+     "outline": "none",
+     "opacity": "1",
+     "cursor": "pointer",
+     "transition": "none",
+     "iconSize": "16px×16px",
+     "iconLabelGap": "6px"
+    },
+    "contrast": 13.27,
+    "states": {
+     "hover": {
+      "w": 101.56,
+      "h": 44,
+      "fontSize": "11px",
+      "fontFamily": "IBM Plex Mono",
+      "fontWeight": "700",
+      "lineHeight": "16.5px",
+      "letterSpacing": "0.66px",
+      "padding": "0px 16px 0px 16px",
+      "border": "2px",
+      "borderColor": "rgb(25, 18, 37)",
+      "radius": "0px",
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(25, 18, 37) 3px 3px 0px 0px",
+      "background": "rgb(228, 215, 244)",
+      "effectiveBg": "rgb(228, 215, 244)",
+      "color": "rgb(25, 18, 37)",
+      "outline": "none",
+      "opacity": "1",
+      "cursor": "pointer",
+      "transition": "none",
+      "iconSize": "16px×16px",
+      "iconLabelGap": "6px"
+     },
+     "focusVisible": {
+      "w": 101.56,
+      "h": 44,
+      "fontSize": "11px",
+      "fontFamily": "IBM Plex Mono",
+      "fontWeight": "700",
+      "lineHeight": "16.5px",
+      "letterSpacing": "0.66px",
+      "padding": "0px 16px 0px 16px",
+      "border": "2px",
+      "borderColor": "rgb(25, 18, 37)",
+      "radius": "0px",
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(25, 18, 37) 3px 3px 0px 0px",
+      "background": "rgb(228, 215, 244)",
+      "effectiveBg": "rgb(228, 215, 244)",
+      "color": "rgb(25, 18, 37)",
+      "outline": "1px auto offset 0px",
+      "opacity": "1",
+      "cursor": "pointer",
+      "transition": "none",
+      "iconSize": "16px×16px",
+      "iconLabelGap": "6px"
+     },
+     "active": {
+      "w": 101.56,
+      "h": 44,
+      "fontSize": "11px",
+      "fontFamily": "IBM Plex Mono",
+      "fontWeight": "700",
+      "lineHeight": "16.5px",
+      "letterSpacing": "0.66px",
+      "padding": "0px 16px 0px 16px",
+      "border": "2px",
+      "borderColor": "rgb(25, 18, 37)",
+      "radius": "0px",
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(25, 18, 37) 3px 3px 0px 0px",
+      "background": "rgb(228, 215, 244)",
+      "effectiveBg": "rgb(228, 215, 244)",
+      "color": "rgb(25, 18, 37)",
+      "outline": "none",
+      "opacity": "1",
+      "cursor": "pointer",
+      "transition": "none",
+      "iconSize": "16px×16px",
+      "iconLabelGap": "6px"
+     }
+    }
+   }
+  },
+  {
+   "id": "mixbar/recommend-btn",
+   "component": "RecommendButton (ActionButton md accent)",
+   "file": "src/components/konomi/RecommendButton.tsx",
+   "authored": {
+    "height": {
+     "v": "--control-h-md 44px",
+     "kind": "token"
+    },
+    "shadow": {
+     "v": "--elev-4 5px",
+     "kind": "token"
+    },
+    "font": {
+     "v": "--text-xs 11px",
+     "kind": "token"
+    }
+   },
+   "measured": {
+    "resting": {
+     "w": 115.89,
+     "h": 44,
+     "fontSize": "11px",
+     "fontFamily": "IBM Plex Mono",
+     "fontWeight": "700",
+     "lineHeight": "16.5px",
+     "letterSpacing": "0.66px",
+     "padding": "0px 16px 0px 16px",
+     "border": "2px",
+     "borderColor": "rgb(25, 18, 37)",
+     "radius": "0px",
+     "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(25, 18, 37) 5px 5px 0px 0px",
+     "background": "rgb(228, 244, 111)",
+     "effectiveBg": "rgb(228, 244, 111)",
+     "color": "rgb(25, 18, 37)",
+     "outline": "none",
+     "opacity": "1",
+     "cursor": "pointer",
+     "transition": "none",
+     "iconSize": "16px×16px",
+     "iconLabelGap": null
+    },
+    "contrast": 15.13,
+    "states": {
+     "hover": {
+      "w": 115.89,
+      "h": 44,
+      "fontSize": "11px",
+      "fontFamily": "IBM Plex Mono",
+      "fontWeight": "700",
+      "lineHeight": "16.5px",
+      "letterSpacing": "0.66px",
+      "padding": "0px 16px 0px 16px",
+      "border": "2px",
+      "borderColor": "rgb(25, 18, 37)",
+      "radius": "0px",
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(25, 18, 37) 5px 5px 0px 0px",
+      "background": "rgb(228, 244, 111)",
+      "effectiveBg": "rgb(228, 244, 111)",
+      "color": "rgb(25, 18, 37)",
+      "outline": "none",
+      "opacity": "1",
+      "cursor": "pointer",
+      "transition": "none",
+      "iconSize": "16px×16px",
+      "iconLabelGap": null
+     },
+     "focusVisible": {
+      "w": 115.89,
+      "h": 44,
+      "fontSize": "11px",
+      "fontFamily": "IBM Plex Mono",
+      "fontWeight": "700",
+      "lineHeight": "16.5px",
+      "letterSpacing": "0.66px",
+      "padding": "0px 16px 0px 16px",
+      "border": "2px",
+      "borderColor": "rgb(25, 18, 37)",
+      "radius": "0px",
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(25, 18, 37) 5px 5px 0px 0px",
+      "background": "rgb(228, 244, 111)",
+      "effectiveBg": "rgb(228, 244, 111)",
+      "color": "rgb(25, 18, 37)",
+      "outline": "1px auto offset 0px",
+      "opacity": "1",
+      "cursor": "pointer",
+      "transition": "none",
+      "iconSize": "16px×16px",
+      "iconLabelGap": null
+     },
+     "disabled": {
+      "w": 115.89,
+      "h": 44,
+      "fontSize": "11px",
+      "fontFamily": "IBM Plex Mono",
+      "fontWeight": "700",
+      "lineHeight": "16.5px",
+      "letterSpacing": "0.66px",
+      "padding": "0px 16px 0px 16px",
+      "border": "2px",
+      "borderColor": "rgb(169, 133, 226)",
+      "radius": "0px",
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "background": "rgb(244, 238, 251)",
+      "effectiveBg": "rgb(244, 238, 251)",
+      "color": "rgb(154, 139, 181)",
+      "outline": "none",
+      "opacity": "1",
+      "cursor": "not-allowed",
+      "transition": "none",
+      "iconSize": "16px×16px",
+      "iconLabelGap": null
+     }
+    }
+   }
+  },
+  {
+   "id": "card/chip",
+   "component": "TagChip small (card context)",
+   "file": "src/components/konomi/TagChip.tsx",
+   "authored": {
+    "height": {
+     "v": "same derivation as panel/chip-small",
+     "kind": "derived"
+    }
+   },
+   "measured": {
+    "resting": {
+     "w": 82,
+     "h": 27,
+     "fontSize": "10px",
+     "fontFamily": "IBM Plex Mono",
+     "fontWeight": "700",
+     "lineHeight": "15px",
+     "letterSpacing": "0.2px",
+     "padding": "4px 8px 4px 8px",
+     "border": "2px",
+     "borderColor": "rgb(25, 18, 37)",
+     "radius": "2px",
+     "boxShadow": "none",
+     "background": "rgb(228, 215, 244)",
+     "effectiveBg": "rgb(228, 215, 244)",
+     "color": "rgb(25, 18, 37)",
+     "outline": "none",
+     "opacity": "1",
+     "cursor": "grab",
+     "transition": "none",
+     "iconSize": null,
+     "iconLabelGap": null
+    },
+    "contrast": 13.27,
+    "states": {
+     "hover": {
+      "w": 82,
+      "h": 27,
+      "fontSize": "10px",
+      "fontFamily": "IBM Plex Mono",
+      "fontWeight": "700",
+      "lineHeight": "15px",
+      "letterSpacing": "0.2px",
+      "padding": "4px 8px 4px 8px",
+      "border": "2px",
+      "borderColor": "rgb(25, 18, 37)",
+      "radius": "2px",
+      "boxShadow": "none",
+      "background": "rgb(228, 215, 244)",
+      "effectiveBg": "rgb(228, 215, 244)",
+      "color": "rgb(25, 18, 37)",
+      "outline": "none",
+      "opacity": "1",
+      "cursor": "grab",
+      "transition": "none",
+      "iconSize": null,
+      "iconLabelGap": null
+     }
+    }
+   }
+  },
+  {
+   "id": "card/lock-btn",
+   "component": "IconButton sm thin shadow",
+   "file": "src/components/konomi/ResultCard.tsx",
+   "authored": {
+    "height": {
+     "v": "30 (SIZE_PX.sm)",
+     "kind": "literal"
+    },
+    "border": {
+     "v": "--border-thin 2px",
+     "kind": "token"
+    },
+    "shadow": {
+     "v": "--elev-1 2px",
+     "kind": "token"
+    },
+    "icon": {
+     "v": "16px",
+     "kind": "literal"
+    }
+   },
+   "measured": {
+    "resting": {
+     "w": 30,
+     "h": 30,
+     "fontSize": "16px",
+     "fontFamily": "Zen Kaku Gothic New",
+     "fontWeight": "400",
+     "lineHeight": "24px",
+     "letterSpacing": "normal",
+     "padding": "0px 0px 0px 0px",
+     "border": "2px",
+     "borderColor": "rgb(25, 18, 37)",
+     "radius": "0px",
+     "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(25, 18, 37) 2px 2px 0px 0px",
+     "background": "rgb(252, 250, 255)",
+     "effectiveBg": "rgb(252, 250, 255)",
+     "color": "rgb(25, 18, 37)",
+     "outline": "none",
+     "opacity": "1",
+     "cursor": "pointer",
+     "transition": "none",
+     "iconSize": "15px×15px",
+     "iconLabelGap": null
+    },
+    "contrast": 17.55,
+    "states": {
+     "hover": {
+      "error": "TimeoutError: locator.hover: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('[data-result-card] button[aria"
+     },
+     "focusVisible": {
+      "w": 30,
+      "h": 30,
+      "fontSize": "16px",
+      "fontFamily": "Zen Kaku Gothic New",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "padding": "0px 0px 0px 0px",
+      "border": "2px",
+      "borderColor": "rgb(25, 18, 37)",
+      "radius": "0px",
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(25, 18, 37) 2px 2px 0px 0px",
+      "background": "rgb(252, 250, 255)",
+      "effectiveBg": "rgb(252, 250, 255)",
+      "color": "rgb(25, 18, 37)",
+      "outline": "1px auto offset 0px",
+      "opacity": "1",
+      "cursor": "pointer",
+      "transition": "none",
+      "iconSize": "15px×15px",
+      "iconLabelGap": null
+     }
+    }
+   }
+  }
+ ],
+ "themeColors": {
+  "dark": {
+   "header/search-field": {
+    "color": "rgb(220, 228, 230)",
+    "background": "rgb(28, 36, 42)",
+    "borderColor": "rgb(102, 114, 123)",
+    "contrast": 12.2
+   },
+   "header/tagpool-btn": {
+    "color": "rgb(220, 228, 230)",
+    "background": "rgb(38, 50, 59)",
+    "borderColor": "rgb(220, 228, 230)",
+    "contrast": 10.17
+   },
+   "header/filter-btn": {
+    "color": "rgb(220, 228, 230)",
+    "background": "rgb(18, 24, 28)",
+    "borderColor": "rgb(102, 114, 123)",
+    "contrast": 13.88
+   },
+   "header/clear-btn": {
+    "color": "rgb(18, 24, 28)",
+    "background": "rgb(220, 228, 230)",
+    "borderColor": "rgb(220, 228, 230)",
+    "contrast": 13.88
+   },
+   "header/meta-readout": {
+    "color": "rgb(102, 114, 123)",
+    "background": "rgb(18, 24, 28)",
+    "borderColor": "rgb(102, 114, 123)",
+    "contrast": 3.63
+   },
+   "panel/section-tab": {
+    "color": "rgb(220, 228, 230)",
+    "background": "rgb(28, 36, 42)",
+    "borderColor": "rgb(220, 228, 230)",
+    "contrast": 12.2
+   },
+   "panel/chip-small": {
+    "color": "rgb(220, 228, 230)",
+    "background": "rgb(38, 50, 59)",
+    "borderColor": "rgb(220, 228, 230)",
+    "contrast": 10.17
+   },
+   "panel/icon-btn": {
+    "color": "rgb(220, 228, 230)",
+    "background": "rgb(28, 36, 42)",
+    "borderColor": "rgb(220, 228, 230)",
+    "contrast": 12.2
+   },
+   "mixbar/slot": {
+    "color": "rgb(220, 228, 230)",
+    "background": "rgb(52, 134, 180)",
+    "borderColor": "rgb(220, 228, 230)",
+    "contrast": 3.12
+   },
+   "mixbar/clear-btn": {
+    "color": "rgb(220, 228, 230)",
+    "background": "rgb(28, 36, 42)",
+    "borderColor": "rgb(220, 228, 230)",
+    "contrast": 12.2
+   },
+   "mixbar/minmatch-segment": {
+    "color": "rgb(220, 228, 230)",
+    "background": "rgb(28, 36, 42)",
+    "borderColor": "rgb(220, 228, 230)",
+    "contrast": 12.2
+   },
+   "mixbar/random-btn": {
+    "color": "rgb(220, 228, 230)",
+    "background": "rgb(38, 50, 59)",
+    "borderColor": "rgb(220, 228, 230)",
+    "contrast": 10.17
+   },
+   "mixbar/recommend-btn": {
+    "color": "rgb(14, 21, 24)",
+    "background": "rgb(111, 211, 214)",
+    "borderColor": "rgb(220, 228, 230)",
+    "contrast": 10.5
+   },
+   "card/chip": {
+    "color": "rgb(220, 228, 230)",
+    "background": "rgb(38, 50, 59)",
+    "borderColor": "rgb(220, 228, 230)",
+    "contrast": 10.17
+   },
+   "card/lock-btn": {
+    "color": "rgb(220, 228, 230)",
+    "background": "rgb(28, 36, 42)",
+    "borderColor": "rgb(220, 228, 230)",
+    "contrast": 12.2
+   },
+   "recommend/disabled": {
+    "color": "rgb(81, 94, 102)",
+    "background": "rgb(36, 48, 56)",
+    "contrast": 2.02
+   }
+  },
+  "third": {
+   "header/search-field": {
+    "color": "rgb(33, 28, 23)",
+    "background": "rgb(255, 253, 246)",
+    "borderColor": "rgb(179, 165, 137)",
+    "contrast": 16.6
+   },
+   "header/tagpool-btn": {
+    "color": "rgb(33, 28, 23)",
+    "background": "rgb(235, 224, 203)",
+    "borderColor": "rgb(33, 28, 23)",
+    "contrast": 12.92
+   },
+   "header/filter-btn": {
+    "color": "rgb(33, 28, 23)",
+    "background": "rgb(243, 237, 225)",
+    "borderColor": "rgb(179, 165, 137)",
+    "contrast": 14.49
+   },
+   "header/clear-btn": {
+    "color": "rgb(243, 237, 225)",
+    "background": "rgb(33, 28, 23)",
+    "borderColor": "rgb(33, 28, 23)",
+    "contrast": 14.49
+   },
+   "header/meta-readout": {
+    "color": "rgb(179, 165, 137)",
+    "background": "rgb(243, 237, 225)",
+    "borderColor": "rgb(179, 165, 137)",
+    "contrast": 2.08
+   },
+   "panel/section-tab": {
+    "color": "rgb(33, 28, 23)",
+    "background": "rgb(255, 253, 246)",
+    "borderColor": "rgb(33, 28, 23)",
+    "contrast": 16.6
+   },
+   "panel/chip-small": {
+    "color": "rgb(33, 28, 23)",
+    "background": "rgb(235, 224, 203)",
+    "borderColor": "rgb(33, 28, 23)",
+    "contrast": 12.92
+   },
+   "panel/icon-btn": {
+    "color": "rgb(33, 28, 23)",
+    "background": "rgb(255, 253, 246)",
+    "borderColor": "rgb(33, 28, 23)",
+    "contrast": 16.6
+   },
+   "mixbar/slot": {
+    "color": "rgb(33, 28, 23)",
+    "background": "rgb(216, 57, 46)",
+    "borderColor": "rgb(33, 28, 23)",
+    "contrast": 3.66
+   },
+   "mixbar/clear-btn": {
+    "color": "rgb(33, 28, 23)",
+    "background": "rgb(255, 253, 246)",
+    "borderColor": "rgb(33, 28, 23)",
+    "contrast": 16.6
+   },
+   "mixbar/minmatch-segment": {
+    "color": "rgb(33, 28, 23)",
+    "background": "rgb(255, 253, 246)",
+    "borderColor": "rgb(33, 28, 23)",
+    "contrast": 16.6
+   },
+   "mixbar/random-btn": {
+    "color": "rgb(33, 28, 23)",
+    "background": "rgb(235, 224, 203)",
+    "borderColor": "rgb(33, 28, 23)",
+    "contrast": 12.92
+   },
+   "mixbar/recommend-btn": {
+    "color": "rgb(33, 28, 23)",
+    "background": "rgb(242, 193, 78)",
+    "borderColor": "rgb(33, 28, 23)",
+    "contrast": 10.07
+   },
+   "card/chip": {
+    "color": "rgb(33, 28, 23)",
+    "background": "rgb(235, 224, 203)",
+    "borderColor": "rgb(33, 28, 23)",
+    "contrast": 12.92
+   },
+   "card/lock-btn": {
+    "color": "rgb(33, 28, 23)",
+    "background": "rgb(255, 253, 246)",
+    "borderColor": "rgb(33, 28, 23)",
+    "contrast": 16.6
+   },
+   "recommend/disabled": {
+    "color": "rgb(169, 155, 130)",
+    "background": "rgb(241, 233, 218)",
+    "contrast": 2.26
+   }
+  }
+ },
+ "mobileSpotPass": {
+  "searchField": {
+   "w": 156,
+   "h": 24
+  },
+  "headerTagPoolIconForm": {
+   "w": 30,
+   "h": 30
+  },
+  "mixbarClearIconForm": {
+   "hidden": true
+  },
+  "mixbarRandomIconForm": {
+   "hidden": true
+  },
+  "minMatchCollapsed": {
+   "w": 34.8,
+   "h": 36
+  },
+  "recommend": {
+   "w": 44,
+   "h": 44
+  },
+  "slot": {
+   "w": 78,
+   "h": 44
+  },
+  "surfacedRandom": {
+   "w": 101.6,
+   "h": 44
+  }
+ },
+ "borderRasterizationDevicePx": {
+  "dpr1": {
+   "hair-1.5px": 1,
+   "thin-2px": 2,
+   "base-2.5px": 2
+  },
+  "dpr2": {
+   "hair-1.5px": 2,
+   "thin-2px": 4,
+   "base-2.5px": 4
+  },
+  "dpr3": {
+   "hair-1.5px": 3,
+   "thin-2px": 6,
+   "base-2.5px": 6
+  }
+ },
+ "responsiveFormMap": {
+  "mixbar row ladder": [
+   "@max-[481px]:hidden",
+   "@max-[525px]:hidden",
+   "@max-[654px]:flex",
+   "@max-[654px]:hidden",
+   "@max-[975px]:hidden",
+   "@min-[975px]:block",
+   "@min-[975px]:hidden"
+  ],
+  "header forms": [
+   "min-[417px]:flex-row",
+   "min-[480px]:hidden",
+   "min-[480px]:inline-flex"
+  ],
+  "empty-state surfaced": [
+   "@max-[250px]:block",
+   "@max-[250px]:hidden",
+   "@max-[481px]:flex",
+   "max-[1152px]:-ml-",
+   "max-[1152px]:-mr-",
+   "max-[1152px]:block",
+   "max-[1152px]:flex",
+   "max-[1152px]:flex-nowrap",
+   "max-[1152px]:justify-start",
+   "max-[1152px]:snap-start",
+   "max-[1152px]:w-"
+  ],
+  "recommend icon form": [
+   "max-[1070px]:px-",
+   "max-[1070px]:w-",
+   "min-[1071px]:hidden",
+   "min-[1071px]:inline"
+  ]
+ },
+ "variantUsage": [
+  {
+   "what": "ActionButton variant",
+   "usage": {
+    "outline": 1,
+    "filled": 3,
+    "inverted": 1,
+    "accent": 2
+   }
+  },
+  {
+   "what": "ActionButton size",
+   "usage": {
+    "md": 5,
+    "sm": 17
+   }
+  },
+  {
+   "what": "IconButton border",
+   "usage": {
+    "hair": 2,
+    "thin": 0,
+    "base": 6,
+    "none": 6
+   }
+  },
+  {
+   "what": "IconButton shape",
+   "usage": {
+    "circle": 2,
+    "square": 0
+   }
+  },
+  {
+   "what": "IconButton shadow",
+   "usage": {
+    "elev-1": 0,
+    "elev-2": 3
+   }
+  },
+  {
+   "what": "elevation token",
+   "usage": {
+    "elev-1": 7,
+    "elev-2": 15,
+    "elev-3": 2,
+    "elev-4": 7,
+    "elev-5": 0,
+    "elev-2-accent": 1,
+    "elev-3-accent": 2
+   }
+  },
+  {
+   "what": "border token",
+   "usage": {
+    "border-hair": 2,
+    "border-thin": 15,
+    "border-base": 28
+   }
+  },
+  {
+   "what": "type token",
+   "usage": {
+    "text-2xl": 1,
+    "text-xl": 2,
+    "text-lg": 2,
+    "text-md": 3,
+    "text-base": 2,
+    "text-sm": 7,
+    "text-xs": 19,
+    "text-2xs": 16,
+    "text-3xs": 4
+   }
+  },
+  {
+   "what": "space token",
+   "usage": {
+    "space-xs": 20,
+    "space-sm": 37,
+    "space-md": 42,
+    "space-lg": 36,
+    "space-xl": 12,
+    "space-2xl": 22,
+    "space-3xl": 0,
+    "space-huge": 0,
+    "space-page": 0
+   }
+  }
+ ]
+}

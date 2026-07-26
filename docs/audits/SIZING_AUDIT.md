@@ -1,0 +1,200 @@
+# Control sizing audit — frozen pre-migration baseline
+
+**This file is canonical.** The claude.ai artifact version (📐
+`7fd2bca7…`) is a shareable view and may lag; when they disagree, this
+file wins. Raw per-control data lives in
+[`sizing-inventory.json`](./sizing-inventory.json) — regenerate with
+`node scripts/audit-controls.mjs` (dev server on :3000; the script
+verifies its registry against source and warns on drift). **Every later
+sizing/type/elevation pass diffs against this baseline instead of
+re-measuring by hand.**
+
+Baseline capture: commit `8de284c`, clean tree, 1400×1000 @ DPR 1,
+default theme, film side, level 3 seeded. Numbers below are always
+**authored → measured** pairs (project rule: one without the other is
+unverifiable). Mobile rows are **emulated** (390×844 @ DPR 3) — the
+user's iPhone remains ground truth for feel.
+
+**Theme invariance (stated, not swept):** themes cannot change geometry —
+`ThemeColors` (types.ts) carries only color strings; the theme system has
+no channel for a size, border width, or spacing. Geometry is therefore
+captured in the default theme only; dark/third capture colors + contrast.
+
+---
+
+## 1 · The height problem
+
+Five interactive heights; only 44 is a named token. 30 is a raw number in
+IconButton's `SIZE_PX` map; 36 is authored nowhere.
+
+| Height | Named? | Who renders it (authored → measured) |
+|---|---|---|
+| 24 | no (`h-[24px]`) | header search field — 24 → 24 |
+| 27 | no (derived) | tag chips: `py-xs(4×2) + line 15 + border 2×2` → 27 |
+| 30 | no (`SIZE_PX.sm`, `h-[30px]`) | sm buttons, tabs, icon buttons — 30 → 30 |
+| 36 | **no — emergent** | Level/Sort/Min Match — see §4 verification |
+| 44 | **yes** `--control-h-md` | slots, mixbar buttons, RECOMMEND — 44 → 44 |
+
+Touch: 24/27/30 all sit under the 44px iOS / 48dp Android minimums; the
+smallest is the search field, the app's post-v2 primary entry point.
+
+Same control, two sizes by *location*: Clear renders 44 in the mixbar and
+30 in the header (both ActionButton, different size prop chosen per
+surface).
+
+## 2 · New findings from the states pass
+
+These were not in the first audit round and change the migration scope:
+
+- **Hover feedback is absent on every standard control.** Measured
+  hover-vs-rest computed styles for all 19 registry entries: zero changes
+  in background/color/border/shadow/opacity on buttons, chips, tabs,
+  segments, or the search field. The only hover affordances in the app
+  are `cursor: pointer` and the glow-bloom on the few `.glow-host`
+  controls (meta lock readout, filter icon, grip). CTA consistency is
+  currently resting-state-only — **hover states are un-designed, not
+  inconsistent.** New work item.
+- **Three focus regimes coexist.** Measured `:focus-visible`: the pool
+  controls fixed in search v2 use the inset ring (`2px solid, offset
+  -2px`); every other control uses the UA default (`1px auto`); and the
+  **search field suppresses focus entirely** (`outline-none` with no
+  replacement — an accessibility gap on the primary entry point).
+  Target: one regime (the inset ring utility) app-wide.
+- **Transitions are ad hoc and untokenized.** Only 4 of 19 controls have
+  any transition (tab dim 150ms, slot transform 75ms, readout colors
+  500ms) — all Tailwind-default easings, no duration/easing tokens
+  exist. Buttons have none, consistent with having no hover states to
+  transition to. Decide alongside hover design.
+- **Contrast failures (WCAG AA = 4.5:1 normal text):**
+  - Header meta readouts (muted-on-surface): **2.44:1** default theme,
+    3.63 dark, **2.08 third** — fails everywhere, worst in third.
+  - Disabled RECOMMEND (disabled-text on disabled-bg): 2.5–2.6 default,
+    **2.02 dark** — disabled is AA-exempt but ≥3:1 is the accepted floor.
+  - Filled slot measured 3.02:1 — **flagged, needs a per-element
+    re-measure** (the capture may have read the container's inherited
+    color rather than the label's).
+  All other controls measure 10:1+ (the ink-on-surface system is very
+  strong).
+- **Dead tokens / variants** (explicit-usage grep; defaults excluded):
+  `--elev-5` 0 uses · `--space-3xl/huge/page` 0 uses · `--elev-3` 2 ·
+  `--border-hair` 2 · `--text-base` 2. IconButton `border="thin"` /
+  `shape="square"` show zero *explicit* uses because they are the
+  defaults — not dead.
+
+## 3 · Type, elevation, spacing usage
+
+| Type token | Size | Uses | Elevation | Offset | Uses |
+|---|---|---|---|---|---|
+| 2xl | 30 | 1 | elev-1 | 2px | 7 |
+| xl | 26 | 2 | elev-2 | 3px | 15 |
+| lg | 20 | 2 | elev-3 | 4px | 2 |
+| md | 18 | 3 | elev-4 | 5px | 7 |
+| **base** | **13** | **2** | **elev-5** | **8px** | **0** |
+| sm | 12 | 7 | 2-accent | 3px | 1 |
+| xs | 11 | 19 | 3-accent | 4px | 3 |
+| 2xs | 10 | 16 | | | |
+| 3xs | 9 | 4 | | | |
+
+Mono 47 uses / display 10 / body 7 — a mono-label interface with display
+headlines. The working range is 9–12px; the nominal body size (13) is
+vestigial — and the app's one true *reading* surface, the card-back
+synopsis, renders `--text-sm` **12px** body font. Shadow is assigned by
+component identity (same header row, same 30px size: Tag Pool elev-2,
+Clear none, Filter none), not by any hierarchy rule.
+
+## 4 · The two verified claims
+
+**36px is emergent, confirmed by arithmetic.** Level option button:
+measured `h = 32 = 16px authored line-height + 8+8px --space-md padding`;
+segment wrapper = 32 + 2×2px rendered border = **36**. No height property
+exists anywhere in the chain. The ActionButton precedent applies exactly
+(that component got fixed heights after two byte-identical buttons
+rendered 0.5px apart on glyph metrics); these three controls pre-date the
+fix. Note the derivation is *doubly* fragile: it also embeds the border,
+whose rendered width is itself a rounding outcome (below).
+
+**The border scale is two steps, not three — at every DPR (Chromium).**
+Screenshot pixel-runs of rendered borders (device px):
+
+| Authored | DPR 1 | DPR 2 | DPR 3 |
+|---|---|---|---|
+| hair 1.5px | 1 | 2 | 3 |
+| thin 2px | 2 | 4 | 6 |
+| base 2.5px | **2** | **4** | **6** |
+
+`--border-base` (2.5) and `--border-thin` (2) render **identically at
+DPR 1, 2, and 3** — Chromium floors fractional border-widths, so the
+0.5px step never paints, and even the earlier "should survive on retina"
+prediction was wrong. `hair` floors to 1px. Reality: a 1px/2px two-step
+scale wearing three names. Caveat: Chromium-measured; confirm WebKit
+on-device before collapsing the tokens (Safari has historically handled
+fractional borders differently).
+
+## 5 · Responsive form map + mobile spot pass
+
+Static rungs (from source): mixbar ladder `@min-975 / @max-974 / 654 /
+525 / 481` (525/481 flagged for re-bisection — bisected when Tag Pool
+still occupied the row) · header sibling forms at `480` · surfaced
+Random `@max-481` · RECOMMEND icon form `1070/1071` viewport.
+
+Emulated 390×844@3 spot pass: search field **156×24** (the `40vw` fluid
+term, the only fluidly-sized control in the app) · Tag Pool icon form
+30×30 · Min Match collapsed 34.8×36 · RECOMMEND 44×44 · slot 78×44 ·
+surfaced Random 101.6×44 · mixbar Clear/Random correctly hidden by rungs.
+Controls swap fixed-size sibling forms rather than resizing — which is
+why a full mobile measurement axis was scoped out.
+
+---
+
+## 6 · Agreed target state (ruled 2026-07-26)
+
+The migration destination, recorded beside the baseline so later passes
+diff toward something explicit:
+
+- **Two tiers, by row, not by component.**
+  `--control-h-md = 44` (exists): mixbar buttons + slots + RECOMMEND +
+  the whole header row (search field, Tag Pool, **Filter icon button** —
+  tier follows the row) + Level/Sort/Min Match segments.
+  `--control-h-sm = 30` (to mint): chips, section tabs, card lock/swap,
+  **panel icon buttons** (close/snap/grip — user-confirmed dense).
+  The 36 tier dissolves — it only ever housed the emergent accident.
+  Within a row, differentiation is by variant (fill/border/shape), never
+  size; "smaller to stand out" is rejected (smaller recedes).
+- **Fixed heights everywhere** — no padding-derived control boxes
+  (ActionButton's own fix, applied to the segments).
+- **Type:** chips 10 → 11 (absorbed by the fixed 30 box); `--text-base`
+  13 → **14**, with the card synopsis (currently 12px) adopting it.
+  Label register (11px uppercase tracked mono) unchanged. Sub-tab labels
+  stay 10 (label register, not reading text).
+- **Icons scale with tier:** 16px at dense, 20px at control (16 in a
+  44×44 box reads undersized).
+- **Shadow encodes tier, not identity:** 2px (elev-1) dense · 3px
+  (elev-2) control · 5px (elev-4) surfaces/hero. The floated 1px was
+  rejected — a blur-less offset at 1px reads as an artifact, not depth.
+- **Padding derives from tier** (dense `--space-md/--space-xs`, control
+  `--space-xl`), from the space scale, never fresh literals. Whether
+  control-tier px widens 16 → 20 is a density taste call to eyeball
+  during migration, not pre-decided.
+- **Focus: one regime** — the inset-ring utility app-wide, including a
+  real ring on the search field (currently suppressed).
+- **Hover: to be designed** — currently absent everywhere; decide the
+  treatment (and transition tokens) as its own migration step.
+- **Touch targets:** a *shared* expanded-hit-area utility for dense-tier
+  controls (per-component padding drifts) — knowing `overflow: hidden`
+  clips hit areas exactly like it clips focus rings, so chips inside
+  scroll containers may need real size instead. The header at 44 solves
+  its own row outright.
+- **Candidates pending rulings:** collapse `--border-base`/`--border-thin`
+  after a WebKit on-device check; retire `--elev-5`,
+  `--space-3xl/huge/page` (0 uses); fix meta-readout + disabled contrast
+  (worst: 2.08 and 2.02 in third/dark).
+
+## 7 · Migration sequence
+
+Each step ships and evaluates independently: ① mint `--control-h-sm`,
+tokenize the scale ② fix the three padding-derived controls (36 → 44
+per target) ③ tier-by-role pass across all four surfaces (header to 44)
+④ shadow/border semantics (incl. WebKit border verdict) ⑤ type pass
+(chips 11, base 14, synopsis adoption) ⑥ hover + focus + transition
+design (new scope from §2) ⑦ re-bisect the mixbar rungs (last — every
+size change above invalidates them).

@@ -141,6 +141,14 @@ Whole-pixel structural geometry (per `AGENTS.md` `webkit-icon-shimmer`) is
 supporting hygiene for at-rest sharpness/centering — apply it with normal
 judgment when building UI, not as a harsh rule and not as a shimmer fix.
 
+### Audits / baselines
+
+`docs/audits/` holds frozen, diffable baselines. Before any sizing/type/
+elevation/control change, read `docs/audits/SIZING_AUDIT.md` (canonical;
+includes the ruled 2-tier target state) and diff measurements against
+`docs/audits/sizing-inventory.json` — regenerate via
+`node scripts/audit-controls.mjs`, never re-measure by hand.
+
 ## Next.js
 
 This project uses a non-standard Next.js version. Before writing Next.js code,
