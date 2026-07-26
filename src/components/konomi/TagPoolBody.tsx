@@ -412,6 +412,12 @@ export function TagPoolBody({
         role="tabpanel"
         aria-labelledby={`tagpool-tab-${active.section.key}`}
         tabIndex={0}
+        // focus-ring-inset: this focusable panel sits flush against the
+        // overlay content wrapper's left/right/bottom clip edges, so a
+        // default outside-drawn focus ring gets shaved on those three
+        // sides (user-reported) — same remedy as the strip tabs; see the
+        // utility's comment in globals.css.
+        className="focus-ring-inset"
       >
         <ScrollFadeArea
           height={CHIP_AREA_HEIGHT}
