@@ -213,6 +213,11 @@ export function SectionTabStrip({
               // discrete A→B state toggle); motion-reduce turns it off.
               className={[
                 "flex shrink-0 cursor-pointer items-center",
+                // focus-ring-inset: these buttons sit flush against their
+                // strip's own scroll-viewport clip edges (top, and the
+                // first tab's left), which shaves a default outside-drawn
+                // focus ring — see the utility's comment in globals.css.
+                "focus-ring-inset",
                 "transition-opacity motion-reduce:transition-none",
                 section.dimmed ? "opacity-35" : "opacity-100",
               ].join(" ")}

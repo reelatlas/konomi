@@ -721,6 +721,31 @@
   animation: tagpool-overlay-enter 180ms cubic-bezier(0.215, 0.61, 0.355, 1) both;
 }
 
+/* Inset keyboard-focus ring for controls that live INSIDE overflow-clipping
+   containers (the tag pool's section/sub-tab strips and the overlay's
+   icon controls): a default focus ring draws OUTSIDE the control's box,
+   and any scroll/clip ancestor whose edge sits flush with the control
+   shaves it (measured 2026-07-26 — tab tops flush with the strip
+   viewport's overflow-y clip, first sub-tab flush with its left scroll
+   edge). Drawing the ring just INSIDE the control's own box is the
+   standard remedy for scrollable tab strips/toolbars — chosen over the
+   two alternatives: `overflow-clip-margin` is the purpose-built native
+   property but requires `overflow: clip` (impossible on an axis that
+   must scroll) and has no WebKit support; net-zero container padding
+   (this app's flip-bulge pattern) would mean invasive surgery inside the
+   shared ScrollFadeArea, whose edge fades/arrows assume flush geometry.
+   Color: -webkit-focus-ring-color keeps these visually consistent with
+   the UA-default rings every other control in the app currently uses
+   (Chromium + WebKit; the token line is the fallback for engines
+   without it). A designed, app-wide focus token is a header-revisions
+   candidate — this utility only relocates the ring, it doesn't restyle
+   the app's focus language. */
+.focus-ring-inset:focus-visible {
+  outline: 2px solid var(--primary-deep);
+  outline: 2px solid -webkit-focus-ring-color;
+  outline-offset: -2px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-tagpool-overlay-enter {
     animation-duration: 1ms !important;

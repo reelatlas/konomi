@@ -63,7 +63,10 @@ const GRIP_ROW_PX = 30;
 const CARD_PAD_Y_PX = 24;
 const CARD_BORDER_Y_PX = 5;
 const CONTENT_FOOTER_GAP_PX = 8;
-const OVERLAY_CHROME_PX = CARD_PAD_Y_PX + CARD_BORDER_Y_PX + GRIP_ROW_PX + CONTENT_FOOTER_GAP_PX;
+// Note: the RUNTIME budget no longer sums a chrome constant — it uses the
+// MEASURED border (see borderYPx in the component) so authored gaps render
+// exactly at every DPR; these constants now feed only the floor below and
+// the pre-measurement fallback.
 
 // The overlay's own height floor, replacing the mixbar era's
 // POOL_HEIGHT_MIN (160): the WORST-CASE content must fit with zero
@@ -99,10 +102,23 @@ export function TagPoolOverlay({ open, onClose, allTags, selectedTagIds, totalSe
   const shellRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const [ceiling, setCeiling] = useState<number | null>(null);
+  // The card's REAL rendered vertical border, measured — not the
+  // CARD_BORDER_Y_PX constant: --border-base is 2.5px, which rasterizes
+  // as 2px or 3px per edge depending on DPR, and budgeting with the
+  // conservative constant left a visible ~1px of dead space above the
+  // footer (authored gap --space-md 8 rendered as 9 — user-queried).
+  // Measuring makes the chip-area budget exact, so authored == rendered
+  // at every DPR. The constant remains only as the pre-measurement
+  // fallback and the floor derivation's input.
+  const [borderYPx, setBorderYPx] = useState(CARD_BORDER_Y_PX);
   useEffect(() => {
     if (!open) return;
     const shell = shellRef.current;
     if (!shell) return;
+    if (cardRef.current) {
+      const cs = getComputedStyle(cardRef.current);
+      setBorderYPx(parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth));
+    }
     const observer = new ResizeObserver(([entry]) => {
       setCeiling(entry.contentRect.height);
     });
@@ -285,7 +301,7 @@ export function TagPoolOverlay({ open, onClose, allTags, selectedTagIds, totalSe
           selectedTagIds={selectedTagIds}
           totalSeriesCount={totalSeriesCount}
           onChipToggle={onChipToggle}
-          poolPanelHeightPx={Math.max(0, heightPx - OVERLAY_CHROME_PX)}
+          poolPanelHeightPx={Math.max(0, heightPx - (CARD_PAD_Y_PX + GRIP_ROW_PX + CONTENT_FOOTER_GAP_PX + borderYPx))}
           editMode={open}
           trailingControls={
             <div className="flex items-center gap-0 shrink-0">
@@ -301,6 +317,7 @@ export function TagPoolOverlay({ open, onClose, allTags, selectedTagIds, totalSe
                     title="Reset pool panel to default height"
                     aria-label="Reset pool panel to default height"
                     onClick={handleResetHeight}
+                    className="focus-ring-inset"
                   >
                     <ArrowUpIcon className="text-[var(--muted)]" />
                   </IconButton>
@@ -312,6 +329,7 @@ export function TagPoolOverlay({ open, onClose, allTags, selectedTagIds, totalSe
                     title="Resize to 50%"
                     aria-label="Resize to 50%"
                     onClick={() => handleSnap(0.5)}
+                    className="focus-ring-inset"
                   >
                     <ArrowDownHalfIcon className="text-[var(--muted)]" />
                   </IconButton>
@@ -323,12 +341,13 @@ export function TagPoolOverlay({ open, onClose, allTags, selectedTagIds, totalSe
                     title="Resize to 100%"
                     aria-label="Resize to 100%"
                     onClick={() => handleSnap(1)}
+                    className="focus-ring-inset"
                   >
                     <ArrowDownIcon className="text-[var(--muted)]" />
                   </IconButton>
                 )}
               </div>
-              <IconButton size="sm" border="none" backgroundColor="transparent" title="Close" aria-label="Close" onClick={onClose}>
+              <IconButton size="sm" border="none" backgroundColor="transparent" title="Close" aria-label="Close" onClick={onClose} className="focus-ring-inset">
                 <CloseIcon className="text-[var(--muted)]" />
               </IconButton>
             </div>
@@ -356,7 +375,7 @@ export function TagPoolOverlay({ open, onClose, allTags, selectedTagIds, totalSe
             aria-label="Drag to resize tag pool"
             onPointerDown={handleResizeStart}
             cursor={isGripDragging ? "cursor-grabbing" : "cursor-grab active:cursor-grabbing"}
-            className="select-none touch-none"
+            className="select-none touch-none focus-ring-inset"
           >
             <GripIcon dragging={isGripDragging} />
           </IconButton>
