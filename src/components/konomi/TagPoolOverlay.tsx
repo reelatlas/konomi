@@ -39,7 +39,12 @@ import { setPoolPanelHeightFraction, usePoolPanelHeightFraction } from "./tagPoo
 // piece measured live 2026-07-26 after two accounting bugs at minimum
 // height (grip pushed outside the frame; then the chip area's bottom
 // hover-arrow clipped by the footer — both user-reported):
-//   CARD_PAD_Y_PX      py-[--space-xl] top+bottom (2 × 16)
+//   CARD_PAD_Y_PX      pt-[--space-xl] (16) + pb-[--space-md] (8) —
+//                      asymmetric on purpose (user-ruled 2026-07-26):
+//                      the gap below the grip matches the 8px gap ABOVE
+//                      it (CONTENT_FOOTER_GAP_PX), so the footer reads
+//                      symmetric around the grip instead of inheriting
+//                      the header's larger top padding.
 //   CARD_BORDER_Y_PX   2 × --border-base (2.5px) — box-sizing is
 //                      border-box, so the border comes OUT of the height;
 //                      forgetting it was the measured 4-5px drift that
@@ -55,21 +60,21 @@ import { setPoolPanelHeightFraction, usePoolPanelHeightFraction } from "./tagPoo
 // itself; this constant only covers what THIS component adds around it.
 // If any piece changes, re-derive.
 const GRIP_ROW_PX = 30;
-const CARD_PAD_Y_PX = 32;
+const CARD_PAD_Y_PX = 24;
 const CARD_BORDER_Y_PX = 5;
 const CONTENT_FOOTER_GAP_PX = 8;
 const OVERLAY_CHROME_PX = CARD_PAD_Y_PX + CARD_BORDER_Y_PX + GRIP_ROW_PX + CONTENT_FOOTER_GAP_PX;
 
 // The overlay's own height floor, replacing the mixbar era's
 // POOL_HEIGHT_MIN (160): the WORST-CASE content must fit with zero
-// clipping — chrome (75) + a two-tier film section's tab rows (57,
+// clipping — chrome (67) + a two-tier film section's tab rows (57,
 // measured live: 30 primary + 12 gap + 15 sub) + STRIP_GAP (12) +
-// TagPoolBody's CHIP_AREA_MIN (60) = 204. The footer wrapper below is
+// TagPoolBody's CHIP_AREA_MIN (60) = 196. The footer wrapper below is
 // the structural guarantee the grip can never be pushed out regardless;
 // this floor is what keeps the chip area itself (and its flush bottom
 // scroll arrow) from clipping at the minimum. Re-derive if any input
 // changes.
-const OVERLAY_MIN_HEIGHT_PX = 204;
+const OVERLAY_MIN_HEIGHT_PX = 196;
 
 // [OVERLAY_MIN_HEIGHT_PX, max] clamp, ceiling-wins when the card area is
 // genuinely shorter than the floor (tiny viewport) — the panel must never
@@ -263,7 +268,7 @@ export function TagPoolOverlay({ open, onClose, allTags, selectedTagIds, totalSe
         // Same card chrome as the mixbar (border-base ink border, surface
         // bg, elev-4 shadow, 2xl/xl padding) — the panel moved homes, it
         // didn't change identity.
-        className="animate-tagpool-overlay-enter pointer-events-auto flex flex-col outline-none px-[var(--space-2xl)] py-[var(--space-xl)] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-4)]"
+        className="animate-tagpool-overlay-enter pointer-events-auto flex flex-col outline-none px-[var(--space-2xl)] pt-[var(--space-xl)] pb-[var(--space-md)] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-4)]"
         style={{ height: heightPx }}
       >
         {/* flex-1 min-h-0 overflow-hidden: the footer contract's other
