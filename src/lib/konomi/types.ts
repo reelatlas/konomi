@@ -138,14 +138,20 @@ export interface ThemeColors {
 
 export type MatchKey = "1" | "2" | "3";
 
-// Set only by a RECOMMEND click that can't produce results — never by
-// changing tags, min-match, or locks alone (those only drive live filtering
-// of what's already on screen). One error at a time, in guided-flow priority
-// order (surface the blocker that needs immediate action; fixing it reveals
-// the next one on the following press, never all at once):
+// Set by a RECOMMEND click that can't produce results — with ONE narrow
+// exception: "all-locked" also arms PROACTIVELY when locking the last
+// unlocked card (user-ruled 2026-07-25; a roll can do nothing the moment
+// everything is held, so saying so immediately — and natively disabling
+// RECOMMEND, which any live error does — is the honest version). One
+// error at a time, in guided-flow priority order (surface the blocker
+// that needs immediate action; fixing it reveals the next one on the
+// following press, never all at once):
 //   "impossible-min": tag count < min-match — nothing can even be attempted.
 //   "all-locked": every result slot is held by a lock (or every qualifying
-//     title is locked), so a roll has nowhere to land — unlocking is the fix.
+//     title is locked), so a roll has nowhere to land — unlocking is the
+//     ONLY fix, and the only thing that clears it: tag and min-match
+//     changes deliberately DON'T (they can't influence a roll while every
+//     slot is held), and re-locking the last open card re-arms it.
 //   "no-new-matches": the mix works and cards are showing, but every
 //     qualifying title is already on screen — a roll would change nothing.
 //     Loosen the mix, or Clear ✕ to re-roll the same pool fresh.

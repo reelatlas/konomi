@@ -152,12 +152,17 @@ async function lockflow() {
     await page.waitForSelector(sel.card);
     await page.waitForTimeout(600);
     const titles = await cardTitles(page);
+    // Locking the LAST card proactively arms "all locked" and natively
+    // disables RECOMMEND (no press needed/possible — user-ruled
+    // 2026-07-25: only an unlock re-enables it; tag/min-match changes
+    // deliberately do not).
     for (const t of titles) await lockCard(page, t);
-    await page.locator(sel.recommend).click();
     await page.waitForTimeout(400);
     const chip1 = await chipText(page);
-    console.log("all locked -> press -> chip:", chip1);
+    console.log("all locked (proactive, no press) -> chip:", chip1);
     assert(chip1 === "all locked", `expected 'all locked' chip, got ${chip1}`);
+    const recDisabled = await page.$eval('button[aria-label="Recommend"]', (el) => el.disabled);
+    assert(recDisabled, "RECOMMEND should be natively disabled while all locked");
     const clearDisabled = await page.locator(sel.clear).evaluate((el) => el.disabled);
     assert(clearDisabled, "Clear results should be disabled while all locked");
     await unlockCard(page, titles[0]);

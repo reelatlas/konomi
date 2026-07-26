@@ -267,11 +267,16 @@ function recommend(state: KonomiState): KonomiState {
 
 // Shared by every reducer branch that mutates `slots` — re-evaluates
 // whether an active error still applies to the CURRENT state, rather than
-// only clearing on the specific action that originally set it. The three
-// catalog-shaped errors ("no-match", "no-new-matches", "all-locked") all
-// clear unconditionally: any tag change is a fresh attempt worth trying
-// again, and a wrong optimistic clear is harmless — the next press
-// re-derives the true blocker (guided flow). This covers Clear-all-tags
+// only clearing on the specific action that originally set it. Two of the
+// catalog-shaped errors ("no-match", "no-new-matches") clear
+// unconditionally: any tag change is a fresh attempt worth trying again,
+// and a wrong optimistic clear is harmless — the next press re-derives
+// the true blocker (guided flow). "all-locked" deliberately does NOT
+// clear here (user-ruled 2026-07-25): with every result slot held, no
+// tag or min-match change can influence what a roll does — unlocking is
+// the only true remedy, so the error (and RECOMMEND's disabled state,
+// which follows any live error) persists through everything except an
+// unlock. See TOGGLE_LOCK for both directions of that coupling. This covers Clear-all-tags
 // (CLEAR_SLOTS) too: the error chip goes away and RECOMMEND falls back to
 // its plain zero-tags disabled state. "impossible-min" clears the moment
 // tag count no longer makes it impossible: either tag count rises to
@@ -284,7 +289,7 @@ function recommend(state: KonomiState): KonomiState {
 // the app never silently changes just because tags moved. Unlocking is a
 // third path (TOGGLE_LOCK/UNLOCK_ALL), clearing only "all-locked".
 function clearErrorForTagChange(state: KonomiState, slots: Slot[]): MixerError {
-  if (state.error === "no-match" || state.error === "no-new-matches" || state.error === "all-locked") return null;
+  if (state.error === "no-match" || state.error === "no-new-matches") return null;
   if (state.error === "impossible-min") {
     const tagCount = selectedTagIds(slots).length;
     const min = Number(state.minMatch);
@@ -421,14 +426,16 @@ function reducer(state: KonomiState, action: Action): KonomiState {
       // live-filters what's already on screen (computed in useKonomi below,
       // off the unchanged `results`), never triggers a fresh catalog
       // rescore or an error. It only clears errors that are no longer
-      // applicable: the catalog-shaped errors ("no-match", "no-new-matches",
-      // "all-locked") clear on any min-match change (a fresh value is a
-      // fresh attempt — same optimistic rule as clearErrorForTagChange),
-      // "impossible-min" clears only once lowered to something the current
-      // tag count can actually satisfy.
+      // applicable: "no-match"/"no-new-matches" clear on any min-match
+      // change (a fresh value is a fresh attempt — same optimistic rule as
+      // clearErrorForTagChange); "impossible-min" clears only once lowered
+      // to something the current tag count can actually satisfy.
+      // "all-locked" persists — same user-ruled reasoning as
+      // clearErrorForTagChange: min-match can't influence a roll while
+      // every slot is held.
       const tagCount = selectedTagIds(state.slots).length;
       let error = state.error;
-      if (error === "no-match" || error === "no-new-matches" || error === "all-locked") error = null;
+      if (error === "no-match" || error === "no-new-matches") error = null;
       if (error === "impossible-min" && Number(action.key) <= tagCount) error = null;
       return { ...state, minMatch: action.key, error };
     }
@@ -446,13 +453,22 @@ function reducer(state: KonomiState, action: Action): KonomiState {
     }
     case "TOGGLE_LOCK": {
       const nowLocked = !state.locked[action.id];
-      // Unlocking is exactly the fix "all-locked" asks for, so it clears the
-      // error and re-enables RECOMMEND immediately; the next press
-      // re-derives the true state and surfaces "no-new-matches" if the pool
-      // is still exhausted (guided flow — one blocker at a time). Locking
-      // never sets anything here: errors are only ever set by a press.
-      const error = !nowLocked && state.error === "all-locked" ? null : state.error;
-      return { ...state, locked: { ...state.locked, [action.id]: nowLocked }, error };
+      const locked = { ...state.locked, [action.id]: nowLocked };
+      // Unlocking is exactly the fix "all-locked" asks for, so it clears
+      // the error and re-enables RECOMMEND immediately; the next press
+      // re-derives the true state and surfaces "no-new-matches" if the
+      // pool is still exhausted (guided flow — one blocker at a time).
+      // The LOCK direction re-arms it: locking the last unlocked card
+      // sets "all-locked" without waiting for a press (user-ruled
+      // 2026-07-25 — unlock-then-relock must land back in the disabled
+      // state, and surfacing "a roll can do nothing" the moment it
+      // becomes true is the honest version of the same message; a
+      // deliberate, narrow amendment to the errors-only-from-a-press
+      // rule, this error only).
+      let error = state.error;
+      if (!nowLocked && error === "all-locked") error = null;
+      if (nowLocked && state.results.length > 0 && state.results.every((r) => locked[r.series.id])) error = "all-locked";
+      return { ...state, locked, error };
     }
     // Clears every lock at once (the results-header "unlock all" affordance).
     // A blanket reset to {} rather than a per-title unset: `locked` only ever
