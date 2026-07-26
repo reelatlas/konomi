@@ -698,9 +698,6 @@ export function KonomiApp({ side, initialSeries, initialTags }: KonomiAppProps) 
                 tagInfoById={k.tagInfoById}
                 totalSeriesCount={k.totalSeriesCount}
                 onLevelChange={handleLevelChange}
-                editMode={editMode}
-                onOpenEditMode={() => setEditMode(true)}
-                onCloseEditMode={() => setEditMode(false)}
                 onRandomTags={handleRandomTags}
               />
               <TagPoolOverlay
@@ -748,24 +745,13 @@ export function KonomiApp({ side, initialSeries, initialTags }: KonomiAppProps) 
           onClearSlots={k.clearSlots}
           onRecommend={handleRecommend}
           error={k.mixerError}
-          // Hard-false since search v2 Phase 2: the pool panel renders as
-          // TagPoolOverlay (above) now, and this permanently-false prop is
-          // what keeps ALL of MixerBar's own edit-mode machinery — the
-          // expand-upward panel, its resize/pin/scroll-lock effects, its
-          // Escape/click-outside/focus listeners — structurally inert
-          // without surgery on that file. Its Tag Pool button still works
-          // as an OPENER (onOpenEditMode below opens the overlay); it just
-          // never reads as "open" itself. Phase 3 deletes the dead
-          // machinery and the button; do not thread the real editMode back
-          // in — two live panels and duplicate tagpool-* element ids is
-          // what that would produce.
-          editMode={false}
+          // Real editMode again (Phase 3 deleted the bar's own panel
+          // machinery wholesale, so nothing here can double-render the
+          // pool anymore) — the bar reads it ONLY for the empty-slot tap
+          // toggle (open/close the overlay from a slot).
+          editMode={editMode}
           onOpenEditMode={() => setEditMode(true)}
           onCloseEditMode={() => setEditMode(false)}
-          allTags={k.allTags}
-          selectedTagIds={k.selectedTagIds}
-          totalSeriesCount={k.totalSeriesCount}
-          onChipToggle={k.toggleTag}
         />
       </div>
     </div>

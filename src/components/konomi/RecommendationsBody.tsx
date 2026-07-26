@@ -9,7 +9,7 @@ import {
 } from "./cardAnimTuning";
 import { useDomain } from "./domainContext";
 import { FilterControls } from "./FilterControls";
-import { CheckIcon, DiceIcon, TagPoolIcon } from "./icons";
+import { DiceIcon } from "./icons";
 import { IconButton } from "./IconButton";
 import { ResultCard } from "./ResultCard";
 import { ScrollFadeArea } from "./ScrollFadeArea";
@@ -216,16 +216,12 @@ interface RecommendationsBodyProps {
   // FilterControls) — the same handler ResultsHeader threads into the results-
   // state Filter popover, so both surfaces drive the identical level cascade.
   onLevelChange: (level: LevelKey) => void;
-  // Open / close the Tag Pool (edit mode) and shuffle Random tags — the SAME
-  // handlers + toggle behaviour MixerBar's own Tag Pool / Random buttons use.
-  // Surfaced in the empty-state box only at the narrow widths where MixerBar's
-  // control row has dropped those buttons entirely (see the surfaced row below),
-  // so a narrow-viewport user still has one-tap access to both from here.
-  // editMode drives the Tag Pool button's open↔"Done" toggle, exactly like the
-  // bar's; onCloseEditMode is its close half.
-  editMode: boolean;
-  onOpenEditMode: () => void;
-  onCloseEditMode: () => void;
+  // Shuffle Random tags — the SAME handler MixerBar's own Random button
+  // uses. Surfaced in the empty-state box only at the narrow widths where
+  // the bar's control row has dropped it (see the surfaced row below).
+  // (The surfaced Tag Pool button and its editMode/open/close props left
+  // in search v2 Phase 3 — the persistent header owns pool invocation at
+  // every width now.)
   onRandomTags: () => void;
 }
 
@@ -254,9 +250,6 @@ export function RecommendationsBody({
   tagInfoById,
   totalSeriesCount,
   onLevelChange,
-  editMode,
-  onOpenEditMode,
-  onCloseEditMode,
   onRandomTags,
 }: RecommendationsBodyProps) {
   const { storagePrefix } = useDomain();
@@ -703,88 +696,34 @@ export function RecommendationsBody({
           <div data-empty-controls className="w-[min(560px,100%)] mx-auto">
             <FilterControls onLevelChange={onLevelChange} layout="inline" className="w-full" />
           </div>
-          {/* Surfaced controls: Tag Pool + Random, shown ONLY at the narrow
-              widths where MixerBar's control row has dropped them entirely, so a
-              phone user keeps one-tap access to both from the empty state. The
-              show/hide widths mirror MixerBar Row 2's own rungs EXACTLY — Tag
-              Pool @max-[561px], Random @max-[481px] — querying this box (the
-              @container, set on its className above), whose content width equals
-              MixerBar cardRef's own @container width by construction, so the same
-              numbers line up within a pixel.
+          {/* Surfaced Random, shown ONLY at the narrow widths where
+              MixerBar's control row has dropped it entirely, so a phone
+              user keeps one-tap access from the empty state. The
+              @max-[481px] mirrors MixerBar's own Random rung EXACTLY —
+              querying this box (the @container on its className above),
+              whose content width equals the bar's own @container width by
+              construction.
 
-              ⚠️ SHARED BREAKPOINTS — keep in sync with MixerBar.tsx Row 2:
-                561 = Tag Pool dropped from the bar (MixerBar RUNG 4)
-                481 = Random dropped from the bar   (MixerBar RUNG 6)
-              These are DUPLICATED literals, not a shared constant, on purpose: a
-              Tailwind arbitrary-value / container-query class must be static
-              source text (the scanner can't read a JS constant, and a container
-              query can't read a CSS var), so both sites carry the same number
-              with cross-reference comments instead — this app's own precedent for
-              coupled magic numbers (see MixerBar's spacer/-ml-[22px] note). If
-              either rung is re-bisected in MixerBar, update it here too.
+              ⚠️ SHARED BREAKPOINT (481) — keep in sync with MixerBar's
+              Random rung. Duplicated literal, not a shared constant, on
+              purpose: a Tailwind container-query class must be static
+              source text (the scanner can't read a JS constant) — this
+              app's coupled-magic-number precedent. If the rung is
+              re-bisected in MixerBar, update it here too.
 
-              Layout: Tag Pool is always in this row (the row itself only exists
-              @max-[561px], exactly when Tag Pool surfaces); Random joins it
-              @max-[481px]. The row is content-width and the box centres it
-              (items-center), so one button showing sits centred and both sit
-              next to each other with a standard gap — Tag Pool left, Random right
-              (DOM order), enough for the association without pinning them to the
-              box edges. Each button reduces label+icon → icon-only before it would
-              overflow (@max-[250px]: the two labelled buttons measure ~230px
-              combined incl. gap, so labels hold down to a ~250px container and
-              drop to icons just above where they'd spill — live-measured, wants an
-              on-device confirm like every width in this app) — the same idiom
-              FilterControls above and MixerBar's own icon/text split use. */}
-          {/* data-empty-controls: allowlisted by MixerBar's own click-outside-
-              closes-edit-mode listener (the same closest() check that exempts the
-              Clear ✕ / Filter popover / theme swatches — see MixerBar). Without
-              it, tapping either of these buttons while the Tag Pool / edit panel
-              is open (visible above the panel on larger phones) would be treated
-              as an outside click and dismiss the panel: for Random that's exactly
-              wrong (it should shuffle WITHOUT closing, matching the bar's own
-              Random), and for Tag Pool the button owns its own open↔close toggle
-              below, so the listener must not double-act on it either. */}
-          {/* gap-xl (16px) between Tag Pool + Random — matched to the gap
-              between the two filters above (FilterControls' inline root
-              gap-x-[var(--space-xl)]), bumped up from the earlier space-lg. */}
-          <div data-empty-controls className="hidden @max-[561px]:flex items-center gap-[var(--space-xl)]">
-            {/* Tag Pool — always present when this row shows. Mirrors MixerBar's
-                own Tag Pool button exactly, toggle included: opens the pool when
-                closed, and becomes a "Done ✓" / CheckIcon button that closes it
-                when edit mode is already open (reachable above the expanded panel
-                on larger phones). Outline variant + TagPoolIcon otherwise. */}
+              (The surfaced Tag Pool button that used to share this row —
+              and its 561 mirrored rung — was REMOVED in search v2 Phase 3:
+              the persistent header's own Tag Pool button exists at every
+              width now, so surfacing a second one here duplicated an
+              always-visible control.) */}
+          {/* data-empty-controls: allowlisted by TagPoolOverlay's
+              click-outside listener (the same closest() check that exempts
+              the Clear ✕ / Filter popover / theme swatches). Without it,
+              tapping Random while the pool overlay is open would be
+              treated as an outside click and dismiss it — wrong: Random
+              should shuffle WITHOUT closing, matching the bar's own. */}
+          <div data-empty-controls className="hidden @max-[481px]:flex items-center gap-[var(--space-xl)]">
             <div className="flex-none">
-              <div className="@max-[250px]:hidden">
-                <ActionButton variant="outline" onClick={editMode ? onCloseEditMode : onOpenEditMode}>
-                  {editMode ? (
-                    "Done ✓"
-                  ) : (
-                    <span className="inline-flex items-center gap-[var(--space-sm)]">
-                      Tag Pool
-                      <TagPoolIcon className="text-[var(--ink)]" />
-                    </span>
-                  )}
-                </ActionButton>
-              </div>
-              <div className="hidden @max-[250px]:block">
-                <IconButton
-                  size="md"
-                  border="base"
-                  shadow="elev-2"
-                  backgroundColor="transparent"
-                  title={editMode ? "Done" : "Tag Pool"}
-                  aria-label={editMode ? "Done" : "Tag Pool"}
-                  onClick={editMode ? onCloseEditMode : onOpenEditMode}
-                >
-                  {editMode ? <CheckIcon className="text-[var(--ink)]" /> : <TagPoolIcon className="text-[var(--ink)]" />}
-                </IconButton>
-              </div>
-            </div>
-            {/* Random — joins @max-[481px]. Filled variant + DiceIcon, matching
-                MixerBar's own Random button; shuffles via onRandomTags and never
-                closes an open edit panel (the row's data-empty-controls above is
-                what exempts it from the click-outside close, same as the bar). */}
-            <div className="hidden @max-[481px]:block flex-none">
               <div className="@max-[250px]:hidden">
                 <ActionButton variant="filled" onClick={onRandomTags}>
                   <span className="inline-flex items-center gap-[var(--space-sm)]">
