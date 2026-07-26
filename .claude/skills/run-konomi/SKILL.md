@@ -65,11 +65,20 @@ lsof -ti:3000 -sTCP:LISTEN | xargs -r kill
 
 ## Gotchas
 
-- **First visit is an onboarding gate.** A fresh browser context lands on a
-  level-select ("light enjoyer ☕" / "not my first rodeo 𓄀" / ">9000") with
-  the tag-pool edit panel open; the mixer controls don't exist until a level
-  is clicked. `onboardIfNeeded(page)` handles it — call it after every
-  `goto` with a fresh context.
+- **First visit + tag density.** A fresh context shows the level selector in
+  the empty-state box; `onboardIfNeeded(page)` clicks anime's "not my first
+  rodeo 𓄀" when present. On /film the labels differ (Moviegoer/Film buff/
+  Cinephile) so that click silently no-ops and the level stays at the
+  DEFAULT "1" — where only Genres/Reception/Franchise exist. Any pool/search
+  scenario on film must seed the pref BEFORE goto:
+  `page.addInitScript(() => localStorage.setItem("konomi:film:tagpool:level", "3"))`.
+- **The tag pool is a header-anchored overlay (search v2).** Open it by
+  clicking the header search field or Tag Pool button
+  (`button[aria-label="Open tag pool"]`); its aria-label flips to
+  "Close tag pool" while open — the reliable open-state probe
+  (`[role=tab]:visible` is useless: clipped elements count as visible).
+  The mixbar has NO Tag Pool button anymore; tapping an empty slot also
+  toggles the overlay.
 - **aria-label often matches an invisible element.** Several controls render
   two sibling forms (full text + icon-only, breakpoint-toggled), and the
   aria-label can live on the hidden one. Bare `getByLabel("Random")` resolves
