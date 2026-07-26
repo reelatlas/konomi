@@ -3,12 +3,21 @@
 import { useEffect, useRef, useState } from "react";
 import type { LevelKey } from "@/lib/konomi/types";
 import { ActionButton } from "./ActionButton";
-import { CloseIcon, ExistingIcon, LockClosedIcon, LockOpenIcon, NewIcon } from "./icons";
+import { CloseIcon, ExistingIcon, LockClosedIcon, LockOpenIcon, NewIcon, SearchIcon, TagPoolIcon } from "./icons";
 import { IconButton } from "./IconButton";
 import { ResultsFilterButton } from "./ResultsFilterButton";
+import { useTagPoolNav } from "./tagPoolNavContext";
 
 interface ResultsHeaderProps {
   hasResults: boolean;
+  // The tag pool / edit panel's open state + its open/close handlers
+  // (KonomiApp's editMode) — the header is the panel's PRIMARY invoker as
+  // of search v2: clicking into the search field or the Tag Pool button
+  // opens it ("any click into the global search or tag pool button will
+  // trigger the panel"), and the Tag Pool button toggles it closed again.
+  editMode: boolean;
+  onOpenEditMode: () => void;
+  onCloseEditMode: () => void;
   // Left-aligned result-set metadata, three icon+count readouts (results state
   // only): LOCKED (how many current results are locked), NEW (fresh this batch),
   // EXISTING (were in the previous batch and came back). The three partition the
@@ -36,27 +45,30 @@ interface ResultsHeaderProps {
 // the app's other quick state-change feedbacks.
 const UNLOCKED_FEEDBACK_MS = 1100;
 
-// Results-state chrome only: the Clear ✕ button and the Filter popover,
-// right-aligned. There is NO "Recommendations" title text anymore (dropped to
-// condense the page), and the Clear ✕ / Filter CONTENT shows only when there
-// are results — in the empty state the Tag Density/Sort filters live inside the
-// empty-state box itself (RecommendationsBody), so there's nothing to show here.
+// The persistent global header row (search v2). BOTH states now carry real
+// content: the global search field + the Tag Pool button live here always
+// (top-left — the panel's single stable invocation point); the results
+// state adds the Filter popover to their right, and the result-set
+// metadata + Clear ✕ on the row's right end. In the empty state the Tag
+// Density/Sort filters still live inside the empty-state box itself
+// (user-ruled "for now"), so the right half is simply empty there.
 //
-// The row's own HEIGHT (min-h-[30px] + mb-[space-lg]) is ALWAYS reserved,
-// including the empty state — only its CONTENT is gated on hasResults. This is
-// the whole mechanism that keeps the empty state's vertical footprint identical
-// to the results footprint (header + cards): because this row never collapses,
-// RecommendationsBody's own height — and therefore the 100cqh that drives
-// --result-card-height — is the same whether it holds the cards or the empty-
-// state box, so the two match automatically at every width/height with NO
-// per-breakpoint sizing (see RecommendationsBody's empty-state comment and
-// DESIGN_SYSTEM.md). A previous version collapsed this row when empty (an
-// earlier reserveRow / onResultsGridVisibleChange dance driven from KonomiApp),
-// which made the empty box sit shorter than the results block above the mixer
-// (reported); always-reserving removes that whole mechanism AND the jump.
-// Cards also can't jump on Clear anymore because the row is simply always here,
-// not held up for the exit and then dropped.
-export function ResultsHeader({ hasResults, lockedCount, newCount, existingCount, onUnlockAll, onClearRecs, clearDisabled, onLevelChange }: ResultsHeaderProps) {
+// The row never collapses (min-h-[30px] + mb-[space-lg] in both states) —
+// v1 reserved the height while gating ALL content on hasResults, purely so
+// the empty box could paint over the ghost row and match the results
+// footprint; now that the row is real chrome the empty box sits BELOW it
+// like the cards do, the paint-over trick is gone (see
+// RecommendationsBody), and the footprint equality is trivial: same row,
+// same remaining space, both states.
+export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEditMode, lockedCount, newCount, existingCount, onUnlockAll, onClearRecs, clearDisabled, onLevelChange }: ResultsHeaderProps) {
+  const nav = useTagPoolNav();
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  // Browse mode = the panel is open with no live query — the Tag Pool
+  // button shows its active (filled) state. The moment the user types, the
+  // field is what reads active (ink border) and the button drops back to
+  // its resting outline (user-ruled mode model). Immediate query, not the
+  // deferred copy — mode chrome must not lag the keystroke.
+  const browseActive = editMode && nav.query.trim().length === 0;
   // Transient "unlocked" confirmation after a click: the locked readout flips to
   // an open lock + the word "unlocked" for a beat, then settles back to the
   // closed lock + its (now 0) count. Timer ref so a rapid re-click resets it.
@@ -108,37 +120,132 @@ export function ResultsHeader({ hasResults, lockedCount, newCount, existingCount
     //
     // min-h-[30px]: Clear ✕'s and the Filter button's own shared, measured
     // rendered height (see ActionButton.tsx's sm size) — pins the row so it
-    // doesn't jitter as those buttons mount. mb-[var(--space-lg)]: 12px, half
-    // the app's usual 24px frame gutter — a deliberate exception here so the
-    // Clear/Filter controls read as belonging TO the results row directly below
-    // them (requested "feel more connected"), rather than as a separate band.
-    // justify-between: result-set metadata (count + unlock-all) sits at the
-    // LEFT, the Filter/Clear controls at the right. Both halves are gated on
-    // hasResults, so the empty state leaves the row visually empty (its height
-    // still always reserved, above).
+    // doesn't jitter as those buttons mount (the search input is 24px and
+    // the sm buttons 30px, so the tallest resting content matches it).
+    // mb-[var(--space-lg)]: 12px, half the app's usual 24px frame gutter — a
+    // deliberate exception here so the header controls read as belonging TO
+    // the results row directly below them, rather than as a separate band.
+    // justify-between: search/Tag Pool/Filter at the LEFT (search + Tag
+    // Pool in BOTH states — this is the persistent global header), the
+    // result-set metadata + Clear ✕ at the right, results state only.
     <div className="flex flex-row items-center justify-between min-h-[30px] gap-x-[var(--space-lg)] mb-[var(--space-lg)]">
-      {/* LEFT: result-set metadata — three icon+count readouts, gap-separated
-          (no divider lines): LOCKED · EXISTING · NEW (existing before new,
-          requested). Locked leftmost (it owns the unlock-all interaction), then
-          the two results buckets. locked + new + existing === total results. All
-          three always show while hasResults (locked shows 0 too, so unlock-all
-          can settle to 🔒 0). Only `new` carries a text label right now; locked
-          and existing are icon+count only. */}
-      {/* relative z-[var(--z-raised)]: WITHOUT this, real clicks (and hover)
-          on the metadata never landed — the results carousel's own invisible
-          pt/pb-40px flip-bulge padding (RecommendationsBody) geometrically
-          overlaps the bottom of this header row, and its ScrollFadeArea
-          wrappers are pointer-events-auto, so they won the hit-test over the
-          metadata sitting under them. Same fix, same reason, as the Clear ✕
-          button's own z-raised in this file (see its comment). Reported live as
-          "clicking the lock does nothing." */}
+      {/* LEFT: the panel's invocation cluster. data-global-search: the
+          allowlist marker MixerBar's click-outside-closes-edit-mode
+          listener checks via closest() (same mechanism as
+          data-clear-results / data-results-filter) — clicking the search
+          field or Tag Pool button must never be treated as an outside
+          click dismissing the very panel they control.
+          relative z-[var(--z-raised)]: same hit-test fix as the metadata
+          and Clear ✕ (the results carousel's invisible pt-40px flip-bulge
+          padding overlaps this row's bottom; see those comments). */}
+      <div data-global-search className="relative z-[var(--z-raised)] flex items-center gap-[var(--space-lg)] min-w-0">
+        {/* Global search — THE one search (v2: moved out of the pool
+            panel; it steers the pool nav via TagPoolNavProvider). Always
+            visible, always live. Focusing/clicking it opens the panel;
+            typing switches browse mode to search mode. Box recipe
+            unchanged from v1 (24px, mono, surface bg, thin border) — the
+            border/icon read ink while a query is live (the field is "the
+            active one" in search mode), muted at rest. */}
+        <div className="flex items-center shrink-0">
+          <IconButton
+            size="sm"
+            border="none"
+            backgroundColor="transparent"
+            title="Search tags"
+            aria-label="Search all tags"
+            onClick={() => {
+              searchInputRef.current?.focus();
+              if (!editMode) onOpenEditMode();
+            }}
+          >
+            <SearchIcon className={nav.query ? "text-[var(--ink)]" : "text-[var(--muted)]"} />
+          </IconButton>
+          <input
+            ref={searchInputRef}
+            type="text"
+            value={nav.query}
+            onChange={(e) => {
+              if (!editMode) onOpenEditMode();
+              nav.handleQueryChange(e.target.value);
+            }}
+            onKeyDown={nav.handleSearchKeyDown}
+            // onClick, deliberately NOT onFocus: MixerBar restores focus to
+            // the previously-focused element when the panel closes, so an
+            // onFocus-opens rule turns every outside-click close into an
+            // immediate programmatic re-open (confirmed live — the panel
+            // became unclosable). Click + typing are the USER's open
+            // signals; programmatic focus arrivals stay inert.
+            onClick={() => {
+              if (!editMode) onOpenEditMode();
+            }}
+            aria-label="Search all tag sections"
+            placeholder="search all tags…"
+            spellCheck={false}
+            autoCapitalize="none"
+            autoCorrect="off"
+            className={[
+              "h-[24px] w-[min(200px,40vw)] px-[var(--space-md)] font-mono text-[length:var(--text-sm)]",
+              "bg-[var(--surface)] text-[var(--ink)] placeholder:text-[var(--subtext)] outline-none",
+              "border-[length:var(--border-thin)]",
+              nav.query ? "border-[var(--ink)]" : "border-[var(--muted)]",
+            ].join(" ")}
+          />
+        </div>
+        {/* Tag Pool — the panel's button invoker, mirroring MixerBar's own
+            (which stays through Phase 1/2 and leaves in Phase 3). Toggle:
+            open ↔ close. Active (filled) exactly while in BROWSE mode —
+            panel open, no query (see browseActive above). Two sibling
+            forms below 480px, the same idiom Clear ✕ uses in this row. */}
+        <div className="shrink-0">
+          <ActionButton
+            variant={browseActive ? "filled" : "outline"}
+            size="sm"
+            onClick={editMode ? onCloseEditMode : onOpenEditMode}
+            aria-label={editMode ? "Close tag pool" : "Open tag pool"}
+            className="hidden min-[480px]:inline-flex"
+          >
+            <span className="inline-flex items-center gap-[var(--space-sm)]">
+              Tag Pool
+              <TagPoolIcon className="text-[var(--ink)]" />
+            </span>
+          </ActionButton>
+          <IconButton
+            size="sm"
+            border="base"
+            backgroundColor={browseActive ? "var(--fill)" : "transparent"}
+            title={editMode ? "Close tag pool" : "Open tag pool"}
+            aria-label={editMode ? "Close tag pool" : "Open tag pool"}
+            onClick={editMode ? onCloseEditMode : onOpenEditMode}
+            display="flex min-[480px]:hidden"
+          >
+            <TagPoolIcon className="text-[var(--ink)]" />
+          </IconButton>
+        </div>
+        {/* Filter popover — results state only, to the Tag Pool button's
+            right (user-ruled position); in the empty state the filters
+            live inside the empty-state box instead. */}
+        {hasResults && <ResultsFilterButton onLevelChange={onLevelChange} />}
+      </div>
+      {/* RIGHT: result-set metadata + Clear ✕, results state only. The
+          metadata (LOCKED · EXISTING · NEW readouts) sits to the LEFT of
+          Clear ✕ (user-ruled v2 position — it moved over from the row's
+          left end when search took that spot). locked + new + existing
+          === total results; locked owns the unlock-all interaction. */}
+      {/* relative z-[var(--z-raised)] on the metadata: WITHOUT this, real
+          clicks (and hover) on it never landed — the results carousel's
+          own invisible pt/pb-40px flip-bulge padding (RecommendationsBody)
+          geometrically overlaps the bottom of this header row, and its
+          ScrollFadeArea wrappers are pointer-events-auto, so they won the
+          hit-test. Same fix, same reason, as Clear ✕'s own z-raised below.
+          Reported live as "clicking the lock does nothing." */}
       {hasResults && (
-        // gap-lg (12px) between readouts: the divider lines were removed
-        // (requested); this gap keeps roughly the SAME between-item spacing the
-        // gap-sm + 1px divider + gap-sm used to occupy (~13px), while staying
-        // clearly wider than each readout's own internal gap-xs so the three
-        // still read as separate groups.
-        <div className="relative z-[var(--z-raised)] flex items-center gap-[var(--space-lg)] min-w-0">
+        <div className="flex items-center gap-[var(--space-lg)] flex-wrap justify-end">
+          {/* gap-lg (12px) between readouts: the divider lines were removed
+              (requested); this gap keeps roughly the SAME between-item spacing
+              the gap-sm + 1px divider + gap-sm used to occupy (~13px), while
+              staying clearly wider than each readout's own internal gap-xs so
+              the three still read as separate groups. */}
+          <div className="relative z-[var(--z-raised)] flex items-center gap-[var(--space-lg)] min-w-0">
           {/* LOCKED — the unlock-all affordance. Interactive only when > 0:
               .glow-host enables the shared hover/focus glow (globals.css, the
               SAME --subtext bloom the MixerBar grip uses), and the click clears
@@ -186,15 +293,7 @@ export function ResultsHeader({ hasResults, lockedCount, newCount, existingCount
             </span>
             <span className="tabular-nums">{newCount}</span>
           </span>
-        </div>
-      )}
-      {/* RIGHT: the Filter popover + Clear ✕ controls (unchanged). */}
-      {hasResults && (
-        <div className="flex items-center gap-[var(--space-lg)] flex-wrap">
-          {/* Filter popover first (left), Clear ✕ second (right) — requested
-              order swap; the row is a plain left-to-right flex, so listing
-              ResultsFilterButton before the Clear span puts Clear on the right. */}
-          <ResultsFilterButton onLevelChange={onLevelChange} />
+          </div>
           {
             // data-clear-results + contents: lets MixerBar's click-outside-
           // closes-edit-mode listener allowlist this button via a single

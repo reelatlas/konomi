@@ -591,28 +591,17 @@ export function RecommendationsBody({
         // set replaces it — no jarring collapse-then-jump when the user
         // fixes the error and hits RECOMMEND again.
         //
-        // The empty box occupies the SAME total vertical space the results
-        // block does — ResultsHeader's row + the cards — as ONE seamless box
-        // with NO visible gap, so clearing results doesn't change the footprint.
-        // The header row's height is inlined here as (30px + var(--space-lg)) —
-        // ResultsHeader's own min-h-[30px] + its mb-[space-lg]. It is NOT a
-        // shared --results-header-h custom property: a new :root var added for
-        // this was silently NOT emitted by this project's Turbopack/Lightning
-        // CSS dev pipeline (confirmed live — its neighbors emitted, it did not),
-        // while these Tailwind arbitrary utilities DO emit, so the value lives
-        // in the class. The 30px couples to ResultsHeader's min-h — keep in sync.
-        //   min-h = --result-card-height + 30px + space-lg: the card-row height
-        //     (shared token the cards use, so it tracks automatically across
-        //     widths/heights via 100cqh — no per-breakpoint math) PLUS the
-        //     header row's height.
-        //   -mt (30px + space-lg): pulls the box UP by the header's height so it
-        //     spans over the (always-rendered) ResultsHeader row and its top
-        //     sits at the results block's top — the box visually covers that row
-        //     (no blank strip), while the row staying in layout keeps 100cqh
-        //     honest (== the cards' own container height, so the card portion is
-        //     the exact real card height — no drift, no overflow into the mixer).
-        //     ResultsHeader shows Filter/Clear only when there are results, so
-        //     under the empty box that row is just empty space the box paints over.
+        // The empty box fills the CARD AREA only (min-h = the shared
+        // --result-card-height token the cards themselves use, so it tracks
+        // automatically across widths/heights via 100cqh — no per-breakpoint
+        // math). Search v2 SIMPLIFIED this: ResultsHeader is now real,
+        // persistent chrome (global search + Tag Pool) in both states, so
+        // the v1 paint-over trick — a -mt pulling the box up over the ghost
+        // header row, with the row's 30px + space-lg inlined into BOTH the
+        // margin and the min-h (a documented keep-in-sync coupling) — is
+        // deleted, not relocated. Footprint equality between the empty and
+        // results states is trivial now: same always-rendered header row
+        // above, same card-area height here.
         // Deliberately NOT flex-1/h-full/100cqh: the box must match the (capped)
         // results block and stop, NOT swallow the leftover space above MixerBar
         // (that gap is present in both states on a tall viewport, by design).
@@ -639,15 +628,14 @@ export function RecommendationsBody({
         // itself, not this box.
         // emptyBoxOverlay -> absolute inset-x-0 top-0: while the results grid
         // co-renders (recommend exit, or the clear overlap window), the box floats
-        // above it without adding its own height. The existing -mt (pulls the box
-        // up over the header row) still applies from `top: 0`, so the overlaid
-        // position matches the in-flow resting position exactly — the switch back
-        // to in-flow once the grid unmounts is seamless (the box's min-h and the
-        // results block are designed to the same footprint). emptyBoxAnimClass /
-        // emptyBoxAnimStyle play the rise+fade keyframe (globals.css) on the same
-        // timing/travel as the cards.
+        // above it without adding its own height. top-0 IS the resting
+        // position now (no -mt since the paint-over trick's deletion), so
+        // the overlaid position matches the in-flow position exactly — the
+        // switch back to in-flow once the grid unmounts is seamless.
+        // emptyBoxAnimClass / emptyBoxAnimStyle play the rise+fade keyframe
+        // (globals.css) on the same timing/travel as the cards.
         <div
-          className={`@container border-[length:var(--border-base)] border-dashed border-[var(--muted)] bg-[var(--slot-empty)] mt-[calc((30px_+_var(--space-lg))_*_-1)] min-h-[calc(var(--result-card-height)_+_30px_+_var(--space-lg))] grid grid-rows-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] px-[var(--space-2xl)] py-[var(--space-2xl)] text-center ${emptyBoxOverlay ? "absolute inset-x-0 top-0" : ""} ${emptyBoxAnimClass}`}
+          className={`@container border-[length:var(--border-base)] border-dashed border-[var(--muted)] bg-[var(--slot-empty)] min-h-[var(--result-card-height)] grid grid-rows-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] px-[var(--space-2xl)] py-[var(--space-2xl)] text-center ${emptyBoxOverlay ? "absolute inset-x-0 top-0" : ""} ${emptyBoxAnimClass}`}
           style={emptyBoxAnimStyle}
         >
           {/* THREE ALWAYS-EQUAL sections (no divider lines), each centered

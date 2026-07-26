@@ -13,6 +13,7 @@ import { Masthead } from "./Masthead";
 import { MixerBar } from "./MixerBar";
 import { RecommendationsBody } from "./RecommendationsBody";
 import { ResultsHeader } from "./ResultsHeader";
+import { TagPoolNavProvider } from "./tagPoolNavContext";
 import { setLevelPref, useLevel } from "./tagPoolPrefs";
 
 interface KonomiAppProps {
@@ -465,6 +466,12 @@ export function KonomiApp({ side, initialSeries, initialTags }: KonomiAppProps) 
     // it via useDomain() instead of prop-threading through MixerBar/
     // RecommendationsBody/ResultsHeader, none of which use it themselves.
     <DomainProvider value={domain}>
+    {/* TagPoolNavProvider: the pool's nav + global-search controller
+        (search v2) — shared by ResultsHeader (the field) and TagPoolBody
+        (the nav it steers). Provider-with-children, so its keystroke/nav
+        state changes re-render only those consumers, never this shell —
+        see tagPoolNavContext.tsx. */}
+    <TagPoolNavProvider allTags={k.allTags} totalSeriesCount={k.totalSeriesCount} onChipToggle={k.toggleTag}>
     {/* App-shell rewrite: this root is now a fixed 100svh flex column, not
         a normally-scrolling page. html/body (globals.css) stop being the
         real scroll root — nothing above or below this div needs to scroll
@@ -614,6 +621,9 @@ export function KonomiApp({ side, initialSeries, initialTags }: KonomiAppProps) 
           <section className="mb-[var(--space-2xl)] flex-1 min-h-0 flex flex-col">
             <ResultsHeader
               hasResults={k.hasResults}
+              editMode={editMode}
+              onOpenEditMode={() => setEditMode(true)}
+              onCloseEditMode={() => setEditMode(false)}
               // Partition the current results into locked / new / existing (they
               // sum to results.length). A result is LOCKED if held; else EXISTING
               // if its id was in the previous batch (prevResultIds), else
@@ -710,6 +720,7 @@ export function KonomiApp({ side, initialSeries, initialTags }: KonomiAppProps) 
         />
       </div>
     </div>
+    </TagPoolNavProvider>
     </DomainProvider>
   );
 }

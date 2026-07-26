@@ -1,13 +1,12 @@
-import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
-import { genreTags, sortTags, tagsForCategories, tagsForSection } from "@/lib/konomi/tagPool";
-import { bestScore, filterByQuery, matchScore, normalizeQuery } from "@/lib/konomi/tagSearch";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { genreTags, sortTags, tagsForCategories } from "@/lib/konomi/tagPool";
+import { filterByQuery } from "@/lib/konomi/tagSearch";
 import type { TagInfo } from "@/lib/konomi/types";
 import { useDomain } from "./domainContext";
-import { IconButton } from "./IconButton";
-import { SearchIcon } from "./icons";
 import { ScrollFadeArea } from "./ScrollFadeArea";
 import { SectionTabStrip } from "./SectionTabStrip";
 import { TagChip } from "./TagChip";
+import { useTagPoolNav } from "./tagPoolNavContext";
 import { useLevel, useSort } from "./tagPoolPrefs";
 
 interface TagPoolBodyProps {
@@ -109,11 +108,6 @@ const CHIP_AREA_HEIGHT = "h-[50dvh]";
 // the bottom appends another page (CappedChipRow). One shared constant, not
 // per-call literals, per the design-system centralization rule.
 const BROWSE_CAP = 50;
-
-// Subsection label → slug ("Time of year" → "time-of-year") — doubles as
-// the element-id fragment for the sub-tier's aria wiring (ids can't hold
-// spaces). Module-scope: pure, and memoized derivations depend on it.
-const subKey = (label: string) => label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
 function ChipRow({
   tags,
@@ -246,21 +240,30 @@ export function TagPoolBody({
   const domain = useDomain();
   const level = useLevel(domain.storagePrefix);
   const sort = useSort(domain.storagePrefix);
-  // Plain component state, not localStorage-backed — TagPoolBody itself
-  // never unmounts while browse mode is active (only max-h-0 toggles, in
-  // MixerBar), so this alone is enough for the active section and its
-  // scroll position to survive closing and reopening edit mode. No
-  // requirement was made for this to survive a full page reload, so it
-  // isn't persisted beyond the session.
-  const [activeSectionKey, setActiveSectionKey] = useState(domain.sections[0].key);
-  // Active subsection PER SECTION (keyed by section key) for sections that
-  // render their subsections as a second tab tier (subsectionsAsTabs — the
-  // film pillars). A map, not a single key, so switching Story → Style →
-  // back to Story lands on the Story sub-tab you were on. Values are
-  // subsection SLUGS (see subKey below), not labels — they double as
-  // element-id fragments for the tab/panel aria wiring, and labels like
-  // "Time of year" contain spaces, which ids can't.
-  const [activeSubKeys, setActiveSubKeys] = useState<Record<string, string>>({});
+  // Nav + search model — LIFTED to TagPoolNavProvider (search v2, Phase 1):
+  // the search field renders in the persistent results header
+  // (ResultsHeader) while this component renders the nav it steers, so the
+  // shared state lives in the provider both consume. Everything this
+  // component reads here used to be local state/derivation — same model,
+  // same semantics, one owner. See tagPoolNavContext.tsx.
+  const {
+    visibleSections,
+    active,
+    subTabsMode,
+    visibleSubs,
+    activeSub,
+    showSubStrip,
+    setActiveSectionKey,
+    setActiveSub,
+    searchByKey,
+    searchActive,
+    normQuery,
+    anyMatches,
+    poolTotalMatches,
+    multipleLitTargets,
+    dimFor,
+    activeSectionMatches,
+  } = useTagPoolNav();
 
   // Live-measured height of the tabs row below — replaces a flat constant
   // (the old TABS_HEIGHT) because SectionTabStrip's own rendered height
@@ -282,280 +285,6 @@ export function TagPoolBody({
   const chipAreaHeightPx =
     poolPanelHeightPx !== undefined ? Math.max(CHIP_AREA_MIN, poolPanelHeightPx - (rowHeightPx ?? ROW_HEIGHT_BOOTSTRAP) - STRIP_GAP) : undefined;
 
-  // Every section with at least one tag at the current level — hidden
-  // entirely (not shown as a disabled tab), matching the old collapsible
-  // version's "hidden, not just collapsed, empty sections" behavior.
-  // Memoized (with every derivation below that hangs off it) since the
-  // resize-lag fix: MixerBar's resize drag re-renders this component on
-  // every RAF tick via poolPanelHeightPx, and before memoization each tick
-  // re-scanned the full pool — user-felt as site-wide lag while dragging
-  // with a search query live. None of these inputs change during a drag,
-  // so every tick now reuses the same arrays (and their stable refs are
-  // what let the downstream memos hold too).
-  const visibleSections = useMemo(
-    () =>
-      domain.sections
-        .map((section) => ({
-          section,
-          tags: tagsForSection(domain, allTags, section, level, totalSeriesCount),
-        }))
-        .filter(({ tags }) => tags.length > 0),
-    [domain, allTags, level, totalSeriesCount],
-  );
-
-  // A Tag Density / Level change can make the currently-active section
-  // disappear entirely (e.g. every non-Genres section is empty at "Casual",
-  // leaving only Genres). When that happens, fall to the first visible section
-  // (always Genres, which passes every level) AND commit that back into state,
-  // so the tab STAYS where it landed rather than snapping back to the
-  // previously-active tab once the level rises and the old tab reappears.
-  // Requested directly: once a filter forces you onto Genres, switching the
-  // level back up should keep you on Genres (or on whatever tab you're
-  // currently on, as long as it's still available) — not restore a remembered
-  // tab. (This reverses the earlier "derive the fallback, leave the stored key
-  // untouched so it can be restored" behavior — that restore was the reported
-  // bug.) Render-phase conditional setState, comparing against state and
-  // converging in a single pass — the same pattern MixerBar/RecommendationsBody
-  // use to satisfy react-hooks/set-state-in-effect (this is not an effect):
-  // after the reset, activeSectionKey is a visible section, so the condition is
-  // false on the immediate re-render and it never loops.
-  const activeInVisible = visibleSections.find(({ section }) => section.key === activeSectionKey);
-  if (!activeInVisible && visibleSections.length > 0) {
-    setActiveSectionKey(visibleSections[0].section.key);
-  }
-  const active = activeInVisible ?? visibleSections[0];
-
-  // Second tier (film pillars): subsections rendered as tabs, one shown at
-  // a time. Same rules as the section tier, one level down: empty
-  // subsections hidden entirely, and when the stored active sub disappears
-  // (level change) fall to the first visible one and COMMIT it — the same
-  // render-phase converge-in-one-pass pattern as the section fallback
-  // above (after the set, the condition is false on the immediate
-  // re-render, so it can't loop).
-  const subTabsMode = Boolean(active?.section.subsectionsAsTabs && active.section.subsections);
-  const activeSection = active?.section;
-  const visibleSubs = useMemo(
-    () =>
-      subTabsMode && activeSection?.subsections
-        ? activeSection.subsections
-            .map((sub) => ({
-              sub,
-              slug: subKey(sub.label),
-              tags: tagsForCategories(domain, allTags, sub.categories, level, totalSeriesCount),
-            }))
-            .filter(({ tags }) => tags.length > 0)
-        : [],
-    [subTabsMode, activeSection, domain, allTags, level, totalSeriesCount],
-  );
-  const storedSubSlug = active ? activeSubKeys[active.section.key] : undefined;
-  const activeSub = visibleSubs.find(({ slug }) => slug === storedSubSlug) ?? visibleSubs[0];
-  if (subTabsMode && activeSub && storedSubSlug !== activeSub.slug) {
-    setActiveSubKeys((prev) => ({ ...prev, [active.section.key]: activeSub.slug }));
-  }
-  // The strip is pure noise when only one subsection survives the level
-  // floor (e.g. Style at Moviegoer = Sagas alone) — hide it and show that
-  // one subsection's chips plain.
-  const showSubStrip = subTabsMode && visibleSubs.length > 1;
-
-  // ---- Tag search ("search prunes the nav" — full spec + rationale in
-  // DESIGN_SYSTEM.md "Tag pool search"). Search is GLOBAL, always: there
-  // is no scope control. The nav itself is the results display — tabs and
-  // sub-tabs whose sections hold no match DIM (SectionTabStrip's `dimmed`;
-  // never hidden, so the strip's geometry can't reflow under the pointer),
-  // and the chip grid filters in place. No dropdown, no results page: the
-  // pool panel is already a grid of selectable entities, so selection
-  // stays the one existing interaction (chip toggle).
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [query, setQuery] = useState("");
-  // useDeferredValue, not a hand-rolled debounce: keeps each keystroke's
-  // input paint immediate while the big grid re-filters (People renders
-  // ~6.9k chips uncapped — user-ruled no cap in v1) at deferred priority.
-  const deferredQuery = useDeferredValue(query);
-  const normQuery = normalizeQuery(deferredQuery);
-  const searchActive = searchOpen && normQuery.length > 0;
-  const searchInputRef = useRef<HTMLInputElement>(null);
-
-  // Per-section match model, rebuilt per render while a query is live.
-  // One full pass over the pool per keystroke (~15k cheap string checks) —
-  // measured fine; the render of the big grids, not this scan, is the
-  // cost, and useDeferredValue above is what manages that.
-  type SubSearch = { slug: string; count: number; best: number };
-  type SectionSearch = { key: string; count: number; best: number; subs: SubSearch[] | null };
-  // Parameterized on the query (not closed over normQuery) because it runs
-  // in two places: per render for the dim/empty model, and inside the
-  // onChange handler for the auto-move decision (see handleQueryChange).
-  // useCallback + the useMemo below are part of the resize-lag fix (see
-  // visibleSections): before them, every resize-drag RAF tick re-ran this
-  // full-pool scan even though the query hadn't changed.
-  const buildSearchSections = useCallback(
-    (nq: string): SectionSearch[] =>
-      visibleSections.map(({ section, tags }) => ({
-        key: section.key,
-        count: filterByQuery(tags, nq).length,
-        best: bestScore(tags, nq),
-        subs:
-          section.subsectionsAsTabs && section.subsections
-            ? section.subsections
-                .map((sub) => ({ sub, tags: tagsForCategories(domain, allTags, sub.categories, level, totalSeriesCount) }))
-                .filter(({ tags }) => tags.length > 0)
-                .map(({ sub, tags }) => ({ slug: subKey(sub.label), count: filterByQuery(tags, nq).length, best: bestScore(tags, nq) }))
-            : null,
-      })),
-    [visibleSections, domain, allTags, level, totalSeriesCount],
-  );
-  const searchSections: SectionSearch[] = useMemo(
-    () => (searchActive ? buildSearchSections(normQuery) : []),
-    [searchActive, normQuery, buildSearchSections],
-  );
-  const searchByKey = new Map(searchSections.map((s) => [s.key, s]));
-  const anyMatches = searchSections.some((s) => s.count > 0);
-  // Pool-wide numbers for SearchCountLine: the denominator is matches
-  // across EVERY section (user's mental model — "my matches"). The plain
-  // total shows ONLY when there is exactly ONE lit selectable target
-  // (one flat section, or one sub-tab; user-ruled 2026-07-25 after "ben"
-  // lit a single section but three of its sub-tabs and read as complete)
-  // — which is the same set the ↓↑ keys cycle, so the arrows hint
-  // appears if-and-only-if the arrows actually have somewhere to go. A
-  // grouped-inline section (anime Theme) counts as one target: nothing
-  // inside it is separately selectable.
-  const poolTotalMatches = searchSections.reduce((n, s) => n + s.count, 0);
-  const multipleLitTargets =
-    searchSections.reduce((n, s) => n + (s.count > 0 ? (s.subs ? s.subs.filter((su) => su.count > 0).length : 1) : 0), 0) > 1;
-  // The Enter fast path: when exactly one tag matches across the whole
-  // pool, Enter toggles it — type until unique, Enter, done, no pointer.
-  // Names, not per-section counts, so a tag reachable via two sections
-  // (none today, but the union rule in visiblePoolTagNames allows it)
-  // still counts as one.
-  // Unique by ID (Phase 3a): two same-named entities (both De Niros) are
-  // two matches, so Enter stays inert until the query isolates one entity.
-  const uniqueMatch = useMemo(() => {
-    if (!searchActive) return null;
-    const seen = new Set<string>();
-    for (const { tags } of visibleSections) {
-      for (const t of tags) {
-        if (matchScore(t.name, normQuery) > 0) {
-          seen.add(t.id);
-          if (seen.size > 1) return null;
-        }
-      }
-    }
-    return seen.size === 1 ? [...seen].at(0)! : null;
-  }, [searchActive, normQuery, visibleSections]);
-
-  // Auto-move: "stay if you can, move if you must." Runs INSIDE the
-  // onChange handler — the keystroke IS the event this navigation responds
-  // to — so it fires exactly once per query change and never re-evaluates
-  // on unrelated renders: clicking a dim tab to inspect it is never
-  // fought, and per-keystroke section teleporting can't happen. (An
-  // effect-based version was written first and rejected by this repo's
-  // react-hooks/set-state-in-effect rule — correctly: this is an event
-  // response, so it belongs in the event handler.) Rules: an exact match
-  // pulls the view to its section unless the active section has one too;
-  // otherwise hop only when the active section has ZERO matches, to the
-  // section with the best score (exact > word-prefix > substring), ties
-  // broken by nav order — never by match count, which reorders
-  // unpredictably as a query grows. Then the same stay-if-you-can rule
-  // one tier down for the target's sub-tab. Clearing (backspace to empty)
-  // never moves the view.
-  const handleQueryChange = (raw: string) => {
-    setQuery(raw);
-    const nq = normalizeQuery(raw);
-    if (!nq) return;
-    const sections = buildSearchSections(nq);
-    if (sections.length === 0) return;
-    const globalBest = Math.max(...sections.map((s) => s.best));
-    if (globalBest === 0) return; // nothing matches anywhere — stay put
-    const activeKey = active?.section.key;
-    const current = sections.find((s) => s.key === activeKey);
-    let targetKey = activeKey;
-    if (globalBest === 3 && (current?.best ?? 0) < 3) {
-      targetKey = sections.find((s) => s.best === 3)!.key;
-    } else if ((current?.count ?? 0) === 0) {
-      targetKey = sections.find((s) => s.best === globalBest)!.key;
-    }
-    if (targetKey && targetKey !== activeKey) setActiveSectionKey(targetKey);
-    const target = sections.find((s) => s.key === targetKey);
-    if (target?.subs) {
-      const stored = target.subs.find((su) => su.slug === activeSubKeys[target.key]);
-      if (!stored || stored.count === 0) {
-        const subBest = Math.max(...target.subs.map((su) => (su.count > 0 ? su.best : 0)));
-        const pick = target.subs.find((su) => su.count > 0 && su.best === subBest);
-        if (pick) setActiveSubKeys((prev) => ({ ...prev, [target.key]: pick.slug }));
-      }
-    }
-  };
-
-  // ↑↓ cycle the lit (matching) sections, walking a section's lit sub-tabs
-  // before moving to the next section; Enter = the unique-match toggle;
-  // Esc = clear-then-close (two-stage). All on the input itself — the
-  // chip grid keeps its own existing focus behavior untouched in v1.
-  const litPairs = (): { key: string; slug?: string }[] => {
-    const out: { key: string; slug?: string }[] = [];
-    for (const s of searchSections) {
-      if (s.count === 0) continue;
-      if (s.subs) {
-        for (const su of s.subs) if (su.count > 0) out.push({ key: s.key, slug: su.slug });
-      } else {
-        out.push({ key: s.key });
-      }
-    }
-    return out;
-  };
-  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Escape") {
-      // Two-stage (clear → collapse), and each consumed stage must
-      // stopPropagation: MixerBar has a WINDOW-level Escape that closes
-      // the whole edit panel (confirmed live — without this, the second
-      // Esc collapsed the panel out from under the search). React's
-      // stopPropagation marks the native event, so the window listener
-      // never fires for a consumed stage. Once search is already closed
-      // the key falls through untouched — so the full ladder reads:
-      // clear query → close search → (MixerBar) close panel. Collapse
-      // also blurs, otherwise focus stays trapped in the w-0 input and
-      // the third stage could never reach MixerBar.
-      if (query) {
-        e.preventDefault();
-        e.stopPropagation();
-        setQuery("");
-      } else if (searchOpen) {
-        e.preventDefault();
-        e.stopPropagation();
-        setSearchOpen(false);
-        searchInputRef.current?.blur();
-      }
-      return;
-    }
-    if (!searchActive) return;
-    if (e.key === "Enter") {
-      if (uniqueMatch) onChipToggle(uniqueMatch);
-      return;
-    }
-    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-      e.preventDefault();
-      const pairs = litPairs();
-      if (!pairs.length) return;
-      const idx = pairs.findIndex((p) => p.key === active?.section.key && (!p.slug || p.slug === activeSub?.slug));
-      const next = pairs[(idx + (e.key === "ArrowDown" ? 1 : -1) + pairs.length) % pairs.length];
-      setActiveSectionKey(next.key);
-      if (next.slug) setActiveSubKeys((prev) => ({ ...prev, [next.key]: next.slug! }));
-    }
-  };
-  // Toggle only — no close-on-blur: a blur handler races the toggle
-  // button's own click (blur closes, the re-rendered click reopens), and
-  // an open empty field is harmless chrome. Esc or the icon closes.
-  const toggleSearch = () => {
-    if (searchOpen) {
-      setSearchOpen(false);
-      setQuery("");
-    } else {
-      setSearchOpen(true);
-      searchInputRef.current?.focus(); // always mounted (w-0 closed), focusable immediately
-    }
-  };
-  const dimFor = (key: string) => (searchActive ? (searchByKey.get(key)?.count ?? 0) === 0 : false);
-  // Active section's match count — drives the honest empty state when a
-  // dim tab is clicked (0 matches here) in the mixer's guided-error voice.
-  const activeSectionMatches = searchActive && active ? (searchByKey.get(active.section.key)?.count ?? 0) : -1;
   const applyQuery = (tags: TagInfo[]) => (searchActive ? filterByQuery(tags, normQuery) : tags);
 
   // The active grid's final list (filter → sort), memoized for the same
@@ -564,6 +293,7 @@ export function TagPoolBody({
   // shapes; the inline-grouped shape (anime Theme) keeps its per-group
   // inline computation below — small lists, never capped.
   const isCapped = Boolean(active?.section.capped);
+  const activeSection = active?.section;
   const activeSub_ = activeSub; // narrow for the memo closure
   const activeGridTags = useMemo(() => {
     if (!activeSection) return [];
@@ -578,6 +308,13 @@ export function TagPoolBody({
   // from under it without a section/sub switch (those already remount via
   // the tabpanel's own key): sort, level, or the live query.
   const gridResetKey = `${level}:${sort}:${searchActive ? normQuery : ""}`;
+
+  // No visible section at all (can't happen in practice — Genres passes
+  // every level on both sides) — nothing to render. Also the type guard
+  // that narrows `active` for everything below, now that it arrives from
+  // the provider typed as possibly-undefined instead of being derived
+  // locally. After every hook above, per the rules of hooks.
+  if (!active) return null;
 
   return (
     <div className="flex flex-col min-w-0" style={{ gap: STRIP_GAP }}>
@@ -619,49 +356,11 @@ export function TagPoolBody({
                 visible={editMode}
               />
             </div>
-            {/* Search: icon at rest, expands to a field — right end of the
-                tab strip it operates on. The input is ALWAYS mounted at
-                w-0 so open/close is a plain CSS width/opacity transition
-                (ladder rung 1: discrete A→B toggle — no Motion) and
-                focus() can land synchronously in the opening click.
-                Whole-pixel geometry: 24px input in the 30px row, 200px
-                open width. First text input in the app — the box recipe
-                (thin ink border, surface bg, mono text) mirrors the
-                small-control family (TagChip/SortSelect) rather than
-                inventing a new treatment. */}
-            <div className="flex items-center shrink-0">
-              <IconButton
-                size="sm"
-                border="none"
-                backgroundColor="transparent"
-                title="Search tags"
-                aria-label={searchOpen ? "Close tag search" : "Search tags"}
-                aria-expanded={searchOpen}
-                onClick={toggleSearch}
-              >
-                <SearchIcon className={searchOpen ? "text-[var(--ink)]" : "text-[var(--muted)]"} />
-              </IconButton>
-              <input
-                ref={searchInputRef}
-                type="text"
-                value={query}
-                onChange={(e) => handleQueryChange(e.target.value)}
-                onKeyDown={handleSearchKeyDown}
-                aria-label="Search all tag sections"
-                placeholder="search all tags…"
-                spellCheck={false}
-                autoCapitalize="none"
-                autoCorrect="off"
-                className={[
-                  "h-[24px] font-mono text-[length:var(--text-sm)] bg-[var(--surface)] text-[var(--ink)]",
-                  "placeholder:text-[var(--subtext)] outline-none",
-                  "transition-[width,opacity,padding] motion-reduce:transition-none overflow-hidden",
-                  searchOpen
-                    ? "w-[200px] px-[var(--space-md)] opacity-100 border-[length:var(--border-thin)] border-[var(--ink)]"
-                    : "w-0 px-0 opacity-0 border-0 pointer-events-none",
-                ].join(" ")}
-              />
-            </div>
+            {/* The search field lived here in v1 (icon expanding to an
+                input at the strip's right end). v2 moved it — the ONE
+                global search — to the persistent results header
+                (ResultsHeader); it steers this same nav through the shared
+                TagPoolNavProvider. */}
           </div>
           {trailingControls}
         </div>
@@ -687,7 +386,7 @@ export function TagPoolBody({
                 dimmed: searchActive ? (searchByKey.get(active.section.key)?.subs?.find((su) => su.slug === slug)?.count ?? 0) === 0 : false,
               }))}
               activeKey={activeSub!.slug}
-              onChange={(slug) => setActiveSubKeys((prev) => ({ ...prev, [active.section.key]: slug }))}
+              onChange={(slug) => setActiveSub(active.section.key, slug)}
               visible={editMode}
             />
           </div>

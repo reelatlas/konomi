@@ -552,12 +552,13 @@ export function MixerBar({
       // listeners live on the SAME node as this document listener — and
       // stopPropagation never silences other listeners on the same node
       // (that's stopImmediatePropagation, which React handlers can't
-      // reach). Confirmed live: TagPoolBody's search input consumed an
+      // reach). Confirmed live: the global search input consumed an
       // Escape (clear-query stage) with stopPropagation and this still
       // closed the whole panel. A consumed Escape marks itself via
       // preventDefault, which same-node ordering can't erase — so anyone
-      // consuming Escape below (search's clear→collapse ladder) prevents
-      // default, and this close only fires for unclaimed Escapes.
+      // consuming Escape below (the search field's clear stage —
+      // ResultsHeader's input via tagPoolNavContext) prevents default,
+      // and this close only fires for unclaimed Escapes.
       if (e.key === "Escape" && !e.defaultPrevented) onCloseEditModeRef.current();
     }
     function handlePointerDown(e: MouseEvent) {
@@ -586,12 +587,17 @@ export function MixerBar({
       // dismissing the panel (exactly like data-results-filter above), Random
       // must shuffle without closing it (matching this bar's own Random), and Tag
       // Pool owns its own open↔"Done" toggle there — so none of them should also
-      // be dismissed by this outside-click listener.
+      // be dismissed by this outside-click listener. Search v2 adds the
+      // header's global-search cluster (data-global-search, ResultsHeader.tsx
+      // — the search field + Tag Pool button): both exist to CONTROL this
+      // panel (focus/typing opens it, the button toggles it), so treating a
+      // click on them as an outside-click dismissal would fight their own
+      // handlers.
       // target is typed as Node (a mousedown's target can in principle be a
       // text node), but .closest() is Element-only — falls back to the
       // nearest element via parentElement for that case.
       const el = target instanceof Element ? target : (target as Node).parentElement;
-      if (el?.closest("[data-result-card], [data-theme-switcher], [data-clear-results], [data-results-filter], [data-empty-controls]")) return;
+      if (el?.closest("[data-result-card], [data-theme-switcher], [data-clear-results], [data-results-filter], [data-empty-controls], [data-global-search]")) return;
       onCloseEditModeRef.current();
     }
     document.addEventListener("keydown", handleKeyDown);
@@ -781,10 +787,28 @@ export function MixerBar({
   // scroll, not a layout bug.
   useEffect(() => {
     if (editMode) {
-      previouslyFocused.current = document.activeElement as HTMLElement | null;
+      const current = document.activeElement as HTMLElement | null;
+      // Opened from the global search FIELD (search v2 — the header input
+      // is an opener now): the field must KEEP focus so the keystrokes
+      // that just opened the panel keep landing in it — the panel is a
+      // display surface for the query here, not the interaction target.
+      // No steal, and no restore target either (restoring focus INTO the
+      // search cluster on close is what the input's own click-not-focus
+      // open rule exists to keep inert — see ResultsHeader). Scoped to
+      // the input specifically, not the whole [data-global-search]
+      // cluster: opening via the header's Tag Pool BUTTON keeps the
+      // normal dialog focus management.
+      if (current?.matches?.("[data-global-search] input")) {
+        previouslyFocused.current = null;
+        return;
+      }
+      previouslyFocused.current = current;
       dialogRef.current?.focus({ preventScroll: true });
     } else {
       previouslyFocused.current?.focus({ preventScroll: true });
+      // One restore per open — never refocus a stale element on a later,
+      // unrelated close.
+      previouslyFocused.current = null;
     }
   }, [editMode]);
 
