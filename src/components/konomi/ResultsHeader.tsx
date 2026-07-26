@@ -128,7 +128,11 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
     // justify-between: search/Tag Pool/Filter at the LEFT (search + Tag
     // Pool in BOTH states — this is the persistent global header), the
     // result-set metadata + Clear ✕ at the right, results state only.
-    <div className="flex flex-row items-center justify-between min-h-[30px] gap-x-[var(--space-lg)] mb-[var(--space-lg)]">
+    // relative (no z — deliberately not a stacking context): the Filter
+    // popover's containing block below 480px, where its own wrapper goes
+    // static and the dialog drops full-left under this row instead of
+    // anchoring to its mid-row trigger (see ResultsFilterButton).
+    <div className="relative flex flex-row items-center justify-between min-h-[30px] gap-x-[var(--space-lg)] mb-[var(--space-lg)]">
       {/* LEFT cluster. The OUTER div carries no z-index on purpose: a
           z-indexed ancestor is a stacking context, and the Filter
           popover inside this row must be free to use its own

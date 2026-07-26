@@ -85,7 +85,19 @@ export function ResultsFilterButton({ onLevelChange }: ResultsFilterButtonProps)
     // rather than an explicit ranking (see globals.css's own comment on
     // this token for why MixerBar's cardRef, later in the DOM, would
     // otherwise silently win by accident).
-    <div ref={wrapperRef} data-results-filter className={["relative", open ? "z-[var(--z-popover)]" : "z-[var(--z-raised)]"].join(" ")}>
+    // max-[479px]:static (search v2 narrow anchoring): below 480px — the
+    // app's established narrow line (Clear/Tag Pool icon forms) — this
+    // wrapper stops being the dialog's containing block, so the dialog
+    // anchors to the HEADER ROW (ResultsHeader's row div carries
+    // `relative` for exactly this) and drops full-left under it at the
+    // content edge. Needed because the trigger now sits mid-row (left
+    // cluster, after search + Tag Pool): at phone widths neither pure
+    // left- nor right-anchoring to the trigger keeps a ~280px dialog
+    // on-screen (measured: left-anchored ran 76px off the right edge at
+    // 375px). A static wrapper's z-index is inert, so while narrow-open
+    // the DIALOG carries its own z-popover (see its className) and the
+    // trigger button carries its own z-raised hit-test fix.
+    <div ref={wrapperRef} data-results-filter className={["relative max-[479px]:static", open ? "z-[var(--z-popover)]" : "z-[var(--z-raised)]"].join(" ")}>
       {/* Colour matches the results-header metadata scheme (requested): a
           CLOSED (inactive) filter is --muted — the app's inactive-tab colour,
           the same one the metadata's 0-count readouts use — outlined with a
@@ -107,7 +119,12 @@ export function ResultsFilterButton({ onLevelChange }: ResultsFilterButtonProps)
         aria-label="filters"
         aria-pressed={open}
         onClick={() => setOpen((o) => !o)}
-        className="glow-host"
+        // relative z-raised on the trigger ITSELF (not only the wrapper):
+        // below 480px the wrapper goes static (see above) and its z-index
+        // dies with it, but the carousel flip-bulge hit-test problem the
+        // z-raised solves (see ResultsHeader) doesn't — the button keeps
+        // its own raise at every width.
+        className="glow-host relative z-[var(--z-raised)]"
       >
         <FilterIcon className={`glow-icon ${open ? "text-[var(--surface)]" : "text-[var(--muted)]"}`} />
       </IconButton>
@@ -140,23 +157,26 @@ export function ResultsFilterButton({ onLevelChange }: ResultsFilterButtonProps)
           // to zero — mutually exclusive (which is why this used to be a fixed
           // w-[…]).
           //
-          // The max-width's viewport term is 6rem, not the 3rem for the two page
-          // gutters alone: this dialog is absolute right-0 against the FILTER
-          // button, which sits LEFT of the Clear ✕ (not at the content column's
-          // right edge), so it opens leftward from a point already inset ~66px
-          // from the viewport's right (Clear button + gap + right gutter). At
-          // 3rem the leftward extent ran it off the left edge of the screen on
-          // phones (left edge −18px at 320–375px wide); 6rem (~96px) reserves
-          // that inset plus the left gutter, keeping the dialog fully on-screen
-          // while leaving the 340px cap untouched above ~436px. A coupled
-          // constant tied to the Clear ✕ width — re-derive if that changes.
+          // left-0 (was right-0, search v2 — user-ruled 2026-07-26): the
+          // Filter button moved from the header's right end to the LEFT
+          // cluster (after search + Tag Pool), so the dialog now opens
+          // RIGHTWARD, left-aligned to its trigger, growing into the open
+          // space toward the row's center instead of running off the left
+          // edge of the screen. The max-width's viewport term stays 6rem:
+          // the trigger sits ~inset from the viewport's LEFT by roughly
+          // the same search-field + Tag-Pool + gaps budget the old
+          // position had on the right (Clear ✕ side), so the same reserve
+          // keeps the rightward extent fully on-screen on phones while
+          // leaving the 340px cap untouched at desktop widths. Re-derive
+          // if the left cluster's makeup changes.
           //
-          // No z-index needed here — the wrapper above already carries
-          // z-popover for the whole time this panel exists (it only
-          // renders while `open`), and position:absolute alone already
-          // paints this above its own static-positioned trigger-button
-          // sibling within that same local context.
-          className="absolute right-0 top-full mt-[var(--space-sm)] w-max max-w-[min(340px,calc(100vw-6rem))] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-2)] p-[var(--space-lg)]"
+          // Own z-popover (the wrapper's used to be enough): below 480px
+          // the wrapper is static (see its comment) so its z-index is
+          // inert — the dialog participates in the column context
+          // directly there and must outrank the pool overlay's z-overlay
+          // itself. At desktop this is a harmless nested z inside the
+          // wrapper's own z-popover context.
+          className="absolute left-0 top-full mt-[var(--space-sm)] z-[var(--z-popover)] w-max max-w-[min(340px,calc(100vw-6rem))] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-2)] p-[var(--space-lg)]"
         >
           <FilterControls onLevelChange={onLevelChange} />
         </div>
