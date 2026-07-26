@@ -2,15 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { TagInfo } from "@/lib/konomi/types";
-import { ArrowDownIcon, ArrowUpHalfIcon, ArrowUpIcon, CloseIcon, GripIcon } from "./icons";
+import { ArrowDownHalfIcon, ArrowDownIcon, ArrowUpIcon, CloseIcon, GripIcon } from "./icons";
 import { IconButton } from "./IconButton";
 import { TagPoolBody } from "./TagPoolBody";
-import {
-  clampPoolPanelHeight,
-  POOL_HEIGHT_MIN,
-  setPoolPanelHeightFraction,
-  usePoolPanelHeightFraction,
-} from "./tagPoolPrefs";
+import { setPoolPanelHeightFraction, usePoolPanelHeightFraction } from "./tagPoolPrefs";
 
 // ---- Tag pool overlay (search v2, Phase 2) ----
 //
@@ -39,16 +34,49 @@ import {
 // wheel/touch scrub effect to keep gestures over the open panel from
 // scrubbing the masthead morph behind it.
 
-// Vertical chrome between the card's outer height and TagPoolBody's own
-// budget (poolPanelHeightPx): py-[--space-xl] top+bottom (2 × 16) + the
-// bottom grip row's fixed height (GRIP_ROW_PX). TagPoolBody subtracts its
-// own live-measured tab rows from the budget itself (see its
-// poolPanelHeightPx prop comment) — this constant only covers what THIS
-// component adds around it. If the card's padding or the grip row change,
-// re-derive.
-const GRIP_ROW_PX = 18;
+// Vertical chrome between the card's OUTER height (border-box — the
+// height style) and TagPoolBody's own budget (poolPanelHeightPx), each
+// piece measured live 2026-07-26 after two accounting bugs at minimum
+// height (grip pushed outside the frame; then the chip area's bottom
+// hover-arrow clipped by the footer — both user-reported):
+//   CARD_PAD_Y_PX      py-[--space-xl] top+bottom (2 × 16)
+//   CARD_BORDER_Y_PX   2 × --border-base (2.5px) — box-sizing is
+//                      border-box, so the border comes OUT of the height;
+//                      forgetting it was the measured 4-5px drift that
+//                      clipped the chip area's flush bottom arrow.
+//   GRIP_ROW_PX        30 — the footer band now fits the grip's sm
+//                      IconButton (30px) EXACTLY; the earlier 18px band
+//                      let the button bleed 6px up into the chip area.
+//   CONTENT_FOOTER_GAP_PX  8 (--space-md) between content and footer —
+//                      breathing room for the chip area's bottom arrow,
+//                      the same job the mixbar's mb-xl below its chip
+//                      area did (see MixerBar's own comment on it).
+// TagPoolBody subtracts its own live-measured tab rows from the budget
+// itself; this constant only covers what THIS component adds around it.
+// If any piece changes, re-derive.
+const GRIP_ROW_PX = 30;
 const CARD_PAD_Y_PX = 32;
-const OVERLAY_CHROME_PX = CARD_PAD_Y_PX + GRIP_ROW_PX;
+const CARD_BORDER_Y_PX = 5;
+const CONTENT_FOOTER_GAP_PX = 8;
+const OVERLAY_CHROME_PX = CARD_PAD_Y_PX + CARD_BORDER_Y_PX + GRIP_ROW_PX + CONTENT_FOOTER_GAP_PX;
+
+// The overlay's own height floor, replacing the mixbar era's
+// POOL_HEIGHT_MIN (160): the WORST-CASE content must fit with zero
+// clipping — chrome (75) + a two-tier film section's tab rows (57,
+// measured live: 30 primary + 12 gap + 15 sub) + STRIP_GAP (12) +
+// TagPoolBody's CHIP_AREA_MIN (60) = 204. The footer wrapper below is
+// the structural guarantee the grip can never be pushed out regardless;
+// this floor is what keeps the chip area itself (and its flush bottom
+// scroll arrow) from clipping at the minimum. Re-derive if any input
+// changes.
+const OVERLAY_MIN_HEIGHT_PX = 204;
+
+// [OVERLAY_MIN_HEIGHT_PX, max] clamp, ceiling-wins when the card area is
+// genuinely shorter than the floor (tiny viewport) — the panel must never
+// exceed the area that guarantees it can't cover the mixbar.
+function clampOverlayHeight(px: number, max: number): number {
+  return Math.min(Math.max(px, OVERLAY_MIN_HEIGHT_PX), max);
+}
 
 interface TagPoolOverlayProps {
   open: boolean;
@@ -81,16 +109,16 @@ export function TagPoolOverlay({ open, onClose, allTags, selectedTagIds, totalSe
   // panel used (tagPoolPrefs) — a user's chosen proportion carries over
   // to the new home; the ceiling it's a fraction OF is just the card area
   // now instead of the mixbar's computed max. Default (never dragged) =
-  // POOL_HEIGHT_MIN, the same "opens at its floor, expand if you want
-  // more" seed as before. During a drag, dragHeightPx tracks the pointer
+  // OVERLAY_MIN_HEIGHT_PX — the same "opens at its floor, expand if you
+  // want more" seed idea as before, on the overlay's own floor. During a drag, dragHeightPx tracks the pointer
   // directly (rAF-throttled state — the overlay pushes no layout, so real
   // geometry is cheap; no pinning/clip-path needed, the exact machinery
   // this relocation retires).
   const storedFraction = usePoolPanelHeightFraction();
   const [dragHeightPx, setDragHeightPx] = useState<number | null>(null);
-  const effectiveCeiling = ceiling ?? POOL_HEIGHT_MIN;
-  const restHeightPx = clampPoolPanelHeight(
-    storedFraction !== null ? storedFraction * effectiveCeiling : POOL_HEIGHT_MIN,
+  const effectiveCeiling = ceiling ?? OVERLAY_MIN_HEIGHT_PX;
+  const restHeightPx = clampOverlayHeight(
+    storedFraction !== null ? storedFraction * effectiveCeiling : OVERLAY_MIN_HEIGHT_PX,
     effectiveCeiling,
   );
   const heightPx = dragHeightPx !== null ? dragHeightPx : restHeightPx;
@@ -111,7 +139,7 @@ export function TagPoolOverlay({ open, onClose, allTags, selectedTagIds, totalSe
     let raf = 0;
     let latest = startH;
     const move = (ev: PointerEvent) => {
-      latest = clampPoolPanelHeight(startH + (ev.clientY - startY), max);
+      latest = clampOverlayHeight(startH + (ev.clientY - startY), max);
       if (!raf) {
         raf = requestAnimationFrame(() => {
           raf = 0;
@@ -136,14 +164,16 @@ export function TagPoolOverlay({ open, onClose, allTags, selectedTagIds, totalSe
     setDragHeightPx(startH);
   }
 
-  // Snap cycle — the mixbar cluster's own 3-state semantics, kept: below
-  // 50% shows the half-arrow (→ 50%), between shows the full-arrow
-  // (→ 100%), at full shows the down-arrow back to the POOL_HEIGHT_MIN
-  // default. Snaps just persist the fraction; height derives.
+  // Snap cycle — the mixbar cluster's own 3-state semantics, kept, with
+  // the ARROWS FLIPPED for the new anchor (user-ruled 2026-07-26): a
+  // top-anchored dropdown GROWS DOWNWARD, so grow-to-50%/100% point down
+  // (ArrowDownHalfIcon/ArrowDownIcon) and the at-full reset points up —
+  // the direction the panel's bottom edge will actually move. Snaps just
+  // persist the fraction; height derives.
   const isAtFullHeight = heightPx >= effectiveCeiling - 1;
   const isBelowHalfHeight = heightPx < effectiveCeiling * 0.5 - 1;
   const handleSnap = (fraction: number) => setPoolPanelHeightFraction(fraction);
-  const handleResetHeight = () => setPoolPanelHeightFraction(POOL_HEIGHT_MIN / effectiveCeiling);
+  const handleResetHeight = () => setPoolPanelHeightFraction(OVERLAY_MIN_HEIGHT_PX / effectiveCeiling);
 
   // Escape (document-level, the app's established contract): a consumed
   // Escape marks itself with preventDefault — the search field's
@@ -236,6 +266,15 @@ export function TagPoolOverlay({ open, onClose, allTags, selectedTagIds, totalSe
         className="animate-tagpool-overlay-enter pointer-events-auto flex flex-col outline-none px-[var(--space-2xl)] py-[var(--space-xl)] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-4)]"
         style={{ height: heightPx }}
       >
+        {/* flex-1 min-h-0 overflow-hidden: the footer contract's other
+            half (see the grip row below) — TagPoolBody gets exactly the
+            space above the grip row and can NEVER push it out of frame;
+            if content ever exceeds its budget (a measurement race, a
+            future row the budget constant doesn't know about), it clips
+            inside this wrapper instead of overflowing the card
+            (user-reported: the grip hung outside the frame at minimum
+            height with a two-tier section, pre-OVERLAY_MIN_HEIGHT_PX). */}
+        <div className="flex-1 min-h-0 overflow-hidden mb-[var(--space-md)]">
         <TagPoolBody
           allTags={allTags}
           selectedTagIds={selectedTagIds}
@@ -258,7 +297,7 @@ export function TagPoolOverlay({ open, onClose, allTags, selectedTagIds, totalSe
                     aria-label="Reset pool panel to default height"
                     onClick={handleResetHeight}
                   >
-                    <ArrowDownIcon className="text-[var(--muted)]" />
+                    <ArrowUpIcon className="text-[var(--muted)]" />
                   </IconButton>
                 ) : isBelowHalfHeight ? (
                   <IconButton
@@ -269,7 +308,7 @@ export function TagPoolOverlay({ open, onClose, allTags, selectedTagIds, totalSe
                     aria-label="Resize to 50%"
                     onClick={() => handleSnap(0.5)}
                   >
-                    <ArrowUpHalfIcon className="text-[var(--muted)]" />
+                    <ArrowDownHalfIcon className="text-[var(--muted)]" />
                   </IconButton>
                 ) : (
                   <IconButton
@@ -280,7 +319,7 @@ export function TagPoolOverlay({ open, onClose, allTags, selectedTagIds, totalSe
                     aria-label="Resize to 100%"
                     onClick={() => handleSnap(1)}
                   >
-                    <ArrowUpIcon className="text-[var(--muted)]" />
+                    <ArrowDownIcon className="text-[var(--muted)]" />
                   </IconButton>
                 )}
               </div>
@@ -291,13 +330,18 @@ export function TagPoolOverlay({ open, onClose, allTags, selectedTagIds, totalSe
           }
           isPoolPanelResizing={isGripDragging}
         />
-        {/* Bottom-edge grip row — the resize handle flipped from the
+        </div>
+        {/* Bottom-edge grip FOOTER — the resize handle flipped from the
             mixbar era's top-of-panel position: in a downward dropdown,
-            drag-down-to-grow is the natural gesture. mt-auto pins it to
-            the card's bottom regardless of content height. Same grab-hand
-            cursor pairing as the mixbar grip (open hand at rest, closed
-            while dragging, state-driven so they can't desync). */}
-        <div className="mt-auto flex items-center justify-center shrink-0" style={{ height: GRIP_ROW_PX }}>
+            drag-down-to-grow is the natural gesture. A real shrink-0
+            footer row after a flex-1 min-h-0 content wrapper (above), so
+            it holds its own padded band at the card's bottom and content
+            can never overlap or displace it — not mt-auto on an in-flow
+            sibling, which overflowing content pushed straight out of the
+            frame (user-reported). Same grab-hand cursor pairing as the
+            mixbar grip (open at rest, closed while dragging,
+            state-driven so they can't desync). */}
+        <div className="flex items-center justify-center shrink-0" style={{ height: GRIP_ROW_PX }}>
           <IconButton
             size="sm"
             border="none"

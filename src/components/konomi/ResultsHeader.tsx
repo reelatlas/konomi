@@ -129,16 +129,23 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
     // Pool in BOTH states — this is the persistent global header), the
     // result-set metadata + Clear ✕ at the right, results state only.
     <div className="flex flex-row items-center justify-between min-h-[30px] gap-x-[var(--space-lg)] mb-[var(--space-lg)]">
-      {/* LEFT: the panel's invocation cluster. data-global-search: the
-          allowlist marker MixerBar's click-outside-closes-edit-mode
-          listener checks via closest() (same mechanism as
-          data-clear-results / data-results-filter) — clicking the search
-          field or Tag Pool button must never be treated as an outside
-          click dismissing the very panel they control.
-          relative z-[var(--z-raised)]: same hit-test fix as the metadata
-          and Clear ✕ (the results carousel's invisible pt-40px flip-bulge
-          padding overlaps this row's bottom; see those comments). */}
-      <div data-global-search className="relative z-[var(--z-raised)] flex items-center gap-[var(--space-lg)] min-w-0">
+      {/* LEFT cluster. The OUTER div carries no z-index on purpose: a
+          z-indexed ancestor is a stacking context, and the Filter
+          popover inside this row must be free to use its own
+          z-[var(--z-popover)] against the column context so it layers
+          ABOVE the open tag pool overlay (z-overlay) — users adjust
+          Tag Density/Sort and watch the open pool change live
+          (user-ruled, matching the v1 mixbar-panel behavior; trapping
+          it under a z-raised wrapper was a real P2 regression).
+          The INNER div is the search+Tag Pool invocation cluster:
+          data-global-search is the click-outside allowlist marker
+          (clicking these must never dismiss the panel they control),
+          and it carries the relative z-[var(--z-raised)] hit-test fix
+          (the results carousel's invisible pt-40px flip-bulge padding
+          overlaps this row's bottom; see the metadata/Clear comments) —
+          scoped HERE, where no popover needs to escape it. */}
+      <div className="flex items-center gap-[var(--space-lg)] min-w-0">
+        <div data-global-search className="relative z-[var(--z-raised)] flex items-center gap-[var(--space-lg)] min-w-0">
         {/* Global search — THE one search (v2: moved out of the pool
             panel; it steers the pool nav via TagPoolNavProvider). Always
             visible, always live. Focusing/clicking it opens the panel;
@@ -221,9 +228,15 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
             <TagPoolIcon className="text-[var(--ink)]" />
           </IconButton>
         </div>
+        </div>
         {/* Filter popover — results state only, to the Tag Pool button's
             right (user-ruled position); in the empty state the filters
-            live inside the empty-state box instead. */}
+            live inside the empty-state box instead. OUTSIDE the
+            data-global-search z-raised cluster (see the outer div's
+            comment): it allowlists itself via data-results-filter, and
+            it must not be trapped in a stacking context below the pool
+            overlay — its own wrapper handles both z states (raised
+            closed, popover open). */}
         {hasResults && <ResultsFilterButton onLevelChange={onLevelChange} />}
       </div>
       {/* RIGHT: result-set metadata + Clear ✕, results state only. The

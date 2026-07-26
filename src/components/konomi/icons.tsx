@@ -246,6 +246,21 @@ export function ArrowUpHalfIcon({ className }: IconProps) {
   );
 }
 
+// The exact vertical mirror of ArrowUpHalfIcon — tail from the top (y=4)
+// reaching the midpoint (y=12), chevron pointing down. TagPoolOverlay's
+// "resize to 50%" (search v2): the panel is a TOP-anchored dropdown, so
+// growing means extending DOWNWARD and the snap arrows must point the way
+// the panel edge will actually move (user-ruled 2026-07-26) — the up
+// variants stay correct for any future bottom-anchored surface.
+export function ArrowDownHalfIcon({ className }: IconProps) {
+  return (
+    <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 4V12" />
+      <path d="M6 7l6 6 6-6" />
+    </svg>
+  );
+}
+
 // A 3×3 grid of dots — the standard "grip" drag affordance (c.f. Lucide's
 // grip-vertical/grip icons). Square, not the earlier 2-row/6-dot version
 // (GripHorizontalIcon, wider than tall) — requested directly, swapped for
