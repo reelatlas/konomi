@@ -14,6 +14,7 @@ import { MixerBar } from "./MixerBar";
 import { RecommendationsBody } from "./RecommendationsBody";
 import { ResultsHeader } from "./ResultsHeader";
 import { TagPoolNavProvider } from "./tagPoolNavContext";
+import { TagPoolOverlay } from "./TagPoolOverlay";
 import { setLevelPref, useLevel } from "./tagPoolPrefs";
 
 interface KonomiAppProps {
@@ -209,8 +210,22 @@ export function KonomiApp({ side, initialSeries, initialTags }: KonomiAppProps) 
 
     let wheelResetTimer: number | null = null;
     let wheelAxis: "horizontal" | "vertical" | null = null;
+    // Gestures that start on the open tag pool overlay never scrub the
+    // masthead: the panel is a focused work surface floating OVER the
+    // results, and a wheel on its non-scrolling chrome collapsing the
+    // masthead behind it read as the page moving out from under the user.
+    // (User-ruled the softer half too: opening the panel does NOT
+    // force-collapse the masthead — evaluate first; RECOMMEND keeps its
+    // collapse.) The chip area's own vertical ScrollFadeArea was already
+    // exempt via the orientation check; this extends the exemption to the
+    // whole card.
+    function insideTagPoolOverlay(target: EventTarget | null): boolean {
+      return target instanceof Element && !!target.closest("[data-tagpool-overlay]");
+    }
+
     function handleWheel(e: WheelEvent) {
       if (scrollFadeOrientationAt(e.target) === "vertical") return;
+      if (insideTagPoolOverlay(e.target)) return;
 
       // Lock the gesture's axis on its first meaningful event and hold it until
       // a ~150ms pause ends the gesture — the wheel counterpart of the touch
@@ -263,7 +278,7 @@ export function KonomiApp({ side, initialSeries, initialTags }: KonomiAppProps) 
     // finger back down for free, no per-fire reset needed.
     let progressAtStart = 0;
     function handleTouchStart(e: TouchEvent) {
-      touchExempt = scrollFadeOrientationAt(e.target) === "vertical";
+      touchExempt = scrollFadeOrientationAt(e.target) === "vertical" || insideTagPoolOverlay(e.target);
       touchStartX = e.touches[0].clientX;
       touchStartY = e.touches[0].clientY;
       touchAxis = null;
@@ -649,31 +664,54 @@ export function KonomiApp({ side, initialSeries, initialTags }: KonomiAppProps) 
               onLevelChange={handleLevelChange}
             />
 
-            <RecommendationsBody
-              results={k.results}
-              hasResults={k.hasResults}
-              selectedTagIds={k.selectedTagIds}
-              filledCount={k.filledCount}
-              minNum={k.minNum}
-              recommendGen={k.recommendGen}
-              firstNewIndex={k.firstNewIndex}
-              newIds={k.newIds}
-              clearGen={k.clearGen}
-              locked={k.locked}
-              flipped={k.flipped}
-              canSwap={k.canSwap}
-              onFlip={k.toggleFlip}
-              onToggleLock={k.toggleLock}
-              onReplace={k.replaceCard}
-              onChipToggle={k.toggleTag}
-              tagInfoById={k.tagInfoById}
-              totalSeriesCount={k.totalSeriesCount}
-              onLevelChange={handleLevelChange}
-              editMode={editMode}
-              onOpenEditMode={() => setEditMode(true)}
-              onCloseEditMode={() => setEditMode(false)}
-              onRandomTags={handleRandomTags}
-            />
+            {/* Card-area wrapper (search v2 Phase 2): relative, so the tag
+                pool overlay's inset-0 sizing shell resolves against exactly
+                the card area — below the header row (its mb-lg IS the
+                floating gap) and above the section's bottom edge, which
+                sits one mb-2xl above the mixbar. The overlay can therefore
+                never cover the header or the mixbar BY CONSTRUCTION, with
+                no header-height coupling (the exact trap the Phase 1
+                paint-over deletion removed). flex-1 min-h-0 flex-col: this
+                wrapper takes the section's flexible share and passes the
+                same sizing contract down to RecommendationsBody's own
+                flex-1 root unchanged — its [container-type:size] height
+                (and 100cqh card sizing through it) is identical to when it
+                was the section's direct child. */}
+            <div className="relative flex-1 min-h-0 flex flex-col">
+              <RecommendationsBody
+                results={k.results}
+                hasResults={k.hasResults}
+                selectedTagIds={k.selectedTagIds}
+                filledCount={k.filledCount}
+                minNum={k.minNum}
+                recommendGen={k.recommendGen}
+                firstNewIndex={k.firstNewIndex}
+                newIds={k.newIds}
+                clearGen={k.clearGen}
+                locked={k.locked}
+                flipped={k.flipped}
+                canSwap={k.canSwap}
+                onFlip={k.toggleFlip}
+                onToggleLock={k.toggleLock}
+                onReplace={k.replaceCard}
+                onChipToggle={k.toggleTag}
+                tagInfoById={k.tagInfoById}
+                totalSeriesCount={k.totalSeriesCount}
+                onLevelChange={handleLevelChange}
+                editMode={editMode}
+                onOpenEditMode={() => setEditMode(true)}
+                onCloseEditMode={() => setEditMode(false)}
+                onRandomTags={handleRandomTags}
+              />
+              <TagPoolOverlay
+                open={editMode}
+                onClose={() => setEditMode(false)}
+                allTags={k.allTags}
+                selectedTagIds={k.selectedTagIds}
+                totalSeriesCount={k.totalSeriesCount}
+                onChipToggle={k.toggleTag}
+              />
+            </div>
           </section>
         </div>
 
@@ -710,7 +748,18 @@ export function KonomiApp({ side, initialSeries, initialTags }: KonomiAppProps) 
           onClearSlots={k.clearSlots}
           onRecommend={handleRecommend}
           error={k.mixerError}
-          editMode={editMode}
+          // Hard-false since search v2 Phase 2: the pool panel renders as
+          // TagPoolOverlay (above) now, and this permanently-false prop is
+          // what keeps ALL of MixerBar's own edit-mode machinery — the
+          // expand-upward panel, its resize/pin/scroll-lock effects, its
+          // Escape/click-outside/focus listeners — structurally inert
+          // without surgery on that file. Its Tag Pool button still works
+          // as an OPENER (onOpenEditMode below opens the overlay); it just
+          // never reads as "open" itself. Phase 3 deletes the dead
+          // machinery and the button; do not thread the real editMode back
+          // in — two live panels and duplicate tagpool-* element ids is
+          // what that would produce.
+          editMode={false}
           onOpenEditMode={() => setEditMode(true)}
           onCloseEditMode={() => setEditMode(false)}
           allTags={k.allTags}

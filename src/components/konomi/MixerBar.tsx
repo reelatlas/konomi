@@ -2427,6 +2427,11 @@ export function MixerBar({
       // scrolls instead of overflowing. Together: w-full fills, max-w-full caps
       // the auto-min, min-w-0 lets over-wide content scroll — so the bar is the
       // same width at every tag density and every tab.
+      // data-mixer-bar: allowlisted by TagPoolOverlay's click-outside
+      // listener (search v2) — slots/min-match/Random/RECOMMEND must stay
+      // usable against the open pool overlay (chip-drag into slots is the
+      // core flow), so a click anywhere on this bar never dismisses it.
+      data-mixer-bar
       className="sticky bottom-0 z-[var(--z-overlay)] w-full max-w-full touch-none"
       // marginTop + transition: the outer wrapper's real, bottom-anchoring
       // negative margin (targetMarginTop) with the open/close/snap CSS
@@ -2761,16 +2766,27 @@ export function MixerBar({
         // change that animation's own direction as a side effect.
         className="flex flex-col outline-none overflow-hidden [contain:layout]"
       >
-        <TagPoolBody
-          allTags={allTags}
-          selectedTagIds={selectedTagIds}
-          totalSeriesCount={totalSeriesCount}
-          onChipToggle={onChipToggle}
-          poolPanelHeightPx={effectiveHeightPx}
-          editMode={editMode}
-          trailingControls={trailingControls}
-          isPoolPanelResizing={dragHeightPx !== null}
-        />
+        {/* editMode-gated since search v2 Phase 2 (was unconditional —
+            "stays mounted, only clipped" — purely so activeSectionKey and
+            scroll survived close/reopen; that state lives in
+            TagPoolNavProvider now, so the always-mounted requirement is
+            gone). KonomiApp passes editMode={false} permanently, so this
+            never mounts — which is load-bearing: TagPoolOverlay renders
+            the ONE live TagPoolBody, and a second hidden copy here would
+            duplicate every tagpool-* element id. Phase 3 deletes this
+            whole panel subtree. */}
+        {editMode && (
+          <TagPoolBody
+            allTags={allTags}
+            selectedTagIds={selectedTagIds}
+            totalSeriesCount={totalSeriesCount}
+            onChipToggle={onChipToggle}
+            poolPanelHeightPx={effectiveHeightPx}
+            editMode={editMode}
+            trailingControls={trailingControls}
+            isPoolPanelResizing={dragHeightPx !== null}
+          />
+        )}
       </div>
       </div>
 
