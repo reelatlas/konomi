@@ -458,13 +458,18 @@ function reducer(state: KonomiState, action: Action): KonomiState {
       // the error and re-enables RECOMMEND immediately; the next press
       // re-derives the true state and surfaces "no-new-matches" if the
       // pool is still exhausted (guided flow — one blocker at a time).
-      // The LOCK direction re-arms it: locking the last unlocked card
-      // sets "all-locked" without waiting for a press (user-ruled
-      // 2026-07-25 — unlock-then-relock must land back in the disabled
-      // state, and surfacing "a roll can do nothing" the moment it
-      // becomes true is the honest version of the same message; a
-      // deliberate, narrow amendment to the errors-only-from-a-press
-      // rule, this error only).
+      // The LOCK direction arms it PROACTIVELY: locking the last
+      // unlocked card sets "all-locked" without waiting for a press
+      // (user-ruled 2026-07-25 after weighing the press-only variant —
+      // both were built the same day). Why this error alone gets the
+      // proactive treatment while impossible-min stays press-only: a
+      // user cycles MIN MATCH experimentally with no roll intent, and a
+      // proactively-disabled button there would nag; with every card
+      // locked there is nothing left to experiment with that could
+      // affect a roll, so surfacing the dead end at the lock click (and
+      // matching Clear ✕'s existing proactive disable, so the two
+      // buttons agree about reality) is honest, not noisy. Revisit-later
+      // note: the press-only variant for the OTHER errors stands.
       let error = state.error;
       if (!nowLocked && error === "all-locked") error = null;
       if (nowLocked && state.results.length > 0 && state.results.every((r) => locked[r.series.id])) error = "all-locked";
