@@ -65,7 +65,7 @@ export function SortSelect({ value, onChange, collapsed }: SortSelectProps) {
   if (collapsed) {
     const activeOption = SORT_OPTIONS.find((o) => o.key === value)!;
     return (
-      <div className="relative flex border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-2)]">
+      <div className="relative flex h-[var(--control-h-md)] border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-2)]">
         <button
           type="button"
           aria-label={activeOption.label}
@@ -75,10 +75,10 @@ export function SortSelect({ value, onChange, collapsed }: SortSelectProps) {
           // before). See MatchSelector's own identical comment for the
           // full reasoning, shared verbatim across all three of this row's
           // collapsed controls.
-          // leading-[16px]: whole 32px box, matching MatchSelector's collapsed
-          // form so this filter's single button lines up with min-match and
-          // Tag Density at the same height (see MatchSelector's own comment).
-          className="py-[var(--space-md)] leading-[16px] px-[var(--space-lg)] border-0 cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] whitespace-nowrap bg-[var(--surface)] text-[var(--ink)]"
+          // FIXED height via the wrapper's h-[--control-h-md] + flex
+          // centering, matching MatchSelector's collapsed form — see its
+          // comment / SIZING_AUDIT.md §4.
+          className="focus-ring-inset flex items-center leading-[16px] px-[var(--space-lg)] border-0 cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] whitespace-nowrap bg-[var(--surface)] text-[var(--ink)]"
         >
           <RollingLabel value={activeOption.label} sizeToWidestOf={SORT_LABELS} />
         </button>
@@ -91,11 +91,10 @@ export function SortSelect({ value, onChange, collapsed }: SortSelectProps) {
       <select
         value={value}
         onChange={(e) => onChange(e.target.value as SortKey)}
-        // leading-[16px]: whole 32px control height (16 padding + 16 line),
-        // matching the segmented min-match/density controls so this <select>
-        // sits at the same height as the rest of the filter row rather than
-        // the browser's default ~32.5px line-height for text-xs.
-        className="appearance-none leading-[16px] bg-[var(--surface)] border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-2)] font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] uppercase text-[var(--ink)] pl-[var(--space-lg)] pr-[var(--space-2xl)] py-[var(--space-md)] cursor-pointer"
+        // FIXED h-[--control-h-md] (native select centers its value text
+        // vertically in a fixed box; py dropped) — same tier as the
+        // segmented controls beside it, SIZING_AUDIT.md §4/§6.
+        className="focus-ring-inset appearance-none h-[var(--control-h-md)] leading-[16px] bg-[var(--surface)] border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-2)] font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] uppercase text-[var(--ink)] pl-[var(--space-lg)] pr-[var(--space-2xl)] cursor-pointer"
       >
         {SORT_OPTIONS.map((option) => (
           <option key={option.key} value={option.key}>

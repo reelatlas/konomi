@@ -111,7 +111,7 @@ export function ResultsFilterButton({ onLevelChange }: ResultsFilterButtonProps)
           signals it's clickable. borderColor/backgroundColor are IconButton's
           own props; every other icon button keeps IconButton's --ink default. */}
       <IconButton
-        size="sm"
+        size="md"
         border="base"
         borderColor={open ? "var(--primary)" : "var(--muted)"}
         backgroundColor={open ? "var(--primary)" : "transparent"}

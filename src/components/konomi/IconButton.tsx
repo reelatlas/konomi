@@ -37,7 +37,7 @@ const REVEAL_CLASSES: Record<RevealGroup, string> = {
 // form all resolve to one whole/even value — see AGENTS.md whole-pixel-geometry.
 const SIZE_PX: Record<ActionButtonSize, number | string> = {
   md: "var(--control-h-md)",
-  sm: 30,
+  sm: "var(--control-h-sm)",
 };
 
 // `size` and `width`/`height` are mutually exclusive, not just "size wins
@@ -179,7 +179,9 @@ export function IconButton({
         // component's own comment) would silently stop receiving clicks
         // too, purely as a side effect of layout plumbing that has nothing
         // to do with this button's own intended behavior.
-        "pointer-events-auto flex-none items-center justify-center p-0",
+        // focus-ring-inset: the app's one keyboard-focus regime — see
+        // ActionButton's identical note.
+        "focus-ring-inset pointer-events-auto flex-none items-center justify-center p-0",
         display,
         BORDER_CLASSES[border],
         shape === "circle" ? "rounded-full" : "",

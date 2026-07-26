@@ -100,7 +100,7 @@ export function MatchSelector({ value, onChange, collapsed }: MatchSelectorProps
 
   if (collapsed) {
     return (
-      <div ref={wrapperRef} className="relative flex border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-2)]">
+      <div ref={wrapperRef} className="relative flex h-[var(--control-h-md)] border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-2)]">
         <button
           type="button"
           aria-label={HINTS[value]}
@@ -165,7 +165,10 @@ export function MatchSelector({ value, onChange, collapsed }: MatchSelectorProps
           // hint span below, and RollingLabel's own roll), so a ring adds
           // nothing and isn't worth leaving to inconsistent per-engine
           // default behavior.
-          className="py-[var(--space-md)] leading-[16px] px-[var(--space-lg)] border-0 [outline:none] cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] bg-[var(--surface)] text-[var(--ink)]"
+          // FIXED height via the wrapper's h-[--control-h-md] + flex
+          // centering, not py-derived — SIZING_AUDIT.md §4/§6 (the old
+          // 36px box was emergent and authored nowhere).
+          className="flex items-center leading-[16px] px-[var(--space-lg)] border-0 [outline:none] cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] bg-[var(--surface)] text-[var(--ink)]"
         >
           <RollingLabel value={value} />
         </button>
@@ -183,7 +186,7 @@ export function MatchSelector({ value, onChange, collapsed }: MatchSelectorProps
   }
 
   return (
-    <div className="relative flex border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-2)]">
+    <div className="relative flex h-[var(--control-h-md)] border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-2)]">
       {OPTIONS.map((key, i) => {
         const active = value === key;
         return (
@@ -197,15 +200,13 @@ export function MatchSelector({ value, onChange, collapsed }: MatchSelectorProps
             onFocus={() => setHovered(key)}
             onBlur={() => setHovered(null)}
             className={[
-              // Matches LevelSelector's segment sizing exactly (py-md/px-lg,
-              // text-xs, tracking-sm) — one consistent segmented-control
-              // size across the app, not a MatchSelector-specific one.
-              // leading-[16px]: whole line-height so the box resolves to a
-              // whole 32px (16 padding + 16 line) instead of 32.5 (default
-              // 1.5 leading on 11px text) — the ≥/tag icons that align to this
-              // cluster then centre on the device-pixel grid (AGENTS.md
-              // whole-pixel-geometry).
-              "flex-1 py-[var(--space-md)] leading-[16px] px-[var(--space-lg)] border-0 cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)]",
+              // Matches LevelSelector's segment sizing exactly — one
+              // consistent segmented-control recipe app-wide. FIXED
+              // control-tier height (wrapper h-[--control-h-md], flex
+              // stretch + centering), replacing the emergent 36px
+              // py+leading box that was authored nowhere — SIZING_AUDIT.md
+              // §4/§6. leading-[16px] kept for stable text metrics.
+              "focus-ring-inset flex-1 inline-flex items-center justify-center leading-[16px] px-[var(--space-lg)] border-0 cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)]",
               i > 0 ? "border-l-[length:var(--border-thin)] border-l-[var(--ink)]" : "",
               active ? "bg-[var(--primary)] text-[var(--surface)]" : "bg-[var(--surface)] text-[var(--ink)]",
             ].join(" ")}

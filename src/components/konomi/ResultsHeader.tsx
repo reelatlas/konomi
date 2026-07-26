@@ -53,7 +53,7 @@ const UNLOCKED_FEEDBACK_MS = 1100;
 // Density/Sort filters still live inside the empty-state box itself
 // (user-ruled "for now"), so the right half is simply empty there.
 //
-// The row never collapses (min-h-[30px] + mb-[space-lg] in both states) —
+// The row never collapses (min-h at the control tier + mb-[space-lg]) —
 // v1 reserved the height while gating ALL content on hasResults, purely so
 // the empty box could paint over the ghost row and match the results
 // footprint; now that the row is real chrome the empty box sits BELOW it
@@ -118,10 +118,10 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
     // shrink to make room for it before that breakpoint, and stops the
     // row itself from ever being forced wider than available space.
     //
-    // min-h-[30px]: Clear ✕'s and the Filter button's own shared, measured
-    // rendered height (see ActionButton.tsx's sm size) — pins the row so it
-    // doesn't jitter as those buttons mount (the search input is 24px and
-    // the sm buttons 30px, so the tallest resting content matches it).
+    // min-h at --control-h-md: the header is a CONTROL-TIER row (sizing
+    // unification, SIZING_AUDIT.md §6 — the app's primary entry point gets
+    // the same 44 tier as the mixbar it now sits opposite; tier follows
+    // the row). Pins the row so it doesn't jitter as buttons mount.
     // mb-[var(--space-lg)]: 12px, half the app's usual 24px frame gutter — a
     // deliberate exception here so the header controls read as belonging TO
     // the results row directly below them, rather than as a separate band.
@@ -132,7 +132,7 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
     // popover's containing block below 480px, where its own wrapper goes
     // static and the dialog drops full-left under this row instead of
     // anchoring to its mid-row trigger (see ResultsFilterButton).
-    <div className="relative flex flex-row items-center justify-between min-h-[30px] gap-x-[var(--space-lg)] mb-[var(--space-lg)]">
+    <div className="relative flex flex-row items-center justify-between min-h-[var(--control-h-md)] gap-x-[var(--space-lg)] mb-[var(--space-lg)]">
       {/* LEFT cluster. The OUTER div carries no z-index on purpose: a
           z-indexed ancestor is a stacking context, and the Filter
           popover inside this row must be free to use its own
@@ -159,7 +159,7 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
             active one" in search mode), muted at rest. */}
         <div className="flex items-center shrink-0">
           <IconButton
-            size="sm"
+            size="md"
             border="none"
             backgroundColor="transparent"
             title="Search tags"
@@ -195,8 +195,13 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
             autoCapitalize="none"
             autoCorrect="off"
             className={[
-              "h-[24px] w-[min(200px,40vw)] px-[var(--space-md)] font-mono text-[length:var(--text-sm)]",
-              "bg-[var(--surface)] text-[var(--ink)] placeholder:text-[var(--subtext)] outline-none",
+              "h-[var(--control-h-md)] w-[min(200px,40vw)] px-[var(--space-lg)] font-mono text-[length:var(--text-sm)]",
+              // focus-ring-inset: the app's ONE focus regime (user-ruled).
+              // This input previously suppressed focus entirely
+              // (outline-none, no replacement) — an a11y gap on the
+              // primary entry point, found in SIZING_AUDIT.md §2.
+              "focus-ring-inset",
+              "bg-[var(--surface)] text-[var(--ink)] placeholder:text-[var(--subtext)]",
               "border-[length:var(--border-thin)]",
               nav.query ? "border-[var(--ink)]" : "border-[var(--muted)]",
             ].join(" ")}
@@ -208,20 +213,24 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
             panel open, no query (see browseActive above). Two sibling
             forms below 480px, the same idiom Clear ✕ uses in this row. */}
         <div className="shrink-0">
+          {/* Wrapper div carries the responsive display: ActionButton md
+              bakes inline-flex unconditionally, so a display utility on
+              its own className would be the undefined-cascade-order trap
+              (see IconButton's display prop comment). */}
+          <div className="hidden min-[480px]:block">
           <ActionButton
             variant={browseActive ? "filled" : "outline"}
-            size="sm"
             onClick={editMode ? onCloseEditMode : onOpenEditMode}
             aria-label={editMode ? "Close tag pool" : "Open tag pool"}
-            className="hidden min-[480px]:inline-flex"
           >
             <span className="inline-flex items-center gap-[var(--space-sm)]">
               Tag Pool
               <TagPoolIcon className="text-[var(--ink)]" />
             </span>
           </ActionButton>
+          </div>
           <IconButton
-            size="sm"
+            size="md"
             border="base"
             backgroundColor={browseActive ? "var(--fill)" : "transparent"}
             title={editMode ? "Close tag pool" : "Open tag pool"}
@@ -374,18 +383,20 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
                 real native disabled handling; IconButton deliberately doesn't
                 (see its visuallyDisabled comment), so the icon form pairs
                 visuallyDisabled with an undefined onClick instead. */}
+            {/* Wrapper div carries the responsive display + z/shrink (md
+                bakes inline-flex — the undefined-cascade-order trap). */}
+            <div className="hidden min-[480px]:block relative z-[var(--z-raised)] shrink-0 grow-0">
             <ActionButton
               variant="inverted"
-              size="sm"
               disabled={clearDisabled}
               onClick={onClearRecs}
               aria-label="Clear results"
-              className="hidden min-[480px]:inline-flex relative z-[var(--z-raised)] shrink-0 grow-0"
             >
               Clear ✕
             </ActionButton>
+            </div>
             <IconButton
-              size="sm"
+              size="md"
               border="base"
               // Muted border when disabled, matching the ActionButton form's
               // own disabled border (see ActionButton) and the Filter

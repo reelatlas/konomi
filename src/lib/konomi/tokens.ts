@@ -61,6 +61,17 @@ export const BORDERS = {
   base: "2.5px",
 } as const;
 
+// Control-height scale (search-v2 unification, ruled 2026-07-26 — see
+// docs/audits/SIZING_AUDIT.md §6): TWO tiers, assigned by ROW, never by
+// component. md = the control tier (header row, mixbar, segments,
+// RECOMMEND); sm = the dense tier (chips, tabs, card + panel icon
+// buttons). Fixed heights always — padding-derived control boxes are
+// banned (the ActionButton glyph-metrics lesson).
+export const CONTROL_H = {
+  md: "44px",
+  sm: "30px",
+} as const;
+
 export const RADII = {
   none: "0",
   chip: "2px",

@@ -79,6 +79,14 @@
      grid — see AGENTS.md whole-pixel-geometry. Single source: never re-author
      the literal in a component. */
   --control-h-md: 44px;
+  /* The dense tier's box (chips, section tabs, card lock/swap, the pool
+     panel's icon controls). Minted in the sizing unification (ruled
+     2026-07-26, docs/audits/SIZING_AUDIT.md §6) — 30 was previously a raw
+     number in IconButton's SIZE_PX map and a literal in ActionButton's sm
+     class. Two tiers total: this and --control-h-md above; tier follows
+     the ROW a control sits in, and within a row differentiation is by
+     variant, never size. */
+  --control-h-sm: 30px;
 
   /* z-index scale — introduced once the tag-pool/recommendations tab panel
      started keeping both bodies permanently mounted (one hidden via
@@ -721,25 +729,26 @@
   animation: tagpool-overlay-enter 180ms cubic-bezier(0.215, 0.61, 0.355, 1) both;
 }
 
-/* Inset keyboard-focus ring for controls that live INSIDE overflow-clipping
-   containers (the tag pool's section/sub-tab strips and the overlay's
-   icon controls): a default focus ring draws OUTSIDE the control's box,
-   and any scroll/clip ancestor whose edge sits flush with the control
-   shaves it (measured 2026-07-26 — tab tops flush with the strip
-   viewport's overflow-y clip, first sub-tab flush with its left scroll
-   edge). Drawing the ring just INSIDE the control's own box is the
-   standard remedy for scrollable tab strips/toolbars — chosen over the
-   two alternatives: `overflow-clip-margin` is the purpose-built native
-   property but requires `overflow: clip` (impossible on an axis that
-   must scroll) and has no WebKit support; net-zero container padding
-   (this app's flip-bulge pattern) would mean invasive surgery inside the
-   shared ScrollFadeArea, whose edge fades/arrows assume flush geometry.
-   Color: -webkit-focus-ring-color keeps these visually consistent with
-   the UA-default rings every other control in the app currently uses
-   (Chromium + WebKit; the token line is the fallback for engines
-   without it). A designed, app-wide focus token is a header-revisions
-   candidate — this utility only relocates the ring, it doesn't restyle
-   the app's focus language. */
+/* THE app's one keyboard-focus regime (user-ruled 2026-07-26): an INSET
+   ring, applied via the shared button primitives (ActionButton,
+   IconButton), TagChip, the segments, the search field, and the tab
+   strips — one consistent treatment everywhere, with deviations only
+   where a control has its own strong, deliberate focus affordance and
+   documents it in source (the collapsed Min Match/Density buttons'
+   [outline:none] + hint/RollingLabel).
+   Why inset rather than the conventional outside ring: a default ring
+   draws OUTSIDE the control's box, and any scroll/clip ancestor whose
+   edge sits flush with the control shaves it (measured 2026-07-26 — tab
+   tops flush with the strip viewport's clip, first sub-tab flush with
+   its left scroll edge). This app's layouts are clip-heavy by design, so
+   the inset ring is the one treatment that renders complete everywhere —
+   the standard scrollable-toolbar remedy, chosen over
+   `overflow-clip-margin` (requires overflow:clip — impossible on a
+   scrolling axis — and no WebKit support) and over net-zero container
+   padding (invasive surgery inside shared ScrollFadeArea internals).
+   Color: -webkit-focus-ring-color keeps the familiar engine accent
+   (Chromium + WebKit; the token line is the fallback). A designed focus
+   token can swap in here later — one rule to edit. */
 .focus-ring-inset:focus-visible {
   outline: 2px solid var(--primary-deep);
   outline: 2px solid -webkit-focus-ring-color;

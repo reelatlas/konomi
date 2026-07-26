@@ -198,3 +198,39 @@ per target) ③ tier-by-role pass across all four surfaces (header to 44)
 (chips 11, base 14, synopsis adoption) ⑥ hover + focus + transition
 design (new scope from §2) ⑦ re-bisect the mixbar rungs (last — every
 size change above invalidates them).
+
+---
+
+## 8 · Migration log
+
+Diffs are against the frozen baseline (`16b882d` version of
+`sizing-inventory.json`); the committed JSON always reflects the current
+state.
+
+**Batch 1 (2026-07-26) — tiers minted, header + segments to 44, one
+focus regime.** Steps ①②③ plus the focus half of ⑥ (pulled forward by
+user ruling: one consistent regime now, hover deferred).
+- `--control-h-sm: 30px` minted (globals.css + tokens.ts `CONTROL_H`);
+  IconButton `SIZE_PX.sm` and ActionButton `SIZE_CLASSES.sm` now consume
+  it — no raw 30s remain.
+- Fixed heights replace the emergent boxes: Level/Sort/Min Match
+  wrappers at `h-[var(--control-h-md)]`, buttons flex-centered, `py`
+  dropped (the native select centers its value in a fixed box).
+- Header row to the control tier: row min-h, search field (24 → 44,
+  px-md → px-lg), Tag Pool / Clear (ActionButton sm → md, responsive
+  display moved to wrapper divs — md bakes `inline-flex`), Filter
+  (IconButton sm → md), search icon button md.
+- `.focus-ring-inset` is now THE focus regime: baked into ActionButton +
+  IconButton base classes, added to TagChip, the segments, the native
+  select, and the search field (whose ring was previously suppressed
+  outright). Documented deviation: the collapsed Min Match/Density
+  buttons keep `[outline:none]` (own strong focus affordance —
+  hint + RollingLabel).
+- Measured result: every control-tier element reads exactly 44
+  (search field, Tag Pool, Filter, Clear, Level segment, Sort select,
+  Min Match, mixbar buttons, RECOMMEND); regenerated inventory diff
+  showed exactly the 8 intended height changes + 11 focus unifications
+  and **zero unexpected deltas**. All suites + drivers + build green.
+- Still open from the sequence: shadow/border semantics (④ — WebKit
+  border verdict pending), type pass (⑤), icon tier-scaling 16/20,
+  hover + transitions (⑥, deferred by ruling), rung re-bisect (⑦).

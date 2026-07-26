@@ -1,7 +1,7 @@
 {
  "meta": {
-  "generated": "2026-07-26T22:23:36.128Z",
-  "commit": "8de284c",
+  "generated": "2026-07-26T22:43:18.766Z",
+  "commit": "16b882d",
   "treeDirty": true,
   "url": "http://localhost:3000/film",
   "primaryCapture": {
@@ -21,9 +21,8 @@
    "file": "src/components/konomi/LevelSelector.tsx",
    "authored": {
     "height": {
-     "v": "none — py-md(8)+leading-16+border-base×2",
-     "kind": "derived",
-     "src": "py-[var(--space-md)] leading-[16px]"
+     "v": "--control-h-md 44px (wrapper, fixed)",
+     "kind": "token"
     },
     "font": {
      "v": "--text-xs 11px",
@@ -41,7 +40,7 @@
    "measured": {
     "resting": {
      "w": 264.17,
-     "h": 36,
+     "h": 44,
      "fontSize": "16px",
      "fontFamily": "Zen Kaku Gothic New",
      "fontWeight": "400",
@@ -72,28 +71,24 @@
    "file": "src/components/konomi/LevelSelector.tsx",
    "authored": {
     "height": {
-     "v": "derived (see segment)",
-     "kind": "derived"
+     "v": "wrapper-stretch of --control-h-md (fixed)",
+     "kind": "token"
     },
     "padX": {
      "v": "--space-lg 12px",
-     "kind": "token"
-    },
-    "padY": {
-     "v": "--space-md 8px",
      "kind": "token"
     }
    },
    "measured": {
     "resting": {
      "w": 85.39,
-     "h": 32,
+     "h": 40,
      "fontSize": "11px",
      "fontFamily": "IBM Plex Mono",
      "fontWeight": "700",
      "lineHeight": "16px",
      "letterSpacing": "0.22px",
-     "padding": "8px 12px 8px 12px",
+     "padding": "0px 12px 0px 12px",
      "border": "0px",
      "borderColor": "rgb(25, 18, 37)",
      "radius": "0px",
@@ -112,13 +107,13 @@
     "states": {
      "hover": {
       "w": 85.39,
-      "h": 32,
+      "h": 40,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "700",
       "lineHeight": "16px",
       "letterSpacing": "0.22px",
-      "padding": "8px 12px 8px 12px",
+      "padding": "0px 12px 0px 12px",
       "border": "0px",
       "borderColor": "rgb(25, 18, 37)",
       "radius": "0px",
@@ -135,13 +130,13 @@
      },
      "focusVisible": {
       "w": 85.39,
-      "h": 32,
+      "h": 40,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "700",
       "lineHeight": "16px",
       "letterSpacing": "0.22px",
-      "padding": "8px 12px 8px 12px",
+      "padding": "0px 12px 0px 12px",
       "border": "0px",
       "borderColor": "rgb(25, 18, 37)",
       "radius": "0px",
@@ -149,7 +144,7 @@
       "background": "rgb(252, 250, 255)",
       "effectiveBg": "rgb(252, 250, 255)",
       "color": "rgb(25, 18, 37)",
-      "outline": "1px auto offset 0px",
+      "outline": "2px solid offset -2px",
       "opacity": "1",
       "cursor": "pointer",
       "transition": "none",
@@ -158,13 +153,13 @@
      },
      "active": {
       "w": 85.39,
-      "h": 32,
+      "h": 40,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "700",
       "lineHeight": "16px",
       "letterSpacing": "0.22px",
-      "padding": "8px 12px 8px 12px",
+      "padding": "0px 12px 0px 12px",
       "border": "0px",
       "borderColor": "rgb(25, 18, 37)",
       "radius": "0px",
@@ -188,9 +183,8 @@
    "file": "src/components/konomi/SortSelect.tsx",
    "authored": {
     "height": {
-     "v": "none — same py-md+leading-16 derivation",
-     "kind": "derived",
-     "src": "py-[var(--space-md)]"
+     "v": "--control-h-md 44px (fixed)",
+     "kind": "token"
     },
     "font": {
      "v": "--text-xs 11px",
@@ -208,13 +202,13 @@
    "measured": {
     "resting": {
      "w": 102,
-     "h": 36,
+     "h": 44,
      "fontSize": "11px",
      "fontFamily": "IBM Plex Mono",
      "fontWeight": "700",
      "lineHeight": "16px",
      "letterSpacing": "0.22px",
-     "padding": "8px 24px 8px 12px",
+     "padding": "0px 24px 0px 12px",
      "border": "2px",
      "borderColor": "rgb(25, 18, 37)",
      "radius": "0px",
@@ -233,13 +227,13 @@
     "states": {
      "hover": {
       "w": 102,
-      "h": 36,
+      "h": 44,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "700",
       "lineHeight": "16px",
       "letterSpacing": "0.22px",
-      "padding": "8px 24px 8px 12px",
+      "padding": "0px 24px 0px 12px",
       "border": "2px",
       "borderColor": "rgb(25, 18, 37)",
       "radius": "0px",
@@ -256,13 +250,13 @@
      },
      "focusVisible": {
       "w": 102,
-      "h": 36,
+      "h": 44,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "700",
       "lineHeight": "16px",
       "letterSpacing": "0.22px",
-      "padding": "8px 24px 8px 12px",
+      "padding": "0px 24px 0px 12px",
       "border": "2px",
       "borderColor": "rgb(25, 18, 37)",
       "radius": "0px",
@@ -270,7 +264,7 @@
       "background": "rgb(252, 250, 255)",
       "effectiveBg": "rgb(252, 250, 255)",
       "color": "rgb(25, 18, 37)",
-      "outline": "1px auto offset 0px",
+      "outline": "2px solid offset -2px",
       "opacity": "1",
       "cursor": "pointer",
       "transition": "none",
@@ -286,9 +280,8 @@
    "file": "src/components/konomi/ResultsHeader.tsx",
    "authored": {
     "height": {
-     "v": "24px",
-     "kind": "literal",
-     "src": "h-[24px]"
+     "v": "--control-h-md 44px",
+     "kind": "token"
     },
     "width": {
      "v": "min(200px,40vw)",
@@ -300,7 +293,7 @@
      "kind": "token"
     },
     "padX": {
-     "v": "--space-md 8px",
+     "v": "--space-lg 12px",
      "kind": "token"
     },
     "border": {
@@ -311,13 +304,13 @@
    "measured": {
     "resting": {
      "w": 200,
-     "h": 24,
+     "h": 44,
      "fontSize": "12px",
      "fontFamily": "IBM Plex Mono",
      "fontWeight": "400",
      "lineHeight": "18px",
      "letterSpacing": "normal",
-     "padding": "0px 8px 0px 8px",
+     "padding": "0px 12px 0px 12px",
      "border": "2px",
      "borderColor": "rgb(169, 133, 226)",
      "radius": "0px",
@@ -336,13 +329,13 @@
     "states": {
      "hover": {
       "w": 200,
-      "h": 24,
+      "h": 44,
       "fontSize": "12px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "400",
       "lineHeight": "18px",
       "letterSpacing": "normal",
-      "padding": "0px 8px 0px 8px",
+      "padding": "0px 12px 0px 12px",
       "border": "2px",
       "borderColor": "rgb(169, 133, 226)",
       "radius": "0px",
@@ -359,13 +352,13 @@
      },
      "focusVisible": {
       "w": 200,
-      "h": 24,
+      "h": 44,
       "fontSize": "12px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "400",
       "lineHeight": "18px",
       "letterSpacing": "normal",
-      "padding": "0px 8px 0px 8px",
+      "padding": "0px 12px 0px 12px",
       "border": "2px",
       "borderColor": "rgb(169, 133, 226)",
       "radius": "0px",
@@ -373,7 +366,7 @@
       "background": "rgb(252, 250, 255)",
       "effectiveBg": "rgb(252, 250, 255)",
       "color": "rgb(25, 18, 37)",
-      "outline": "none",
+      "outline": "2px solid offset -2px",
       "opacity": "1",
       "cursor": "text",
       "transition": "none",
@@ -385,20 +378,20 @@
   },
   {
    "id": "header/tagpool-btn",
-   "component": "ActionButton sm outline|filled",
+   "component": "ActionButton md outline|filled",
    "file": "src/components/konomi/ActionButton.tsx",
    "authored": {
     "height": {
-     "v": "30px",
-     "kind": "literal",
-     "src": "SIZE_CLASSES.sm h-[30px]"
+     "v": "--control-h-md 44px",
+     "kind": "token",
+     "src": "SIZE_CLASSES.md"
     },
     "font": {
      "v": "--text-xs 11px",
      "kind": "token"
     },
     "padX": {
-     "v": "--space-lg 12px",
+     "v": "--space-xl 16px",
      "kind": "token"
     },
     "border": {
@@ -412,14 +405,14 @@
    },
    "measured": {
     "resting": {
-     "w": 108.09,
-     "h": 30,
+     "w": 116.09,
+     "h": 44,
      "fontSize": "11px",
      "fontFamily": "IBM Plex Mono",
      "fontWeight": "700",
      "lineHeight": "16.5px",
      "letterSpacing": "0.66px",
-     "padding": "0px 12px 0px 12px",
+     "padding": "0px 16px 0px 16px",
      "border": "2px",
      "borderColor": "rgb(25, 18, 37)",
      "radius": "0px",
@@ -437,14 +430,14 @@
     "contrast": 13.27,
     "states": {
      "hover": {
-      "w": 108.09,
-      "h": 30,
+      "w": 116.09,
+      "h": 44,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "700",
       "lineHeight": "16.5px",
       "letterSpacing": "0.66px",
-      "padding": "0px 12px 0px 12px",
+      "padding": "0px 16px 0px 16px",
       "border": "2px",
       "borderColor": "rgb(25, 18, 37)",
       "radius": "0px",
@@ -460,14 +453,14 @@
       "iconLabelGap": "6px"
      },
      "focusVisible": {
-      "w": 108.09,
-      "h": 30,
+      "w": 116.09,
+      "h": 44,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "700",
       "lineHeight": "16.5px",
       "letterSpacing": "0.66px",
-      "padding": "0px 12px 0px 12px",
+      "padding": "0px 16px 0px 16px",
       "border": "2px",
       "borderColor": "rgb(25, 18, 37)",
       "radius": "0px",
@@ -475,7 +468,7 @@
       "background": "rgb(228, 215, 244)",
       "effectiveBg": "rgb(228, 215, 244)",
       "color": "rgb(25, 18, 37)",
-      "outline": "1px auto offset 0px",
+      "outline": "2px solid offset -2px",
       "opacity": "1",
       "cursor": "pointer",
       "transition": "none",
@@ -483,14 +476,14 @@
       "iconLabelGap": "6px"
      },
      "active": {
-      "w": 108.09,
-      "h": 30,
+      "w": 116.09,
+      "h": 44,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "700",
       "lineHeight": "16.5px",
       "letterSpacing": "0.66px",
-      "padding": "0px 12px 0px 12px",
+      "padding": "0px 16px 0px 16px",
       "border": "2px",
       "borderColor": "rgb(25, 18, 37)",
       "radius": "0px",
@@ -514,9 +507,9 @@
    "file": "src/components/konomi/IconButton.tsx",
    "authored": {
     "height": {
-     "v": "30",
-     "kind": "literal",
-     "src": "SIZE_PX.sm = 30 (raw number, not a token)"
+     "v": "--control-h-md 44px",
+     "kind": "token",
+     "src": "SIZE_PX.md"
     },
     "border": {
      "v": "--border-base 2.5px",
@@ -529,13 +522,13 @@
     "icon": {
      "v": "16px",
      "kind": "literal",
-     "src": "icons.tsx width/height=16"
+     "src": "icons.tsx width/height=16 — tier-scaled 20px pending"
     }
    },
    "measured": {
     "resting": {
-     "w": 30,
-     "h": 30,
+     "w": 44,
+     "h": 44,
      "fontSize": "16px",
      "fontFamily": "Zen Kaku Gothic New",
      "fontWeight": "400",
@@ -559,8 +552,8 @@
     "contrast": 15.12,
     "states": {
      "hover": {
-      "w": 30,
-      "h": 30,
+      "w": 44,
+      "h": 44,
       "fontSize": "16px",
       "fontFamily": "Zen Kaku Gothic New",
       "fontWeight": "400",
@@ -582,8 +575,8 @@
       "iconLabelGap": null
      },
      "focusVisible": {
-      "w": 30,
-      "h": 30,
+      "w": 44,
+      "h": 44,
       "fontSize": "16px",
       "fontFamily": "Zen Kaku Gothic New",
       "fontWeight": "400",
@@ -597,7 +590,7 @@
       "background": "rgba(0, 0, 0, 0)",
       "effectiveBg": "rgb(239, 231, 248)",
       "color": "rgb(25, 18, 37)",
-      "outline": "1px auto offset 0px",
+      "outline": "2px solid offset -2px",
       "opacity": "1",
       "cursor": "pointer",
       "transition": "none",
@@ -605,8 +598,8 @@
       "iconLabelGap": null
      },
      "active": {
-      "w": 30,
-      "h": 30,
+      "w": 44,
+      "h": 44,
       "fontSize": "16px",
       "fontFamily": "Zen Kaku Gothic New",
       "fontWeight": "400",
@@ -636,9 +629,9 @@
    "file": "src/components/konomi/ResultsHeader.tsx",
    "authored": {
     "height": {
-     "v": "30px",
-     "kind": "literal",
-     "src": "SIZE_CLASSES.sm"
+     "v": "--control-h-md 44px",
+     "kind": "token",
+     "src": "SIZE_CLASSES.md"
     },
     "font": {
      "v": "--text-xs 11px",
@@ -651,14 +644,14 @@
    },
    "measured": {
     "resting": {
-     "w": 78.84,
-     "h": 30,
+     "w": 86.84,
+     "h": 44,
      "fontSize": "11px",
      "fontFamily": "IBM Plex Mono",
      "fontWeight": "700",
      "lineHeight": "16.5px",
      "letterSpacing": "0.66px",
-     "padding": "0px 12px 0px 12px",
+     "padding": "0px 16px 0px 16px",
      "border": "2px",
      "borderColor": "rgb(25, 18, 37)",
      "radius": "0px",
@@ -676,14 +669,14 @@
     "contrast": 15.12,
     "states": {
      "hover": {
-      "w": 78.84,
-      "h": 30,
+      "w": 86.84,
+      "h": 44,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "700",
       "lineHeight": "16.5px",
       "letterSpacing": "0.66px",
-      "padding": "0px 12px 0px 12px",
+      "padding": "0px 16px 0px 16px",
       "border": "2px",
       "borderColor": "rgb(25, 18, 37)",
       "radius": "0px",
@@ -699,14 +692,14 @@
       "iconLabelGap": null
      },
      "focusVisible": {
-      "w": 78.84,
-      "h": 30,
+      "w": 86.84,
+      "h": 44,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "700",
       "lineHeight": "16.5px",
       "letterSpacing": "0.66px",
-      "padding": "0px 12px 0px 12px",
+      "padding": "0px 16px 0px 16px",
       "border": "2px",
       "borderColor": "rgb(25, 18, 37)",
       "radius": "0px",
@@ -714,7 +707,7 @@
       "background": "rgb(25, 18, 37)",
       "effectiveBg": "rgb(25, 18, 37)",
       "color": "rgb(239, 231, 248)",
-      "outline": "1px auto offset 0px",
+      "outline": "2px solid offset -2px",
       "opacity": "1",
       "cursor": "pointer",
       "transition": "none",
@@ -1056,7 +1049,7 @@
       "background": "rgb(228, 215, 244)",
       "effectiveBg": "rgb(228, 215, 244)",
       "color": "rgb(25, 18, 37)",
-      "outline": "1px auto offset 0px",
+      "outline": "2px solid offset -2px",
       "opacity": "1",
       "cursor": "grab",
       "transition": "none",
@@ -1356,7 +1349,7 @@
       "background": "rgba(0, 0, 0, 0)",
       "effectiveBg": "rgb(252, 250, 255)",
       "color": "rgb(25, 18, 37)",
-      "outline": "1px auto offset 0px",
+      "outline": "2px solid offset -2px",
       "opacity": "1",
       "cursor": "pointer",
       "transition": "none",
@@ -1395,9 +1388,8 @@
    "file": "src/components/konomi/MatchSelector.tsx",
    "authored": {
     "height": {
-     "v": "none — py-md+leading-16+border derivation",
-     "kind": "derived",
-     "src": "py-[var(--space-md)] leading-[16px]"
+     "v": "--control-h-md 44px (wrapper, fixed)",
+     "kind": "token"
     },
     "border": {
      "v": "--border-base 2.5px",
@@ -1411,7 +1403,7 @@
    "measured": {
     "resting": {
      "w": 100.48,
-     "h": 36,
+     "h": 44,
      "fontSize": "16px",
      "fontFamily": "Zen Kaku Gothic New",
      "fontWeight": "400",
@@ -1519,7 +1511,7 @@
       "background": "rgb(228, 215, 244)",
       "effectiveBg": "rgb(228, 215, 244)",
       "color": "rgb(25, 18, 37)",
-      "outline": "1px auto offset 0px",
+      "outline": "2px solid offset -2px",
       "opacity": "1",
       "cursor": "pointer",
       "transition": "none",
@@ -1635,7 +1627,7 @@
       "background": "rgb(228, 244, 111)",
       "effectiveBg": "rgb(228, 244, 111)",
       "color": "rgb(25, 18, 37)",
-      "outline": "1px auto offset 0px",
+      "outline": "2px solid offset -2px",
       "opacity": "1",
       "cursor": "pointer",
       "transition": "none",
@@ -1797,7 +1789,7 @@
       "background": "rgb(252, 250, 255)",
       "effectiveBg": "rgb(252, 250, 255)",
       "color": "rgb(25, 18, 37)",
-      "outline": "1px auto offset 0px",
+      "outline": "2px solid offset -2px",
       "opacity": "1",
       "cursor": "pointer",
       "transition": "none",
@@ -2007,11 +1999,11 @@
  "mobileSpotPass": {
   "searchField": {
    "w": 156,
-   "h": 24
+   "h": 44
   },
   "headerTagPoolIconForm": {
-   "w": 30,
-   "h": 30
+   "w": 44,
+   "h": 44
   },
   "mixbarClearIconForm": {
    "hidden": true
@@ -2021,7 +2013,7 @@
   },
   "minMatchCollapsed": {
    "w": 34.8,
-   "h": 36
+   "h": 44
   },
   "recommend": {
    "w": 44,
@@ -2065,8 +2057,8 @@
   ],
   "header forms": [
    "min-[417px]:flex-row",
-   "min-[480px]:hidden",
-   "min-[480px]:inline-flex"
+   "min-[480px]:block",
+   "min-[480px]:hidden"
   ],
   "empty-state surfaced": [
    "@max-[250px]:block",
@@ -2101,8 +2093,8 @@
   {
    "what": "ActionButton size",
    "usage": {
-    "md": 5,
-    "sm": 17
+    "md": 9,
+    "sm": 11
    }
   },
   {
@@ -2167,8 +2159,8 @@
    "usage": {
     "space-xs": 20,
     "space-sm": 37,
-    "space-md": 42,
-    "space-lg": 36,
+    "space-md": 35,
+    "space-lg": 37,
     "space-xl": 12,
     "space-2xl": 22,
     "space-3xl": 0,

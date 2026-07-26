@@ -69,7 +69,7 @@ const SIZE_CLASSES: Record<ActionButtonSize, string> = {
   // in the same joined string, with no guaranteed winner. A future size=
   // "sm" caller that always shows (no responsive toggle) needs to supply
   // its own unconditional `inline-flex` too.
-  sm: "h-[30px] items-center justify-center px-[var(--space-lg)]",
+  sm: "h-[var(--control-h-sm)] items-center justify-center px-[var(--space-lg)]",
 };
 
 // Consolidates four previously hand-rolled buttons (Random ×3, Clear ✕
@@ -109,7 +109,11 @@ export function ActionButton({ variant, accentColor, size = "md", disabled, onCl
       disabled={disabled}
       aria-label={ariaLabel}
       className={[
-        "border-[length:var(--border-base)] font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap",
+        // focus-ring-inset: the app's ONE keyboard-focus regime (user-ruled
+        // 2026-07-26 — consistent everywhere; deviations only where a
+        // control has its own strong deliberate focus affordance, e.g. the
+        // collapsed Min Match/Density buttons). See globals.css.
+        "focus-ring-inset border-[length:var(--border-base)] font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap",
         // Border colour swaps as ONE conditional emitter, never two competing
         // border-color utilities in the same string (the undefined-cascade-
         // order trap — see IconButton's `display` prop comment). Disabled uses

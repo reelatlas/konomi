@@ -121,7 +121,7 @@ export function LevelSelector({ value, onChange, collapsed }: LevelSelectorProps
 
   if (collapsed) {
     return (
-      <div ref={wrapperRef} className="relative flex border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-2)]">
+      <div ref={wrapperRef} className="relative flex h-[var(--control-h-md)] border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-2)]">
         <button
           type="button"
           aria-label={activeOption.hint}
@@ -144,10 +144,12 @@ export function LevelSelector({ value, onChange, collapsed }: LevelSelectorProps
           // [outline:none] — see MatchSelector's own identical comment for
           // the full reasoning (this control's own .focus() call has the
           // same newly-reliable-focus side effect).
-          // leading-[16px]: whole 32px box, matching MatchSelector's collapsed
-          // form (and the expanded segments above) so all three filters — and
-          // their collapsed single buttons — share one height on the pixel grid.
-          className="py-[var(--space-md)] leading-[16px] px-[var(--space-lg)] border-0 [outline:none] cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] whitespace-nowrap bg-[var(--surface)] text-[var(--ink)]"
+          // FIXED height via the wrapper's h-[--control-h-md] + flex
+          // centering (self-stretch is the flex default), NOT py-derived —
+          // the sizing unification (SIZING_AUDIT.md §4/§6): this control's
+          // old 36px box was emergent (16 leading + 2×8 py + border) and
+          // authored nowhere. leading-[16px] kept for stable text metrics.
+          className="flex items-center leading-[16px] px-[var(--space-lg)] border-0 [outline:none] cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] whitespace-nowrap bg-[var(--surface)] text-[var(--ink)]"
         >
           <RollingLabel value={activeOption.label} sizeToWidestOf={levelLabels} />
         </button>
@@ -180,7 +182,7 @@ export function LevelSelector({ value, onChange, collapsed }: LevelSelectorProps
   }
 
   return (
-    <div className="relative flex border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-2)]">
+    <div className="relative flex h-[var(--control-h-md)] border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-2)]">
       {levels.map((option, i) => {
         const active = value === option.key;
         return (
@@ -194,12 +196,10 @@ export function LevelSelector({ value, onChange, collapsed }: LevelSelectorProps
             onFocus={() => setHovered(option.key)}
             onBlur={() => setHovered(null)}
             className={[
-              // leading-[16px]: matches MatchSelector's segment sizing (see
-              // its own comment) so this box resolves to a whole 32px (16
-              // padding + 16 line) instead of 32.5, keeping one consistent
-              // segmented-control height across min-match/density/sort and the
-              // neighbouring icons centred on the device-pixel grid.
-              "flex-1 py-[var(--space-md)] leading-[16px] px-[var(--space-lg)] border-0 cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] whitespace-nowrap",
+              // FIXED control-tier height (wrapper h-[--control-h-md], flex
+              // stretch + centering), replacing the emergent py+leading box —
+              // see MatchSelector's identical comment / SIZING_AUDIT.md §4.
+              "focus-ring-inset flex-1 inline-flex items-center justify-center leading-[16px] px-[var(--space-lg)] border-0 cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] whitespace-nowrap",
               i > 0 ? "border-l-[length:var(--border-thin)] border-l-[var(--ink)]" : "",
               active ? "bg-[var(--primary)] text-[var(--surface)]" : "bg-[var(--surface)] text-[var(--ink)]",
             ].join(" ")}

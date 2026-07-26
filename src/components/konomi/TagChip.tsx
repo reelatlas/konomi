@@ -27,7 +27,10 @@ export function TagChip({ id, name, active, size = "base", onToggle }: TagChipPr
       }}
       className={[
         "inline-flex items-center cursor-grab active:cursor-grabbing select-none lowercase font-mono font-bold",
-        "border-[length:var(--border-base)] border-[var(--ink)] rounded-[var(--radius-chip)]",
+        // focus-ring-inset: the app's one focus regime — and chips live
+        // inside scroll containers, the exact case an outside ring gets
+        // clipped by (globals.css).
+        "focus-ring-inset border-[length:var(--border-base)] border-[var(--ink)] rounded-[var(--radius-chip)]",
         isBase
           ? "text-[length:var(--text-sm)] tracking-[var(--tracking-md)] px-[var(--space-lg)] py-[var(--space-md)]"
           : "border-[length:var(--border-thin)] text-[length:var(--text-2xs)] tracking-[var(--tracking-sm)] px-[var(--space-md)] py-[var(--space-xs)]",
