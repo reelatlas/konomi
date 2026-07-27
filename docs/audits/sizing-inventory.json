@@ -1,7 +1,7 @@
 {
  "meta": {
-  "generated": "2026-07-27T03:51:58.452Z",
-  "commit": "981f0e2",
+  "generated": "2026-07-27T04:25:34.711Z",
+  "commit": "70648a5",
   "treeDirty": true,
   "url": "http://localhost:3000/film",
   "primaryCapture": {
@@ -878,18 +878,18 @@
    "file": "src/components/konomi/SectionTabStrip.tsx",
    "authored": {
     "height": {
-     "v": "content (mono 2xs line box)",
-     "kind": "derived"
+     "v": "16px pinned line box (leading-[16px])",
+     "kind": "literal"
     },
     "font": {
-     "v": "--text-2xs 10px",
+     "v": "--text-xs 11px (bumped from 2xs, user-ruled)",
      "kind": "token"
     }
    },
    "measured": {
     "resting": {
-     "w": 61.61,
-     "h": 15,
+     "w": 65.56,
+     "h": 16,
      "fontSize": "16px",
      "fontFamily": "Zen Kaku Gothic New",
      "fontWeight": "400",
@@ -913,8 +913,8 @@
     "contrast": 17.55,
     "states": {
      "hover": {
-      "w": 61.61,
-      "h": 15,
+      "w": 65.56,
+      "h": 16,
       "fontSize": "16px",
       "fontFamily": "Zen Kaku Gothic New",
       "fontWeight": "400",
@@ -936,8 +936,8 @@
       "iconLabelGap": "6px"
      },
      "focusVisible": {
-      "w": 61.61,
-      "h": 15,
+      "w": 65.56,
+      "h": 16,
       "fontSize": "16px",
       "fontFamily": "Zen Kaku Gothic New",
       "fontWeight": "400",
@@ -2148,15 +2148,15 @@
     "text-md": 3,
     "text-base": 3,
     "text-sm": 6,
-    "text-xs": 20,
-    "text-2xs": 16,
+    "text-xs": 22,
+    "text-2xs": 14,
     "text-3xs": 5
    }
   },
   {
    "what": "space token",
    "usage": {
-    "space-xs": 19,
+    "space-xs": 18,
     "space-sm": 37,
     "space-md": 35,
     "space-lg": 37,

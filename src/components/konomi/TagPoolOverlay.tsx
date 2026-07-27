@@ -70,14 +70,15 @@ const CONTENT_FOOTER_GAP_PX = 8;
 
 // The overlay's own height floor, replacing the mixbar era's
 // POOL_HEIGHT_MIN (160): the WORST-CASE content must fit with zero
-// clipping — chrome (67) + a two-tier film section's tab rows (57,
-// measured live: 30 primary + 12 gap + 15 sub) + STRIP_GAP (12) +
-// TagPoolBody's CHIP_AREA_MIN (60) = 196. The footer wrapper below is
+// clipping — chrome (67) + a two-tier film section's tab rows (58:
+// 30 primary + 12 gap + 16 sub, the sub tier's pinned leading-[16px]
+// line box after the 11px bump) + STRIP_GAP (12) + TagPoolBody's
+// CHIP_AREA_MIN (60) = 197, rounded to the next even number. The footer wrapper below is
 // the structural guarantee the grip can never be pushed out regardless;
 // this floor is what keeps the chip area itself (and its flush bottom
 // scroll arrow) from clipping at the minimum. Re-derive if any input
 // changes.
-const OVERLAY_MIN_HEIGHT_PX = 196;
+const OVERLAY_MIN_HEIGHT_PX = 198;
 
 // [OVERLAY_MIN_HEIGHT_PX, max] clamp, ceiling-wins when the card area is
 // genuinely shorter than the floor (tiny viewport) — the panel must never

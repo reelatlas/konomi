@@ -229,35 +229,41 @@ export function SectionTabStrip({
                   hierarchy (panel tabs, then section tabs within Tag
                   Pool) rather than one flattened row of controls. No
                   chevron — sections are tabs now, nothing to expand.
-                  Secondary drops to the mono/2xs register of the anime
-                  Theme subsection headings for the same hierarchy reason,
-                  one tier further down. */}
+                  Secondary uses the mono/xs (11px) label register — bumped
+                  from 2xs 10 (sizing unification, user-ruled 2026-07-26:
+                  sub-tabs are interactive NAV, so they join the app's
+                  workhorse label size; primary:sub ratio 20:11 keeps the
+                  two-tier read). leading-[16px] pinned so the line box is
+                  whole (11 × 1.5 = 16.5 would be fractional — AGENTS.md
+                  whole-pixel-geometry); the anime Theme subsection group
+                  labels follow this register (TagPoolBody). */}
               <span className="inline-flex items-center gap-[var(--space-sm)]">
                 <span
                   className={[
                     size === "primary"
                       ? "font-display text-[length:var(--text-lg)] uppercase tracking-[var(--tracking-sm)]"
-                      : "font-mono font-bold text-[length:var(--text-2xs)] uppercase tracking-[var(--tracking-xl)]",
+                      : "font-mono font-bold text-[length:var(--text-xs)] leading-[16px] uppercase tracking-[var(--tracking-xl)]",
                     active ? "text-[var(--ink)]" : "text-[var(--muted)]",
                   ].join(" ")}
                 >
                   {section.label}
                 </span>
                 {section.selectedCount > 0 && (
-                  // Same badge recipe at both sizes (font stays 2xs — the
-                  // type scale's floor); secondary only tightens the BOX
-                  // (px-xs, no py) so the badge's total height fits inside
-                  // the 2xs label's own line box. That makes "a badge
-                  // appearing never changes this row's height" true BY
-                  // CONSTRUCTION on the secondary tier — the badge can't be
-                  // the row's tallest element — instead of by reserving
-                  // permanent row height the chip area would pay for.
-                  // (Primary never had the problem: its display-face labels'
-                  // line box already exceeds the padded badge.)
+                  // Same badge recipe at both sizes (font stays 2xs 10 —
+                  // the BADGE register is uniform across tiers and stays
+                  // below both labels' line boxes, so "a badge appearing
+                  // never changes this row's height" holds by construction).
+                  // FIXED whole/even heights now (h-20 primary / h-14
+                  // secondary), not padding-derived — the fixed-heights
+                  // doctrine (SIZING_AUDIT §6), and the even boxes keep
+                  // flex-centering offsets whole against the labels' line
+                  // boxes (30 and 16): (30−20)/2 = 5, (16−14)/2 = 1 — the
+                  // old 13px secondary box would have sat on a half pixel
+                  // under the new 16px label line.
                   <span
                     className={[
-                      "font-mono font-bold text-[length:var(--text-2xs)] leading-none bg-[var(--fill)] border-[length:var(--border-hair)] border-[var(--ink)]",
-                      size === "primary" ? "px-[var(--space-sm)] py-[var(--space-xs)]" : "px-[var(--space-xs)] py-0",
+                      "inline-flex items-center font-mono font-bold text-[length:var(--text-2xs)] leading-none bg-[var(--fill)] border-[length:var(--border-hair)] border-[var(--ink)]",
+                      size === "primary" ? "h-[20px] px-[var(--space-sm)]" : "h-[14px] px-[var(--space-xs)]",
                     ].join(" ")}
                   >
                     {section.selectedCount}

@@ -490,7 +490,10 @@ export function TagPoolBody({
                 if (!subTags.length) return null;
                 return (
                   <div key={sub.label}>
-                    <span className="block font-mono text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] text-[var(--subtext)] uppercase mb-[var(--space-sm)]">
+                    {/* xs 11 (was 2xs 10): same register as the sub-tabs — these group
+                        labels are the same semantic tier (subsection names), so
+                        they follow the sub-tab bump (user-ruled 2026-07-26). */}
+                    <span className="block font-mono text-[length:var(--text-xs)] tracking-[var(--tracking-xl)] text-[var(--subtext)] uppercase mb-[var(--space-sm)]">
                       {sub.label}
                     </span>
                     <ChipRow tags={subTags} selectedTagIds={selectedTagIds} onChipToggle={onChipToggle} />

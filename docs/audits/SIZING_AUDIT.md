@@ -289,3 +289,19 @@ surface). User notes banked: the 14px reading size + 11px chips are a
 "huge improvement" on mobile (likely keep; final call at end-of-migration
 review with everything else); iOS focus-zoom fix confirmed working
 on-device.
+
+**Batch 2d (2026-07-26) — sub-tab register bump + fixed badge boxes.**
+Sub-tabs 10 → 11px (`--text-xs`, the workhorse label register — sub-tabs
+are interactive nav; primary:sub ratio 2.0 → 1.82) with `leading-[16px]`
+pinned (11 × 1.5 = 16.5 would be fractional). The anime Theme inline
+group labels follow (same semantic tier). Badges: fixed whole/even boxes
+now (h-20 primary / h-14 secondary; text stays 2xs 10 — the badge
+register is uniform across tiers), replacing padding-derived 20/13 —
+and the 14 restores whole-pixel centering under the 16px label line
+((16−14)/2 = 1; the old 13 would have sat on a half pixel). Measured:
+label 11/16 exact, badge centers equal label centers to the hundredth.
+Overlay floor 196 → 198 (rows 57 → 58). WebKit border finding
+(user-measured, iPhone screenshot in Figma): **the 0.5px step DOES
+render on iOS** (~3 vs ~3.5px at DPR 3) though "extremely hard to
+notice" by eye — the border scale renders two-step on Chromium,
+three-ish on WebKit only. Verdict OPEN, options tabled.

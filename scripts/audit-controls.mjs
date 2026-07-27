@@ -83,7 +83,7 @@ const registry = [
       verify: ["flex shrink-0 cursor-pointer items-center"], states: ["hover", "focus"] }),
   R({ id: "panel/sub-tab", component: "SectionTabStrip secondary", file: "src/components/konomi/SectionTabStrip.tsx",
       selector: '[id^="tagpool-sub-tab-"]',
-      authored: { height: { v: "content (mono 2xs line box)", kind: "derived" }, font: { v: "--text-2xs 10px", kind: "token" } },
+      authored: { height: { v: "16px pinned line box (leading-[16px])", kind: "literal" }, font: { v: "--text-xs 11px (bumped from 2xs, user-ruled)", kind: "token" } },
       verify: ["size === \"primary\""], states: ["hover", "focus"] }),
   R({ id: "panel/chip-small", component: "TagChip small", file: "src/components/konomi/TagChip.tsx",
       selector: '[id^="tagpool-panel-"] div.flex.flex-wrap > button',
