@@ -1,7 +1,7 @@
 {
  "meta": {
-  "generated": "2026-07-27T07:42:30.678Z",
-  "commit": "8f7d258",
+  "generated": "2026-07-27T07:44:20.361Z",
+  "commit": "7d88d42",
   "treeDirty": true,
   "url": "http://localhost:3000/film",
   "primaryCapture": {
@@ -297,7 +297,7 @@
      "kind": "token"
     },
     "border": {
-     "v": "--border-base 2px",
+     "v": "--border-base 2px; muted rest / primary engaged (header treatment, label container w/ icon inside)",
      "kind": "token"
     }
    },
@@ -364,7 +364,7 @@
       "radius": "0px",
       "boxShadow": "none",
       "background": "rgba(0, 0, 0, 0)",
-      "effectiveBg": "rgba(252, 250, 255, 0.78)",
+      "effectiveBg": "rgba(252, 250, 255, 0.83)",
       "color": "rgb(25, 18, 37)",
       "outline": "none",
       "opacity": "1",
@@ -378,7 +378,7 @@
   },
   {
    "id": "header/tagpool-btn",
-   "component": "ActionButton md outline|filled",
+   "component": "ActionButton md variant=header (quiet rest / primary engaged)",
    "file": "src/components/konomi/ActionButton.tsx",
    "authored": {
     "height": {
@@ -625,7 +625,7 @@
   },
   {
    "id": "header/clear-btn",
-   "component": "ActionButton sm inverted",
+   "component": "ActionButton md variant=header (quiet; disabled = shared recipe)",
    "file": "src/components/konomi/ResultsHeader.tsx",
    "authored": {
     "height": {
@@ -638,7 +638,7 @@
      "kind": "token"
     },
     "shadow": {
-     "v": "none (inverted variant)",
+     "v": "none (header variant — flat row)",
      "kind": "literal"
     }
    },
@@ -888,7 +888,7 @@
    },
    "measured": {
     "resting": {
-     "w": 43.56,
+     "w": 65.56,
      "h": 16,
      "fontSize": "16px",
      "fontFamily": "Zen Kaku Gothic New",
@@ -913,7 +913,7 @@
     "contrast": 17.55,
     "states": {
      "hover": {
-      "w": 43.56,
+      "w": 65.56,
       "h": 16,
       "fontSize": "16px",
       "fontFamily": "Zen Kaku Gothic New",
@@ -936,7 +936,7 @@
       "iconLabelGap": "6px"
      },
      "focusVisible": {
-      "w": 43.56,
+      "w": 65.56,
       "h": 16,
       "fontSize": "16px",
       "fontFamily": "Zen Kaku Gothic New",
