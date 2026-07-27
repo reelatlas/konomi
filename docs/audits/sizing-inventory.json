@@ -1,7 +1,7 @@
 {
  "meta": {
-  "generated": "2026-07-27T08:30:43.126Z",
-  "commit": "ecd89d4",
+  "generated": "2026-07-27T08:34:04.467Z",
+  "commit": "88ce644",
   "treeDirty": true,
   "url": "http://localhost:3000/film",
   "primaryCapture": {
@@ -364,7 +364,7 @@
       "radius": "0px",
       "boxShadow": "none",
       "background": "rgba(0, 0, 0, 0)",
-      "effectiveBg": "rgba(252, 250, 255, 0.835)",
+      "effectiveBg": "rgba(252, 250, 255, 0.776)",
       "color": "rgb(25, 18, 37)",
       "outline": "none",
       "opacity": "1",
@@ -638,7 +638,7 @@
      "kind": "token"
     },
     "bg": {
-     "v": "--surface (whitish) — ready-action fill (user-ruled, was --fill)",
+     "v": "--ink fill / --bg text — the pre-restyle inverted look (user-ruled back after --fill and --surface trials)",
      "kind": "token"
     },
     "shadow": {
@@ -660,9 +660,9 @@
      "borderColor": "rgba(0, 0, 0, 0)",
      "radius": "0px",
      "boxShadow": "none",
-     "background": "rgb(252, 250, 255)",
-     "effectiveBg": "rgb(252, 250, 255)",
-     "color": "rgb(25, 18, 37)",
+     "background": "rgb(25, 18, 37)",
+     "effectiveBg": "rgb(25, 18, 37)",
+     "color": "rgb(239, 231, 248)",
      "outline": "none",
      "opacity": "1",
      "cursor": "pointer",
@@ -670,7 +670,7 @@
      "iconSize": null,
      "iconLabelGap": null
     },
-    "contrast": 17.55,
+    "contrast": 15.12,
     "states": {
      "hover": {
       "w": 86.84,
@@ -685,9 +685,9 @@
       "borderColor": "rgba(0, 0, 0, 0)",
       "radius": "0px",
       "boxShadow": "none",
-      "background": "rgb(252, 250, 255)",
-      "effectiveBg": "rgb(252, 250, 255)",
-      "color": "rgb(25, 18, 37)",
+      "background": "rgb(25, 18, 37)",
+      "effectiveBg": "rgb(25, 18, 37)",
+      "color": "rgb(239, 231, 248)",
       "outline": "none",
       "opacity": "1",
       "cursor": "pointer",
@@ -708,9 +708,9 @@
       "borderColor": "rgba(0, 0, 0, 0)",
       "radius": "0px",
       "boxShadow": "none",
-      "background": "rgb(252, 250, 255)",
-      "effectiveBg": "rgb(252, 250, 255)",
-      "color": "rgb(25, 18, 37)",
+      "background": "rgb(25, 18, 37)",
+      "effectiveBg": "rgb(25, 18, 37)",
+      "color": "rgb(239, 231, 248)",
       "outline": "2px solid offset -2px",
       "opacity": "1",
       "cursor": "pointer",
@@ -1824,10 +1824,10 @@
     "contrast": 3.63
    },
    "header/clear-btn": {
-    "color": "rgb(220, 228, 230)",
-    "background": "rgb(28, 36, 42)",
+    "color": "rgb(18, 24, 28)",
+    "background": "rgb(220, 228, 230)",
     "borderColor": "rgba(0, 0, 0, 0)",
-    "contrast": 12.2
+    "contrast": 13.88
    },
    "header/meta-readout": {
     "color": "rgb(102, 114, 123)",
@@ -1921,10 +1921,10 @@
     "contrast": 2.08
    },
    "header/clear-btn": {
-    "color": "rgb(33, 28, 23)",
-    "background": "rgb(255, 253, 246)",
+    "color": "rgb(243, 237, 225)",
+    "background": "rgb(33, 28, 23)",
     "borderColor": "rgba(0, 0, 0, 0)",
-    "contrast": 16.6
+    "contrast": 14.49
    },
    "header/meta-readout": {
     "color": "rgb(179, 165, 137)",
@@ -1939,10 +1939,10 @@
     "contrast": 16.6
    },
    "panel/chip-small": {
-    "color": "rgb(255, 253, 246)",
-    "background": "rgb(216, 57, 46)",
+    "color": "rgb(33, 28, 23)",
+    "background": "rgb(235, 224, 203)",
     "borderColor": "rgb(33, 28, 23)",
-    "contrast": 4.54
+    "contrast": 12.92
    },
    "panel/icon-btn": {
     "color": "rgb(33, 28, 23)",
@@ -1981,10 +1981,10 @@
     "contrast": 10.07
    },
    "card/chip": {
-    "color": "rgb(255, 253, 246)",
-    "background": "rgb(216, 57, 46)",
+    "color": "rgb(33, 28, 23)",
+    "background": "rgb(235, 224, 203)",
     "borderColor": "rgb(33, 28, 23)",
-    "contrast": 4.54
+    "contrast": 12.92
    },
    "card/lock-btn": {
     "color": "rgb(33, 28, 23)",

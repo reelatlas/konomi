@@ -118,9 +118,11 @@ export function ActionButton({ variant, ctaColor, engaged, size = "md", shadow =
           : "bg-transparent text-[var(--muted)] glow-host cursor-pointer",
         // header-action (user-ruled 2026-07-27): a header-row button that
         // IS a ready action rather than a toggle (Clear) — filled --fill
-        // like the app's other take-an-action buttons (the Random
-        // precedent), ink text, still flat and borderless like its row.
-        "header-action": "bg-[var(--surface)] text-[var(--ink)] glow-host cursor-pointer",
+        // like the app's other take-an-action buttons — settled on the
+        // INK fill (the pre-restyle inverted look, user-ruled back after
+        // trying --fill and --surface), surface text, still flat and
+        // borderless like its row.
+        "header-action": "bg-[var(--ink)] text-[var(--bg)] glow-host cursor-pointer",
       }[variant];
   // Tier shadow as its own single emitter (never two shadow utilities in
   // one string — the cascade-order trap): ALL button variants sit at the

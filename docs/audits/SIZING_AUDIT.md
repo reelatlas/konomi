@@ -519,3 +519,11 @@ lockflow, headerv2 21/21, search — all green. (Inventory note: the
 cream-sweep panel/chip-small + card/chip color flip in this regen is
 the audit sampling a SELECTED chip this run — state nondeterminism,
 not a change from this batch.)
+
+**Batch 6d (2026-07-27) — Clear settles on its original ink fill.**
+After trying --fill (6b) and --surface (6c), user ruled Clear back to
+its pre-restyle black: `header-action` recipe → **--ink fill + --bg
+text** (the exact old `inverted` pair), still flat/borderless/glow like
+its row — so the variant now IS "the inverted look, header-flattened."
+Measured: bg 25,18,37 (--ink #191225), text 239,231,248 (--bg #efe7f8),
+both forms. Suites green.

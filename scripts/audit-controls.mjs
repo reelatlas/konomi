@@ -57,7 +57,7 @@ const registry = [
   R({ id: "header/clear-btn", component: "ActionButton md variant=header-action (--fill bg ready-action; disabled = shared recipe)", file: "src/components/konomi/ResultsHeader.tsx",
       selector: 'button[aria-label="Clear results"]',
       authored: { height: { v: "--control-h-md 40px", kind: "token", src: "SIZE_CLASSES.md" }, font: { v: "--text-xs 11px", kind: "token" },
-        bg: { v: "--surface (whitish) — ready-action fill (user-ruled, was --fill)", kind: "token" },
+        bg: { v: "--ink fill / --bg text — the pre-restyle inverted look (user-ruled back after --fill and --surface trials)", kind: "token" },
         shadow: { v: "none (header-action — flat row)", kind: "literal" } },
       verify: ['variant="header-action"'], states: ["hover", "focus", "disabled:static"] }),
   R({ id: "header/meta-readout", component: "ResultsHeader metadata", file: "src/components/konomi/ResultsHeader.tsx",

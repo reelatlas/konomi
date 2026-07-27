@@ -359,8 +359,8 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
               size="md"
               border="base"
               borderColor="transparent"
-              backgroundColor="var(--surface)"
-              textColor="var(--ink)"
+              backgroundColor="var(--ink)"
+              textColor="var(--bg)"
               title="Clear results"
               aria-label="Clear results"
               visuallyDisabled={clearDisabled}
