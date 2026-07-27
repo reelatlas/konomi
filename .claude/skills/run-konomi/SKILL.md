@@ -108,7 +108,14 @@ lsof -ti:3000 -sTCP:LISTEN | xargs -r kill
   mismatched selector, e.g. an unrelated "Close"); fix the selector rather
   than force-clicking.
 - `EADDRINUSE` on relaunch — a previous dev server still owns :3000; run the
-  lsof kill line first.
+  lsof kill line first. Kill and WAIT for the port to actually free before
+  starting — a raced restart leaves the OLD (stale-CSS) server running while
+  the new one dies silently.
+- **Fonts suddenly wrong app-wide** (mono/body rendering as system fonts) —
+  next/font's Google fetch flaked during a rebuild and dev mode silently
+  fell back (grep the dev log for "establishing a connection …fonts").
+  Restart the server to refetch; happened twice (once as a prod build
+  failure, once as a silent dev fallback after `rm -rf .next`).
 
 ## Test
 
