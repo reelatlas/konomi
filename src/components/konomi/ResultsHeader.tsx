@@ -61,8 +61,41 @@ const UNLOCKED_FEEDBACK_MS = 1100;
 // like the cards do, the paint-over trick is gone (see
 // RecommendationsBody), and the footprint equality is trivial: same row,
 // same remaining space, both states.
+// HEADER RESPONSIVE LADDER (bisected 2026-07-28, results state with all
+// three readouts lit — the worst case; empty state fits far narrower and
+// shares the same rungs for consistency, user-ruled all-at-once):
+//   - min-[754px]  Full form everywhere. (Needs 752 viewport; before this
+//                  ladder the metadata silently WRAPPED to a second row —
+//                  70px tall — everywhere between ~480 and ~750.)
+//   - max-[754px]  RUNG H1: the "new" readout drops its word — icons+
+//                  counts only. (HC1 needs 727.)
+//   - max-[729px]  RUNG H2: Tag Pool, Filters, and Clear ALL drop to
+//                  their icon twins at the same threshold (user-ruled
+//                  consistency — never a mixed row). The filter popover's
+//                  anchor-to-header-row switch rides the SAME rung (kept
+//                  in sync by ruling). (HC2 needs 527 — the search cap's
+//                  200px regime.)
+//   - max-[529px]  RUNG H3: the resting search collapses to a magnify
+//                  icon button (SearchField's own max-[529px] overrides);
+//                  clicking it focuses + expands to the normal engaged
+//                  form, and WHILE ENGAGED below this rung Tag Pool +
+//                  Filters hide to give it room (interim ruling). (HC3
+//                  needs 319 — fits to ~367; below that the metadata's
+//                  flex-wrap remains the last-resort fallback, as ever.)
+// All literals are viewport queries (v4 strict: max-[N] = <N, min/max
+// same-N pairs are exact complements). Deliberately NOT @container on
+// this row: container-type implies contain:layout, which makes the row a
+// stacking context — and this row must NOT be one (see the LEFT cluster
+// comment: the filter popover's z-popover has to resolve against the
+// column so it layers above the pool overlay; trapping it was a real P2
+// regression). Below the column cap, row width = viewport − 48 anyway,
+// so viewport rungs are exact here.
 export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEditMode, lockedCount, newCount, existingCount, onUnlockAll, onClearRecs, clearDisabled, onLevelChange }: ResultsHeaderProps) {
   const nav = useTagPoolNav();
+  // Search engaged (focused or live query), reported by SearchField —
+  // drives the below-H3 hide of Tag Pool/Filters while search is
+  // expanded (see the ladder comment above).
+  const [searchEngaged, setSearchEngaged] = useState(false);
   // Browse mode = the panel is open with no live query — the Tag Pool
   // button shows its active (filled) state. The moment the user types, the
   // field is what reads active (ink border) and the button drops back to
@@ -129,7 +162,7 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
     // Pool in BOTH states — this is the persistent global header), the
     // result-set metadata + Clear ✕ at the right, results state only.
     // relative (no z — deliberately not a stacking context): the Filter
-    // popover's containing block below 480px, where its own wrapper goes
+    // popover's containing block below RUNG H2 (729), where its own wrapper goes
     // static and the dialog drops full-left under this row instead of
     // anchoring to its mid-row trigger (see ResultsFilterButton).
     <div className="relative flex flex-row items-center justify-between min-h-[var(--control-h-md)] gap-x-[var(--space-lg)] mb-[var(--space-lg)]">
@@ -153,18 +186,19 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
         {/* Global search — extracted to its own contained component
             (SearchField, user-ruled: search is its own kind of thing, not
             a button variant); all container/engagement logic lives there. */}
-        <SearchField editMode={editMode} onOpenEditMode={onOpenEditMode} />
+        <SearchField editMode={editMode} onOpenEditMode={onOpenEditMode} onEngagedChange={setSearchEngaged} />
         {/* Tag Pool — the panel's button invoker, mirroring MixerBar's own
             (which stays through Phase 1/2 and leaves in Phase 3). Toggle:
             open ↔ close. Active (filled) exactly while in BROWSE mode —
             panel open, no query (see browseActive above). Two sibling
-            forms below 480px, the same idiom Clear ✕ uses in this row. */}
-        <div className="shrink-0">
+            forms below RUNG H2 (729 — the shared icon-collapse rung, see the
+            ladder comment above), the same idiom Clear ✕ uses in this row. */}
+        <div className={`shrink-0 ${searchEngaged ? "max-[529px]:hidden" : ""}`}>
           {/* Wrapper div carries the responsive display: ActionButton md
               bakes inline-flex unconditionally, so a display utility on
               its own className would be the undefined-cascade-order trap
               (see IconButton's display prop comment). */}
-          <div className="hidden min-[480px]:block">
+          <div className="hidden min-[729px]:block">
           <ActionButton
             variant="header"
             engaged={browseActive}
@@ -190,7 +224,7 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
             title={editMode ? "Close tag pool" : "Open tag pool"}
             aria-label={editMode ? "Close tag pool" : "Open tag pool"}
             onClick={editMode ? onCloseEditMode : onOpenEditMode}
-            display="flex min-[480px]:hidden"
+            display="flex min-[729px]:hidden"
             className="glow-host"
           >
             <TagPoolIcon className={`glow-icon w-[20px] h-[20px] ${browseActive ? "text-[var(--surface)]" : "text-[var(--muted)]"}`} />
@@ -205,7 +239,9 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
             data-results-filter, and it must not be trapped in a stacking
             context below the pool overlay — its own wrapper handles both
             z states (raised closed, popover open). */}
-        <ResultsFilterButton onLevelChange={onLevelChange} />
+        <div className={searchEngaged ? "max-[529px]:hidden" : undefined}>
+          <ResultsFilterButton onLevelChange={onLevelChange} />
+        </div>
       </div>
       {/* RIGHT: result-set metadata + Clear ✕, results state only. The
           metadata (LOCKED · EXISTING · NEW readouts) sits to the LEFT of
@@ -268,7 +304,9 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
           {/* NEW — fresh picks this batch (not in the previous batch). Keeps its
               "new" text label in front of the sparkles icon + count. */}
           <span className={`${metaBase} ${metaColor(newCount)}`} title="new">
-            <span>new</span>
+            {/* RUNG H1: the word drops first — lowest-impact save (25px);
+                icon + count carry on, title keeps the word for hover/AT. */}
+            <span className="max-[754px]:hidden">new</span>
             <span className={iconBox}>
               <NewIcon className={iconSize} />
             </span>
@@ -321,7 +359,7 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
                 guess at a different root cause — confirm on-device that
                 this actually resolves it, since it couldn't be verified
                 by direct reproduction here. */}
-            {/* Two full sibling forms below 480px, not one button with
+            {/* Two full sibling forms below RUNG H2 (729), not one button with
                 internal conditional content — same idiom LevelSelector/
                 SortSelect already use for their own collapsed form,
                 needed here because the collapsed state isn't just "hide
@@ -340,7 +378,7 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
                 visuallyDisabled with an undefined onClick instead. */}
             {/* Wrapper div carries the responsive display + z/shrink (md
                 bakes inline-flex — the undefined-cascade-order trap). */}
-            <div className="hidden min-[480px]:block relative z-[var(--z-raised)] shrink-0 grow-0">
+            <div className="hidden min-[729px]:block relative z-[var(--z-raised)] shrink-0 grow-0">
             {/* Header treatment (was variant="inverted" — the ink-filled
                 look predated the header restyle): quiet rest, glow hover,
                 no engaged state (Clear is an action, not a toggle);
@@ -365,7 +403,7 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
               aria-label="Clear results"
               visuallyDisabled={clearDisabled}
               onClick={clearDisabled ? undefined : onClearRecs}
-              display="flex min-[480px]:hidden"
+              display="flex min-[729px]:hidden"
               className="relative z-[var(--z-raised)] shrink-0 grow-0 glow-host"
             >
               <CloseIcon className="glow-icon w-[20px] h-[20px]" />

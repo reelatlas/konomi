@@ -263,36 +263,43 @@ export function MixerBar({
 
             NOTE — these are @container thresholds against the wrapper
             below (the bar's own content box), NOT viewport media queries:
-            every number is its old viewport value minus 96px (KonomiApp's
-            48px root gutter + this card's own 48px padding).
+            container width = viewport minus 100px (KonomiApp's 48px root
+            gutter + this card's own 48px padding + its 2×2px border-base
+            — the old "−96" convention predated counting the borders;
+            measured 2026-07-28) below the column cap.
 
-              - @min-[975px]  Full form: every control shows its text
+            RE-BISECTED 2026-07-28 for the 40 control tier (the original
+            numbers — 975/654/525/481 — were bisected at the 44 tier AND
+            while the bar still carried its own Tag Pool button, so every
+            rung sat 34-115px too conservative). Method: measured each
+            composition's natural row width (slots at scrollWidth, i.e.
+            unshrunk 258px, + gaps + shrink-0 groups) per band, headless;
+            each new threshold = measured need + 2px buffer. NOTE Tailwind
+            v4 @max-[N] is STRICT (width < N): a @max rung's form appears
+            at N−1 and below; @min-[N]/@max-[N] with the SAME number are
+            exact complements (the label span uses that pairing).
+
+              - @min-[862px]  Full form: every control shows its text
                               label, and the Random/Recommend divider is
-                              visible.
-              - @max-[974px]  RUNG 1: the divider disappears. RUNG 2 (same
+                              visible. (Measured need: 860.)
+              - @max-[861px]  RUNG 1: the divider disappears. RUNG 2 (same
                               threshold): Clear, Random, and Recommend
                               drop to icon-only; Min Match loses only its
-                              "MIN MATCH" text label.
-              - @max-[654px]  RUNG 3: Min Match loses the Tag icon AND
+                              "MIN MATCH" text label. RecommendButton's
+                              twin is a VIEWPORT literal: min-[962px]
+                              (= 862 + 100; keep in sync).
+              - @max-[580px]  RUNG 3: Min Match loses the Tag icon AND
                               switches to the single-tap-cycle collapsed
-                              control, as one combined step.
-              - @max-[525px]  RUNG 4: Clear hidden entirely.
-              - @max-[481px]  RUNG 5: Random hidden entirely. Final
-                              composition below this point: 3 slots, Min
-                              Match (1 icon, collapsed), Recommend.
-            Below @415px even that final composition no longer fits — the
+                              control, as one combined step. (Need: 578.)
+              - @max-[489px]  RUNG 4: Clear hidden entirely. (Need: 487.)
+              - @max-[449px]  RUNG 5: Random hidden entirely. (Need: 447.)
+                              Final composition below this point: 3 slots,
+                              Min Match (1 icon, collapsed), Recommend.
+            Below @395px even that final composition no longer fits — the
             3 slots' own sub-group scrolls internally instead of the row
             wrapping (the last, most expensive rung).
 
-            ⚠️ These rungs were bisected while the bar still carried its
-            own Tag Pool button (removed in search v2 Phase 3 — the
-            header owns pool invocation now; its old rung was @max-[561px],
-            mirrored by the empty-state surfaced button, also removed).
-            With that button's width freed, Clear/Random now hide slightly
-            EARLIER than strictly necessary — safe (no overflow is
-            possible, only premature hiding), but the 525/481 rungs are
-            worth an on-device re-bisection pass when convenient. The 481
-            literal is still MIRRORED in RecommendationsBody.tsx's
+            ⚠️ The 449 literal is MIRRORED in RecommendationsBody.tsx's
             empty-state surfaced Random — if re-bisected, update it there
             too (duplicated literal on purpose: Tailwind container-query
             classes must be static source text).
@@ -359,12 +366,12 @@ export function MixerBar({
                   from its slot directly (tap it, or drag it back out)
                   even without this button. */}
               <div className="flex items-center gap-[var(--space-lg)] shrink-0">
-                <div className="@min-[975px]:hidden @max-[525px]:hidden">
+                <div className="@min-[862px]:hidden @max-[489px]:hidden">
                   <IconButton size="md" border="base" shadow="elev-2" backgroundColor="transparent" title="Clear" aria-label="Clear" onClick={onClearSlots}>
                     <EraserIcon className="w-[20px] h-[20px] text-[var(--ink)]" />
                   </IconButton>
                 </div>
-                <div className="hidden @min-[975px]:block">
+                <div className="hidden @min-[862px]:block">
                   <ActionButton variant="outline" onClick={onClearSlots}>
                     <span className="inline-flex items-center gap-[var(--space-sm)]">
                       Clear
@@ -379,18 +386,19 @@ export function MixerBar({
                 controls never get compressed, just individually hidden by
                 their own rungs. */}
             <div className="ml-auto flex items-center gap-[var(--space-lg)] shrink-0">
-              <div className="@max-[654px]:hidden flex items-center gap-[var(--space-sm)]">
-                {/* @max-[975px]:hidden: the "Min Match" label drops at the
+              <div className="@max-[580px]:hidden flex items-center gap-[var(--space-sm)]">
+                {/* @max-[862px]:hidden (v4 strict <862 — exact complement of the
+                    @min-[862] text forms): the "Min Match" label drops at the
                     shared icon-only rung; the control keeps its 2 icons
                     and 3-segment form through that rung. */}
-                <span className="@max-[975px]:hidden text-label whitespace-nowrap">
+                <span className="@max-[862px]:hidden text-label whitespace-nowrap">
                   Min Match
                 </span>
                 <TagIcon className="w-[20px] h-[20px] text-[var(--ink)]" />
                 <GreaterEqualIcon className="w-[20px] h-[20px] text-[var(--ink)]" />
                 <MatchSelector value={minMatch} onChange={onSetMatch} />
               </div>
-              <div className="hidden @max-[654px]:flex items-center gap-[var(--space-sm)]">
+              <div className="hidden @max-[580px]:flex items-center gap-[var(--space-sm)]">
                 {/* RUNG 3 — the only rung that changes a control itself
                     instead of just losing a label: the Tag icon goes
                     (GreaterEqual alone still reads as "match count") AND
@@ -402,10 +410,10 @@ export function MixerBar({
               {/* Random. Both hide conditions on this SAME div, not nested
                   — nesting left an empty-but-not-display:none box still
                   collecting gap-lg on both sides (a real, reported doubled
-                  gap). ⚠️ SHARED BREAKPOINT (481) — mirrored by the
+                  gap). ⚠️ SHARED BREAKPOINT (449) — mirrored by the
                   empty-state surfaced Random (RecommendationsBody.tsx);
                   re-bisect both together. */}
-              <div className="@min-[975px]:hidden @max-[481px]:hidden">
+              <div className="@min-[862px]:hidden @max-[449px]:hidden">
                 <IconButton
                   size="md"
                   border="base"
@@ -418,7 +426,7 @@ export function MixerBar({
                   <DiceIcon className="w-[20px] h-[20px] text-[var(--ink)]" />
                 </IconButton>
               </div>
-              <div className="hidden @min-[975px]:block">
+              <div className="hidden @min-[862px]:block">
                 <ActionButton variant="filled" onClick={onRandomTags}>
                   <span className="inline-flex items-center gap-[var(--space-sm)]">
                     Random
@@ -434,7 +442,7 @@ export function MixerBar({
                   3px gives the shadow exactly the room it bleeds into
                   ("match the rendered distance, not just the token" —
                   DESIGN_SYSTEM.md). */}
-              <div className="hidden @min-[975px]:block ml-[3px] w-[length:var(--border-base)] h-[32px] bg-[var(--ink)]" />
+              <div className="hidden @min-[862px]:block ml-[3px] w-[length:var(--border-base)] h-[32px] bg-[var(--ink)]" />
               <RecommendButton filledCount={filledCount} onRecommend={onRecommend} error={error} />
             </div>
           </div>

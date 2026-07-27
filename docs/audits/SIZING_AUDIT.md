@@ -527,3 +527,55 @@ text** (the exact old `inverted` pair), still flat/borderless/glow like
 its row — so the variant now IS "the inverted look, header-flattened."
 Measured: bg 25,18,37 (--ink #191225), text 239,231,248 (--bg #efe7f8),
 both forms. Suites green.
+
+**Batch 7 (2026-07-28) — the two rung re-bisects (user-approved plan:
+progressive rungs, all-buttons-flip-together, search collapses last).**
+
+*MixerBar re-bisect (mechanical — logic unchanged, thresholds
+re-measured for the 40 tier).* Method: per-band natural row width =
+slots at scrollWidth (258 unshrunk) + gaps + shrink-0 groups, headless;
+threshold = need + 2px buffer. Every rung was 34–115px conservative
+(bisected at the 44 tier + pre-search-v2 with the bar's own Tag Pool
+button). New chain (container px): **862** full form (need 860; was
+975) · **580** Min Match collapse (578; was 654) · **489** Clear gone
+(487; was 525) · **449** Random gone (447; was 481) · slots scroll
+below ~391 (was ~415). Mirrors updated in lockstep: RecommendButton's
+viewport twins → **min-[962px]** (three literals: text span, icon, AND
+the max-side w/px-0 pair — the width pair was initially missed and
+caught by screenshot: a 40px button with visible RECOMMEND text
+clipping at the card edge); empty-state surfaced Random →
+@max-[449px]. Two conventions CORRECTED while verifying: (1) container
+= viewport − **100**, not the documented −96 (the card's 2×2px borders
+were never counted); (2) Tailwind v4 @max-[N]/max-[N] is STRICT (<N) —
+same-N min/max pairs are exact complements, and the Min Match label
+span needed @max-[862px] (not 861) to avoid a 1px mixed-form window.
+All 10 boundary checks pass at ±1px.
+
+*Header ladder (new — mirrors the mixbar idiom).* Bisected in the
+results state with all three readouts lit (worst case; counts are
+always single-digit at 5 results). Piece widths at rest: search 200
+(cap) · Tag Pool 120 · Filters 113 · meta 136 · Clear 87 → full form
+needs 752 viewport. Finding: the old single 480 cliff let the metadata
+silently WRAP to a second 70px row everywhere in ~480–750. New chain
+(viewport px, +2 buffers): **min-[754]** full · **max-[754]** H1 "new"
+word drops (icons+counts remain; title keeps the word) · **max-[729]**
+H2 Tag Pool + Filters + Clear ALL flip to icon twins at once
+(user-ruled consistency; the filter popover's anchor-to-row switch
+rides the same rung by ruling) · **max-[529]** H3 the resting search
+collapses to a magnify icon button (SearchField's own overrides: fixed
+40px square, gap-0 so the 20px icon truly centers, zero-WIDTH — not
+display:none — input so label-click → focus still works); engaged
+(focus/query) lifts every override and expands to the normal active
+form, and while engaged below H3 Tag Pool + Filters hide for room
+(interim ruling, re-evaluate on feel). Floor: final composition fits
+to ~367; below that the metadata flex-wrap stays the last-resort
+fallback (360 measured wrapping, as before). Kept as VIEWPORT queries
+deliberately, not @container: container-type implies contain:layout →
+a stacking context on the header row, which would trap the filter
+popover's z-popover under the pool overlay (the documented P2
+regression class); below the column cap row width = viewport − 48, so
+viewport rungs are exact. Verified: 8/8 boundary checks, collapsed-tap
+opens panel + focuses + filters chips, Esc rests + neighbors return.
+Suites green (smoke, lockflow, headerv2 21/21, search); registry
+selector repointed (mixbar/clear-btn had the old 975 class baked in —
+caught as a "1 missing" regen).

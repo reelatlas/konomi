@@ -86,7 +86,8 @@ export function ResultsFilterButton({ onLevelChange }: ResultsFilterButtonProps)
     // rather than an explicit ranking (see globals.css's own comment on
     // this token for why MixerBar's cardRef, later in the DOM, would
     // otherwise silently win by accident).
-    // max-[479px]:static (search v2 narrow anchoring): below 480px — the
+    // max-[729px]:static (narrow anchoring, re-rung 2026-07-28 to ride
+    // RUNG H2 — the icon-collapse rung — in sync by ruling): below it the
     // app's established narrow line (Clear/Tag Pool icon forms) — this
     // wrapper stops being the dialog's containing block, so the dialog
     // anchors to the HEADER ROW (ResultsHeader's row div carries
@@ -98,7 +99,7 @@ export function ResultsFilterButton({ onLevelChange }: ResultsFilterButtonProps)
     // 375px). A static wrapper's z-index is inert, so while narrow-open
     // the DIALOG carries its own z-popover (see its className) and the
     // trigger button carries its own z-raised hit-test fix.
-    <div ref={wrapperRef} data-results-filter className={["relative max-[479px]:static", open ? "z-[var(--z-popover)]" : "z-[var(--z-raised)]"].join(" ")}>
+    <div ref={wrapperRef} data-results-filter className={["relative max-[729px]:static", open ? "z-[var(--z-popover)]" : "z-[var(--z-raised)]"].join(" ")}>
       {/* Colour matches the results-header metadata scheme (requested): a
           CLOSED (inactive) filter is --muted — the app's inactive-tab colour,
           the same one the metadata's 0-count readouts use — outlined with a
@@ -120,7 +121,7 @@ export function ResultsFilterButton({ onLevelChange }: ResultsFilterButtonProps)
           dies with it, but the carousel flip-bulge hit-test problem the
           z-raised solves (see ResultsHeader) doesn't — the button keeps
           its own raise at every width. */}
-      <div className="hidden min-[480px]:block relative z-[var(--z-raised)]">
+      <div className="hidden min-[729px]:block relative z-[var(--z-raised)]">
         <ActionButton
           variant="header"
           engaged={open}
@@ -145,7 +146,7 @@ export function ResultsFilterButton({ onLevelChange }: ResultsFilterButtonProps)
         aria-label="filters"
         aria-pressed={open}
         onClick={() => setOpen((o) => !o)}
-        display="flex min-[480px]:hidden"
+        display="flex min-[729px]:hidden"
         className="glow-host relative z-[var(--z-raised)]"
       >
         <FilterIcon className={`glow-icon w-[20px] h-[20px] ${open ? "text-[var(--surface)]" : "text-[var(--muted)]"}`} />

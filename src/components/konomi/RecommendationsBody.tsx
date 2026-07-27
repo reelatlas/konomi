@@ -682,12 +682,12 @@ export function RecommendationsBody({
           {/* Surfaced Random, shown ONLY at the narrow widths where
               MixerBar's control row has dropped it entirely, so a phone
               user keeps one-tap access from the empty state. The
-              @max-[481px] mirrors MixerBar's own Random rung EXACTLY —
+              @max-[449px] mirrors MixerBar's own Random rung EXACTLY —
               querying this box (the @container on its className above),
               whose content width equals the bar's own @container width by
               construction.
 
-              ⚠️ SHARED BREAKPOINT (481) — keep in sync with MixerBar's
+              ⚠️ SHARED BREAKPOINT (449) — keep in sync with MixerBar's
               Random rung. Duplicated literal, not a shared constant, on
               purpose: a Tailwind container-query class must be static
               source text (the scanner can't read a JS constant) — this
@@ -705,7 +705,7 @@ export function RecommendationsBody({
               tapping Random while the pool overlay is open would be
               treated as an outside click and dismiss it — wrong: Random
               should shuffle WITHOUT closing, matching the bar's own. */}
-          <div data-empty-controls className="hidden @max-[481px]:flex items-center gap-[var(--space-xl)]">
+          <div data-empty-controls className="hidden @max-[449px]:flex items-center gap-[var(--space-xl)]">
             <div className="flex-none">
               <div className="@max-[250px]:hidden">
                 <ActionButton variant="filled" onClick={onRandomTags}>

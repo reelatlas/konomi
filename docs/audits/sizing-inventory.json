@@ -1,7 +1,7 @@
 {
  "meta": {
-  "generated": "2026-07-27T08:34:04.467Z",
-  "commit": "88ce644",
+  "generated": "2026-07-27T09:16:21.105Z",
+  "commit": "deaa020",
   "treeDirty": true,
   "url": "http://localhost:3000/film",
   "primaryCapture": {
@@ -503,7 +503,7 @@
   },
   {
    "id": "header/filter-btn",
-   "component": "ActionButton md variant=header 'Filters'+icon >=480 / IconButton twin <480 (Tag Pool format ruling)",
+   "component": "ActionButton md variant=header 'Filters'+icon >=729 / IconButton twin below (rung H2, header ladder)",
    "file": "src/components/konomi/ResultsFilterButton.tsx",
    "authored": {
     "height": {
@@ -1675,7 +1675,7 @@
    },
    "measured": {
     "resting": {
-     "w": 88.2,
+     "w": 54.11,
      "h": 30,
      "fontSize": "11px",
      "fontFamily": "IBM Plex Mono",
@@ -1700,7 +1700,7 @@
     "contrast": 13.27,
     "states": {
      "hover": {
-      "w": 88.2,
+      "w": 54.11,
       "h": 30,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -2001,8 +2001,7 @@
  },
  "mobileSpotPass": {
   "searchField": {
-   "w": 102,
-   "h": 18
+   "hidden": true
   },
   "headerTagPoolIconForm": {
    "w": 40,
@@ -2050,23 +2049,25 @@
  },
  "responsiveFormMap": {
   "mixbar row ladder": [
-   "@max-[481px]:hidden",
-   "@max-[525px]:hidden",
-   "@max-[654px]:flex",
-   "@max-[654px]:hidden",
-   "@max-[975px]:hidden",
-   "@min-[975px]:block",
-   "@min-[975px]:hidden"
+   "@max-[449px]:hidden",
+   "@max-[489px]:hidden",
+   "@max-[580px]:flex",
+   "@max-[580px]:hidden",
+   "@max-[862px]:hidden",
+   "@min-[862px]:block",
+   "@min-[862px]:hidden"
   ],
   "header forms": [
+   "max-[529px]:hidden",
+   "max-[754px]:hidden",
    "min-[417px]:flex-row",
-   "min-[480px]:block",
-   "min-[480px]:hidden"
+   "min-[729px]:block",
+   "min-[729px]:hidden"
   ],
   "empty-state surfaced": [
    "@max-[250px]:block",
    "@max-[250px]:hidden",
-   "@max-[481px]:flex",
+   "@max-[449px]:flex",
    "max-[1152px]:-ml-",
    "max-[1152px]:-mr-",
    "max-[1152px]:block",
@@ -2078,9 +2079,11 @@
   ],
   "recommend icon form": [
    "max-[1070px]:px-",
-   "max-[1070px]:w-",
-   "min-[1071px]:hidden",
-   "min-[1071px]:inline"
+   "max-[962px]:px-",
+   "max-[962px]:w",
+   "max-[962px]:w-",
+   "min-[962px]:hidden",
+   "min-[962px]:inline"
   ]
  },
  "variantUsage": [

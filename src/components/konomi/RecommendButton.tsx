@@ -132,21 +132,21 @@ export function RecommendButton({ filledCount, onRecommend, error }: RecommendBu
             is this button's own one-off, layered on top via `className` — it
             needs to paint above the star layers behind it, which no other
             ActionButton caller needs. */}
-        {/* Icon-only below min-[1071px]: this is one of five controls
-            (Tag Pool, Clear, Min Match's own label, Random, and this one)
-            that all switch to their icon-only form at the exact SAME
-            shared threshold now (RUNG 2 of MixerBar's own unified
-            priority ladder, see that file's own Row 2 comment for the
-            full ladder and why 1071px specifically, it's tied to this
-            row's own pre-existing full-form ceiling, not an independently
-            bisected value). Kept in sync with MixerBar's own breakpoint
+        {/* Icon-only below min-[962px] (viewport twin of MixerBar's
+            @container 862 rung: container = viewport − 100): Clear, Min
+            Match's own label, Random, and this button all switch to
+            their icon-only form at the exact SAME shared threshold
+            (RUNG 2 of MixerBar's own unified priority ladder, see that
+            file's own Row 2 comment — re-bisected 2026-07-28 for the 40
+            tier). Kept in sync with MixerBar's own breakpoint
             deliberately: this button is one rung in that row's single
             chain, not a standalone responsive component anymore.
             aria-label carries the accessible name unconditionally (not
             just below the breakpoint) since a CSS breakpoint can't toggle
             an ARIA attribute at runtime, one static label covers both
             visual forms. */}
-        {/* max-[1070px]:w-[var(--control-h-md)]/px-0 — the icon-only form
+        {/* max-[962px]:w/px-0 (v4 strict <962 — exact complement of the
+            min-[962px] span) — the icon-only form
             (below) sits in the exact same square (--control-h-md, 44px), with
             the same centered-no-padding treatment, as Tag Pool/Clear/Random's
             siblings — requested directly. This stays one ActionButton
@@ -173,10 +173,10 @@ export function RecommendButton({ filledCount, onRecommend, error }: RecommendBu
           disabled={!enabled}
           onClick={onRecommend}
           aria-label="Recommend"
-          className="relative z-[var(--z-raised)] max-[1070px]:w-[var(--control-h-md)] max-[1070px]:px-0"
+          className="relative z-[var(--z-raised)] max-[962px]:w-[var(--control-h-md)] max-[962px]:px-0"
         >
-          <span className="hidden min-[1071px]:inline">RECOMMEND ▸</span>
-          <ArrowRightFilledIcon className="min-[1071px]:hidden" />
+          <span className="hidden min-[962px]:inline">RECOMMEND ▸</span>
+          <ArrowRightFilledIcon className="min-[962px]:hidden" />
         </ActionButton>
         {error && (
           // Same opaque bordered/shadowed chip treatment as ResultCard's

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SearchIcon } from "./icons";
 import { useTagPoolNav } from "./tagPoolNavContext";
 
@@ -10,6 +10,11 @@ interface SearchFieldProps {
   // container opens it. Close/toggle stays with the Tag Pool button.
   editMode: boolean;
   onOpenEditMode: () => void;
+  // Fires when the field's ENGAGED state (focused or live query) flips —
+  // ResultsHeader uses it to hide Tag Pool/Filters while an expanded
+  // search needs their room below the header's own collapse rung
+  // (interim ruling: overlay-the-neighbors; re-evaluate once felt).
+  onEngagedChange?: (engaged: boolean) => void;
 }
 
 // THE global search — its own contained component BY RULING (2026-07-27):
@@ -32,7 +37,7 @@ interface SearchFieldProps {
 // from the one-focus-regime rule — a control with its own strong,
 // deliberate focus treatment; same precedent as the collapsed Min
 // Match/Density buttons).
-export function SearchField({ editMode, onOpenEditMode }: SearchFieldProps) {
+export function SearchField({ editMode, onOpenEditMode, onEngagedChange }: SearchFieldProps) {
   const nav = useTagPoolNav();
   const searchInputRef = useRef<HTMLInputElement>(null);
   // Style-only focus tracking (safe — the focus-opens-panel bug was about
@@ -42,6 +47,9 @@ export function SearchField({ editMode, onOpenEditMode }: SearchFieldProps) {
   // not re-trigger the rest-state hover).
   const [searchFocused, setSearchFocused] = useState(false);
   const engaged = searchFocused || nav.query.length > 0;
+  useEffect(() => {
+    onEngagedChange?.(engaged);
+  }, [engaged, onEngagedChange]);
   return (
     <label
       // onMouseDown: when the input is ALREADY focused, a click on the
@@ -66,6 +74,18 @@ export function SearchField({ editMode, onOpenEditMode }: SearchFieldProps) {
         // its hover affordance (user-ruled).
         engaged ? "" : "glow-host",
         "h-[var(--control-h-md)] w-[min(200px,40vw)] px-[var(--space-lg)] gap-[var(--space-sm)]",
+        // HEADER LADDER RUNG H3 (bisected 2026-07-28, see ResultsHeader's
+        // ladder comment): below 529 viewport the RESTING field collapses
+        // to a magnify icon button (the header icon-twin footprint —
+        // fixed control-h-md square, centered icon, gap collapsed so the
+        // icon truly centers, pointer cursor since it acts as a button).
+        // ENGAGED (focus or query) suppresses every max-[529px] override
+        // — clicking the icon focuses the zero-width input (label
+        // onClick below), focus flips `engaged`, and the field expands
+        // to its normal active form. v4 strict: max-[529px] = <529.
+        engaged
+          ? ""
+          : "max-[529px]:w-[var(--control-h-md)] max-[529px]:px-0 max-[529px]:gap-0 max-[529px]:justify-center max-[529px]:cursor-pointer",
         // borderless rest (border-TRANSPARENT so geometry never
         // shifts); engaged brings the primary frame + surface fill.
         "border-[length:var(--border-base)] transition-colors",
@@ -83,6 +103,11 @@ export function SearchField({ editMode, onOpenEditMode }: SearchFieldProps) {
         ref={searchInputRef}
         type="text"
         value={nav.query}
+        // Collapsed rest (rung H3): the className below keeps the input
+        // zero-WIDTH, not display:none — a display:none input can't
+        // receive focus, and focus is exactly how the collapsed icon
+        // expands the field (label click → focus() → engaged → the
+        // max-[529px] overrides lift).
         onChange={(e) => {
           if (!editMode) onOpenEditMode();
           nav.handleQueryChange(e.target.value);
@@ -105,7 +130,10 @@ export function SearchField({ editMode, onOpenEditMode }: SearchFieldProps) {
         spellCheck={false}
         autoCapitalize="none"
         autoCorrect="off"
-        className="flex-1 min-w-0 bg-transparent [outline:none] font-mono text-[length:var(--text-sm)] text-[var(--ink)] placeholder:text-[var(--muted)]"
+        className={[
+          "flex-1 min-w-0 bg-transparent [outline:none] font-mono text-[length:var(--text-sm)] text-[var(--ink)] placeholder:text-[var(--muted)]",
+          engaged ? "" : "max-[529px]:w-0 max-[529px]:flex-none max-[529px]:p-0",
+        ].join(" ")}
       />
     </label>
   );
