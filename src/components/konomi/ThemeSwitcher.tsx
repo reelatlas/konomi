@@ -91,7 +91,7 @@ export function ThemeSwitcher({ value, onChange, subtextPlacement = "bottom" }: 
             // raw colors, so it can't be expressed with the active theme's
             // CSS vars or as a finite set of static Tailwind classes.
             style={{
-              background: `linear-gradient(135deg, ${t.surface} 0 42%, ${t.primary} 42% 72%, ${t.secondary} 72% 100%)`,
+              background: `linear-gradient(135deg, ${t.surface} 0 42%, ${t.primary} 42% 72%, ${t.accent} 72% 100%)`,
             }}
           />
         );

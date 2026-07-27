@@ -361,9 +361,9 @@
   --fill: #e4d7f4;
   --primary: #564fd6;
   --primary-deep: #24215a;
-  --secondary: #e4f46f;
+  --accent: #e4f46f;
   --on-primary: #fcfaff;
-  --on-secondary: #191225;
+  --on-accent: #191225;
   /* disabled-bg matches slot-empty (both faded-purple) — the recommend
      button's disabled state and an empty drop-tag slot read as the same
      "nothing here yet" surface, not two different grays. */
@@ -383,9 +383,9 @@
   --fill: #26323b;
   --primary: #3486b4;
   --primary-deep: #8fbdd6;
-  --secondary: #6fd3d6;
+  --accent: #6fd3d6;
   --on-primary: #eaf3f5;
-  --on-secondary: #0e1518;
+  --on-accent: #0e1518;
   /* slot-empty matches disabled-bg here, not the other way around: the old
      slot-empty (#1b2329) sat almost on top of --bg (#12181c) and effectively
      disappeared — disabled-bg is the value that actually reads as a
@@ -406,9 +406,9 @@
   --fill: #ebe0cb;
   --primary: #d8392e;
   --primary-deep: #5b1813;
-  --secondary: #f2c14e;
+  --accent: #f2c14e;
   --on-primary: #fff7ec;
-  --on-secondary: #211c17;
+  --on-accent: #211c17;
   /* disabled-bg matches slot-empty, same reasoning as the default theme
      above. */
   --disabled-bg: #f1e9da;
@@ -442,13 +442,13 @@
      axis renamed SELECTED to stop colliding with ActionButton's accent
      background variant).
      --elev-2-selected: the one shadow-COLOR rule — a selected/loaded
-     state keeps its tier's depth but swaps ink → secondary. Single
+     state keeps its tier's depth but swaps ink → the accent pop. Single
      consumer today: the filled tag slot (normalized 4px → 3px, the
      control tier it lives in). */
   --elev-1: 2px 2px 0 var(--ink);
   --elev-2: 3px 3px 0 var(--ink);
   --elev-4: 5px 5px 0 var(--ink);
-  --elev-2-selected: 3px 3px 0 var(--secondary);
+  --elev-2-selected: 3px 3px 0 var(--accent);
 
   /* ResultCard's tag-area background: a translucent wash of --slot-empty
    * over the reflection (see ResultCard.tsx's own comment) — derived here,
@@ -824,8 +824,10 @@
   color: var(--ink);
   background: var(--surface);
   border: var(--border-base) solid var(--ink);
-  /* zero shadow (user-ruled, shadow tiers 2026-07-26): tooltips are
-     messages, not surfaces — the border alone carries the chip edge. */
+  /* elev-1 (user re-ruled after living with zero — "feels weird without
+     it"): tooltips join the dense-accent tier with the card lock/swap
+     buttons and RatingBadge. */
+  box-shadow: var(--elev-1);
   padding: var(--space-xs) var(--space-sm);
 }
 
@@ -1127,8 +1129,8 @@ html.theme-transitioning *::after {
 @keyframes wm-fillcycle {
   0% { fill: var(--wm-fillcol); fill-opacity: 1; }
   10% { fill-opacity: 0; }
-  52% { fill-opacity: 0; fill: var(--secondary); }
-  66% { fill: var(--secondary); fill-opacity: 1; }
+  52% { fill-opacity: 0; fill: var(--accent); }
+  66% { fill: var(--accent); fill-opacity: 1; }
   100% { fill: var(--wm-fillcol); fill-opacity: 1; }
 }
 @keyframes wm-draw {

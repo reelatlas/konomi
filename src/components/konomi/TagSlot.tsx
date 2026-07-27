@@ -131,7 +131,7 @@ export function TagSlot({ index, tag, label, isDragOver, onDragOver, onDragLeave
         // never the same value in any theme). Filled slots keep --ink
         // (solid), unchanged.
         filled ? "border-solid border-[var(--ink)]" : "border-dashed border-[var(--muted)]",
-        filled ? "bg-[var(--primary)]" : isDragOver ? "bg-[var(--secondary)]" : "bg-[var(--slot-empty)]",
+        filled ? "bg-[var(--primary)]" : isDragOver ? "bg-[var(--accent)]" : "bg-[var(--slot-empty)]",
         // elev-2-selected (was elev-3-accent): the ONE shadow-color rule —
         // a loaded state keeps its tier's depth (control tier, 3px) and
         // swaps ink → secondary for the pop. Renamed + normalized 4→3px in

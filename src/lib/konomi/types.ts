@@ -128,9 +128,13 @@ export interface ThemeColors {
   // "the same accent family as primary" but stand out sharply regardless of
   // what it's sitting on, e.g. the mixer error hint stars/text.
   primaryDeep: string;
-  secondary: string;
+  // The bright pop color (lime in the default theme) — RENAMED from
+  // `secondary` 2026-07-26 (user: "secondary" obscured its role; this IS
+  // the accent). ActionButton's old "accent" variant was renamed `cta`
+  // in the same pass so the word collision is gone rather than moved.
+  accent: string;
   onPrimary: string;
-  onSecondary: string;
+  onAccent: string;
   disabledBg: string;
   disabledText: string;
   slotEmpty: string;

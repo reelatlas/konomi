@@ -60,7 +60,7 @@ function tierFor(averageScore: number | null): Tier {
   }
   if (averageScore >= GOOD_THRESHOLD) {
     return {
-      plateClassName: "bg-[var(--secondary)] border-[var(--ink)] text-[var(--on-secondary)]",
+      plateClassName: "bg-[var(--accent)] border-[var(--ink)] text-[var(--on-accent)]",
       ghosts: GOOD_GHOSTS,
     };
   }

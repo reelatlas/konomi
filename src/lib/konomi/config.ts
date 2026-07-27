@@ -1,6 +1,8 @@
 // App-behavior constants.
 export const DEFAULT_RESULT_COUNT = 5;
-export const DEFAULT_ACCENT: "primary" | "secondary" = "secondary";
+// Which pop color RECOMMEND (the cta variant) wears — "accent" is the
+// bright pop (renamed from "secondary" 2026-07-26).
+export const DEFAULT_ACCENT: "primary" | "accent" = "accent";
 export const SHOW_HALFTONE = true;
 export const SLOT_COUNT = 3;
 // Level 3 ("All", widest) tag pool threshold — the floor for a real tag to

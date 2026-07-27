@@ -371,7 +371,7 @@ export function Masthead({ theme, onThemeChange, collapsed }: MastheadProps) {
           expanded bar (h-9 + border-t + mt-[calc(2xl-9px)]); at 1 exactly the
           old collapsed strip (h-3, no border, no margin). */}
       <div
-        className="bg-[var(--secondary)] mx-[calc(var(--space-2xl)*-1)]"
+        className="bg-[var(--accent)] mx-[calc(var(--space-2xl)*-1)]"
         style={{
           height: "calc(9px - 6px * var(--masthead-progress))",
           marginTop: "calc((var(--space-2xl) - 9px) * (1 - var(--masthead-progress)))",

@@ -555,7 +555,7 @@ export function ResultCard({
             // only what leaks at fractional scale. No-image cards keep
             // --surface: their tag area is transparent and this bg IS its
             // intended light backdrop there.
-            hasImage && !reflectionBroken ? "bg-[var(--on-secondary)]" : "bg-[var(--surface)]",
+            hasImage && !reflectionBroken ? "bg-[var(--on-accent)]" : "bg-[var(--surface)]",
             flipped ? "opacity-0 pointer-events-none z-[var(--z-base)]" : "opacity-100 pointer-events-auto z-[var(--z-raised)]",
           ].join(" ")}
         >
@@ -758,7 +758,7 @@ export function ResultCard({
                 photo. on-secondary (not ink/surface) because it's the one
                 role that's guaranteed dark in every theme — ink/surface
                 flip per theme and would go light-on-light in Tide. */}
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[100px] bg-gradient-to-t from-[var(--on-secondary)] to-transparent" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[100px] bg-gradient-to-t from-[var(--on-accent)] to-transparent" />
             {/* items-center normally (centers the single-line hint nicely
                 against the 30px icons, which are still the tallest/only
                 item defining the row's height in that case), but switches
@@ -830,8 +830,8 @@ export function ResultCard({
                 // click listener replaces this on touch.
                 onBlur={supportsHover ? () => setHoveredIcon(null) : undefined}
                 shadow
-                backgroundColor={locked ? "var(--secondary)" : "var(--surface)"}
-                textColor={locked ? "var(--on-secondary)" : "var(--ink)"}
+                backgroundColor={locked ? "var(--accent)" : "var(--surface)"}
+                textColor={locked ? "var(--on-accent)" : "var(--ink)"}
               >
                 {locked ? <LockClosedIcon /> : <LockOpenIcon />}
               </IconButton>
@@ -1077,7 +1077,7 @@ export function ResultCard({
                 right at the top edge (the seam with cover-box, continuous
                 with that box's own bottom scrim, which fades the same
                 direction in reverse) fading to fully transparent going
-                down — the same from-[var(--on-secondary)] to-transparent
+                down — the same from-[var(--on-accent)] to-transparent
                 gradient and h-[100px] span the old reflection block's own
                 continuation scrim used for the identical purpose (see git
                 history), just anchored to this box's own top directly
@@ -1094,7 +1094,7 @@ export function ResultCard({
                 washing the seam's darkness down to the veil's own faint
                 level. */}
             {hasImage && !reflectionBroken && (
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-[100px] z-[var(--z-raised)] bg-gradient-to-b from-[var(--on-secondary)] to-transparent" />
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-[100px] z-[var(--z-raised)] bg-gradient-to-b from-[var(--on-accent)] to-transparent" />
             )}
             {/* Veil: --cover-reflection-veil (globals.css) — a translucent
                 wash of this theme's --slot-empty over the tag area, so it
@@ -1302,7 +1302,7 @@ export function ResultCard({
                 without touching line-height or the line count, confirmed
                 live in TagSlot's own case at exactly this value. */}
             <div className="relative bg-[var(--primary)] px-[var(--space-lg)] py-[var(--space-md)] border-b-[length:var(--border-base)] border-b-[var(--ink)]">
-              <h3 className="font-body font-black text-[length:var(--text-lg)] leading-[var(--leading-tight)] text-[var(--secondary)] line-clamp-2 break-words pb-[4px] m-0">
+              <h3 className="font-body font-black text-[length:var(--text-lg)] leading-[var(--leading-tight)] text-[var(--accent)] line-clamp-2 break-words pb-[4px] m-0">
                 {series.title}
               </h3>
             </div>

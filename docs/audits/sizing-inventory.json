@@ -1,7 +1,7 @@
 {
  "meta": {
-  "generated": "2026-07-27T06:03:51.097Z",
-  "commit": "fa29e10",
+  "generated": "2026-07-27T06:45:18.011Z",
+  "commit": "6bfdcfe",
   "treeDirty": true,
   "url": "http://localhost:3000/film",
   "primaryCapture": {
@@ -39,7 +39,7 @@
    },
    "measured": {
     "resting": {
-     "w": 264.17,
+     "w": 331.84,
      "h": 44,
      "fontSize": "16px",
      "fontFamily": "Zen Kaku Gothic New",
@@ -81,7 +81,7 @@
    },
    "measured": {
     "resting": {
-     "w": 85.39,
+     "w": 117.27,
      "h": 40,
      "fontSize": "11px",
      "fontFamily": "IBM Plex Mono",
@@ -106,7 +106,7 @@
     "contrast": 17.55,
     "states": {
      "hover": {
-      "w": 85.39,
+      "w": 117.27,
       "h": 40,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -129,7 +129,7 @@
       "iconLabelGap": null
      },
      "focusVisible": {
-      "w": 85.39,
+      "w": 117.27,
       "h": 40,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -152,7 +152,7 @@
       "iconLabelGap": null
      },
      "active": {
-      "w": 85.39,
+      "w": 117.27,
       "h": 40,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -201,7 +201,7 @@
    },
    "measured": {
     "resting": {
-     "w": 102,
+     "w": 135,
      "h": 44,
      "fontSize": "11px",
      "fontFamily": "IBM Plex Mono",
@@ -226,7 +226,7 @@
     "contrast": 17.55,
     "states": {
      "hover": {
-      "w": 102,
+      "w": 135,
       "h": 44,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -249,7 +249,7 @@
       "iconLabelGap": null
      },
      "focusVisible": {
-      "w": 102,
+      "w": 135,
       "h": 44,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -405,7 +405,7 @@
    },
    "measured": {
     "resting": {
-     "w": 120.09,
+     "w": 141.84,
      "h": 44,
      "fontSize": "11px",
      "fontFamily": "IBM Plex Mono",
@@ -430,7 +430,7 @@
     "contrast": 13.27,
     "states": {
      "hover": {
-      "w": 120.09,
+      "w": 141.84,
       "h": 44,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -453,7 +453,7 @@
       "iconLabelGap": "6px"
      },
      "focusVisible": {
-      "w": 120.09,
+      "w": 141.84,
       "h": 44,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -476,7 +476,7 @@
       "iconLabelGap": "6px"
      },
      "active": {
-      "w": 120.09,
+      "w": 141.84,
       "h": 44,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -644,7 +644,7 @@
    },
    "measured": {
     "resting": {
-     "w": 86.84,
+     "w": 102.47,
      "h": 44,
      "fontSize": "11px",
      "fontFamily": "IBM Plex Mono",
@@ -669,7 +669,7 @@
     "contrast": 15.12,
     "states": {
      "hover": {
-      "w": 86.84,
+      "w": 102.47,
       "h": 44,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -692,7 +692,7 @@
       "iconLabelGap": null
      },
      "focusVisible": {
-      "w": 86.84,
+      "w": 102.47,
       "h": 44,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -733,7 +733,7 @@
    },
    "measured": {
     "resting": {
-     "w": 29.05,
+     "w": 30.67,
      "h": 18,
      "fontSize": "11px",
      "fontFamily": "IBM Plex Mono",
@@ -758,7 +758,7 @@
     "contrast": 2.44,
     "states": {
      "hover": {
-      "w": 29.05,
+      "w": 30.67,
       "h": 18,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -888,7 +888,7 @@
    },
    "measured": {
     "resting": {
-     "w": 43.56,
+     "w": 88.86,
      "h": 16,
      "fontSize": "16px",
      "fontFamily": "Zen Kaku Gothic New",
@@ -913,7 +913,7 @@
     "contrast": 17.55,
     "states": {
      "hover": {
-      "w": 43.56,
+      "w": 88.86,
       "h": 16,
       "fontSize": "16px",
       "fontFamily": "Zen Kaku Gothic New",
@@ -936,7 +936,7 @@
       "iconLabelGap": "6px"
      },
      "focusVisible": {
-      "w": 43.56,
+      "w": 88.86,
       "h": 16,
       "fontSize": "16px",
       "fontFamily": "Zen Kaku Gothic New",
@@ -985,7 +985,7 @@
    },
    "measured": {
     "resting": {
-     "w": 101.84,
+     "w": 95.02,
      "h": 30,
      "fontSize": "11px",
      "fontFamily": "IBM Plex Mono",
@@ -1010,7 +1010,7 @@
     "contrast": 13.27,
     "states": {
      "hover": {
-      "w": 101.84,
+      "w": 95.02,
       "h": 30,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -1033,7 +1033,7 @@
       "iconLabelGap": null
      },
      "focusVisible": {
-      "w": 101.84,
+      "w": 95.02,
       "h": 30,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -1056,7 +1056,7 @@
       "iconLabelGap": null
      },
      "active": {
-      "w": 101.84,
+      "w": 95.02,
       "h": 30,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -1285,7 +1285,7 @@
    },
    "measured": {
     "resting": {
-     "w": 98.31,
+     "w": 114.66,
      "h": 44,
      "fontSize": "11px",
      "fontFamily": "IBM Plex Mono",
@@ -1310,7 +1310,7 @@
     "contrast": 17.55,
     "states": {
      "hover": {
-      "w": 98.31,
+      "w": 114.66,
       "h": 44,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -1333,7 +1333,7 @@
       "iconLabelGap": "6px"
      },
      "focusVisible": {
-      "w": 98.31,
+      "w": 114.66,
       "h": 44,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -1356,7 +1356,7 @@
       "iconLabelGap": "6px"
      },
      "active": {
-      "w": 98.31,
+      "w": 114.66,
       "h": 44,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -1401,7 +1401,7 @@
    },
    "measured": {
     "resting": {
-     "w": 100.48,
+     "w": 105.36,
      "h": 44,
      "fontSize": "16px",
      "fontFamily": "Zen Kaku Gothic New",
@@ -1447,7 +1447,7 @@
    },
    "measured": {
     "resting": {
-     "w": 105.56,
+     "w": 131.75,
      "h": 44,
      "fontSize": "11px",
      "fontFamily": "IBM Plex Mono",
@@ -1472,7 +1472,7 @@
     "contrast": 13.27,
     "states": {
      "hover": {
-      "w": 105.56,
+      "w": 131.75,
       "h": 44,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -1495,7 +1495,7 @@
       "iconLabelGap": "6px"
      },
      "focusVisible": {
-      "w": 105.56,
+      "w": 131.75,
       "h": 44,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -1518,7 +1518,7 @@
       "iconLabelGap": "6px"
      },
      "active": {
-      "w": 105.56,
+      "w": 131.75,
       "h": 44,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -1553,7 +1553,7 @@
      "kind": "token"
     },
     "shadow": {
-     "v": "--elev-4 5px",
+     "v": "--elev-2 3px (moved from elev-4 by ruling — cta color carries emphasis)",
      "kind": "token"
     },
     "font": {
@@ -1563,7 +1563,7 @@
    },
    "measured": {
     "resting": {
-     "w": 115.89,
+     "w": 151.88,
      "h": 44,
      "fontSize": "11px",
      "fontFamily": "IBM Plex Mono",
@@ -1574,7 +1574,7 @@
      "border": "2px",
      "borderColor": "rgb(25, 18, 37)",
      "radius": "0px",
-     "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(25, 18, 37) 5px 5px 0px 0px",
+     "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(25, 18, 37) 3px 3px 0px 0px",
      "background": "rgb(228, 244, 111)",
      "effectiveBg": "rgb(228, 244, 111)",
      "color": "rgb(25, 18, 37)",
@@ -1588,7 +1588,7 @@
     "contrast": 15.13,
     "states": {
      "hover": {
-      "w": 115.89,
+      "w": 151.88,
       "h": 44,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -1599,7 +1599,7 @@
       "border": "2px",
       "borderColor": "rgb(25, 18, 37)",
       "radius": "0px",
-      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(25, 18, 37) 5px 5px 0px 0px",
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(25, 18, 37) 3px 3px 0px 0px",
       "background": "rgb(228, 244, 111)",
       "effectiveBg": "rgb(228, 244, 111)",
       "color": "rgb(25, 18, 37)",
@@ -1611,7 +1611,7 @@
       "iconLabelGap": null
      },
      "focusVisible": {
-      "w": 115.89,
+      "w": 151.88,
       "h": 44,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -1622,7 +1622,7 @@
       "border": "2px",
       "borderColor": "rgb(25, 18, 37)",
       "radius": "0px",
-      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(25, 18, 37) 5px 5px 0px 0px",
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(25, 18, 37) 3px 3px 0px 0px",
       "background": "rgb(228, 244, 111)",
       "effectiveBg": "rgb(228, 244, 111)",
       "color": "rgb(25, 18, 37)",
@@ -1634,7 +1634,7 @@
       "iconLabelGap": null
      },
      "disabled": {
-      "w": 115.89,
+      "w": 151.88,
       "h": 44,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -1671,7 +1671,7 @@
    },
    "measured": {
     "resting": {
-     "w": 88.2,
+     "w": 84.73,
      "h": 30,
      "fontSize": "11px",
      "fontFamily": "IBM Plex Mono",
@@ -1696,7 +1696,7 @@
     "contrast": 13.27,
     "states": {
      "hover": {
-      "w": 88.2,
+      "w": 84.73,
       "h": 30,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -2011,7 +2011,7 @@
    "hidden": true
   },
   "minMatchCollapsed": {
-   "w": 34.8,
+   "w": 36.5,
    "h": 44
   },
   "recommend": {
@@ -2023,7 +2023,7 @@
    "h": 44
   },
   "surfacedRandom": {
-   "w": 101.6,
+   "w": 127.8,
    "h": 44
   }
  },
@@ -2086,7 +2086,7 @@
     "outline": 1,
     "filled": 3,
     "inverted": 1,
-    "accent": 2
+    "accent": 0
    }
   },
   {
@@ -2122,10 +2122,10 @@
   {
    "what": "elevation token",
    "usage": {
-    "elev-1": 3,
-    "elev-2": 13,
+    "elev-1": 5,
+    "elev-2": 15,
     "elev-3": 1,
-    "elev-4": 7,
+    "elev-4": 5,
     "elev-5": 0,
     "elev-2-accent": 0,
     "elev-3-accent": 0

@@ -218,8 +218,8 @@ interface TagCountBadgeProps {
 export function TagCountBadge({ label, perfect = false, bordered = true, shadow = true, tiltDeg = 0 }: TagCountBadgeProps) {
   const borderWidth = bordered ? 2 : 0; // matches --border-thin
   const ringWidth = holeRingWidth(borderWidth);
-  const fill = perfect ? "var(--secondary)" : "var(--surface)";
-  const textColorClass = perfect ? "text-[var(--on-secondary)]" : "text-[var(--ink)]";
+  const fill = perfect ? "var(--accent)" : "var(--surface)";
+  const textColorClass = perfect ? "text-[var(--on-accent)]" : "text-[var(--ink)]";
 
   // The hole-mask's own rect (below) has to extend past the visible canvas
   // by at least borderWidth/2 in every direction — that's exactly how far

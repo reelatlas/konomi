@@ -1,14 +1,13 @@
-export type ActionButtonVariant = "outline" | "filled" | "inverted" | "accent";
+export type ActionButtonVariant = "outline" | "filled" | "inverted" | "cta";
 export type ActionButtonSize = "md" | "sm";
 
 interface ActionButtonProps {
   variant: ActionButtonVariant;
-  // Only meaningful for variant="accent" — which of the two "pop" colors to
-  // use. Mirrors DEFAULT_ACCENT's own two options (config.ts) rather than
-  // duplicating that config here; the one caller that needs this
-  // (RecommendButton) already resolves it from that config and just passes
-  // the result through.
-  accentColor?: "primary" | "secondary";
+  // Only meaningful for variant="cta" (RECOMMEND — renamed from "accent"
+  // 2026-07-26 when the color token took that word: the variant names a
+  // ROLE, the token a COLOR). Which of the two pop colors the CTA wears;
+  // mirrors DEFAULT_ACCENT's options (config.ts).
+  ctaColor?: "primary" | "accent";
   size?: ActionButtonSize;
   // Default true. The HEADER ROW is flat by ruling (shadow tiers,
   // 2026-07-26): any button rendered there passes shadow={false} — one
@@ -91,7 +90,7 @@ const SIZE_CLASSES: Record<ActionButtonSize, string> = {
 // disables, but this keeps Random/Clear's own disabled treatment defined
 // and consistent for whenever (if ever) they need one, rather than a second
 // disabled code path only accent variants get.
-export function ActionButton({ variant, accentColor, size = "md", shadow = true, disabled, onClick, "aria-label": ariaLabel, className, children }: ActionButtonProps) {
+export function ActionButton({ variant, ctaColor, size = "md", shadow = true, disabled, onClick, "aria-label": ariaLabel, className, children }: ActionButtonProps) {
   const variantClasses = disabled
     ? "bg-[var(--disabled-bg)] text-[var(--disabled-text)] shadow-none cursor-not-allowed"
     : {
@@ -102,16 +101,18 @@ export function ActionButton({ variant, accentColor, size = "md", shadow = true,
         filled: "bg-[var(--fill)] text-[var(--ink)] cursor-pointer",
         // No shadow ever — the inverted look is deliberately flat.
         inverted: "bg-[var(--ink)] text-[var(--bg)] cursor-pointer",
-        accent:
-          accentColor === "secondary"
-            ? "bg-[var(--secondary)] text-[var(--on-secondary)] cursor-pointer"
+        cta:
+          ctaColor === "accent"
+            ? "bg-[var(--accent)] text-[var(--on-accent)] cursor-pointer"
             : "bg-[var(--primary)] text-[var(--on-primary)] cursor-pointer",
       }[variant];
   // Tier shadow as its own single emitter (never two shadow utilities in
-  // one string — the cascade-order trap): outline/filled = control tier
-  // elev-2; accent = surface/hero tier elev-4 (RECOMMEND, kept there by
-  // ruling); inverted = none by design; shadow={false} = the flat rule.
-  const shadowClass = disabled || !shadow ? "" : { outline: "shadow-[var(--elev-2)]", filled: "shadow-[var(--elev-2)]", inverted: "", accent: "shadow-[var(--elev-4)]" }[variant];
+  // one string — the cascade-order trap): ALL button variants sit at the
+  // control tier elev-2 now — RECOMMEND moved down from elev-4
+  // (user-ruled 2026-07-26: it stood out too much at 5; its cta color
+  // already carries the emphasis). inverted = none by design;
+  // shadow={false} = the header-flat rule.
+  const shadowClass = disabled || !shadow ? "" : { outline: "shadow-[var(--elev-2)]", filled: "shadow-[var(--elev-2)]", inverted: "", cta: "shadow-[var(--elev-2)]" }[variant];
 
   return (
     <button

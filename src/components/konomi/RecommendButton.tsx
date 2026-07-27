@@ -120,7 +120,7 @@ export function RecommendButton({ filledCount, onRecommend, error }: RecommendBu
             STAR_CLIP,
             "animate-[kono-spin_20s_linear_infinite]",
             error ? "[animation-play-state:paused]" : "[animation-play-state:running]",
-            accent === "primary" ? "bg-[var(--secondary)]" : "bg-[var(--primary)]",
+            accent === "primary" ? "bg-[var(--accent)]" : "bg-[var(--primary)]",
             enabled ? "opacity-95" : "opacity-35",
           ].join(" ")}
         />
@@ -168,8 +168,8 @@ export function RecommendButton({ filledCount, onRecommend, error }: RecommendBu
             wins over SIZE_CLASSES.md's own unconditional px-[space-xl]
             once the media query is active. */}
         <ActionButton
-          variant="accent"
-          accentColor={accent}
+          variant="cta"
+          ctaColor={accent}
           disabled={!enabled}
           onClick={onRecommend}
           aria-label="Recommend"

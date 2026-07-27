@@ -383,3 +383,21 @@ one-char buffer), taking the smaller of length-tier and word-tier, plus
 a break-words backstop so nothing can ever bleed into the border —
 symmetric padding by construction. Verified: shapeshifting → 9px, fits;
 heist 12 / cyberpunk 11 / de niro 11 unchanged.
+
+**Batch 4c (2026-07-26) — RECOMMEND to the control tier, the accent
+rename, tooltip shadow restored.** RECOMMEND elev-4 → elev-2
+(user-ruled: it stood out too much at 5; its color already carries the
+emphasis) — ALL button variants now sit at elev-2, and elev-4 is purely
+the surface tier (cards / overlay / mixbar). Color rename executed:
+`--secondary`/`--on-secondary` → **`--accent`/`--on-accent`** (token,
+themes.ts fields accent/onAccent, ThemeColors interface) — user:
+"secondary" obscured that this IS the app's pop color. The ActionButton
+variant that shared the word renamed **`accent` → `cta`**
+(accentColor → `ctaColor: "primary" | "accent"`; DEFAULT_ACCENT domain
+updated) so the variant names a ROLE and the token a COLOR — collision
+deleted, not relocated. SectionTabStrip's size="secondary" is a
+different domain (tab tiers) and deliberately untouched. Pure rename:
+computed colors verified identical (RECOMMEND lime bg, slot selected
+shadow lime, --accent #e4f46f). Tooltip-chip back to **elev-1**
+(user re-ruled after living with zero: "feels weird without it") —
+joins the dense-accent tier.
