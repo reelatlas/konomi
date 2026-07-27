@@ -436,3 +436,21 @@ equal-padded, buttons don't); 16:12 ≈ 1.33 is on the LOW end of the
 1.5-3x convention, so if anything horizontal could grow — never
 equalize. Padding-eyeball question considered self-resolved at 40
 unless the user reopens it.
+
+**Batch 6 (2026-07-27) — the header treatment (user-ruled, scoped to
+header-bar items only).** One shared-component axis, no clones:
+ActionButton gains **`variant="header"` + `engaged`** — REST =
+flat/transparent, --muted border+content, glow-host hover (the Filter
+button's recipe, now the named reference treatment); ENGAGED = --primary
+fill + --surface content + --primary border. Applied to the header's
+Tag Pool (engaged = browse mode) and Clear (action, never engaged;
+was `inverted`/ink-filled), with the <480px icon twins on the same
+recipe via IconButton's color props. The SEARCH FIELD restructured into
+ONE container — a <label> (native click-to-focus) with the icon INSIDE
+the box: rest = flat/muted like the buttons; hover = glow; engaged
+(`:focus-within` or live query) = --surface fill + --primary border,
+REPLACING the blue focus ring by ruling — the input is [outline:none]
+and the container's primary border+fill is the focus affordance (the
+documented deviation class; collapsed-selector precedent). Verified:
+rest/browse/searching states render per spec (primary 86,79,214 border
++ surface fill engaged; muted 169,133,226 rest); suites green.

@@ -1,4 +1,4 @@
-export type ActionButtonVariant = "outline" | "filled" | "inverted" | "cta";
+export type ActionButtonVariant = "outline" | "filled" | "inverted" | "cta" | "header";
 export type ActionButtonSize = "md" | "sm";
 
 interface ActionButtonProps {
@@ -8,6 +8,13 @@ interface ActionButtonProps {
   // ROLE, the token a COLOR). Which of the two pop colors the CTA wears;
   // mirrors DEFAULT_ACCENT's options (config.ts).
   ctaColor?: "primary" | "accent";
+  // Only meaningful for variant="header" (the header-row treatment,
+  // user-ruled 2026-07-27, modeled on the Filter icon button's states):
+  // rest = flat/transparent with --muted border+content and the shared
+  // glow-host hover bloom; engaged = --primary fill with --surface
+  // content (the filter's open recipe). One shared component, one
+  // variant — never a cloned header component.
+  engaged?: boolean;
   size?: ActionButtonSize;
   // Default true. The HEADER ROW is flat by ruling (shadow tiers,
   // 2026-07-26): any button rendered there passes shadow={false} — one
@@ -91,7 +98,7 @@ const SIZE_CLASSES: Record<ActionButtonSize, string> = {
 // disables, but this keeps Random/Clear's own disabled treatment defined
 // and consistent for whenever (if ever) they need one, rather than a second
 // disabled code path only accent variants get.
-export function ActionButton({ variant, ctaColor, size = "md", shadow = true, disabled, onClick, "aria-label": ariaLabel, className, children }: ActionButtonProps) {
+export function ActionButton({ variant, ctaColor, engaged, size = "md", shadow = true, disabled, onClick, "aria-label": ariaLabel, className, children }: ActionButtonProps) {
   const variantClasses = disabled
     ? "bg-[var(--disabled-bg)] text-[var(--disabled-text)] shadow-none cursor-not-allowed"
     : {
@@ -106,6 +113,9 @@ export function ActionButton({ variant, ctaColor, size = "md", shadow = true, di
           ctaColor === "accent"
             ? "bg-[var(--accent)] text-[var(--on-accent)] cursor-pointer"
             : "bg-[var(--primary)] text-[var(--on-primary)] cursor-pointer",
+        header: engaged
+          ? "bg-[var(--primary)] text-[var(--surface)] cursor-pointer"
+          : "bg-transparent text-[var(--muted)] glow-host cursor-pointer",
       }[variant];
   // Tier shadow as its own single emitter (never two shadow utilities in
   // one string — the cascade-order trap): ALL button variants sit at the
@@ -113,7 +123,7 @@ export function ActionButton({ variant, ctaColor, size = "md", shadow = true, di
   // (user-ruled 2026-07-26: it stood out too much at 5; its cta color
   // already carries the emphasis). inverted = none by design;
   // shadow={false} = the header-flat rule.
-  const shadowClass = disabled || !shadow ? "" : { outline: "shadow-[var(--elev-2)]", filled: "shadow-[var(--elev-2)]", inverted: "", cta: "shadow-[var(--elev-2)]" }[variant];
+  const shadowClass = disabled || !shadow ? "" : { outline: "shadow-[var(--elev-2)]", filled: "shadow-[var(--elev-2)]", inverted: "", cta: "shadow-[var(--elev-2)]", header: "" }[variant];
 
   return (
     <button
@@ -134,7 +144,16 @@ export function ActionButton({ variant, ctaColor, size = "md", shadow = true, di
         // icon use (ResultsFilterButton) — requested for Clear ✕'s disabled
         // state and applied to the shared disabled treatment uniformly, so a
         // disabled button's frame reads as muted as its fill/text tokens.
-        disabled ? "border-[var(--muted)]" : "border-[var(--ink)]",
+        // Single border-color emitter (the cascade-order rule). The header
+        // variant colors its frame by state (muted at rest, primary when
+        // engaged) instead of the standard ink.
+        disabled
+          ? "border-[var(--muted)]"
+          : variant === "header"
+            ? engaged
+              ? "border-[var(--primary)]"
+              : "border-[var(--muted)]"
+            : "border-[var(--ink)]",
         SIZE_CLASSES[size],
         variantClasses,
         shadowClass,

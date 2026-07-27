@@ -150,27 +150,32 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
           scoped HERE, where no popover needs to escape it. */}
       <div className="flex items-center gap-[var(--space-lg)] min-w-0">
         <div data-global-search className="relative z-[var(--z-raised)] flex items-center gap-[var(--space-lg)] min-w-0">
-        {/* Global search — THE one search (v2: moved out of the pool
-            panel; it steers the pool nav via TagPoolNavProvider). Always
-            visible, always live. Focusing/clicking it opens the panel;
-            typing switches browse mode to search mode. Box recipe
-            unchanged from v1 (24px, mono, surface bg, thin border) — the
-            border/icon read ink while a query is live (the field is "the
-            active one" in search mode), muted at rest. */}
-        <div className="flex items-center shrink-0">
-          <IconButton
-            size="md"
-            border="none"
-            backgroundColor="transparent"
-            title="Search tags"
-            aria-label="Search all tags"
-            onClick={() => {
-              searchInputRef.current?.focus();
-              if (!editMode) onOpenEditMode();
-            }}
-          >
-            <SearchIcon className={`w-[20px] h-[20px] ${nav.query ? "text-[var(--ink)]" : "text-[var(--muted)]"}`} />
-          </IconButton>
+        {/* Global search — THE one search, restyled to the header
+            treatment (user-ruled 2026-07-27): ONE visual container (a
+            <label>, so clicking anywhere in it natively focuses the
+            input) holding the icon INSIDE the box. States mirror the
+            Filter button's: REST = flat/transparent, --muted border,
+            icon and placeholder; HOVER = the shared glow bloom
+            (glow-host/glow-icon); ENGAGED (focus via :focus-within, or a
+            live query via React) = --surface fill + --primary border —
+            the same active border the Filter/Tag Pool buttons use,
+            replacing the blue focus ring here BY RULING: the input is
+            [outline:none] and the container's primary border + fill IS
+            the focus affordance (the documented deviation class from the
+            one-focus-regime rule — a control with its own strong,
+            deliberate focus treatment; same precedent as the collapsed
+            Min Match/Density buttons). */}
+        <label
+          className={[
+            "flex items-center shrink-0 cursor-text glow-host",
+            "h-[var(--control-h-md)] w-[min(200px,40vw)] px-[var(--space-lg)] gap-[var(--space-sm)]",
+            "border-[length:var(--border-base)] transition-colors",
+            nav.query
+              ? "border-[var(--primary)] bg-[var(--surface)]"
+              : "border-[var(--muted)] bg-transparent focus-within:border-[var(--primary)] focus-within:bg-[var(--surface)]",
+          ].join(" ")}
+        >
+          <SearchIcon className={`glow-icon w-[20px] h-[20px] shrink-0 ${nav.query ? "text-[var(--ink)]" : "text-[var(--muted)]"}`} />
           <input
             ref={searchInputRef}
             type="text"
@@ -185,7 +190,8 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
             // onFocus-opens rule turns every outside-click close into an
             // immediate programmatic re-open (confirmed live — the panel
             // became unclosable). Click + typing are the USER's open
-            // signals; programmatic focus arrivals stay inert.
+            // signals; programmatic focus arrivals stay inert. The label
+            // wrapper forwards its clicks here natively.
             onClick={() => {
               if (!editMode) onOpenEditMode();
             }}
@@ -194,19 +200,9 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
             spellCheck={false}
             autoCapitalize="none"
             autoCorrect="off"
-            className={[
-              "h-[var(--control-h-md)] w-[min(200px,40vw)] px-[var(--space-lg)] font-mono text-[length:var(--text-sm)]",
-              // focus-ring-inset: the app's ONE focus regime (user-ruled).
-              // This input previously suppressed focus entirely
-              // (outline-none, no replacement) — an a11y gap on the
-              // primary entry point, found in SIZING_AUDIT.md §2.
-              "focus-ring-inset",
-              "bg-[var(--surface)] text-[var(--ink)] placeholder:text-[var(--subtext)]",
-              "border-[length:var(--border-base)]",
-              nav.query ? "border-[var(--ink)]" : "border-[var(--muted)]",
-            ].join(" ")}
+            className="flex-1 min-w-0 bg-transparent [outline:none] font-mono text-[length:var(--text-sm)] text-[var(--ink)] placeholder:text-[var(--muted)]"
           />
-        </div>
+        </label>
         {/* Tag Pool — the panel's button invoker, mirroring MixerBar's own
             (which stays through Phase 1/2 and leaves in Phase 3). Toggle:
             open ↔ close. Active (filled) exactly while in BROWSE mode —
@@ -219,29 +215,34 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
               (see IconButton's display prop comment). */}
           <div className="hidden min-[480px]:block">
           <ActionButton
-            variant={browseActive ? "filled" : "outline"}
-            // The header row is FLAT (shadow tiers ruling) — every control
-            // in this row is shadowless, whatever its component default.
-            shadow={false}
+            variant="header"
+            engaged={browseActive}
             onClick={editMode ? onCloseEditMode : onOpenEditMode}
             aria-label={editMode ? "Close tag pool" : "Open tag pool"}
           >
+            {/* Icon inherits the variant's state color (currentColor) —
+                muted at rest, surface when engaged; glow-icon rides the
+                variant's glow-host hover. */}
             <span className="inline-flex items-center gap-[var(--space-sm)]">
               Tag Pool
-              <TagPoolIcon className="w-[20px] h-[20px] text-[var(--ink)]" />
+              <TagPoolIcon className="glow-icon w-[20px] h-[20px]" />
             </span>
           </ActionButton>
           </div>
+          {/* Icon twin: same header treatment via IconButton's color
+              props (the Filter button's exact recipe). */}
           <IconButton
             size="md"
             border="base"
-            backgroundColor={browseActive ? "var(--fill)" : "transparent"}
+            borderColor={browseActive ? "var(--primary)" : "var(--muted)"}
+            backgroundColor={browseActive ? "var(--primary)" : "transparent"}
             title={editMode ? "Close tag pool" : "Open tag pool"}
             aria-label={editMode ? "Close tag pool" : "Open tag pool"}
             onClick={editMode ? onCloseEditMode : onOpenEditMode}
             display="flex min-[480px]:hidden"
+            className="glow-host"
           >
-            <TagPoolIcon className="w-[20px] h-[20px] text-[var(--ink)]" />
+            <TagPoolIcon className={`glow-icon w-[20px] h-[20px] ${browseActive ? "text-[var(--surface)]" : "text-[var(--muted)]"}`} />
           </IconButton>
         </div>
         </div>
@@ -389,8 +390,12 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
             {/* Wrapper div carries the responsive display + z/shrink (md
                 bakes inline-flex — the undefined-cascade-order trap). */}
             <div className="hidden min-[480px]:block relative z-[var(--z-raised)] shrink-0 grow-0">
+            {/* Header treatment (was variant="inverted" — the ink-filled
+                look predated the header restyle): quiet rest, glow hover,
+                no engaged state (Clear is an action, not a toggle);
+                disabled (all-locked) keeps the shared disabled recipe. */}
             <ActionButton
-              variant="inverted"
+              variant="header"
               disabled={clearDisabled}
               onClick={onClearRecs}
               aria-label="Clear results"
@@ -398,23 +403,21 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
               Clear ✕
             </ActionButton>
             </div>
+            {/* Icon twin, header treatment (was ink-filled). */}
             <IconButton
               size="md"
               border="base"
-              // Muted border when disabled, matching the ActionButton form's
-              // own disabled border (see ActionButton) and the Filter
-              // button's inactive border colour beside it.
-              borderColor={clearDisabled ? "var(--muted)" : undefined}
-              backgroundColor="var(--ink)"
-              textColor="var(--bg)"
+              borderColor="var(--muted)"
+              backgroundColor="transparent"
+              textColor="var(--muted)"
               title="Clear results"
               aria-label="Clear results"
               visuallyDisabled={clearDisabled}
               onClick={clearDisabled ? undefined : onClearRecs}
               display="flex min-[480px]:hidden"
-              className="relative z-[var(--z-raised)] shrink-0 grow-0"
+              className="relative z-[var(--z-raised)] shrink-0 grow-0 glow-host"
             >
-              <CloseIcon className="w-[20px] h-[20px]" />
+              <CloseIcon className="glow-icon w-[20px] h-[20px]" />
             </IconButton>
           </span>
           }

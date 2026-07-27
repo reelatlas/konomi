@@ -1,7 +1,7 @@
 {
  "meta": {
-  "generated": "2026-07-27T07:11:55.435Z",
-  "commit": "3154b8b",
+  "generated": "2026-07-27T07:42:30.678Z",
+  "commit": "8f7d258",
   "treeDirty": true,
   "url": "http://localhost:3000/film",
   "primaryCapture": {
@@ -303,20 +303,20 @@
    },
    "measured": {
     "resting": {
-     "w": 200,
-     "h": 40,
+     "w": 146,
+     "h": 18,
      "fontSize": "12px",
      "fontFamily": "IBM Plex Mono",
      "fontWeight": "400",
      "lineHeight": "18px",
      "letterSpacing": "normal",
-     "padding": "0px 12px 0px 12px",
-     "border": "2px",
-     "borderColor": "rgb(169, 133, 226)",
+     "padding": "0px 0px 0px 0px",
+     "border": "0px",
+     "borderColor": "rgb(25, 18, 37)",
      "radius": "0px",
      "boxShadow": "none",
-     "background": "rgb(252, 250, 255)",
-     "effectiveBg": "rgb(252, 250, 255)",
+     "background": "rgba(0, 0, 0, 0)",
+     "effectiveBg": "rgb(239, 231, 248)",
      "color": "rgb(25, 18, 37)",
      "outline": "none",
      "opacity": "1",
@@ -325,23 +325,23 @@
      "iconSize": null,
      "iconLabelGap": null
     },
-    "contrast": 17.55,
+    "contrast": 15.12,
     "states": {
      "hover": {
-      "w": 200,
-      "h": 40,
+      "w": 146,
+      "h": 18,
       "fontSize": "12px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "400",
       "lineHeight": "18px",
       "letterSpacing": "normal",
-      "padding": "0px 12px 0px 12px",
-      "border": "2px",
-      "borderColor": "rgb(169, 133, 226)",
+      "padding": "0px 0px 0px 0px",
+      "border": "0px",
+      "borderColor": "rgb(25, 18, 37)",
       "radius": "0px",
       "boxShadow": "none",
-      "background": "rgb(252, 250, 255)",
-      "effectiveBg": "rgb(252, 250, 255)",
+      "background": "rgba(0, 0, 0, 0)",
+      "effectiveBg": "rgb(239, 231, 248)",
       "color": "rgb(25, 18, 37)",
       "outline": "none",
       "opacity": "1",
@@ -351,22 +351,22 @@
       "iconLabelGap": null
      },
      "focusVisible": {
-      "w": 200,
-      "h": 40,
+      "w": 146,
+      "h": 18,
       "fontSize": "12px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "400",
       "lineHeight": "18px",
       "letterSpacing": "normal",
-      "padding": "0px 12px 0px 12px",
-      "border": "2px",
-      "borderColor": "rgb(169, 133, 226)",
+      "padding": "0px 0px 0px 0px",
+      "border": "0px",
+      "borderColor": "rgb(25, 18, 37)",
       "radius": "0px",
       "boxShadow": "none",
-      "background": "rgb(252, 250, 255)",
-      "effectiveBg": "rgb(252, 250, 255)",
+      "background": "rgba(0, 0, 0, 0)",
+      "effectiveBg": "rgba(252, 250, 255, 0.78)",
       "color": "rgb(25, 18, 37)",
-      "outline": "2px solid offset -2px",
+      "outline": "none",
       "opacity": "1",
       "cursor": "text",
       "transition": "none",
@@ -414,12 +414,12 @@
      "letterSpacing": "0.66px",
      "padding": "0px 16px 0px 16px",
      "border": "2px",
-     "borderColor": "rgb(25, 18, 37)",
+     "borderColor": "rgb(86, 79, 214)",
      "radius": "0px",
      "boxShadow": "none",
-     "background": "rgb(228, 215, 244)",
-     "effectiveBg": "rgb(228, 215, 244)",
-     "color": "rgb(25, 18, 37)",
+     "background": "rgb(86, 79, 214)",
+     "effectiveBg": "rgb(86, 79, 214)",
+     "color": "rgb(252, 250, 255)",
      "outline": "none",
      "opacity": "1",
      "cursor": "pointer",
@@ -427,7 +427,7 @@
      "iconSize": "20px×20px",
      "iconLabelGap": "6px"
     },
-    "contrast": 13.27,
+    "contrast": 5.81,
     "states": {
      "hover": {
       "w": 120.09,
@@ -439,12 +439,12 @@
       "letterSpacing": "0.66px",
       "padding": "0px 16px 0px 16px",
       "border": "2px",
-      "borderColor": "rgb(25, 18, 37)",
+      "borderColor": "rgb(86, 79, 214)",
       "radius": "0px",
       "boxShadow": "none",
-      "background": "rgb(228, 215, 244)",
-      "effectiveBg": "rgb(228, 215, 244)",
-      "color": "rgb(25, 18, 37)",
+      "background": "rgb(86, 79, 214)",
+      "effectiveBg": "rgb(86, 79, 214)",
+      "color": "rgb(252, 250, 255)",
       "outline": "none",
       "opacity": "1",
       "cursor": "pointer",
@@ -462,12 +462,12 @@
       "letterSpacing": "0.66px",
       "padding": "0px 16px 0px 16px",
       "border": "2px",
-      "borderColor": "rgb(25, 18, 37)",
+      "borderColor": "rgb(86, 79, 214)",
       "radius": "0px",
       "boxShadow": "none",
-      "background": "rgb(228, 215, 244)",
-      "effectiveBg": "rgb(228, 215, 244)",
-      "color": "rgb(25, 18, 37)",
+      "background": "rgb(86, 79, 214)",
+      "effectiveBg": "rgb(86, 79, 214)",
+      "color": "rgb(252, 250, 255)",
       "outline": "2px solid offset -2px",
       "opacity": "1",
       "cursor": "pointer",
@@ -485,12 +485,12 @@
       "letterSpacing": "0.66px",
       "padding": "0px 16px 0px 16px",
       "border": "2px",
-      "borderColor": "rgb(25, 18, 37)",
+      "borderColor": "rgb(86, 79, 214)",
       "radius": "0px",
       "boxShadow": "none",
-      "background": "rgb(228, 215, 244)",
-      "effectiveBg": "rgb(228, 215, 244)",
-      "color": "rgb(25, 18, 37)",
+      "background": "rgb(86, 79, 214)",
+      "effectiveBg": "rgb(86, 79, 214)",
+      "color": "rgb(252, 250, 255)",
       "outline": "none",
       "opacity": "1",
       "cursor": "pointer",
@@ -653,12 +653,12 @@
      "letterSpacing": "0.66px",
      "padding": "0px 16px 0px 16px",
      "border": "2px",
-     "borderColor": "rgb(25, 18, 37)",
+     "borderColor": "rgb(169, 133, 226)",
      "radius": "0px",
      "boxShadow": "none",
-     "background": "rgb(25, 18, 37)",
-     "effectiveBg": "rgb(25, 18, 37)",
-     "color": "rgb(239, 231, 248)",
+     "background": "rgba(0, 0, 0, 0)",
+     "effectiveBg": "rgb(239, 231, 248)",
+     "color": "rgb(169, 133, 226)",
      "outline": "none",
      "opacity": "1",
      "cursor": "pointer",
@@ -666,7 +666,7 @@
      "iconSize": null,
      "iconLabelGap": null
     },
-    "contrast": 15.12,
+    "contrast": 2.44,
     "states": {
      "hover": {
       "w": 86.84,
@@ -678,12 +678,12 @@
       "letterSpacing": "0.66px",
       "padding": "0px 16px 0px 16px",
       "border": "2px",
-      "borderColor": "rgb(25, 18, 37)",
+      "borderColor": "rgb(169, 133, 226)",
       "radius": "0px",
       "boxShadow": "none",
-      "background": "rgb(25, 18, 37)",
-      "effectiveBg": "rgb(25, 18, 37)",
-      "color": "rgb(239, 231, 248)",
+      "background": "rgba(0, 0, 0, 0)",
+      "effectiveBg": "rgb(239, 231, 248)",
+      "color": "rgb(169, 133, 226)",
       "outline": "none",
       "opacity": "1",
       "cursor": "pointer",
@@ -701,12 +701,12 @@
       "letterSpacing": "0.66px",
       "padding": "0px 16px 0px 16px",
       "border": "2px",
-      "borderColor": "rgb(25, 18, 37)",
+      "borderColor": "rgb(169, 133, 226)",
       "radius": "0px",
       "boxShadow": "none",
-      "background": "rgb(25, 18, 37)",
-      "effectiveBg": "rgb(25, 18, 37)",
-      "color": "rgb(239, 231, 248)",
+      "background": "rgba(0, 0, 0, 0)",
+      "effectiveBg": "rgb(239, 231, 248)",
+      "color": "rgb(169, 133, 226)",
       "outline": "2px solid offset -2px",
       "opacity": "1",
       "cursor": "pointer",
@@ -888,7 +888,7 @@
    },
    "measured": {
     "resting": {
-     "w": 65.56,
+     "w": 43.56,
      "h": 16,
      "fontSize": "16px",
      "fontFamily": "Zen Kaku Gothic New",
@@ -913,7 +913,7 @@
     "contrast": 17.55,
     "states": {
      "hover": {
-      "w": 65.56,
+      "w": 43.56,
       "h": 16,
       "fontSize": "16px",
       "fontFamily": "Zen Kaku Gothic New",
@@ -936,7 +936,7 @@
       "iconLabelGap": "6px"
      },
      "focusVisible": {
-      "w": 65.56,
+      "w": 43.56,
       "h": 16,
       "fontSize": "16px",
       "fontFamily": "Zen Kaku Gothic New",
@@ -1671,7 +1671,7 @@
    },
    "measured": {
     "resting": {
-     "w": 54.11,
+     "w": 88.2,
      "h": 30,
      "fontSize": "11px",
      "fontFamily": "IBM Plex Mono",
@@ -1696,7 +1696,7 @@
     "contrast": 13.27,
     "states": {
      "hover": {
-      "w": 54.11,
+      "w": 88.2,
       "h": 30,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -1804,14 +1804,14 @@
    "header/search-field": {
     "color": "rgb(220, 228, 230)",
     "background": "rgb(28, 36, 42)",
-    "borderColor": "rgb(102, 114, 123)",
+    "borderColor": "rgb(220, 228, 230)",
     "contrast": 12.2
    },
    "header/tagpool-btn": {
-    "color": "rgb(220, 228, 230)",
-    "background": "rgb(38, 50, 59)",
-    "borderColor": "rgb(220, 228, 230)",
-    "contrast": 10.17
+    "color": "rgb(28, 36, 42)",
+    "background": "rgb(52, 134, 180)",
+    "borderColor": "rgb(52, 134, 180)",
+    "contrast": 3.91
    },
    "header/filter-btn": {
     "color": "rgb(220, 228, 230)",
@@ -1820,10 +1820,10 @@
     "contrast": 13.88
    },
    "header/clear-btn": {
-    "color": "rgb(18, 24, 28)",
-    "background": "rgb(220, 228, 230)",
-    "borderColor": "rgb(220, 228, 230)",
-    "contrast": 13.88
+    "color": "rgb(102, 114, 123)",
+    "background": "rgb(18, 24, 28)",
+    "borderColor": "rgb(102, 114, 123)",
+    "contrast": 3.63
    },
    "header/meta-readout": {
     "color": "rgb(102, 114, 123)",
@@ -1901,14 +1901,14 @@
    "header/search-field": {
     "color": "rgb(33, 28, 23)",
     "background": "rgb(255, 253, 246)",
-    "borderColor": "rgb(179, 165, 137)",
+    "borderColor": "rgb(33, 28, 23)",
     "contrast": 16.6
    },
    "header/tagpool-btn": {
-    "color": "rgb(33, 28, 23)",
-    "background": "rgb(235, 224, 203)",
-    "borderColor": "rgb(33, 28, 23)",
-    "contrast": 12.92
+    "color": "rgb(255, 253, 246)",
+    "background": "rgb(216, 57, 46)",
+    "borderColor": "rgb(216, 57, 46)",
+    "contrast": 4.54
    },
    "header/filter-btn": {
     "color": "rgb(33, 28, 23)",
@@ -1917,10 +1917,10 @@
     "contrast": 14.49
    },
    "header/clear-btn": {
-    "color": "rgb(243, 237, 225)",
-    "background": "rgb(33, 28, 23)",
-    "borderColor": "rgb(33, 28, 23)",
-    "contrast": 14.49
+    "color": "rgb(179, 165, 137)",
+    "background": "rgb(243, 237, 225)",
+    "borderColor": "rgb(179, 165, 137)",
+    "contrast": 2.08
    },
    "header/meta-readout": {
     "color": "rgb(179, 165, 137)",
@@ -1997,8 +1997,8 @@
  },
  "mobileSpotPass": {
   "searchField": {
-   "w": 156,
-   "h": 40
+   "w": 102,
+   "h": 18
   },
   "headerTagPoolIconForm": {
    "w": 40,
@@ -2092,7 +2092,7 @@
   {
    "what": "ActionButton size",
    "usage": {
-    "md": 8,
+    "md": 7,
     "sm": 10
    }
   },
@@ -2102,7 +2102,7 @@
     "hair": 2,
     "thin": 0,
     "base": 6,
-    "none": 6
+    "none": 5
    }
   },
   {
@@ -2156,7 +2156,7 @@
    "what": "space token",
    "usage": {
     "space-xs": 17,
-    "space-sm": 36,
+    "space-sm": 37,
     "space-md": 34,
     "space-lg": 36,
     "space-xl": 12,
