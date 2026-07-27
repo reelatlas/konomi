@@ -1,7 +1,7 @@
 {
  "meta": {
-  "generated": "2026-07-27T03:19:58.318Z",
-  "commit": "00c28dd",
+  "generated": "2026-07-27T03:24:42.750Z",
+  "commit": "2334563",
   "treeDirty": true,
   "url": "http://localhost:3000/film",
   "primaryCapture": {
@@ -967,12 +967,11 @@
    "file": "src/components/konomi/TagChip.tsx",
    "authored": {
     "height": {
-     "v": "none — py-xs(4)+line+border-thin×2",
-     "kind": "derived",
-     "src": "px-[var(--space-md)] py-[var(--space-xs)]"
+     "v": "--control-h-sm 30px (fixed)",
+     "kind": "token"
     },
     "font": {
-     "v": "--text-2xs 10px",
+     "v": "--text-xs 11px",
      "kind": "token"
     },
     "border": {
@@ -986,14 +985,14 @@
    },
    "measured": {
     "resting": {
-     "w": 94.41,
-     "h": 27,
-     "fontSize": "10px",
+     "w": 101.84,
+     "h": 30,
+     "fontSize": "11px",
      "fontFamily": "IBM Plex Mono",
      "fontWeight": "700",
-     "lineHeight": "15px",
-     "letterSpacing": "0.2px",
-     "padding": "4px 8px 4px 8px",
+     "lineHeight": "16.5px",
+     "letterSpacing": "0.22px",
+     "padding": "0px 8px 0px 8px",
      "border": "2px",
      "borderColor": "rgb(25, 18, 37)",
      "radius": "2px",
@@ -1011,14 +1010,14 @@
     "contrast": 13.27,
     "states": {
      "hover": {
-      "w": 94.41,
-      "h": 27,
-      "fontSize": "10px",
+      "w": 101.84,
+      "h": 30,
+      "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "700",
-      "lineHeight": "15px",
-      "letterSpacing": "0.2px",
-      "padding": "4px 8px 4px 8px",
+      "lineHeight": "16.5px",
+      "letterSpacing": "0.22px",
+      "padding": "0px 8px 0px 8px",
       "border": "2px",
       "borderColor": "rgb(25, 18, 37)",
       "radius": "2px",
@@ -1034,14 +1033,14 @@
       "iconLabelGap": null
      },
      "focusVisible": {
-      "w": 94.41,
-      "h": 27,
-      "fontSize": "10px",
+      "w": 101.84,
+      "h": 30,
+      "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "700",
-      "lineHeight": "15px",
-      "letterSpacing": "0.2px",
-      "padding": "4px 8px 4px 8px",
+      "lineHeight": "16.5px",
+      "letterSpacing": "0.22px",
+      "padding": "0px 8px 0px 8px",
       "border": "2px",
       "borderColor": "rgb(25, 18, 37)",
       "radius": "2px",
@@ -1057,14 +1056,14 @@
       "iconLabelGap": null
      },
      "active": {
-      "w": 94.41,
-      "h": 27,
-      "fontSize": "10px",
+      "w": 101.84,
+      "h": 30,
+      "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "700",
-      "lineHeight": "15px",
-      "letterSpacing": "0.2px",
-      "padding": "4px 8px 4px 8px",
+      "lineHeight": "16.5px",
+      "letterSpacing": "0.22px",
+      "padding": "0px 8px 0px 8px",
       "border": "2px",
       "borderColor": "rgb(25, 18, 37)",
       "radius": "2px",
@@ -1666,20 +1665,20 @@
    "file": "src/components/konomi/TagChip.tsx",
    "authored": {
     "height": {
-     "v": "same derivation as panel/chip-small",
-     "kind": "derived"
+     "v": "--control-h-sm 30px (fixed, same as panel/chip-small)",
+     "kind": "token"
     }
    },
    "measured": {
     "resting": {
-     "w": 82,
-     "h": 27,
-     "fontSize": "10px",
+     "w": 88.2,
+     "h": 30,
+     "fontSize": "11px",
      "fontFamily": "IBM Plex Mono",
      "fontWeight": "700",
-     "lineHeight": "15px",
-     "letterSpacing": "0.2px",
-     "padding": "4px 8px 4px 8px",
+     "lineHeight": "16.5px",
+     "letterSpacing": "0.22px",
+     "padding": "0px 8px 0px 8px",
      "border": "2px",
      "borderColor": "rgb(25, 18, 37)",
      "radius": "2px",
@@ -1697,14 +1696,14 @@
     "contrast": 13.27,
     "states": {
      "hover": {
-      "w": 82,
-      "h": 27,
-      "fontSize": "10px",
+      "w": 88.2,
+      "h": 30,
+      "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "700",
-      "lineHeight": "15px",
-      "letterSpacing": "0.2px",
-      "padding": "4px 8px 4px 8px",
+      "lineHeight": "16.5px",
+      "letterSpacing": "0.22px",
+      "padding": "0px 8px 0px 8px",
       "border": "2px",
       "borderColor": "rgb(25, 18, 37)",
       "radius": "2px",
@@ -2149,15 +2148,15 @@
     "text-md": 3,
     "text-base": 3,
     "text-sm": 6,
-    "text-xs": 19,
-    "text-2xs": 16,
+    "text-xs": 20,
+    "text-2xs": 15,
     "text-3xs": 4
    }
   },
   {
    "what": "space token",
    "usage": {
-    "space-xs": 20,
+    "space-xs": 19,
     "space-sm": 37,
     "space-md": 35,
     "space-lg": 37,

@@ -31,9 +31,17 @@ export function TagChip({ id, name, active, size = "base", onToggle }: TagChipPr
         // inside scroll containers, the exact case an outside ring gets
         // clipped by (globals.css).
         "focus-ring-inset border-[length:var(--border-base)] border-[var(--ink)] rounded-[var(--radius-chip)]",
+        // small = the DENSE TIER (sizing unification ⑤/2b): fixed
+        // h-[--control-h-sm] box (no more py-derived 27px) with text-xs
+        // 11px, up from 2xs 10 — chips are read, not just labeled, and 10
+        // was the floor of comfortable scanning (SIZING_AUDIT.md §6). The
+        // base classes' inline-flex items-center center the label in the
+        // fixed box. NOTE: isBase currently has ZERO call sites (both
+        // TagPoolBody and TagScrollArea pass size="small") — dead-variant
+        // candidate logged in SIZING_AUDIT.md; not removed here.
         isBase
           ? "text-[length:var(--text-sm)] tracking-[var(--tracking-md)] px-[var(--space-lg)] py-[var(--space-md)]"
-          : "border-[length:var(--border-thin)] text-[length:var(--text-2xs)] tracking-[var(--tracking-sm)] px-[var(--space-md)] py-[var(--space-xs)]",
+          : "h-[var(--control-h-sm)] border-[length:var(--border-thin)] text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] px-[var(--space-md)]",
         active ? "bg-[var(--primary)] text-[var(--surface)]" : isBase ? "bg-[var(--surface)] text-[var(--ink)]" : "bg-[var(--fill)] text-[var(--ink)]",
         isBase ? (active ? "shadow-[var(--elev-2-accent)]" : "shadow-[var(--elev-2)]") : "",
       ].join(" ")}

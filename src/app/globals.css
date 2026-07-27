@@ -187,18 +187,20 @@
 
      --result-card-tag-area-height: the tag-wrapper's own OUTER box height
      in ResultCard.tsx (padding included). clamp(floor, ideal, ceiling):
-       - ceiling 137px: today's original, unshrunk natural size (this
-         box's own space-md*2 padding + TagScrollArea.tsx's own natural
-         121px) - same reasoning as --result-card-height's own 445px
-         ceiling above, this area never grows past its current design.
+       - ceiling 146px: the unshrunk natural size (this box's own
+         space-md*2 padding + TagScrollArea.tsx's own natural 130px —
+         re-derived for the 30px dense-tier chip, sizing unification 2b;
+         was 137/121 in the 27px-chip era) - same reasoning as
+         --result-card-height's own 445px ceiling above, this area never
+         grows past its current design.
        - ideal calc(...): shrinks 1:1 with --result-card-height once that
-         drops below its own 445px ceiling (445 - 137 = 308, so
-         result-card-height - 308 reproduces 137 exactly at 445px and
+         drops below its own 445px ceiling (445 - 146 = 299, so
+         result-card-height - 299 reproduces 146 exactly at 445px and
          falls linearly below that) - this is what makes
          --result-card-cover-height below cancel out to a flat constant
          across most of the range; see its own comment.
-       - floor 96px: TagScrollArea.tsx's own TOP_RESERVE_PX(14) + TWO
-         ROW_STEP_PX(33 each, 66px total) = 80px of actual scrollable
+       - floor 102px: TagScrollArea.tsx's own TOP_RESERVE_PX(14) + TWO
+         ROW_STEP_PX(36 each, 72px total) = 86px of actual scrollable
          content, plus this box's own space-md*2 (16px) padding - enough
          for two full chip rows plus the usual top peek of a third
          (reads as roughly "2.5 rows"), never less. Raised from an
@@ -210,9 +212,9 @@
          little breathing room in practice. Hand-derived from
          TagScrollArea.tsx's own two JS constants, not shared
          automatically - retune by hand if ROW_STEP_PX/TOP_RESERVE_PX
-         ever change, and re-derive this floor the same way (TOP_RESERVE_PX
-         + N*ROW_STEP_PX + this box's own 16px padding) if the row count
-         target ever changes again.
+         ever change (done 2026-07-26 for the 36px step), and re-derive
+         this floor the same way (TOP_RESERVE_PX + N*ROW_STEP_PX + this
+         box's own 16px padding) if the row count target ever changes.
          Below this floor the tag area stops absorbing the shrink and
          --result-card-cover-height starts giving up room instead, which
          is what keeps this from ever going to zero or negative at
@@ -221,19 +223,16 @@
      --result-card-cover-height: whatever's left of --result-card-height
      once the tag area above and the card's own top+bottom border
      (border-base * 2) are accounted for. Because the tag area's own ideal
-     term above is just result-card-height - 308, this resolves to a flat
-     308 - (border-base * 2) for every --result-card-height from 445px
-     down to about 404px (the point where the tag area's own 96px floor
-     engages, raised from 372px when that floor was still 63px - see the
-     tag-area's own floor comment above) - the cover genuinely does not
-     shrink across most of the supported range, only in the ~322-404px
-     band at the bottom (real small-phone heights, per
-     --result-card-height's own comment above) once the tag area has
-     already hit its own floor. That band is wider than it used to be
-     (322-372px): raising the tag area's own floor to protect 2 full rows
-     instead of 1 means the cover now has to start giving up room sooner
-     (at a taller --result-card-height) to make space for it - an accepted,
-     direct consequence of that change, not a separate regression.
+     term above is just result-card-height - 299, this resolves to a flat
+     299 - (border-base * 2) for every --result-card-height from 445px
+     down to about 401px (the point where the tag area's own 102px floor
+     engages; numbers re-derived for the 30px dense chip, 2b — the
+     27px-era values were 308/404/96) - the cover genuinely does not
+     shrink across most of the supported range, only in the ~322-401px
+     band at the bottom (real small-phone heights) once the tag area has
+     already hit its own floor. The cover's flat portion is 9px shorter
+     than the 27px-chip era (299 vs 308) - the taller chip rows claimed
+     it; an accepted, direct consequence of the dense-tier chip box.
 
      --result-card-tag-scroll-height: --result-card-tag-area-height minus
      this box's own space-md*2 vertical padding - the actual height fed to
@@ -246,9 +245,9 @@
      scanner instead (see ScrollFadeArea.tsx's own heightPx comment for the
      same caveat). */
   --result-card-tag-area-height: clamp(
-    96px,
-    calc(var(--result-card-height) - 308px),
-    137px
+    102px,
+    calc(var(--result-card-height) - 299px),
+    146px
   );
   --result-card-cover-height: calc(
     var(--result-card-height) - var(--result-card-tag-area-height) - (var(--border-base) * 2)

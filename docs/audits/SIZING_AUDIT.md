@@ -265,3 +265,16 @@ tag-area tokens, a deliberate separate commit).
   best practice by choice.
 - **Resize points + wrap/truncate/hover-overflow-scroll** re-evaluation
   (incl. mobile): parked until after the sizing migration completes.
+
+**Batch 2b (2026-07-26) — chips to the dense tier, coupled math
+re-derived.** TagChip small: fixed `h-[--control-h-sm]` box (py-derived
+27 gone) + `--text-xs` 11px (chips are read, not just labeled).
+Knock-ons re-derived, not guessed: TagScrollArea `ROW_STEP_PX` 33 → 36
+(30 chip + 6 gap), natural height 121 → 130; globals card tokens
+clamp(96, h−308, 137) → **clamp(102, h−299, 146)** — the cover's flat
+portion is 9px shorter, an accepted consequence of the taller chip rows.
+Found + logged: **TagChip `isBase` has zero call sites** (both callers
+pass size="small") — dead-variant candidate. Inventory diff vs 2a:
+exactly the 6 intended chip deltas (h/font/padding × pool + card), zero
+collateral; card measured at its 445 ceiling with tag-area token
+resolving to the new clamp. All suites green.
