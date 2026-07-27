@@ -1,4 +1,4 @@
-export type ActionButtonVariant = "outline" | "filled" | "inverted" | "cta" | "header";
+export type ActionButtonVariant = "outline" | "filled" | "inverted" | "cta" | "header" | "header-action";
 export type ActionButtonSize = "md" | "sm";
 
 interface ActionButtonProps {
@@ -116,6 +116,11 @@ export function ActionButton({ variant, ctaColor, engaged, size = "md", shadow =
         header: engaged
           ? "bg-[var(--primary)] text-[var(--surface)] cursor-pointer"
           : "bg-transparent text-[var(--muted)] glow-host cursor-pointer",
+        // header-action (user-ruled 2026-07-27): a header-row button that
+        // IS a ready action rather than a toggle (Clear) — filled --fill
+        // like the app's other take-an-action buttons (the Random
+        // precedent), ink text, still flat and borderless like its row.
+        "header-action": "bg-[var(--fill)] text-[var(--ink)] glow-host cursor-pointer",
       }[variant];
   // Tier shadow as its own single emitter (never two shadow utilities in
   // one string — the cascade-order trap): ALL button variants sit at the
@@ -123,7 +128,7 @@ export function ActionButton({ variant, ctaColor, engaged, size = "md", shadow =
   // (user-ruled 2026-07-26: it stood out too much at 5; its cta color
   // already carries the emphasis). inverted = none by design;
   // shadow={false} = the header-flat rule.
-  const shadowClass = disabled || !shadow ? "" : { outline: "shadow-[var(--elev-2)]", filled: "shadow-[var(--elev-2)]", inverted: "", cta: "shadow-[var(--elev-2)]", header: "" }[variant];
+  const shadowClass = disabled || !shadow ? "" : { outline: "shadow-[var(--elev-2)]", filled: "shadow-[var(--elev-2)]", inverted: "", cta: "shadow-[var(--elev-2)]", header: "", "header-action": "" }[variant];
 
   return (
     <button
@@ -147,13 +152,18 @@ export function ActionButton({ variant, ctaColor, engaged, size = "md", shadow =
         // Single border-color emitter (the cascade-order rule). The header
         // variant colors its frame by state (muted at rest, primary when
         // engaged) instead of the standard ink.
+        // Header rest states are BORDERLESS by ruling (2026-07-27) —
+        // border-transparent, not border-0, so geometry never shifts
+        // between states; engaged brings the primary frame back.
         disabled
           ? "border-[var(--muted)]"
           : variant === "header"
             ? engaged
               ? "border-[var(--primary)]"
-              : "border-[var(--muted)]"
-            : "border-[var(--ink)]",
+              : "border-transparent"
+            : variant === "header-action"
+              ? "border-transparent"
+              : "border-[var(--ink)]",
         SIZE_CLASSES[size],
         variantClasses,
         shadowClass,

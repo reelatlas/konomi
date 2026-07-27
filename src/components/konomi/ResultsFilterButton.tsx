@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { LevelKey } from "@/lib/konomi/types";
 import { FilterControls } from "./FilterControls";
 import { FilterIcon } from "./icons";
+import { ActionButton } from "./ActionButton";
 import { IconButton } from "./IconButton";
 
 interface ResultsFilterButtonProps {
@@ -110,20 +111,41 @@ export function ResultsFilterButton({ onLevelChange }: ResultsFilterButtonProps)
           glow the MixerBar drag grip and the metadata lock use — so hovering
           signals it's clickable. borderColor/backgroundColor are IconButton's
           own props; every other icon button keeps IconButton's --ink default. */}
+      {/* Two forms since the header restyle (user-ruled: match Tag Pool's
+          word-then-icon format for consistency): the labeled "Filters"
+          ActionButton ≥480px, the icon twin below — the same breakpoint
+          split Tag Pool/Clear already use in ResultsHeader. Both carry
+          relative z-raised on the trigger ITSELF (not only the wrapper):
+          below 480px the wrapper goes static (see above) and its z-index
+          dies with it, but the carousel flip-bulge hit-test problem the
+          z-raised solves (see ResultsHeader) doesn't — the button keeps
+          its own raise at every width. */}
+      <div className="hidden min-[480px]:block relative z-[var(--z-raised)]">
+        <ActionButton
+          variant="header"
+          engaged={open}
+          onClick={() => setOpen((o) => !o)}
+          aria-label="filters"
+        >
+          {/* Icon inherits the variant's state color (currentColor) —
+              muted at rest, surface when engaged; glow-icon rides the
+              variant's glow-host hover. */}
+          <span className="inline-flex items-center gap-[var(--space-sm)]">
+            Filters
+            <FilterIcon className="glow-icon w-[20px] h-[20px]" />
+          </span>
+        </ActionButton>
+      </div>
       <IconButton
         size="md"
         border="base"
-        borderColor={open ? "var(--primary)" : "var(--muted)"}
+        borderColor={open ? "var(--primary)" : "transparent"}
         backgroundColor={open ? "var(--primary)" : "transparent"}
         title="filters"
         aria-label="filters"
         aria-pressed={open}
         onClick={() => setOpen((o) => !o)}
-        // relative z-raised on the trigger ITSELF (not only the wrapper):
-        // below 480px the wrapper goes static (see above) and its z-index
-        // dies with it, but the carousel flip-bulge hit-test problem the
-        // z-raised solves (see ResultsHeader) doesn't — the button keeps
-        // its own raise at every width.
+        display="flex min-[480px]:hidden"
         className="glow-host relative z-[var(--z-raised)]"
       >
         <FilterIcon className={`glow-icon w-[20px] h-[20px] ${open ? "text-[var(--surface)]" : "text-[var(--muted)]"}`} />

@@ -82,7 +82,7 @@ export function ThemeSwitcher({ value, onChange, subtextPlacement = "bottom" }: 
             onFocus={() => setHovered(key)}
             onBlur={() => setHovered(null)}
             className={[
-              "w-[32px] h-[24px] p-0 cursor-pointer rounded-[var(--radius-chip)] border-[length:var(--border-base)] border-[var(--ink)]",
+              "focus-ring-inset w-[32px] h-[24px] p-0 cursor-pointer rounded-[var(--radius-chip)] border-[length:var(--border-base)] border-[var(--ink)]",
               active
                 ? "shadow-[var(--elev-2)] -translate-x-px -translate-y-px opacity-100"
                 : "shadow-none translate-x-0 translate-y-0 opacity-50",

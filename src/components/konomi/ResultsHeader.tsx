@@ -63,6 +63,12 @@ const UNLOCKED_FEEDBACK_MS = 1100;
 export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEditMode, lockedCount, newCount, existingCount, onUnlockAll, onClearRecs, clearDisabled, onLevelChange }: ResultsHeaderProps) {
   const nav = useTagPoolNav();
   const searchInputRef = useRef<HTMLInputElement>(null);
+  // Style-only focus tracking for the search container (safe — the
+  // focus-opens-panel bug was about OPENING on focus arrivals; this only
+  // styles): engaged = focused or a live query, and the hover glow is
+  // suppressed while engaged (user-ruled — hovering the icon inside an
+  // already-engaged field must not re-trigger the rest-state hover).
+  const [searchFocused, setSearchFocused] = useState(false);
   // Browse mode = the panel is open with no live query — the Tag Pool
   // button shows its active (filled) state. The moment the user types, the
   // field is what reads active (ink border) and the button drops back to
@@ -166,16 +172,37 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
             deliberate focus treatment; same precedent as the collapsed
             Min Match/Density buttons). */}
         <label
+          // onMouseDown: when the input is ALREADY focused, a click on the
+          // icon/label would blur-then-refocus it — one frame of the
+          // container collapsing out of its engaged state and the hover
+          // glow re-arming (user-reported). Preventing default keeps
+          // focus put; the input never blurs. onClick: clicking the ICON
+          // must behave exactly like clicking the field — focus + open
+          // the panel (label forwards focus natively, but the panel-open
+          // signal lives on the input's own onClick, whose target the
+          // icon isn't).
+          onMouseDown={(e) => {
+            if (document.activeElement === searchInputRef.current) e.preventDefault();
+          }}
+          onClick={() => {
+            searchInputRef.current?.focus();
+            if (!editMode) onOpenEditMode();
+          }}
           className={[
-            "flex items-center shrink-0 cursor-text glow-host",
+            "flex items-center shrink-0 cursor-text",
+            // glow only at REST — an engaged field doesn't re-advertise
+            // its hover affordance (user-ruled).
+            searchFocused || nav.query ? "" : "glow-host",
             "h-[var(--control-h-md)] w-[min(200px,40vw)] px-[var(--space-lg)] gap-[var(--space-sm)]",
+            // borderless rest (border-TRANSPARENT so geometry never
+            // shifts); engaged brings the primary frame + surface fill.
             "border-[length:var(--border-base)] transition-colors",
-            nav.query
+            nav.query || searchFocused
               ? "border-[var(--primary)] bg-[var(--surface)]"
-              : "border-[var(--muted)] bg-transparent focus-within:border-[var(--primary)] focus-within:bg-[var(--surface)]",
+              : "border-transparent bg-transparent focus-within:border-[var(--primary)] focus-within:bg-[var(--surface)]",
           ].join(" ")}
         >
-          <SearchIcon className={`glow-icon w-[20px] h-[20px] shrink-0 ${nav.query ? "text-[var(--ink)]" : "text-[var(--muted)]"}`} />
+          <SearchIcon className={`glow-icon w-[20px] h-[20px] shrink-0 ${nav.query || searchFocused ? "text-[var(--ink)]" : "text-[var(--muted)]"}`} />
           <input
             ref={searchInputRef}
             type="text"
@@ -195,6 +222,8 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
             onClick={() => {
               if (!editMode) onOpenEditMode();
             }}
+            onFocus={() => setSearchFocused(true)}
+            onBlur={() => setSearchFocused(false)}
             aria-label="Search all tag sections"
             placeholder="search all tags…"
             spellCheck={false}
@@ -234,7 +263,7 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
           <IconButton
             size="md"
             border="base"
-            borderColor={browseActive ? "var(--primary)" : "var(--muted)"}
+            borderColor={browseActive ? "var(--primary)" : "transparent"}
             backgroundColor={browseActive ? "var(--primary)" : "transparent"}
             title={editMode ? "Close tag pool" : "Open tag pool"}
             aria-label={editMode ? "Close tag pool" : "Open tag pool"}
@@ -291,7 +320,7 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
                 ? `unlock all ${lockedCount} locked ${lockedCount === 1 ? "card" : "cards"}`
                 : `${lockedCount} locked`
             }
-            className={`${metaBase} ${justUnlocked ? "text-[var(--primary)]" : metaColor(lockedCount)} ${lockInteractive ? "glow-host cursor-pointer" : "cursor-default"}`}
+            className={`focus-ring-inset ${metaBase} ${justUnlocked ? "text-[var(--primary)]" : metaColor(lockedCount)} ${lockInteractive ? "glow-host cursor-pointer" : "cursor-default"}`}
           >
             {/* During the "unlocked" flash the open lock + word hold the ACTIVE
                 colour (--primary, same as a non-zero count), set on the button so
@@ -395,7 +424,7 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
                 no engaged state (Clear is an action, not a toggle);
                 disabled (all-locked) keeps the shared disabled recipe. */}
             <ActionButton
-              variant="header"
+              variant="header-action"
               disabled={clearDisabled}
               onClick={onClearRecs}
               aria-label="Clear results"
@@ -407,9 +436,9 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
             <IconButton
               size="md"
               border="base"
-              borderColor="var(--muted)"
-              backgroundColor="transparent"
-              textColor="var(--muted)"
+              borderColor="transparent"
+              backgroundColor="var(--fill)"
+              textColor="var(--ink)"
               title="Clear results"
               aria-label="Clear results"
               visuallyDisabled={clearDisabled}

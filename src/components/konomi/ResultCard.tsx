@@ -1424,7 +1424,7 @@ export function ResultCard({
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    className="inline-flex items-center gap-[var(--space-xs)] uppercase font-mono font-bold border-[length:var(--border-base)] border-[var(--ink)] rounded-[var(--radius-chip)] text-[length:var(--text-2xs)] tracking-[var(--tracking-sm)] px-[var(--space-md)] py-[var(--space-xs)] bg-[var(--surface)] text-[var(--ink)] shadow-[var(--elev-1)]"
+                    className="focus-ring-inset inline-flex items-center gap-[var(--space-xs)] uppercase font-mono font-bold border-[length:var(--border-base)] border-[var(--ink)] rounded-[var(--radius-chip)] text-[length:var(--text-2xs)] tracking-[var(--tracking-sm)] px-[var(--space-md)] py-[var(--space-xs)] bg-[var(--surface)] text-[var(--ink)] shadow-[var(--elev-1)]"
                   >
                     {/* Rendered as a CSS mask, not a plain <img>: AniList's
                         own icon PNGs (transparent 64x64, hotlinked from

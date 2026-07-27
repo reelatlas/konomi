@@ -454,3 +454,35 @@ and the container's primary border+fill is the focus affordance (the
 documented deviation class; collapsed-selector precedent). Verified:
 rest/browse/searching states render per spec (primary 86,79,214 border
 + surface fill engaged; muted 169,133,226 rest); suites green.
+
+**Batch 6b (2026-07-27) — header refinements (user-ruled).** Six rulings
+applied. (1) Focus-ring sweep: the last three default-ring focusables
+(ThemeSwitcher swatches, meta lock readout, ResultCard streaming links)
+now carry `.focus-ring-inset`; the tag-pool tabpanel + no-match state
+verified live (tab-focus draws the 2px/-2px inset ring, matched
+`:focus-visible`, in both populated and "not in the pool" states). (2)
+**Borderless rest** for the header's left cluster: search / Tag Pool /
+Filters rest borders → `border-transparent` (not border-0 — geometry
+never shifts); engaged still brings the --primary frame. (3) **Clear →
+`variant="header-action"`** (new ActionButton variant): --fill bg +
+--ink text + transparent border + glow hover — a ready-action fill
+distinct from the quiet rest and the engaged primary; theme sweep:
+contrast 13.27 light / 10.17 dark / 12.92 cream. (4) Search
+engaged-glow suppression: `searchFocused` state (style-only, onFocus/
+onBlur on the input); glow-host is omitted while focused-or-query, so
+hovering the icon inside an engaged field no longer re-blooms. (5)
+Icon-click fix: the "collapse" was blur→refocus flicker — label
+`onMouseDown` preventDefaults when the input is already focused (focus
+never moves), and label `onClick` focuses + opens the panel, so
+clicking the ICON now behaves exactly like clicking the field.
+Verified: second icon click keeps focus + panel open. (6) **Filters →
+word+icon** matching Tag Pool: ≥480px an ActionButton
+`variant="header" engaged={open}` reading "Filters" + FilterIcon
+(113×40 measured), <480px the IconButton twin (40×40), both keeping
+the trigger-level z-raised + the narrow full-left popover anchoring
+(measured on-screen at 375px). Registry: search-field verify anchors
+add "border-transparent bg-transparent"; filter-btn entry repointed at
+ResultsFilterButton.tsx (verify variant="header"/engaged={open});
+clear-btn verify → variant="header-action" (the old 'variant="header"'
+string would false-anchor on Tag Pool's). Suites: smoke, lockflow,
+test-headerv2 21/21, test-search all green.
