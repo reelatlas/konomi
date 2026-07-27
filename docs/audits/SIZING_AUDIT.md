@@ -418,3 +418,21 @@ collateral. Rung note: the icon forms narrowed 4px, which makes the
 already-conservative post-Tag-Pool rungs MORE conservative — safe
 without re-bisection (still parked for last). Revert = one token line +
 dropping .touch-44 call sites. TRIAL status: user evaluating on mobile.
+
+**Batch 5b (2026-07-27) — 40 CONFIRMED KEEP + EraserIcon recentered.**
+User ruled the 40 tier a keep ("tighter, easier to parse"). Clear's
+off-center icon (user-spotted) root-caused by pixel scan: EraserIcon's
+glyph ink sat 1.32 viewBox-units low / 0.48 right (button read T14/B12,
+L13/R12) — fixed IN THE SVG with a transform group, not a CSS nudge;
+post-fix scan 13/13/13/13 exact. Dice + TagPool scanned 0/0 (already
+centered — user's "look okay" confirmed). Consistency finding: text+icon
+forms all read ~2px left-heavy uniformly because trailing icons carry
+internal viewBox padding while text ink is edge-tight — consistent
+across all buttons, standard for trailing-icon buttons, accepted (not a
+one-off). Padding Q&A banked: the perceived vertical "padding" is not
+authored — it's the centering remainder of the fixed 40 box; only the
+16px horizontal is designed. H > V is the button norm (chips read
+equal-padded, buttons don't); 16:12 ≈ 1.33 is on the LOW end of the
+1.5-3x convention, so if anything horizontal could grow — never
+equalize. Padding-eyeball question considered self-resolved at 40
+unless the user reopens it.

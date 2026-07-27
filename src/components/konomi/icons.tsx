@@ -330,9 +330,18 @@ export function EraserIcon({ className }: IconProps) {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <path d="M9.5 20H20" />
-      <path d="M4.6 15.4 13.8 6.2a2 2 0 0 1 2.83 0l3.17 3.17a2 2 0 0 1 0 2.83L11 21H8Z" />
-      <path d="M16 12.5 10.5 7" />
+      {/* translate(-0.48 -1.32): recenters the glyph INK in the viewBox —
+          pixel-scanned 2026-07-27 (ink margins were L3.48/R2.52,
+          T4.56/B1.92 in 24-unit space), which read as the Clear button's
+          icon sitting ~1px low/right at the 20px render (user-spotted).
+          Fixed in the SVG, not with a CSS nudge — vector-space centering
+          holds at every render size. Dice/TagPool scanned 0/0 (already
+          centered). */}
+      <g transform="translate(-0.48 -1.32)">
+        <path d="M9.5 20H20" />
+        <path d="M4.6 15.4 13.8 6.2a2 2 0 0 1 2.83 0l3.17 3.17a2 2 0 0 1 0 2.83L11 21H8Z" />
+        <path d="M16 12.5 10.5 7" />
+      </g>
     </svg>
   );
 }
