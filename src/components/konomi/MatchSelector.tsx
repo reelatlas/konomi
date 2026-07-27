@@ -175,7 +175,7 @@ export function MatchSelector({ value, onChange, collapsed }: MatchSelectorProps
         <span
           aria-hidden={!shown}
           className={[
-            "absolute top-full left-0 mt-[var(--space-sm)] whitespace-nowrap font-mono text-[length:var(--text-xs)] text-[var(--subtext)] transition-opacity duration-150",
+            "absolute top-full left-0 mt-[var(--space-sm)] whitespace-nowrap text-hint transition-opacity duration-150",
             shown ? "opacity-100" : "opacity-0",
           ].join(" ")}
         >
@@ -207,7 +207,7 @@ export function MatchSelector({ value, onChange, collapsed }: MatchSelectorProps
               // py+leading box that was authored nowhere — SIZING_AUDIT.md
               // §4/§6. leading-[16px] kept for stable text metrics.
               "focus-ring-inset flex-1 inline-flex items-center justify-center leading-[16px] px-[var(--space-lg)] border-0 cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)]",
-              i > 0 ? "border-l-[length:var(--border-thin)] border-l-[var(--ink)]" : "",
+              i > 0 ? "border-l-[length:var(--border-base)] border-l-[var(--ink)]" : "",
               active ? "bg-[var(--primary)] text-[var(--surface)]" : "bg-[var(--surface)] text-[var(--ink)]",
             ].join(" ")}
           >
@@ -222,7 +222,7 @@ export function MatchSelector({ value, onChange, collapsed }: MatchSelectorProps
       <span
         aria-hidden={!hovered}
         className={[
-          "absolute top-full left-0 mt-[var(--space-sm)] whitespace-nowrap font-mono text-[length:var(--text-xs)] text-[var(--subtext)] transition-opacity duration-150",
+          "absolute top-full left-0 mt-[var(--space-sm)] whitespace-nowrap text-hint transition-opacity duration-150",
           hovered ? "opacity-100" : "opacity-0",
         ].join(" ")}
       >

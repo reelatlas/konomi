@@ -202,7 +202,7 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
               // primary entry point, found in SIZING_AUDIT.md §2.
               "focus-ring-inset",
               "bg-[var(--surface)] text-[var(--ink)] placeholder:text-[var(--subtext)]",
-              "border-[length:var(--border-thin)]",
+              "border-[length:var(--border-base)]",
               nav.query ? "border-[var(--ink)]" : "border-[var(--muted)]",
             ].join(" ")}
           />

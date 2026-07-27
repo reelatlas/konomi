@@ -1,7 +1,7 @@
 {
  "meta": {
-  "generated": "2026-07-27T04:25:34.711Z",
-  "commit": "70648a5",
+  "generated": "2026-07-27T04:52:03.385Z",
+  "commit": "a7fa7e8",
   "treeDirty": true,
   "url": "http://localhost:3000/film",
   "primaryCapture": {
@@ -29,7 +29,7 @@
      "kind": "token"
     },
     "border": {
-     "v": "--border-base 2.5px",
+     "v": "--border-base 2px",
      "kind": "token"
     },
     "shadow": {
@@ -191,7 +191,7 @@
      "kind": "token"
     },
     "border": {
-     "v": "--border-base 2.5px",
+     "v": "--border-base 2px",
      "kind": "token"
     },
     "shadow": {
@@ -297,7 +297,7 @@
      "kind": "token"
     },
     "border": {
-     "v": "--border-thin 2px",
+     "v": "--border-base 2px",
      "kind": "token"
     }
    },
@@ -395,7 +395,7 @@
      "kind": "token"
     },
     "border": {
-     "v": "--border-base 2.5px",
+     "v": "--border-base 2px",
      "kind": "token"
     },
     "shadow": {
@@ -512,7 +512,7 @@
      "src": "SIZE_PX.md"
     },
     "border": {
-     "v": "--border-base 2.5px",
+     "v": "--border-base 2px",
      "kind": "token"
     },
     "shadow": {
@@ -975,7 +975,7 @@
      "kind": "token"
     },
     "border": {
-     "v": "--border-thin 2px",
+     "v": "--border-base 2px",
      "kind": "token"
     },
     "radius": {
@@ -1189,7 +1189,7 @@
      "src": "w-[78px]"
     },
     "border": {
-     "v": "--border-base 2.5px",
+     "v": "--border-base 2px",
      "kind": "token"
     },
     "shadow": {
@@ -1271,7 +1271,7 @@
      "kind": "token"
     },
     "border": {
-     "v": "--border-base 2.5px",
+     "v": "--border-base 2px",
      "kind": "token"
     },
     "shadow": {
@@ -1391,7 +1391,7 @@
      "kind": "token"
     },
     "border": {
-     "v": "--border-base 2.5px",
+     "v": "--border-base 2px",
      "kind": "token"
     },
     "shadow": {
@@ -1731,7 +1731,7 @@
      "kind": "literal"
     },
     "border": {
-     "v": "--border-thin 2px",
+     "v": "--border-base 2px",
      "kind": "token"
     },
     "shadow": {
@@ -2092,8 +2092,8 @@
   {
    "what": "ActionButton size",
    "usage": {
-    "md": 9,
-    "sm": 11
+    "md": 8,
+    "sm": 10
    }
   },
   {
@@ -2122,7 +2122,7 @@
   {
    "what": "elevation token",
    "usage": {
-    "elev-1": 7,
+    "elev-1": 6,
     "elev-2": 15,
     "elev-3": 2,
     "elev-4": 7,
@@ -2135,8 +2135,7 @@
    "what": "border token",
    "usage": {
     "border-hair": 2,
-    "border-thin": 15,
-    "border-base": 28
+    "border-base": 41
    }
   },
   {
@@ -2148,16 +2147,16 @@
     "text-md": 3,
     "text-base": 3,
     "text-sm": 6,
-    "text-xs": 22,
-    "text-2xs": 14,
+    "text-xs": 17,
+    "text-2xs": 9,
     "text-3xs": 5
    }
   },
   {
    "what": "space token",
    "usage": {
-    "space-xs": 18,
-    "space-sm": 37,
+    "space-xs": 17,
+    "space-sm": 36,
     "space-md": 35,
     "space-lg": 37,
     "space-xl": 12,

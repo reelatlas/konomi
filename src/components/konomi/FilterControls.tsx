@@ -82,7 +82,7 @@ export function FilterControls({ onLevelChange, layout = "popover", className }:
   const root = inline
     ? "@container flex flex-row flex-wrap items-center justify-center gap-x-[var(--space-xl)] gap-y-[var(--space-2xl)]"
     : "flex flex-col items-start gap-y-[var(--space-2xl)]";
-  const labelBase = "font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap";
+  const labelBase = "text-label whitespace-nowrap"; // the label register (globals.css)
 
   // LABEL-ON-TOP field, used by BOTH surfaces. A 2-column grid; DOM order is
   // [label, icon, control], placed so all three requests hold at once —

@@ -144,7 +144,7 @@ function ChipRow({
 // manageable — a reward, not a nag (user-ruled; revisit-later is noted).
 function SearchCountLine({ shownHere, poolTotal, multiSection }: { shownHere: number; poolTotal: number; multiSection: boolean }) {
   return (
-    <span className="font-mono text-[length:var(--text-2xs)] text-[var(--subtext)]" aria-live="polite">
+    <span className="text-hint" aria-live="polite">
       {multiSection
         ? `${shownHere.toLocaleString()} of ${poolTotal.toLocaleString()} matches · ↓↑ for more or narrow`
         : `${poolTotal.toLocaleString()} ${poolTotal === 1 ? "match" : "matches"}`}
@@ -435,7 +435,7 @@ export function TagPoolBody({
             // elsewhere, name the remedy (the lit tabs), the same
             // cause-targeted-recovery shape as RECOMMEND's error chips.
             <div className="flex justify-center py-[var(--space-2xl)]">
-              <span className="font-mono text-[length:var(--text-xs)] text-[var(--subtext)]">
+              <span className="text-hint">
                 {anyMatches ? `"${normQuery}" not here · check lit tabs` : `"${normQuery}" not in the pool`}
               </span>
             </div>
@@ -458,7 +458,7 @@ export function TagPoolBody({
                 // a silent blank grid here (user-reported); same guided
                 // message, one tier down.
                 <div className="flex justify-center py-[var(--space-2xl)]">
-                  <span className="font-mono text-[length:var(--text-xs)] text-[var(--subtext)]">
+                  <span className="text-hint">
                     {`"${normQuery}" not here · check lit tabs`}
                   </span>
                 </div>

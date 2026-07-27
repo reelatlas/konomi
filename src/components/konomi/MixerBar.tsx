@@ -382,7 +382,7 @@ export function MixerBar({
                 {/* @max-[975px]:hidden: the "Min Match" label drops at the
                     shared icon-only rung; the control keeps its 2 icons
                     and 3-segment form through that rung. */}
-                <span className="@max-[975px]:hidden font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
+                <span className="@max-[975px]:hidden text-label whitespace-nowrap">
                   Min Match
                 </span>
                 <TagIcon className="w-[20px] h-[20px] text-[var(--ink)]" />
@@ -433,7 +433,7 @@ export function MixerBar({
                   3px gives the shadow exactly the room it bleeds into
                   ("match the rendered distance, not just the token" —
                   DESIGN_SYSTEM.md). */}
-              <div className="hidden @min-[975px]:block ml-[3px] w-[length:var(--border-thin)] h-[32px] bg-[var(--ink)]" />
+              <div className="hidden @min-[975px]:block ml-[3px] w-[length:var(--border-base)] h-[32px] bg-[var(--ink)]" />
               <RecommendButton filledCount={filledCount} onRecommend={onRecommend} error={error} />
             </div>
           </div>

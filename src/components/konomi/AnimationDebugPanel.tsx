@@ -136,14 +136,14 @@ export function AnimationDebugPanel() {
     >
       <div
         onPointerDown={onHeaderPointerDown}
-        className="sticky top-0 flex items-center justify-between gap-[var(--space-sm)] border-b-[length:var(--border-thin)] border-[var(--ink)] bg-[var(--surface)] px-[var(--space-md)] py-[var(--space-sm)] cursor-grab select-none touch-none"
+        className="sticky top-0 flex items-center justify-between gap-[var(--space-sm)] border-b-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] px-[var(--space-md)] py-[var(--space-sm)] cursor-grab select-none touch-none"
       >
         <span className="font-bold uppercase tracking-[var(--tracking-sm)]">anim debug</span>
         <div className="flex items-center gap-[var(--space-sm)]">
           <button
             type="button"
             onClick={() => resetAnimationDebugValues()}
-            className="cursor-pointer border-[length:var(--border-thin)] border-[var(--ink)] px-[var(--space-sm)] py-[2px] uppercase tracking-[var(--tracking-sm)] hover:bg-[var(--fill)]"
+            className="cursor-pointer border-[length:var(--border-base)] border-[var(--ink)] px-[var(--space-sm)] py-[2px] uppercase tracking-[var(--tracking-sm)] hover:bg-[var(--fill)]"
           >
             reset
           </button>
@@ -190,7 +190,7 @@ export function AnimationDebugPanel() {
                 <select
                   value={values[f.key] as NamedEase}
                   onChange={(e) => setAnimationDebugValue(f.key, e.target.value as AnimationDebugValues[typeof f.key])}
-                  className="border-[length:var(--border-thin)] border-[var(--ink)] bg-[var(--surface)] px-[var(--space-xs)] py-[2px] font-mono text-[length:var(--text-3xs)] text-[var(--ink)]"
+                  className="border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] px-[var(--space-xs)] py-[2px] font-mono text-[length:var(--text-3xs)] text-[var(--ink)]"
                 >
                   {NAMED_EASES.map((ease) => (
                     <option key={ease} value={ease}>
@@ -205,7 +205,7 @@ export function AnimationDebugPanel() {
         {/* Defaults reference, not another control — lets a reset be judged
             against the exact numbers it's resetting TO without leaving this
             panel. */}
-        <div className="border-t-[length:var(--border-thin)] border-[var(--ink)] pt-[var(--space-sm)] text-[length:var(--text-3xs)] text-[var(--subtext)]">
+        <div className="border-t-[length:var(--border-base)] border-[var(--ink)] pt-[var(--space-sm)] text-[length:var(--text-3xs)] text-[var(--subtext)]">
           defaults: {ANIMATION_DEBUG_DEFAULTS.editPanelTransitionMs}ms / {ANIMATION_DEBUG_DEFAULTS.rollDurationMs}ms / {ANIMATION_DEBUG_DEFAULTS.cardDurationMs}ms
         </div>
       </div>

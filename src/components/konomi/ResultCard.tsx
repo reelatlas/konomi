@@ -955,7 +955,7 @@ export function ResultCard({
               {activeHint && (
                 <span
                   ref={hintRef}
-                  className="min-w-0 bg-[var(--surface)] border-[length:var(--border-thin)] border-[var(--ink)] shadow-[var(--elev-1)] px-[var(--space-sm)] py-[var(--space-xs)] font-mono text-[length:var(--text-2xs)] text-[var(--ink)]"
+                  className="min-w-0 tooltip-chip"
                 >
                   {activeHint}
                 </span>
@@ -1346,7 +1346,7 @@ export function ResultCard({
                   FRONT's title/meta, which has no such panel and instead
                   relies on an on-primary/on-secondary color pairing plus a
                   dedicated scrim). */}
-              <div className="grid grid-rows-[minmax(0,1fr)] min-h-0 overflow-hidden bg-[var(--surface)] border-[length:var(--border-thin)] border-[var(--ink)] shadow-[var(--elev-1)]">
+              <div className="grid grid-rows-[minmax(0,1fr)] min-h-0 overflow-hidden bg-[var(--surface)] border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-1)]">
                 {/* groupName="reveal-nested", not the default "reveal":
                     this sits inside the exact same carousel ScrollFadeArea
                     TagScrollArea already does (both are descendants of the
@@ -1424,7 +1424,7 @@ export function ResultCard({
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    className="inline-flex items-center gap-[var(--space-xs)] uppercase font-mono font-bold border-[length:var(--border-thin)] border-[var(--ink)] rounded-[var(--radius-chip)] text-[length:var(--text-2xs)] tracking-[var(--tracking-sm)] px-[var(--space-md)] py-[var(--space-xs)] bg-[var(--surface)] text-[var(--ink)] shadow-[var(--elev-1)]"
+                    className="inline-flex items-center gap-[var(--space-xs)] uppercase font-mono font-bold border-[length:var(--border-base)] border-[var(--ink)] rounded-[var(--radius-chip)] text-[length:var(--text-2xs)] tracking-[var(--tracking-sm)] px-[var(--space-md)] py-[var(--space-xs)] bg-[var(--surface)] text-[var(--ink)] shadow-[var(--elev-1)]"
                   >
                     {/* Rendered as a CSS mask, not a plain <img>: AniList's
                         own icon PNGs (transparent 64x64, hotlinked from

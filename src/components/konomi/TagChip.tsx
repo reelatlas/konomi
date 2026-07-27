@@ -60,7 +60,7 @@ export function TagChip({ id, name, active, size = "base", onToggle }: TagChipPr
         // candidate logged in SIZING_AUDIT.md; not removed here.
         isBase
           ? "text-[length:var(--text-sm)] tracking-[var(--tracking-md)] px-[var(--space-lg)] py-[var(--space-md)]"
-          : `h-[var(--control-h-sm)] border-[length:var(--border-thin)] ${smallChipSizeClass(name)} tracking-[var(--tracking-sm)] px-[var(--space-md)]`,
+          : `h-[var(--control-h-sm)] border-[length:var(--border-base)] ${smallChipSizeClass(name)} tracking-[var(--tracking-sm)] px-[var(--space-md)]`,
         active ? "bg-[var(--primary)] text-[var(--surface)]" : isBase ? "bg-[var(--surface)] text-[var(--ink)]" : "bg-[var(--fill)] text-[var(--ink)]",
         isBase ? (active ? "shadow-[var(--elev-2-accent)]" : "shadow-[var(--elev-2)]") : "",
       ].join(" ")}

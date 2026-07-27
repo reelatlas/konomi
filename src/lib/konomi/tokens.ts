@@ -55,10 +55,13 @@ export const SPACE = {
   page: "60px",
 } as const;
 
+// Two steps (user-ruled 2026-07-26 — see globals.css border comment /
+// SIZING_AUDIT.md): hair for badges/hairlines, base 2px for everything
+// else. `thin` deleted — the 2/2.5 split never rendered on Chromium and
+// only barely on iOS; no hierarchy was intended.
 export const BORDERS = {
   hair: "1.5px",
-  thin: "2px",
-  base: "2.5px",
+  base: "2px",
 } as const;
 
 // Control-height scale (search-v2 unification, ruled 2026-07-26 — see

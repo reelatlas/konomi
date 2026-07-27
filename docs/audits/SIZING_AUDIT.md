@@ -305,3 +305,26 @@ Overlay floor 196 → 198 (rows 57 → 58). WebKit border finding
 render on iOS** (~3 vs ~3.5px at DPR 3) though "extremely hard to
 notice" by eye — the border scale renders two-step on Chromium,
 three-ish on WebKit only. Verdict OPEN, options tabled.
+
+**Batch 3 (2026-07-26) — border verdict executed + the three subtext
+registers.** Border: **option A ruled and shipped** — `--border-base` is
+2px, `--border-thin` DELETED (all 15 class usages migrated; IconButton's
+"thin" prop option retired, default now "base"). User's reasoning
+banked: no weight hierarchy was ever intended; cross-engine consistency
+is the requirement — this lands as a FIX (desktop pixel-identical; iOS
+base elements imperceptibly lighter). Option B (real 2/3 whole-pixel
+hierarchy) stays noted for a possible shadow-pass exploration.
+Subtext registers shipped as utility classes (globals.css, the
+focus-ring-inset precedent): `.text-label` (static control labels — 10
+bold tracking-xl uppercase; renamed from "caption" per user),
+`.text-hint` (transient bare helpers — 11 regular subtext; selector
+hints, panel empty hints, and the search count line joins at 11), and
+`.tooltip-chip` (boxed transients — chip container + 11 **regular**,
+user-ruled over bold: error chip, icon tooltips, swap hint; the
+ThemeSwitcher narrow variant inlines the recipe under its breakpoint
+with a cross-ref). Governing rule: 10 = quiet static labels, 11 =
+anything that talks to you. Verified live: label 10/700, tooltip
+11/400/2px/elev-1, hint 11/400/subtext. Ops note: Turbopack served
+stale CSS through TWO restarts — the second "restart" raced the dying
+listener (port never freed, new server EADDRINUSE'd silently, old one
+kept serving). Kill → wait for port free → rm -rf .next → start.

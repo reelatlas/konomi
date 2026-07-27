@@ -189,7 +189,7 @@ export function RecommendButton({ filledCount, onRecommend, error }: RecommendBu
           // the chip treatment there in the first place, and this control's
           // error state deserves the same legibility regardless of what's
           // behind it.
-          <span className="absolute top-full mt-[var(--space-xs)] whitespace-nowrap bg-[var(--surface)] border-[length:var(--border-thin)] border-[var(--ink)] shadow-[var(--elev-1)] px-[var(--space-sm)] py-[var(--space-xs)] font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xs)] text-[var(--ink)]">
+          <span className="absolute top-full mt-[var(--space-xs)] whitespace-nowrap tooltip-chip">
             {ERROR_MESSAGE[error]}
           </span>
         )}

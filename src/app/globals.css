@@ -123,10 +123,20 @@
   --z-overlay: 10;
   --z-popover: 20;
 
-  /* borders & radius (hard-edged manga vocabulary) */
+  /* borders & radius (hard-edged manga vocabulary).
+     TWO steps, deliberately (user-ruled 2026-07-26, option A of the
+     SIZING_AUDIT border verdict): --border-hair for badges/hairlines and
+     --border-base 2px for EVERYTHING else. The old three-step scale
+     (thin 2 / base 2.5) was measured to render identically on Chromium
+     at every DPR (fractional borders floor) and only whisper-differently
+     on iOS at DPR 3 — a distinction requiring a screenshot to perceive
+     isn't a design decision, and no weight hierarchy was ever intended.
+     --border-thin is DELETED; every consumer now reads --border-base.
+     If a visible weight hierarchy is ever wanted, do it deliberately as
+     whole pixels (2 dense / 3 control — "option B", noted for a possible
+     shadow-pass exploration), never as a fractional step. */
   --border-hair: 1.5px;
-  --border-thin: 2px;
-  --border-base: 2.5px;
+  --border-base: 2px;
   --radius-none: 0;
   --radius-chip: 2px;
 
@@ -757,6 +767,45 @@
   outline: 2px solid var(--primary-deep);
   outline: 2px solid -webkit-focus-ring-color;
   outline-offset: -2px;
+}
+
+/* The three SUBTEXT REGISTERS (ruled 2026-07-26) — compositions of
+   existing tokens, named so call sites document their own semantics
+   (the .focus-ring-inset precedent). The governing rule:
+   10px = quiet static labels; 11px = anything that talks to you.
+   - text-label: STATIC text naming a control (TAG DENSITY / TAG SORT /
+     MIN MATCH). Quiet by design; stays 10.
+   - text-hint: TRANSIENT bare helper (selector hover hints, the search
+     count line, panel empty-state hints). 11, regular, subtext color.
+   - tooltip-chip: TRANSIENT boxed message (icon tooltips, the RECOMMEND
+     error chip, disabled-control hints) — the established chip container
+     + 11px REGULAR (user-ruled: not bold — reads better for messages),
+     tracking-xs. Where a surface needs the chip only at some breakpoint
+     (ThemeSwitcher's narrow hint), inline the recipe with a
+     cross-reference comment instead of the class. */
+.text-label {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-xl);
+  text-transform: uppercase;
+}
+.text-hint {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: var(--text-xs);
+  color: var(--subtext);
+}
+.tooltip-chip {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-xs);
+  color: var(--ink);
+  background: var(--surface);
+  border: var(--border-base) solid var(--ink);
+  box-shadow: var(--elev-1);
+  padding: var(--space-xs) var(--space-sm);
 }
 
 @media (prefers-reduced-motion: reduce) {
