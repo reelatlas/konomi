@@ -108,7 +108,12 @@ export function RatingBadge({ averageScore }: RatingBadgeProps) {
       ))}
       <div
         className={[
-          "relative font-display text-[length:var(--text-sm)] tracking-[var(--tracking-lg)] border-[length:var(--border-base)] px-[var(--space-md)] py-[var(--space-xs)] shadow-[var(--elev-1)]",
+          // Zero shadow (shadow-tier batch): the user ruled ALL badges flat
+          // (tab counts, TagCountBadge) — this one wasn't named but sits
+          // beside TagCountBadge on the same cards, so it follows the badge
+          // register for consistency. MY CALL, flagged for veto: restore
+          // elev-1 here if the score needs more separation from cover art.
+          "relative font-display text-[length:var(--text-sm)] tracking-[var(--tracking-lg)] border-[length:var(--border-base)] px-[var(--space-md)] py-[var(--space-xs)]",
           tier.plateClassName,
         ].join(" ")}
       >

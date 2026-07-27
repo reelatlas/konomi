@@ -168,7 +168,7 @@ export function TagScrollArea({ tags, selectedTagIds, onChipToggle, surfaceColor
           opts into. */}
       <div className="flex flex-wrap content-start gap-[var(--space-sm)] [&_button]:snap-start">
         {tags.map((tag) => (
-          <TagChip key={tag.id} id={tag.id} name={tag.name} size="small" active={selectedTagIds.includes(tag.id)} onToggle={onChipToggle} />
+          <TagChip key={tag.id} id={tag.id} name={tag.name} active={selectedTagIds.includes(tag.id)} onToggle={onChipToggle} />
         ))}
       </div>
     </ScrollFadeArea>

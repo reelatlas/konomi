@@ -342,3 +342,26 @@ border collapse (2.5 → 2) FIXED the long-accepted iOS dashed-border
 clip — the fractional width was the culprit; the empty state's full
 dashed perimeter now renders on mobile for the first time
 (user-confirmed; both "accepted, don't fix" notes updated to resolved).
+
+**Batch 4 (2026-07-26) — shadow tiers, user-ruled groupings.** Depth
+encodes tier: elev-1 2px (card lock/swap, carousel arrows, card-back
+stream chips + description panel — restored after the zero preview),
+elev-2 3px (ActionButton/IconButton outside the header, segments,
+ThemeSwitcher), elev-4 5px (cards, overlay, mixbar, filter popover,
+RECOMMEND — kept at hero by ruling), the masthead's 8→4 morph as its own
+distinct tier (inlined by design), and a broad ZERO tier: the whole
+header row (flat by ruling — ActionButton gained a `shadow` prop as the
+one off-switch, no per-component logic), all tags/chips, tabs/sub-tabs,
+all badges, tooltips (.tooltip-chip sheds elev-1), empty slots, panel
+grip/snap/close. Tokens: --elev-3/--elev-5/--elev-2-accent DELETED;
+--elev-3-accent renamed **--elev-2-selected** (the accent→selected
+rename, avoiding the ActionButton accent-variant collision) and the
+filled slot normalized 4 → 3px to its control tier — the one
+shadow-COLOR rule: selected/loaded keeps tier depth, swaps ink →
+secondary. The slot's pad-then-cancel coupling in MixerBar re-derived
+4 → 3px. TagChip's dead `base` variant DELETED outright (user-confirmed;
+size prop gone, both call sites cleaned). Two flagged MY-CALLS pending
+veto: RatingBadge → zero (badge-register consistency beside
+TagCountBadge) · filter popover → elev-4 (floating-surface family).
+Measured live: header all none; mixbar 3 / RECOMMEND 5 / slot selected 3
+/ lock 2 / faces+mixbar card 5 / chips+badges none. All suites green.

@@ -80,15 +80,16 @@ export const RADII = {
   chip: "2px",
 } as const;
 
-// Hard manga offset-shadows: `<offset> 0 <ink>`. Combine with the active
-// theme's ink color at the usage site, e.g. `shadow-[var(--elev-3)]`.
-// Two offsets (2 and 3) also have a `-accent` variant in globals.css
-// (`--elev-2-accent`, `--elev-3-accent`) that swaps in the theme's secondary
-// color instead of ink, for "selected/filled" states that pop against it.
+// Hard manga offset-shadows — TIERED (user-ruled 2026-07-26, see
+// globals.css --elev-* comment for the full assignment): 1 = dense
+// accents, 2 = control tier, 4 = surfaces/hero. Keys 3 and 5 deleted
+// (no consumers; the masthead's 8→4 collapse morph is its own distinct
+// tier, inlined in Masthead.tsx). `--elev-2-selected` (globals.css)
+// swaps ink → secondary at the same depth for selected/loaded states —
+// renamed from "-accent" to avoid colliding with ActionButton's accent
+// background variant.
 export const ELEVATION = {
   1: "2px 2px 0",
   2: "3px 3px 0",
-  3: "4px 4px 0",
   4: "5px 5px 0",
-  5: "8px 8px 0",
 } as const;

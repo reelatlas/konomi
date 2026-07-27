@@ -115,7 +115,11 @@ export function TagSlot({ index, tag, label, isDragOver, onDragOver, onDragLeave
         // (solid), unchanged.
         filled ? "border-solid border-[var(--ink)]" : "border-dashed border-[var(--muted)]",
         filled ? "bg-[var(--primary)]" : isDragOver ? "bg-[var(--secondary)]" : "bg-[var(--slot-empty)]",
-        filled ? "shadow-[var(--elev-3-accent)]" : "shadow-none",
+        // elev-2-selected (was elev-3-accent): the ONE shadow-color rule —
+        // a loaded state keeps its tier's depth (control tier, 3px) and
+        // swaps ink → secondary for the pop. Renamed + normalized 4→3px in
+        // the shadow-tier batch; empty slots stay flat by ruling.
+        filled ? "shadow-[var(--elev-2-selected)]" : "shadow-none",
         // No transform at all when not drag-over — a no-op
         // `translate-x-0 translate-y-0` was applied unconditionally before,
         // which still forces its own compositing layer on every slot at all

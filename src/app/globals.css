@@ -422,13 +422,33 @@
  * secondary color instead of ink, for the two "selected/filled" states
  * (TagChip active, TagSlot filled) that pop against the accent color. */
 [data-theme] {
+  /* SHADOW TIERS (user-ruled 2026-07-26, SIZING_AUDIT.md §8 batch 4) —
+     depth encodes TIER, not component identity:
+       elev-1 2px  dense accents: card lock/swap, carousel arrows,
+                   card-back stream chips + description panel
+       elev-2 3px  control tier: ActionButton/IconButton (outside the
+                   header), segments, ThemeSwitcher swatch
+       elev-4 5px  surfaces + hero: cards, tag pool overlay, mixbar,
+                   filter popover, RECOMMEND (kept here by ruling;
+                   may re-tier later)
+       ZERO        the whole header row (flat by ruling — no per-component
+                   logic, the row is flat), tags/chips, tabs + sub-tabs,
+                   badges (tab counts, TagCountBadge, RatingBadge),
+                   tooltips, empty slots, panel grip/snap/close
+       masthead    its OWN distinct tier: the 8px→4px collapse morph,
+                   inlined in Masthead.tsx by design — not tokenized.
+     Deleted: --elev-3 and --elev-5 (no consumers; masthead inlines its
+     morph), --elev-2-accent/--elev-3-accent (the "accent" shadow-color
+     axis renamed SELECTED to stop colliding with ActionButton's accent
+     background variant).
+     --elev-2-selected: the one shadow-COLOR rule — a selected/loaded
+     state keeps its tier's depth but swaps ink → secondary. Single
+     consumer today: the filled tag slot (normalized 4px → 3px, the
+     control tier it lives in). */
   --elev-1: 2px 2px 0 var(--ink);
   --elev-2: 3px 3px 0 var(--ink);
-  --elev-3: 4px 4px 0 var(--ink);
   --elev-4: 5px 5px 0 var(--ink);
-  --elev-5: 8px 8px 0 var(--ink);
-  --elev-2-accent: 3px 3px 0 var(--secondary);
-  --elev-3-accent: 4px 4px 0 var(--secondary);
+  --elev-2-selected: 3px 3px 0 var(--secondary);
 
   /* ResultCard's tag-area background: a translucent wash of --slot-empty
    * over the reflection (see ResultCard.tsx's own comment) — derived here,
@@ -804,7 +824,8 @@
   color: var(--ink);
   background: var(--surface);
   border: var(--border-base) solid var(--ink);
-  box-shadow: var(--elev-1);
+  /* zero shadow (user-ruled, shadow tiers 2026-07-26): tooltips are
+     messages, not surfaces — the border alone carries the chip edge. */
   padding: var(--space-xs) var(--space-sm);
 }
 

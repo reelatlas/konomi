@@ -144,7 +144,7 @@ export function ThemeSwitcher({ value, onChange, subtextPlacement = "bottom" }: 
             // box + this margin) — a token bump, not measured coupling.
             ? "right-full top-1/2 -translate-y-1/2 mr-[var(--space-md)] text-hint " +
               "max-[456px]:top-full max-[456px]:translate-y-0 max-[456px]:mr-0 max-[456px]:mt-[var(--space-xs)] " +
-              "max-[456px]:bg-[var(--surface)] max-[456px]:border-[length:var(--border-base)] max-[456px]:border-[var(--ink)] max-[456px]:shadow-[var(--elev-1)] max-[456px]:px-[var(--space-sm)] max-[456px]:py-[var(--space-xs)] max-[456px]:text-[length:var(--text-xs)] max-[456px]:tracking-[var(--tracking-xs)] max-[456px]:text-[var(--ink)]"
+              "max-[456px]:bg-[var(--surface)] max-[456px]:border-[length:var(--border-base)] max-[456px]:border-[var(--ink)] max-[456px]:px-[var(--space-sm)] max-[456px]:py-[var(--space-xs)] max-[456px]:text-[length:var(--text-xs)] max-[456px]:tracking-[var(--tracking-xs)] max-[456px]:text-[var(--ink)]"
             : "top-full left-0 mt-[var(--space-xs)] text-hint",
           tooltipX,
           hovered ? "opacity-100" : "opacity-0",

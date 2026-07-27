@@ -220,6 +220,9 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
           <div className="hidden min-[480px]:block">
           <ActionButton
             variant={browseActive ? "filled" : "outline"}
+            // The header row is FLAT (shadow tiers ruling) — every control
+            // in this row is shadowless, whatever its component default.
+            shadow={false}
             onClick={editMode ? onCloseEditMode : onOpenEditMode}
             aria-label={editMode ? "Close tag pool" : "Open tag pool"}
           >

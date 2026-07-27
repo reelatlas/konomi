@@ -4,7 +4,6 @@ interface TagChipProps {
   id: string;
   name: string;
   active: boolean;
-  size?: "base" | "small";
   onToggle: (tagId: string) => void;
 }
 
@@ -27,8 +26,11 @@ function smallChipSizeClass(name: string): string {
   return "text-[length:var(--text-3xs)]";
 }
 
-export function TagChip({ id, name, active, size = "base", onToggle }: TagChipProps) {
-  const isBase = size === "base";
+// Single form since the shadow-tier batch (user-confirmed): the old
+// "base" variant had ZERO call sites (found by the sizing audit) and was
+// deleted with its elev-2/-2-accent shadows — chips are always the
+// dense-tier form now, and per the shadow ruling they carry NO shadow.
+export function TagChip({ id, name, active, onToggle }: TagChipProps) {
 
   return (
     <button
@@ -50,19 +52,12 @@ export function TagChip({ id, name, active, size = "base", onToggle }: TagChipPr
         // inside scroll containers, the exact case an outside ring gets
         // clipped by (globals.css).
         "focus-ring-inset border-[length:var(--border-base)] border-[var(--ink)] rounded-[var(--radius-chip)]",
-        // small = the DENSE TIER (sizing unification ⑤/2b): fixed
-        // h-[--control-h-sm] box (no more py-derived 27px) with text-xs
-        // 11px, up from 2xs 10 — chips are read, not just labeled, and 10
-        // was the floor of comfortable scanning (SIZING_AUDIT.md §6). The
-        // base classes' inline-flex items-center center the label in the
-        // fixed box. NOTE: isBase currently has ZERO call sites (both
-        // TagPoolBody and TagScrollArea pass size="small") — dead-variant
-        // candidate logged in SIZING_AUDIT.md; not removed here.
-        isBase
-          ? "text-[length:var(--text-sm)] tracking-[var(--tracking-md)] px-[var(--space-lg)] py-[var(--space-md)]"
-          : `h-[var(--control-h-sm)] border-[length:var(--border-base)] ${smallChipSizeClass(name)} tracking-[var(--tracking-sm)] px-[var(--space-md)]`,
-        active ? "bg-[var(--primary)] text-[var(--surface)]" : isBase ? "bg-[var(--surface)] text-[var(--ink)]" : "bg-[var(--fill)] text-[var(--ink)]",
-        isBase ? (active ? "shadow-[var(--elev-2-accent)]" : "shadow-[var(--elev-2)]") : "",
+        // The DENSE TIER form (sizing unification ⑤/2b): fixed
+        // h-[--control-h-sm] box with length-tiered text (smallChipSizeClass
+        // — 11px, stepping down for long names). Zero shadow, per the
+        // shadow-tier ruling: tags are flat everywhere (pool + cards).
+        `h-[var(--control-h-sm)] border-[length:var(--border-base)] ${smallChipSizeClass(name)} tracking-[var(--tracking-sm)] px-[var(--space-md)]`,
+        active ? "bg-[var(--primary)] text-[var(--surface)]" : "bg-[var(--fill)] text-[var(--ink)]",
       ].join(" ")}
     >
       {name}

@@ -320,18 +320,19 @@ export function MixerBar({
                   the row ever wrapping. scrollStep={90}: one slot's own
                   width (78px) plus this row's shared gap-lg (12px), so a
                   click/arrow-tap scrolls one slot at a time. */}
-              {/* -mb-[4px]/-mr-[4px] cancel the pb-[4px]/pr-[4px] on the
+              {/* -mb-[3px]/-mr-[3px] cancel the pb-[3px]/pr-[3px] on the
                   scrollable content below — the established pad-then-
                   cancel shadow-clipping fix (see DESIGN_SYSTEM.md):
                   ScrollFadeArea's viewport is overflow-x-auto/
                   overflow-y-hidden, which otherwise clips a filled
-                  TagSlot's own shadow-[var(--elev-3-accent)] (a flat
-                  4px/4px offset — the 4px matches that token exactly) at
+                  TagSlot's own shadow-[var(--elev-2-selected)] (a flat
+                  3px/3px offset — the 3px matches that token exactly;
+                  was 4/elev-3-accent before the shadow-tier batch) at
                   the bottom edge for every slot and the right edge for
                   the last one. */}
-              <div className="min-w-0 -mb-[4px] -mr-[4px]">
+              <div className="min-w-0 -mb-[3px] -mr-[3px]">
                 <ScrollFadeArea orientation="horizontal" scrollStep={90} fadeSize={12} fitContent restrictTouchAction>
-                  <div className="flex gap-[var(--space-lg)] pb-[4px] pr-[4px]">
+                  <div className="flex gap-[var(--space-lg)] pb-[3px] pr-[3px]">
                     {slots.map((tag, index) => (
                       <TagSlot
                         key={index}

@@ -10,6 +10,13 @@ interface ActionButtonProps {
   // the result through.
   accentColor?: "primary" | "secondary";
   size?: ActionButtonSize;
+  // Default true. The HEADER ROW is flat by ruling (shadow tiers,
+  // 2026-07-26): any button rendered there passes shadow={false} — one
+  // prop, no per-component logic, exactly as ruled ("if it's in the
+  // header row, it will not apply the shadow"). Everywhere else the
+  // variant's tier shadow applies (outline/filled elev-2, accent elev-4,
+  // inverted none by design).
+  shadow?: boolean;
   disabled?: boolean;
   onClick?: () => void;
   // Only needed by callers whose visible children can be icon-only at some
@@ -84,23 +91,27 @@ const SIZE_CLASSES: Record<ActionButtonSize, string> = {
 // disables, but this keeps Random/Clear's own disabled treatment defined
 // and consistent for whenever (if ever) they need one, rather than a second
 // disabled code path only accent variants get.
-export function ActionButton({ variant, accentColor, size = "md", disabled, onClick, "aria-label": ariaLabel, className, children }: ActionButtonProps) {
+export function ActionButton({ variant, accentColor, size = "md", shadow = true, disabled, onClick, "aria-label": ariaLabel, className, children }: ActionButtonProps) {
   const variantClasses = disabled
     ? "bg-[var(--disabled-bg)] text-[var(--disabled-text)] shadow-none cursor-not-allowed"
     : {
         // bg-transparent, not omitted — Random ×3 (variant="filled") sits
         // right next to this one and needs the same border/shadow to read
         // as a matching pair; only the fill differs.
-        outline: "bg-transparent text-[var(--ink)] shadow-[var(--elev-2)] cursor-pointer",
-        filled: "bg-[var(--fill)] text-[var(--ink)] shadow-[var(--elev-2)] cursor-pointer",
-        // No shadow — confirmed against the original Clear ✕ (Recommendations)
-        // markup, not an oversight relative to outline/filled.
+        outline: "bg-transparent text-[var(--ink)] cursor-pointer",
+        filled: "bg-[var(--fill)] text-[var(--ink)] cursor-pointer",
+        // No shadow ever — the inverted look is deliberately flat.
         inverted: "bg-[var(--ink)] text-[var(--bg)] cursor-pointer",
         accent:
           accentColor === "secondary"
-            ? "bg-[var(--secondary)] text-[var(--on-secondary)] shadow-[var(--elev-4)] cursor-pointer"
-            : "bg-[var(--primary)] text-[var(--on-primary)] shadow-[var(--elev-4)] cursor-pointer",
+            ? "bg-[var(--secondary)] text-[var(--on-secondary)] cursor-pointer"
+            : "bg-[var(--primary)] text-[var(--on-primary)] cursor-pointer",
       }[variant];
+  // Tier shadow as its own single emitter (never two shadow utilities in
+  // one string — the cascade-order trap): outline/filled = control tier
+  // elev-2; accent = surface/hero tier elev-4 (RECOMMEND, kept there by
+  // ruling); inverted = none by design; shadow={false} = the flat rule.
+  const shadowClass = disabled || !shadow ? "" : { outline: "shadow-[var(--elev-2)]", filled: "shadow-[var(--elev-2)]", inverted: "", accent: "shadow-[var(--elev-4)]" }[variant];
 
   return (
     <button
@@ -124,6 +135,7 @@ export function ActionButton({ variant, accentColor, size = "md", disabled, onCl
         disabled ? "border-[var(--muted)]" : "border-[var(--ink)]",
         SIZE_CLASSES[size],
         variantClasses,
+        shadowClass,
         className ?? "",
       ].join(" ")}
     >

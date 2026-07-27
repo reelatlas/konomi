@@ -121,7 +121,7 @@ function ChipRow({
   return (
     <div className="flex flex-wrap gap-[var(--space-md)]">
       {tags.map((tag) => (
-        <TagChip key={tag.id} id={tag.id} name={tag.name} size="small" active={selectedTagIds.includes(tag.id)} onToggle={onChipToggle} />
+        <TagChip key={tag.id} id={tag.id} name={tag.name} active={selectedTagIds.includes(tag.id)} onToggle={onChipToggle} />
       ))}
     </div>
   );

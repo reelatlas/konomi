@@ -1346,7 +1346,7 @@ export function ResultCard({
                   FRONT's title/meta, which has no such panel and instead
                   relies on an on-primary/on-secondary color pairing plus a
                   dedicated scrim). */}
-              <div className="grid grid-rows-[minmax(0,1fr)] min-h-0 overflow-hidden bg-[var(--surface)] border-[length:var(--border-base)] border-[var(--ink)] shadow-[var(--elev-1)]">
+              <div className="grid grid-rows-[minmax(0,1fr)] min-h-0 overflow-hidden bg-[var(--surface)] shadow-[var(--elev-1)] border-[length:var(--border-base)] border-[var(--ink)]">
                 {/* groupName="reveal-nested", not the default "reveal":
                     this sits inside the exact same carousel ScrollFadeArea
                     TagScrollArea already does (both are descendants of the

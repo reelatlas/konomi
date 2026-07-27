@@ -1,7 +1,7 @@
 {
  "meta": {
-  "generated": "2026-07-27T04:52:03.385Z",
-  "commit": "a7fa7e8",
+  "generated": "2026-07-27T06:03:51.097Z",
+  "commit": "fa29e10",
   "treeDirty": true,
   "url": "http://localhost:3000/film",
   "primaryCapture": {
@@ -399,7 +399,7 @@
      "kind": "token"
     },
     "shadow": {
-     "v": "--elev-2 3px",
+     "v": "none (header row is flat — shadow tiers ruling)",
      "kind": "token"
     }
    },
@@ -416,7 +416,7 @@
      "border": "2px",
      "borderColor": "rgb(25, 18, 37)",
      "radius": "0px",
-     "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(25, 18, 37) 3px 3px 0px 0px",
+     "boxShadow": "none",
      "background": "rgb(228, 215, 244)",
      "effectiveBg": "rgb(228, 215, 244)",
      "color": "rgb(25, 18, 37)",
@@ -441,7 +441,7 @@
       "border": "2px",
       "borderColor": "rgb(25, 18, 37)",
       "radius": "0px",
-      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(25, 18, 37) 3px 3px 0px 0px",
+      "boxShadow": "none",
       "background": "rgb(228, 215, 244)",
       "effectiveBg": "rgb(228, 215, 244)",
       "color": "rgb(25, 18, 37)",
@@ -464,7 +464,7 @@
       "border": "2px",
       "borderColor": "rgb(25, 18, 37)",
       "radius": "0px",
-      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(25, 18, 37) 3px 3px 0px 0px",
+      "boxShadow": "none",
       "background": "rgb(228, 215, 244)",
       "effectiveBg": "rgb(228, 215, 244)",
       "color": "rgb(25, 18, 37)",
@@ -487,7 +487,7 @@
       "border": "2px",
       "borderColor": "rgb(25, 18, 37)",
       "radius": "0px",
-      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(25, 18, 37) 3px 3px 0px 0px",
+      "boxShadow": "none",
       "background": "rgb(228, 215, 244)",
       "effectiveBg": "rgb(228, 215, 244)",
       "color": "rgb(25, 18, 37)",
@@ -888,7 +888,7 @@
    },
    "measured": {
     "resting": {
-     "w": 65.56,
+     "w": 43.56,
      "h": 16,
      "fontSize": "16px",
      "fontFamily": "Zen Kaku Gothic New",
@@ -913,7 +913,7 @@
     "contrast": 17.55,
     "states": {
      "hover": {
-      "w": 65.56,
+      "w": 43.56,
       "h": 16,
       "fontSize": "16px",
       "fontFamily": "Zen Kaku Gothic New",
@@ -936,7 +936,7 @@
       "iconLabelGap": "6px"
      },
      "focusVisible": {
-      "w": 65.56,
+      "w": 43.56,
       "h": 16,
       "fontSize": "16px",
       "fontFamily": "Zen Kaku Gothic New",
@@ -1193,7 +1193,7 @@
      "kind": "token"
     },
     "shadow": {
-     "v": "elev-3-accent 4px (filled) / none (empty)",
+     "v": "elev-2-selected 3px (filled) / none (empty) — the selected color-swap rule",
      "kind": "token"
     },
     "font": {
@@ -1214,7 +1214,7 @@
      "border": "2px",
      "borderColor": "rgb(25, 18, 37)",
      "radius": "0px",
-     "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(228, 244, 111) 4px 4px 0px 0px",
+     "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(228, 244, 111) 3px 3px 0px 0px",
      "background": "rgb(86, 79, 214)",
      "effectiveBg": "rgb(86, 79, 214)",
      "color": "rgb(25, 18, 37)",
@@ -1239,7 +1239,7 @@
       "border": "2px",
       "borderColor": "rgb(25, 18, 37)",
       "radius": "0px",
-      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(228, 244, 111) 4px 4px 0px 0px",
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(228, 244, 111) 3px 3px 0px 0px",
       "background": "rgb(86, 79, 214)",
       "effectiveBg": "rgb(86, 79, 214)",
       "color": "rgb(25, 18, 37)",
@@ -2122,13 +2122,13 @@
   {
    "what": "elevation token",
    "usage": {
-    "elev-1": 6,
-    "elev-2": 15,
-    "elev-3": 2,
+    "elev-1": 3,
+    "elev-2": 13,
+    "elev-3": 1,
     "elev-4": 7,
     "elev-5": 0,
-    "elev-2-accent": 1,
-    "elev-3-accent": 2
+    "elev-2-accent": 0,
+    "elev-3-accent": 0
    }
   },
   {
@@ -2146,7 +2146,7 @@
     "text-lg": 2,
     "text-md": 3,
     "text-base": 3,
-    "text-sm": 6,
+    "text-sm": 5,
     "text-xs": 17,
     "text-2xs": 9,
     "text-3xs": 5
@@ -2157,8 +2157,8 @@
    "usage": {
     "space-xs": 17,
     "space-sm": 36,
-    "space-md": 35,
-    "space-lg": 37,
+    "space-md": 34,
+    "space-lg": 36,
     "space-xl": 12,
     "space-2xl": 22,
     "space-3xl": 0,
