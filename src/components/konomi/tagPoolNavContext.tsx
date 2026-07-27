@@ -318,20 +318,25 @@ export function TagPoolNavProvider({ allTags, totalSeriesCount, onChipToggle, ch
   };
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Escape") {
-      // Esc ladder, v2 form: clear query → (fall through) close panel.
-      // The header field is always visible, so v1's middle stage
-      // (collapse the field) no longer exists. A consumed clear must
+      // Esc ladder, v3 form: clear query → (fall through) close panel AND
+      // drop the field back to rest. A consumed clear must
       // preventDefault + stopPropagation: MixerBar has a WINDOW-level
       // Escape that closes the whole edit panel, and — Next.js App Router
       // hydrates at `document`, so React's delegated listeners share that
       // node — only the `!e.defaultPrevented` guard in that listener
       // actually shields it (confirmed live; see MixerBar). Once the query
-      // is already empty the key falls through untouched, so the second
-      // Esc closes the panel.
+      // is already empty the key falls through untouched (so the overlay's
+      // document-level Escape still closes the panel) — and it now ALSO
+      // blurs the input (user-ruled 2026-07-27): with no text and no
+      // other consumer ahead of it, Esc returns search to its default
+      // rest state exactly like clicking out does (which closes the
+      // panel and blurs in one gesture — this matches that).
       if (query) {
         e.preventDefault();
         e.stopPropagation();
         setQuery("");
+      } else {
+        e.currentTarget.blur();
       }
       return;
     }

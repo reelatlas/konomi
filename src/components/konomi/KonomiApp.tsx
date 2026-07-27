@@ -697,7 +697,6 @@ export function KonomiApp({ side, initialSeries, initialTags }: KonomiAppProps) 
                 onChipToggle={k.toggleTag}
                 tagInfoById={k.tagInfoById}
                 totalSeriesCount={k.totalSeriesCount}
-                onLevelChange={handleLevelChange}
                 onRandomTags={handleRandomTags}
               />
               <TagPoolOverlay

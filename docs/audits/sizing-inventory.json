@@ -1,7 +1,7 @@
 {
  "meta": {
-  "generated": "2026-07-27T08:11:27.278Z",
-  "commit": "58b53c7",
+  "generated": "2026-07-27T08:30:43.126Z",
+  "commit": "ecd89d4",
   "treeDirty": true,
   "url": "http://localhost:3000/film",
   "primaryCapture": {
@@ -276,8 +276,8 @@
   },
   {
    "id": "header/search-field",
-   "component": "ResultsHeader input",
-   "file": "src/components/konomi/ResultsHeader.tsx",
+   "component": "SearchField (own contained component — user-ruled, not a button variant)",
+   "file": "src/components/konomi/SearchField.tsx",
    "authored": {
     "height": {
      "v": "--control-h-md 40px",
@@ -364,7 +364,7 @@
       "radius": "0px",
       "boxShadow": "none",
       "background": "rgba(0, 0, 0, 0)",
-      "effectiveBg": "rgba(252, 250, 255, 0.84)",
+      "effectiveBg": "rgba(252, 250, 255, 0.835)",
       "color": "rgb(25, 18, 37)",
       "outline": "none",
       "opacity": "1",
@@ -638,7 +638,7 @@
      "kind": "token"
     },
     "bg": {
-     "v": "--fill (lavender) — ready-action fill, Random filled-action precedent",
+     "v": "--surface (whitish) — ready-action fill (user-ruled, was --fill)",
      "kind": "token"
     },
     "shadow": {
@@ -660,8 +660,8 @@
      "borderColor": "rgba(0, 0, 0, 0)",
      "radius": "0px",
      "boxShadow": "none",
-     "background": "rgb(228, 215, 244)",
-     "effectiveBg": "rgb(228, 215, 244)",
+     "background": "rgb(252, 250, 255)",
+     "effectiveBg": "rgb(252, 250, 255)",
      "color": "rgb(25, 18, 37)",
      "outline": "none",
      "opacity": "1",
@@ -670,7 +670,7 @@
      "iconSize": null,
      "iconLabelGap": null
     },
-    "contrast": 13.27,
+    "contrast": 17.55,
     "states": {
      "hover": {
       "w": 86.84,
@@ -685,8 +685,8 @@
       "borderColor": "rgba(0, 0, 0, 0)",
       "radius": "0px",
       "boxShadow": "none",
-      "background": "rgb(228, 215, 244)",
-      "effectiveBg": "rgb(228, 215, 244)",
+      "background": "rgb(252, 250, 255)",
+      "effectiveBg": "rgb(252, 250, 255)",
       "color": "rgb(25, 18, 37)",
       "outline": "none",
       "opacity": "1",
@@ -708,8 +708,8 @@
       "borderColor": "rgba(0, 0, 0, 0)",
       "radius": "0px",
       "boxShadow": "none",
-      "background": "rgb(228, 215, 244)",
-      "effectiveBg": "rgb(228, 215, 244)",
+      "background": "rgb(252, 250, 255)",
+      "effectiveBg": "rgb(252, 250, 255)",
       "color": "rgb(25, 18, 37)",
       "outline": "2px solid offset -2px",
       "opacity": "1",
@@ -1825,9 +1825,9 @@
    },
    "header/clear-btn": {
     "color": "rgb(220, 228, 230)",
-    "background": "rgb(38, 50, 59)",
+    "background": "rgb(28, 36, 42)",
     "borderColor": "rgba(0, 0, 0, 0)",
-    "contrast": 10.17
+    "contrast": 12.2
    },
    "header/meta-readout": {
     "color": "rgb(102, 114, 123)",
@@ -1922,9 +1922,9 @@
    },
    "header/clear-btn": {
     "color": "rgb(33, 28, 23)",
-    "background": "rgb(235, 224, 203)",
+    "background": "rgb(255, 253, 246)",
     "borderColor": "rgba(0, 0, 0, 0)",
-    "contrast": 12.92
+    "contrast": 16.6
    },
    "header/meta-readout": {
     "color": "rgb(179, 165, 137)",
@@ -1939,10 +1939,10 @@
     "contrast": 16.6
    },
    "panel/chip-small": {
-    "color": "rgb(33, 28, 23)",
-    "background": "rgb(235, 224, 203)",
+    "color": "rgb(255, 253, 246)",
+    "background": "rgb(216, 57, 46)",
     "borderColor": "rgb(33, 28, 23)",
-    "contrast": 12.92
+    "contrast": 4.54
    },
    "panel/icon-btn": {
     "color": "rgb(33, 28, 23)",
@@ -1981,10 +1981,10 @@
     "contrast": 10.07
    },
    "card/chip": {
-    "color": "rgb(33, 28, 23)",
-    "background": "rgb(235, 224, 203)",
+    "color": "rgb(255, 253, 246)",
+    "background": "rgb(216, 57, 46)",
     "borderColor": "rgb(33, 28, 23)",
-    "contrast": 12.92
+    "contrast": 4.54
    },
    "card/lock-btn": {
     "color": "rgb(33, 28, 23)",

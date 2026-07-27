@@ -39,7 +39,7 @@ const BASE_URL = process.env.KONOMI_URL || "http://localhost:3000/film";
 // `activeSafe`: false when a mousedown alone starts something (drag).
 const R = (o) => o;
 const registry = [
-  R({ id: "header/search-field", component: "ResultsHeader input", file: "src/components/konomi/ResultsHeader.tsx",
+  R({ id: "header/search-field", component: "SearchField (own contained component — user-ruled, not a button variant)", file: "src/components/konomi/SearchField.tsx",
       selector: 'input[aria-label="Search all tag sections"]',
       authored: { height: { v: "--control-h-md 40px", kind: "token" }, width: { v: "min(200px,40vw)", kind: "literal", src: "w-[min(200px,40vw)]" },
         font: { v: "--text-sm 12px", kind: "token" }, padX: { v: "--space-lg 12px", kind: "token" }, border: { v: "--border-base 2px; TRANSPARENT rest / primary engaged (borderless-rest ruling; label container w/ icon inside, glow suppressed while engaged)", kind: "token" } },
@@ -57,7 +57,7 @@ const registry = [
   R({ id: "header/clear-btn", component: "ActionButton md variant=header-action (--fill bg ready-action; disabled = shared recipe)", file: "src/components/konomi/ResultsHeader.tsx",
       selector: 'button[aria-label="Clear results"]',
       authored: { height: { v: "--control-h-md 40px", kind: "token", src: "SIZE_CLASSES.md" }, font: { v: "--text-xs 11px", kind: "token" },
-        bg: { v: "--fill (lavender) — ready-action fill, Random filled-action precedent", kind: "token" },
+        bg: { v: "--surface (whitish) — ready-action fill (user-ruled, was --fill)", kind: "token" },
         shadow: { v: "none (header-action — flat row)", kind: "literal" } },
       verify: ['variant="header-action"'], states: ["hover", "focus", "disabled:static"] }),
   R({ id: "header/meta-readout", component: "ResultsHeader metadata", file: "src/components/konomi/ResultsHeader.tsx",

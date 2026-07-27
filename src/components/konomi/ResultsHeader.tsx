@@ -3,9 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import type { LevelKey } from "@/lib/konomi/types";
 import { ActionButton } from "./ActionButton";
-import { CloseIcon, ExistingIcon, LockClosedIcon, LockOpenIcon, NewIcon, SearchIcon, TagPoolIcon } from "./icons";
+import { CloseIcon, ExistingIcon, LockClosedIcon, LockOpenIcon, NewIcon, TagPoolIcon } from "./icons";
 import { IconButton } from "./IconButton";
 import { ResultsFilterButton } from "./ResultsFilterButton";
+import { SearchField } from "./SearchField";
 import { useTagPoolNav } from "./tagPoolNavContext";
 
 interface ResultsHeaderProps {
@@ -48,10 +49,10 @@ const UNLOCKED_FEEDBACK_MS = 1100;
 // The persistent global header row (search v2). BOTH states now carry real
 // content: the global search field + the Tag Pool button live here always
 // (top-left — the panel's single stable invocation point); the results
-// state adds the Filter popover to their right, and the result-set
-// metadata + Clear ✕ on the row's right end. In the empty state the Tag
-// Density/Sort filters still live inside the empty-state box itself
-// (user-ruled "for now"), so the right half is simply empty there.
+// state adds the result-set metadata + Clear ✕ on the row's right end;
+// the Filter popover sits right of Tag Pool in BOTH states (user-ruled
+// 2026-07-27 — the empty-state box's inline filters moved up here), so
+// only the right half differs between states.
 //
 // The row never collapses (min-h at the control tier + mb-[space-lg]) —
 // v1 reserved the height while gating ALL content on hasResults, purely so
@@ -62,13 +63,6 @@ const UNLOCKED_FEEDBACK_MS = 1100;
 // same remaining space, both states.
 export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEditMode, lockedCount, newCount, existingCount, onUnlockAll, onClearRecs, clearDisabled, onLevelChange }: ResultsHeaderProps) {
   const nav = useTagPoolNav();
-  const searchInputRef = useRef<HTMLInputElement>(null);
-  // Style-only focus tracking for the search container (safe — the
-  // focus-opens-panel bug was about OPENING on focus arrivals; this only
-  // styles): engaged = focused or a live query, and the hover glow is
-  // suppressed while engaged (user-ruled — hovering the icon inside an
-  // already-engaged field must not re-trigger the rest-state hover).
-  const [searchFocused, setSearchFocused] = useState(false);
   // Browse mode = the panel is open with no live query — the Tag Pool
   // button shows its active (filled) state. The moment the user types, the
   // field is what reads active (ink border) and the button drops back to
@@ -156,82 +150,10 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
           scoped HERE, where no popover needs to escape it. */}
       <div className="flex items-center gap-[var(--space-lg)] min-w-0">
         <div data-global-search className="relative z-[var(--z-raised)] flex items-center gap-[var(--space-lg)] min-w-0">
-        {/* Global search — THE one search, restyled to the header
-            treatment (user-ruled 2026-07-27): ONE visual container (a
-            <label>, so clicking anywhere in it natively focuses the
-            input) holding the icon INSIDE the box. States mirror the
-            Filter button's: REST = flat/transparent, --muted border,
-            icon and placeholder; HOVER = the shared glow bloom
-            (glow-host/glow-icon); ENGAGED (focus via :focus-within, or a
-            live query via React) = --surface fill + --primary border —
-            the same active border the Filter/Tag Pool buttons use,
-            replacing the blue focus ring here BY RULING: the input is
-            [outline:none] and the container's primary border + fill IS
-            the focus affordance (the documented deviation class from the
-            one-focus-regime rule — a control with its own strong,
-            deliberate focus treatment; same precedent as the collapsed
-            Min Match/Density buttons). */}
-        <label
-          // onMouseDown: when the input is ALREADY focused, a click on the
-          // icon/label would blur-then-refocus it — one frame of the
-          // container collapsing out of its engaged state and the hover
-          // glow re-arming (user-reported). Preventing default keeps
-          // focus put; the input never blurs. onClick: clicking the ICON
-          // must behave exactly like clicking the field — focus + open
-          // the panel (label forwards focus natively, but the panel-open
-          // signal lives on the input's own onClick, whose target the
-          // icon isn't).
-          onMouseDown={(e) => {
-            if (document.activeElement === searchInputRef.current) e.preventDefault();
-          }}
-          onClick={() => {
-            searchInputRef.current?.focus();
-            if (!editMode) onOpenEditMode();
-          }}
-          className={[
-            "flex items-center shrink-0 cursor-text",
-            // glow only at REST — an engaged field doesn't re-advertise
-            // its hover affordance (user-ruled).
-            searchFocused || nav.query ? "" : "glow-host",
-            "h-[var(--control-h-md)] w-[min(200px,40vw)] px-[var(--space-lg)] gap-[var(--space-sm)]",
-            // borderless rest (border-TRANSPARENT so geometry never
-            // shifts); engaged brings the primary frame + surface fill.
-            "border-[length:var(--border-base)] transition-colors",
-            nav.query || searchFocused
-              ? "border-[var(--primary)] bg-[var(--surface)]"
-              : "border-transparent bg-transparent focus-within:border-[var(--primary)] focus-within:bg-[var(--surface)]",
-          ].join(" ")}
-        >
-          <SearchIcon className={`glow-icon w-[20px] h-[20px] shrink-0 ${nav.query || searchFocused ? "text-[var(--ink)]" : "text-[var(--muted)]"}`} />
-          <input
-            ref={searchInputRef}
-            type="text"
-            value={nav.query}
-            onChange={(e) => {
-              if (!editMode) onOpenEditMode();
-              nav.handleQueryChange(e.target.value);
-            }}
-            onKeyDown={nav.handleSearchKeyDown}
-            // onClick, deliberately NOT onFocus: MixerBar restores focus to
-            // the previously-focused element when the panel closes, so an
-            // onFocus-opens rule turns every outside-click close into an
-            // immediate programmatic re-open (confirmed live — the panel
-            // became unclosable). Click + typing are the USER's open
-            // signals; programmatic focus arrivals stay inert. The label
-            // wrapper forwards its clicks here natively.
-            onClick={() => {
-              if (!editMode) onOpenEditMode();
-            }}
-            onFocus={() => setSearchFocused(true)}
-            onBlur={() => setSearchFocused(false)}
-            aria-label="Search all tag sections"
-            placeholder="search all tags…"
-            spellCheck={false}
-            autoCapitalize="none"
-            autoCorrect="off"
-            className="flex-1 min-w-0 bg-transparent [outline:none] font-mono text-[length:var(--text-sm)] text-[var(--ink)] placeholder:text-[var(--muted)]"
-          />
-        </label>
+        {/* Global search — extracted to its own contained component
+            (SearchField, user-ruled: search is its own kind of thing, not
+            a button variant); all container/engagement logic lives there. */}
+        <SearchField editMode={editMode} onOpenEditMode={onOpenEditMode} />
         {/* Tag Pool — the panel's button invoker, mirroring MixerBar's own
             (which stays through Phase 1/2 and leaves in Phase 3). Toggle:
             open ↔ close. Active (filled) exactly while in BROWSE mode —
@@ -275,15 +197,15 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
           </IconButton>
         </div>
         </div>
-        {/* Filter popover — results state only, to the Tag Pool button's
-            right (user-ruled position); in the empty state the filters
-            live inside the empty-state box instead. OUTSIDE the
-            data-global-search z-raised cluster (see the outer div's
-            comment): it allowlists itself via data-results-filter, and
-            it must not be trapped in a stacking context below the pool
-            overlay — its own wrapper handles both z states (raised
-            closed, popover open). */}
-        {hasResults && <ResultsFilterButton onLevelChange={onLevelChange} />}
+        {/* Filter popover — BOTH states now (user-ruled 2026-07-27: the
+            left cluster reads identical empty or with results; the
+            empty-state box's own inline filters were removed in the same
+            ruling). OUTSIDE the data-global-search z-raised cluster (see
+            the outer div's comment): it allowlists itself via
+            data-results-filter, and it must not be trapped in a stacking
+            context below the pool overlay — its own wrapper handles both
+            z states (raised closed, popover open). */}
+        <ResultsFilterButton onLevelChange={onLevelChange} />
       </div>
       {/* RIGHT: result-set metadata + Clear ✕, results state only. The
           metadata (LOCKED · EXISTING · NEW readouts) sits to the LEFT of
@@ -437,7 +359,7 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
               size="md"
               border="base"
               borderColor="transparent"
-              backgroundColor="var(--fill)"
+              backgroundColor="var(--surface)"
               textColor="var(--ink)"
               title="Clear results"
               aria-label="Clear results"

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import type { LevelKey, ResultEntry, TagInfo } from "@/lib/konomi/types";
+import type { ResultEntry, TagInfo } from "@/lib/konomi/types";
 import { ActionButton } from "./ActionButton";
 import { namedEaseToCss, useAnimationDebugValues } from "./animationDebugStore";
 import {
@@ -8,7 +8,6 @@ import {
   getVisibleCardTierCount,
 } from "./cardAnimTuning";
 import { useDomain } from "./domainContext";
-import { FilterControls } from "./FilterControls";
 import { DiceIcon } from "./icons";
 import { IconButton } from "./IconButton";
 import { ResultCard } from "./ResultCard";
@@ -212,10 +211,6 @@ interface RecommendationsBodyProps {
   onChipToggle: (tag: string) => void;
   tagInfoById: Map<string, TagInfo>;
   totalSeriesCount: number;
-  // Powers the Tag Density/Sort filters embedded in the empty-state box (see
-  // FilterControls) — the same handler ResultsHeader threads into the results-
-  // state Filter popover, so both surfaces drive the identical level cascade.
-  onLevelChange: (level: LevelKey) => void;
   // Shuffle Random tags — the SAME handler MixerBar's own Random button
   // uses. Surfaced in the empty-state box only at the narrow widths where
   // the bar's control row has dropped it (see the surfaced row below).
@@ -249,7 +244,6 @@ export function RecommendationsBody({
   onChipToggle,
   tagInfoById,
   totalSeriesCount,
-  onLevelChange,
   onRandomTags,
 }: RecommendationsBodyProps) {
   const { storagePrefix } = useDomain();
@@ -676,32 +670,15 @@ export function RecommendationsBody({
             {EMPTY_STATE_INSTRUCTION}
           </p>
           </div>
-          {/* MIDDLE: filters (+ the surfaced Tag Pool/Random row), centered
-              horizontally + vertically in the middle 1fr band. */}
+          {/* MIDDLE: the surfaced Random row (narrow widths only, since
+              the filters moved to the header), centered horizontally +
+              vertically in the middle 1fr band. */}
           <div className="flex flex-col items-center justify-center gap-[var(--space-2xl)]">
-          {/* The Tag Density + Sort filters, embedded directly in the empty
-              state (not behind the results-header Filter popover, which isn't
-              shown here) so a first-time user meets the two things they can
-              adjust up front. Same FilterControls the popover uses — one
-              source — but layout="inline": both fields sit side by side on one
-              line, centred below the divider, progressively reducing (drop
-              labels → single-segment → wrap) exactly like MixerBar's controls
-              rather than stacking. A hairline rule + extra top gap set them
-              apart from the flavor copy above as their own "what you can tune"
-              zone. w-[min(560px,100%)] + mx-auto: a definite, centred width —
-              required because FilterControls is a @container whose children
-              query it (see FilterControls.tsx), wide enough to hold the full
-              inline row (~510px) at desktop; it also sizes the divider.
-
-              data-empty-controls: same allowlist opt-out as the surfaced buttons
-              below — adjusting Tag Density / Sort here while the Tag Pool / edit
-              panel is open (visible above it on larger phones) must NOT be treated
-              as an outside click that dismisses the panel, exactly as the results-
-              state Filter popover (data-results-filter) already behaves. See
-              MixerBar's click-outside listener. */}
-          <div data-empty-controls className="w-[min(560px,100%)] mx-auto">
-            <FilterControls onLevelChange={onLevelChange} layout="inline" className="w-full" />
-          </div>
+          {/* (The inline Tag Density/Sort filters that lived here moved UP
+              to the persistent header 2026-07-27 — the ResultsFilterButton
+              popover now renders in BOTH states, so the header's left
+              cluster is identical empty or with results and this band
+              only carries the narrow-width surfaced Random below.) */}
           {/* Surfaced Random, shown ONLY at the narrow widths where
               MixerBar's control row has dropped it entirely, so a phone
               user keeps one-tap access from the empty state. The

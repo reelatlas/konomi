@@ -486,3 +486,36 @@ ResultsFilterButton.tsx (verify variant="header"/engaged={open});
 clear-btn verify → variant="header-action" (the old 'variant="header"'
 string would false-anchor on Tag Pool's). Suites: smoke, lockflow,
 test-headerv2 21/21, test-search all green.
+
+**Batch 6c (2026-07-27) — search extracted + Esc-to-rest + surface Clear
++ Filters in both states (user-ruled).** (1) Clear's ready-action fill
+--fill → **--surface** (user pick); theme sweep: contrast 15.1 light /
+10.2-ish dark / 16.6 cream. (2) **Esc ladder v3** (tagPoolNavContext):
+query → first Esc clears (consumed, unchanged); EMPTY query → Esc now
+blurs the input while still falling through to the overlay's
+document-level close — one Esc = close panel + rest the field, exactly
+matching a click-out (user-ruled "no text and no other priority active
+window"). Verified: Esc ladder with text = clear → stay focused/open,
+then rest; without text = one-step rest. (3) **Search extracted to its
+own component** (`SearchField.tsx`) — ratifying the user's ruling that
+search is its own kind of thing, not a button variant: the label
+container, engaged/focus state machine, icon-click handling, and the
+focus-regime deviation all live contained there; future placements
+extend THIS component. ResultsHeader just renders it. (4) Engaged
+magnify icon --ink → **--primary** (the active-highlight token — the
+same one the engaged borders use; user asked for the token name:
+--primary, not --accent, which is the renamed secondary reserved for
+the selected-slot pop). (5) **Filters button now renders in BOTH
+states** (was results-only): the empty state's inline
+FilterControls block removed from RecommendationsBody (onLevelChange
+prop dropped there; the popover's own handler threads via
+ResultsHeader), so the header's left cluster — search / Tag Pool /
+Filters — is identical empty or with results. Empty-box middle band now
+carries only the narrow-width surfaced Random. Verified live: Filters +
+popover work in the empty state, no inline filters remain, order =
+tagpool-then-filters. Registry: search-field entry repointed at
+SearchField.tsx; clear-btn bg note → --surface. Suites: smoke,
+lockflow, headerv2 21/21, search — all green. (Inventory note: the
+cream-sweep panel/chip-small + card/chip color flip in this regen is
+the audit sampling a SELECTED chip this run — state nondeterminism,
+not a change from this batch.)
