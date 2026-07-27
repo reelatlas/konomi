@@ -176,7 +176,7 @@ export function ResultsFilterButton({ onLevelChange }: ResultsFilterButtonProps)
           // directly there and must outrank the pool overlay's z-overlay
           // itself. At desktop this is a harmless nested z inside the
           // wrapper's own z-popover context.
-          className="absolute left-0 top-full mt-[var(--space-sm)] z-[var(--z-popover)] w-max max-w-[min(340px,calc(100vw-6rem))] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-4)] p-[var(--space-lg)]"
+          className="absolute left-0 top-full mt-[var(--space-sm)] z-[var(--z-popover)] w-max max-w-[min(340px,calc(100vw-6rem))] border-[length:var(--border-base)] border-[var(--ink)] bg-[var(--surface)] shadow-[var(--elev-2)] p-[var(--space-lg)]"
         >
           <FilterControls onLevelChange={onLevelChange} />
         </div>

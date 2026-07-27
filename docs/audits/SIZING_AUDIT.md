@@ -365,3 +365,21 @@ veto: RatingBadge → zero (badge-register consistency beside
 TagCountBadge) · filter popover → elev-4 (floating-surface family).
 Measured live: header all none; mixbar 3 / RECOMMEND 5 / slot selected 3
 / lock 2 / faces+mixbar card 5 / chips+badges none. All suites green.
+
+**Batch 4b (2026-07-26) — two vetoes executed + slot word-fit fix.**
+RatingBadge back to elev-1 (user-ruled into the dense-accent tier with
+lock/swap + card-back chips/panel — it sits on arbitrary art;
+TagCountBadge keeps its own mechanics as intended). Filter popover back
+to elev-2 (user: the tag panel is the heavy surface; future
+overlays/dropdowns should stay light at 3). Shared-component shadow
+logic confirmed as the reuse mechanism: ActionButton `shadow` prop (new)
++ IconButton `shadow` prop (existing) — location decides, headers pass
+off. PARKED idea logged: a possible header-specific visual/size variant
+or toggle, later. TagSlot fix (user-reported: "shapeshifting" hugged the
+right border): the size-tier function now also tiers by LONGEST WORD
+(measured: 62px content box; Zen Kaku black ≈5.5/5.1/4.6/4.2 px/char at
+12/11/10/9 → one-line fits ≈11/12/13/14 chars, thresholds keep a
+one-char buffer), taking the smaller of length-tier and word-tier, plus
+a break-words backstop so nothing can ever bleed into the border —
+symmetric padding by construction. Verified: shapeshifting → 9px, fits;
+heist 12 / cyberpunk 11 / de niro 11 unchanged.

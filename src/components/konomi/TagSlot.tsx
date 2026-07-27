@@ -20,10 +20,27 @@ interface TagSlotProps {
 // truncate, not stay a fixed size.
 function fontSizeClassFor(name: string): string {
   const len = name.length;
-  if (len <= 8) return "text-[length:var(--text-sm)]";
-  if (len <= 14) return "text-[length:var(--text-xs)]";
-  if (len <= 20) return "text-[length:var(--text-2xs)]";
-  return "text-[length:var(--text-3xs)]";
+  // Total-length tier: wrapping comfort for multi-word names (unchanged).
+  const lengthTier = len <= 8 ? 0 : len <= 14 ? 1 : len <= 20 ? 2 : 3;
+  // Longest-WORD tier (added 2026-07-26, user-reported: "shapeshifting" —
+  // a 13-char single word — hugged the right border at the 11px tier).
+  // A single unbreakable word must fit ONE line inside the slot's 62px
+  // content box (78 − 2×2 border − 2×6 padding), and total length can't
+  // see that. MEASURED (canvas, Zen Kaku black): ~5.5 / 5.1 / 4.6 / 4.2
+  // px per char at 12/11/10/9px → one-line fits ≈ 11 / 12 / 13 / 14
+  // chars; thresholds below keep a one-char buffer since per-char width
+  // varies by glyph. The final size is the SMALLER of the two tiers —
+  // per the user's rule: equal padding both sides, and when it can't
+  // hold, shrink until it fits or wraps comfortably (never bleed).
+  const word = Math.max(...name.split(/\s+/).map((w) => w.length), 0);
+  const wordTier = word <= 10 ? 0 : word <= 11 ? 1 : word <= 12 ? 2 : 3;
+  const tier = Math.max(lengthTier, wordTier);
+  return [
+    "text-[length:var(--text-sm)]",
+    "text-[length:var(--text-xs)]",
+    "text-[length:var(--text-2xs)]",
+    "text-[length:var(--text-3xs)]",
+  ][tier];
 }
 
 export function TagSlot({ index, tag, label, isDragOver, onDragOver, onDragLeave, onDrop, onClick }: TagSlotProps) {
@@ -140,7 +157,11 @@ export function TagSlot({ index, tag, label, isDragOver, onDragOver, onDragLeave
         // above regardless of how many lines it wraps to.
         <span
           className={[
-            "pointer-events-none w-full text-center font-body font-black leading-[var(--leading-tight)] lowercase text-[var(--on-primary)]",
+            // break-words: the backstop for a single word too long even for
+            // the 9px tier (>14 chars, none in the current catalog) — wrap
+            // mid-word inside the padding rather than ever bleeding into
+            // the border.
+            "pointer-events-none w-full text-center break-words font-body font-black leading-[var(--leading-tight)] lowercase text-[var(--on-primary)]",
             fontSizeClassFor(label ?? ""),
           ].join(" ")}
         >

@@ -108,12 +108,13 @@ export function RatingBadge({ averageScore }: RatingBadgeProps) {
       ))}
       <div
         className={[
-          // Zero shadow (shadow-tier batch): the user ruled ALL badges flat
-          // (tab counts, TagCountBadge) — this one wasn't named but sits
-          // beside TagCountBadge on the same cards, so it follows the badge
-          // register for consistency. MY CALL, flagged for veto: restore
-          // elev-1 here if the score needs more separation from cover art.
-          "relative font-display text-[length:var(--text-sm)] tracking-[var(--tracking-lg)] border-[length:var(--border-base)] px-[var(--space-md)] py-[var(--space-xs)]",
+          // elev-1 (2px) — user-ruled into the DENSE-ACCENT tier with the
+          // card lock/swap buttons and the card-back stream chips/description
+          // panel (vetoing the earlier badge-register-zero call): this badge
+          // sits on arbitrary cover art, where the 2px drop earns its keep.
+          // TagCountBadge keeps its own shadow mechanics separately, as
+          // intended.
+          "relative font-display text-[length:var(--text-sm)] tracking-[var(--tracking-lg)] border-[length:var(--border-base)] px-[var(--space-md)] py-[var(--space-xs)] shadow-[var(--elev-1)]",
           tier.plateClassName,
         ].join(" ")}
       >
