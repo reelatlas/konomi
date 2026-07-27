@@ -1,7 +1,7 @@
 {
  "meta": {
-  "generated": "2026-07-26T22:43:18.766Z",
-  "commit": "16b882d",
+  "generated": "2026-07-27T03:19:58.318Z",
+  "commit": "00c28dd",
   "treeDirty": true,
   "url": "http://localhost:3000/film",
   "primaryCapture": {
@@ -405,7 +405,7 @@
    },
    "measured": {
     "resting": {
-     "w": 116.09,
+     "w": 120.09,
      "h": 44,
      "fontSize": "11px",
      "fontFamily": "IBM Plex Mono",
@@ -424,13 +424,13 @@
      "opacity": "1",
      "cursor": "pointer",
      "transition": "none",
-     "iconSize": "16px×16px",
+     "iconSize": "20px×20px",
      "iconLabelGap": "6px"
     },
     "contrast": 13.27,
     "states": {
      "hover": {
-      "w": 116.09,
+      "w": 120.09,
       "h": 44,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -449,11 +449,11 @@
       "opacity": "1",
       "cursor": "pointer",
       "transition": "none",
-      "iconSize": "16px×16px",
+      "iconSize": "20px×20px",
       "iconLabelGap": "6px"
      },
      "focusVisible": {
-      "w": 116.09,
+      "w": 120.09,
       "h": 44,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -472,11 +472,11 @@
       "opacity": "1",
       "cursor": "pointer",
       "transition": "none",
-      "iconSize": "16px×16px",
+      "iconSize": "20px×20px",
       "iconLabelGap": "6px"
      },
      "active": {
-      "w": 116.09,
+      "w": 120.09,
       "h": 44,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -495,7 +495,7 @@
       "opacity": "1",
       "cursor": "pointer",
       "transition": "none",
-      "iconSize": "16px×16px",
+      "iconSize": "20px×20px",
       "iconLabelGap": "6px"
      }
     }
@@ -520,9 +520,9 @@
      "kind": "literal"
     },
     "icon": {
-     "v": "16px",
+     "v": "20px (control tier)",
      "kind": "literal",
-     "src": "icons.tsx width/height=16 — tier-scaled 20px pending"
+     "src": "w-[20px] h-[20px] at call site — tier rule: 20 control / 16 dense"
     }
    },
    "measured": {
@@ -546,7 +546,7 @@
      "opacity": "1",
      "cursor": "pointer",
      "transition": "none",
-     "iconSize": "16px×16px",
+     "iconSize": "20px×20px",
      "iconLabelGap": null
     },
     "contrast": 15.12,
@@ -571,7 +571,7 @@
       "opacity": "1",
       "cursor": "pointer",
       "transition": "none",
-      "iconSize": "16px×16px",
+      "iconSize": "20px×20px",
       "iconLabelGap": null
      },
      "focusVisible": {
@@ -594,7 +594,7 @@
       "opacity": "1",
       "cursor": "pointer",
       "transition": "none",
-      "iconSize": "16px×16px",
+      "iconSize": "20px×20px",
       "iconLabelGap": null
      },
      "active": {
@@ -617,7 +617,7 @@
       "opacity": "1",
       "cursor": "pointer",
       "transition": "none",
-      "iconSize": "16px×16px",
+      "iconSize": "20px×20px",
       "iconLabelGap": null
      }
     }
@@ -1286,7 +1286,7 @@
    },
    "measured": {
     "resting": {
-     "w": 94.31,
+     "w": 98.31,
      "h": 44,
      "fontSize": "11px",
      "fontFamily": "IBM Plex Mono",
@@ -1305,13 +1305,13 @@
      "opacity": "1",
      "cursor": "pointer",
      "transition": "none",
-     "iconSize": "16px×16px",
+     "iconSize": "20px×20px",
      "iconLabelGap": "6px"
     },
     "contrast": 17.55,
     "states": {
      "hover": {
-      "w": 94.31,
+      "w": 98.31,
       "h": 44,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -1330,11 +1330,11 @@
       "opacity": "1",
       "cursor": "pointer",
       "transition": "none",
-      "iconSize": "16px×16px",
+      "iconSize": "20px×20px",
       "iconLabelGap": "6px"
      },
      "focusVisible": {
-      "w": 94.31,
+      "w": 98.31,
       "h": 44,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -1353,11 +1353,11 @@
       "opacity": "1",
       "cursor": "pointer",
       "transition": "none",
-      "iconSize": "16px×16px",
+      "iconSize": "20px×20px",
       "iconLabelGap": "6px"
      },
      "active": {
-      "w": 94.31,
+      "w": 98.31,
       "h": 44,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -1376,7 +1376,7 @@
       "opacity": "1",
       "cursor": "pointer",
       "transition": "none",
-      "iconSize": "16px×16px",
+      "iconSize": "20px×20px",
       "iconLabelGap": "6px"
      }
     }
@@ -1448,7 +1448,7 @@
    },
    "measured": {
     "resting": {
-     "w": 101.56,
+     "w": 105.56,
      "h": 44,
      "fontSize": "11px",
      "fontFamily": "IBM Plex Mono",
@@ -1467,13 +1467,13 @@
      "opacity": "1",
      "cursor": "pointer",
      "transition": "none",
-     "iconSize": "16px×16px",
+     "iconSize": "20px×20px",
      "iconLabelGap": "6px"
     },
     "contrast": 13.27,
     "states": {
      "hover": {
-      "w": 101.56,
+      "w": 105.56,
       "h": 44,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -1492,11 +1492,11 @@
       "opacity": "1",
       "cursor": "pointer",
       "transition": "none",
-      "iconSize": "16px×16px",
+      "iconSize": "20px×20px",
       "iconLabelGap": "6px"
      },
      "focusVisible": {
-      "w": 101.56,
+      "w": 105.56,
       "h": 44,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -1515,11 +1515,11 @@
       "opacity": "1",
       "cursor": "pointer",
       "transition": "none",
-      "iconSize": "16px×16px",
+      "iconSize": "20px×20px",
       "iconLabelGap": "6px"
      },
      "active": {
-      "w": 101.56,
+      "w": 105.56,
       "h": 44,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -1538,7 +1538,7 @@
       "opacity": "1",
       "cursor": "pointer",
       "transition": "none",
-      "iconSize": "16px×16px",
+      "iconSize": "20px×20px",
       "iconLabelGap": "6px"
      }
     }
@@ -2147,8 +2147,8 @@
     "text-xl": 2,
     "text-lg": 2,
     "text-md": 3,
-    "text-base": 2,
-    "text-sm": 7,
+    "text-base": 3,
+    "text-sm": 6,
     "text-xs": 19,
     "text-2xs": 16,
     "text-3xs": 4

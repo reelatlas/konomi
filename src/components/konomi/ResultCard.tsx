@@ -1364,7 +1364,11 @@ export function ResultCard({
                     prose, not a row grid with real snap points to
                     register. */}
                 <ScrollFadeArea height="h-full" groupName="reveal-nested" surfaceColor="var(--surface)">
-                  <p className="whitespace-pre-line font-body text-[length:var(--text-sm)] text-[var(--ink)] px-[var(--space-md)] py-[var(--space-md)]">
+                  {/* text-base, up from text-sm (sizing unification ⑤): the synopsis is
+                      the app's one true READING surface and was living two steps
+                      below a reading size — the flagship adopter of the committed
+                      14px base. */}
+                  <p className="whitespace-pre-line font-body text-[length:var(--text-base)] text-[var(--ink)] px-[var(--space-md)] py-[var(--space-md)]">
                     {series.description ?? "No description available."}
                   </p>
                 </ScrollFadeArea>

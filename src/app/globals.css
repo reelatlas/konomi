@@ -43,7 +43,12 @@
   --text-xl: 26px;
   --text-lg: 20px;
   --text-md: 18px;
-  --text-base: 13px;
+  /* 14, up from 13 (sizing unification ⑤, SIZING_AUDIT.md §6): the
+     committed READING size — the audit found base had 2 uses total while
+     the card synopsis (true reading text) sat at --text-sm 12px; the app
+     had never decided on a reading size. Label register (xs 11 uppercase
+     mono + tracking) is deliberately untouched. */
+  --text-base: 14px;
   --text-sm: 12px;
   --text-xs: 11px;
   --text-2xs: 10px;

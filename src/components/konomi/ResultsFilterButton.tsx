@@ -126,7 +126,7 @@ export function ResultsFilterButton({ onLevelChange }: ResultsFilterButtonProps)
         // its own raise at every width.
         className="glow-host relative z-[var(--z-raised)]"
       >
-        <FilterIcon className={`glow-icon ${open ? "text-[var(--surface)]" : "text-[var(--muted)]"}`} />
+        <FilterIcon className={`glow-icon w-[20px] h-[20px] ${open ? "text-[var(--surface)]" : "text-[var(--muted)]"}`} />
       </IconButton>
       {open && (
         <div

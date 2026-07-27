@@ -234,3 +234,34 @@ user ruling: one consistent regime now, hover deferred).
 - Still open from the sequence: shadow/border semantics (④ — WebKit
   border verdict pending), type pass (⑤), icon tier-scaling 16/20,
   hover + transitions (⑥, deferred by ruling), rung re-bisect (⑦).
+
+**Batch 2a (2026-07-26) — reading size committed, control-tier icons,
+iOS focus-zoom fix.** Step ⑤'s type half (chips deferred to 2b — their
+fixed-30 box couples into TagScrollArea's ROW_STEP math and the card
+tag-area tokens, a deliberate separate commit).
+- `--text-base` 13 → **14** (globals.css + tokens.ts): the committed
+  reading size. The card synopsis — the app's one true reading surface,
+  previously at `--text-sm` 12px — adopts it; the empty-state
+  instruction/payoff lines (base's only prior users) ride along.
+- Control-tier icons 16 → **20px** (whole box, uniform scale of the
+  24-viewBox glyphs): search/Tag Pool/Close/Filter in the header, Eraser/
+  Dice/Tag/GreaterEqual in the mixbar. Explicit per call site, NOT a
+  blanket `[&_svg]` selector — RecommendButton's decorative star layers
+  share the ActionButton subtree and must not be caught. Dense-tier
+  icons stay 16.
+- **iOS input focus-zoom suppressed** (user-reported: keyboard zoom blew
+  the viewport past 100%, hiding the panel + cards search exists to keep
+  visible): `viewport.maximumScale = 1` (layout.tsx). Not an a11y trade —
+  since iOS 10 Safari ignores the cap for user pinch and honors it only
+  for the automatic sub-16px-input focus zoom. Confirm on-device.
+
+**Parked-by-ruling (2026-07-26, user):**
+- **Possible 44 → ~40 control tier**: the offset shadows (2-5px, ~3 min)
+  add visual weight beyond the box, so 44 may read larger than intended;
+  a smaller tier + the shared invisible-hit-area utility could keep
+  mobile accessibility. DELIBERATELY not decided until the remaining
+  steps land — the type/shadow passes may change the read. Documented
+  compromise: the data-dense tag UI may sit below strict touch-target
+  best practice by choice.
+- **Resize points + wrap/truncate/hover-overflow-scroll** re-evaluation
+  (incl. mobile): parked until after the sizing migration completes.

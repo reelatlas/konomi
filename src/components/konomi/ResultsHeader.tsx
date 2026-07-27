@@ -169,7 +169,7 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
               if (!editMode) onOpenEditMode();
             }}
           >
-            <SearchIcon className={nav.query ? "text-[var(--ink)]" : "text-[var(--muted)]"} />
+            <SearchIcon className={`w-[20px] h-[20px] ${nav.query ? "text-[var(--ink)]" : "text-[var(--muted)]"}`} />
           </IconButton>
           <input
             ref={searchInputRef}
@@ -225,7 +225,7 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
           >
             <span className="inline-flex items-center gap-[var(--space-sm)]">
               Tag Pool
-              <TagPoolIcon className="text-[var(--ink)]" />
+              <TagPoolIcon className="w-[20px] h-[20px] text-[var(--ink)]" />
             </span>
           </ActionButton>
           </div>
@@ -238,7 +238,7 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
             onClick={editMode ? onCloseEditMode : onOpenEditMode}
             display="flex min-[480px]:hidden"
           >
-            <TagPoolIcon className="text-[var(--ink)]" />
+            <TagPoolIcon className="w-[20px] h-[20px] text-[var(--ink)]" />
           </IconButton>
         </div>
         </div>
@@ -411,7 +411,7 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
               display="flex min-[480px]:hidden"
               className="relative z-[var(--z-raised)] shrink-0 grow-0"
             >
-              <CloseIcon />
+              <CloseIcon className="w-[20px] h-[20px]" />
             </IconButton>
           </span>
           }

@@ -360,14 +360,14 @@ export function MixerBar({
               <div className="flex items-center gap-[var(--space-lg)] shrink-0">
                 <div className="@min-[975px]:hidden @max-[525px]:hidden">
                   <IconButton size="md" border="base" shadow="elev-2" backgroundColor="transparent" title="Clear" aria-label="Clear" onClick={onClearSlots}>
-                    <EraserIcon className="text-[var(--ink)]" />
+                    <EraserIcon className="w-[20px] h-[20px] text-[var(--ink)]" />
                   </IconButton>
                 </div>
                 <div className="hidden @min-[975px]:block">
                   <ActionButton variant="outline" onClick={onClearSlots}>
                     <span className="inline-flex items-center gap-[var(--space-sm)]">
                       Clear
-                      <EraserIcon className="text-[var(--ink)]" />
+                      <EraserIcon className="w-[20px] h-[20px] text-[var(--ink)]" />
                     </span>
                   </ActionButton>
                 </div>
@@ -385,8 +385,8 @@ export function MixerBar({
                 <span className="@max-[975px]:hidden font-mono font-bold text-[length:var(--text-2xs)] tracking-[var(--tracking-xl)] uppercase whitespace-nowrap">
                   Min Match
                 </span>
-                <TagIcon className="text-[var(--ink)]" />
-                <GreaterEqualIcon className="text-[var(--ink)]" />
+                <TagIcon className="w-[20px] h-[20px] text-[var(--ink)]" />
+                <GreaterEqualIcon className="w-[20px] h-[20px] text-[var(--ink)]" />
                 <MatchSelector value={minMatch} onChange={onSetMatch} />
               </div>
               <div className="hidden @max-[654px]:flex items-center gap-[var(--space-sm)]">
@@ -395,7 +395,7 @@ export function MixerBar({
                     (GreaterEqual alone still reads as "match count") AND
                     the 3-segment control collapses to single-tap-cycle,
                     together, as one requested combined step. */}
-                <GreaterEqualIcon className="text-[var(--ink)]" />
+                <GreaterEqualIcon className="w-[20px] h-[20px] text-[var(--ink)]" />
                 <MatchSelector value={minMatch} onChange={onSetMatch} collapsed />
               </div>
               {/* Random. Both hide conditions on this SAME div, not nested
@@ -414,14 +414,14 @@ export function MixerBar({
                   aria-label="Random"
                   onClick={onRandomTags}
                 >
-                  <DiceIcon className="text-[var(--ink)]" />
+                  <DiceIcon className="w-[20px] h-[20px] text-[var(--ink)]" />
                 </IconButton>
               </div>
               <div className="hidden @min-[975px]:block">
                 <ActionButton variant="filled" onClick={onRandomTags}>
                   <span className="inline-flex items-center gap-[var(--space-sm)]">
                     Random
-                    <DiceIcon className="text-[var(--ink)]" />
+                    <DiceIcon className="w-[20px] h-[20px] text-[var(--ink)]" />
                   </span>
                 </ActionButton>
               </div>

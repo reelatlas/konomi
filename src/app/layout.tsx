@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { MotionConfig } from "motion/react";
 import { Anton, IBM_Plex_Mono, Zen_Kaku_Gothic_New } from "next/font/google";
 import { SHOW_HALFTONE } from "@/lib/konomi/config";
@@ -16,6 +16,24 @@ import "./globals.css";
 // future theme addition can't silently desync this allowlist from the real
 // one.
 const THEME_INIT_SCRIPT = `(function(){try{var t=localStorage.getItem(${JSON.stringify(THEME_STORAGE_KEY)});if(${JSON.stringify(THEME_KEYS)}.indexOf(t)!==-1){document.documentElement.setAttribute("data-theme",t)}}catch(e){}})();`;
+
+// maximumScale: 1 — suppresses iOS Safari's AUTOMATIC zoom when focusing
+// an input whose font-size is under 16px (the global search field is 12px
+// mono; the auto-zoom blew the viewport past 100% the moment the keyboard
+// rose, hiding the open tag panel and the result cards — the exact context
+// the search feature exists to keep visible; user-reported 2026-07-26).
+// NOT an accessibility trade: since iOS 10, Safari deliberately IGNORES
+// maximum-scale for user-initiated pinch zoom and honors it only for the
+// automatic focus zoom — so users can still zoom freely; only the surprise
+// auto-zoom is prevented. (The alternative — bumping the input font to
+// 16px — would couple the type scale to a WebKit behavior.) Confirm
+// on-device with the next mobile pass; emulation doesn't reproduce the
+// focus-zoom behavior.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+};
 
 export const metadata: Metadata = {
   title: "KONOMI",

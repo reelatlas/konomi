@@ -36,7 +36,7 @@ export const TYPE_SCALE = {
   xl: "26px",
   lg: "20px",
   md: "18px",
-  base: "13px",
+  base: "14px", // the committed reading size (synopsis + empty-state lines) — see SIZING_AUDIT.md §6
   sm: "12px",
   xs: "11px",
   "2xs": "10px",

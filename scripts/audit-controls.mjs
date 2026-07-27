@@ -52,7 +52,7 @@ const registry = [
   R({ id: "header/filter-btn", component: "IconButton sm", file: "src/components/konomi/IconButton.tsx",
       selector: "[data-results-filter] button",
       authored: { height: { v: "--control-h-md 44px", kind: "token", src: "SIZE_PX.md" }, border: { v: "--border-base 2.5px", kind: "token" },
-        shadow: { v: "none", kind: "literal" }, icon: { v: "16px", kind: "literal", src: "icons.tsx width/height=16 — tier-scaled 20px pending" } },
+        shadow: { v: "none", kind: "literal" }, icon: { v: "20px (control tier)", kind: "literal", src: "w-[20px] h-[20px] at call site — tier rule: 20 control / 16 dense" } },
       verify: ['md: "var(--control-h-md)"'], states: ["hover", "focus", "active"] }),
   R({ id: "header/clear-btn", component: "ActionButton sm inverted", file: "src/components/konomi/ResultsHeader.tsx",
       selector: 'button[aria-label="Clear results"]',
