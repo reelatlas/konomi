@@ -24,9 +24,11 @@ Changing `data-theme` used to snap. It now **cross-fades the whole page**: `Kono
 | `muted` | `#A985E2` | `#66727B` | `#B3A589` |
 | `fill` | `#E4D7F4` | `#26323B` | `#EBE0CB` |
 | `primary` | `#564FD6` | `#3486B4` | `#D8392E` |
-| `secondary` | `#E4F46F` | `#6FD3D6` | `#F2C14E` |
+| `accent` | `#E4F46F` | `#6FD3D6` | `#F2C14E` |
 | `onPrimary` | `#FCFAFF` | `#EAF3F5` | `#FFF7EC` |
-| `onSecondary` | `#191225` | `#0E1518` | `#211C17` |
+| `onAccent` | `#191225` | `#0E1518` | `#211C17` |
+
+**`accent` was named `secondary` until the 2026-07-26 rename** (unification pass batch 4c) — "secondary" kept reading as "less important" when the token is really the electric pop color. Older narrative sections below still say `--secondary`/`bg-[var(--secondary)]` in their historical accounts; the token in code is `--accent`/`--on-accent` everywhere (themes.ts fields `accent`/`onAccent`). The rename also forced ActionButton's old `accent` VARIANT to become **`cta`** (with `ctaColor: "primary" | "accent"`) — the rule that settled it: **a variant names a ROLE, a token names a COLOR.** Role guide: `--primary` = the ACTIVE-highlight color (engaged borders/fills, selected segments, lit counts); `--accent` = the selected-state POP (filled slot shadow, RECOMMEND's cta, full-match badge).
 | `disabledBg` | `#F4EEFB` | `#243038` | `#F1E9DA` |
 | `disabledText` | `#9A8BB5` | `#515E66` | `#A99B82` |
 | `slotEmpty` | `#F4EEFB` | `#243038` | `#F1E9DA` |
@@ -63,6 +65,7 @@ Changing `data-theme` used to snap. It now **cross-fades the whole page**: `Kono
 
 | Token | Value | Used for |
 |---|---|---|
+| `3xs` | 9px | TagSlot's smallest shrink-to-fit tier |
 | `2xs` | 10px | smallest chip/label text |
 | `xs` | 11px | meta text, hints |
 | `sm` | 12px | badges, base chips |
@@ -93,26 +96,35 @@ Changing `data-theme` used to snap. It now **cross-fades the whole page**: `Kono
 | Token | Value |
 |---|---|
 | `border-hair` | 1.5px |
-| `border-thin` | 2px |
-| `border-base` | 2.5px |
+| `border-base` | 2px |
 | `radius-none` | 0 |
 | `radius-chip` | 2px |
+
+Two steps only (unification pass): `--border-thin` is **deleted** and `--border-base` collapsed 2.5→2px — the 2/2.5 distinction was invisible at control scale, and the fractional 2.5 was what broke iOS's dashed-border rasterizer all along (the long-"accepted" clipped dashes fixed themselves at 2px). Windfall documented in SIZING_AUDIT.
+
+### Control heights (the two-tier scale)
+
+| Token | Value | Use |
+|---|---|---|
+| `--control-h-md` | 40px | the control tier — every header/mixbar button, slots, segments (44→40, user-confirmed keep: "tighter, easier to parse") |
+| `--control-h-sm` | 30px | dense tier (small icon buttons) |
+
+**Tier follows the ROW; differentiation within a row is by variant, never size.** The 40 tier keeps 44pt touch targets via `.touch-44` (globals.css) — a transparent `::after` inset -2px. Its two limits: clipping ancestors clip the hit area (slot row scroll edges — accepted), and native `input`/`select` render no pseudo-elements.
 
 ## Shadows (elevation)
 
 Hard "manga" offset-shadows — no blur, just an offset rectangle in a flat color. Composed at the usage site since the color is theme-dependent.
 
-| Token | Offset | Color |
-|---|---|---|
-| `elev-1` | 2px 2px 0 | ink |
-| `elev-2` | 3px 3px 0 | ink |
-| `elev-3` | 4px 4px 0 | ink |
-| `elev-4` | 5px 5px 0 | ink |
-| `elev-5` | 8px 8px 0 | ink |
-| `elev-2-accent` | 3px 3px 0 | secondary |
-| `elev-3-accent` | 4px 4px 0 | secondary |
+**The shadow TIER system (user-ruled, unification pass batch 4/4b — supersedes the old 5-step scale):**
 
-The `-accent` pair exists for the two "selected/filled" states (an active tag chip, a filled mixer slot) that pop against the theme's secondary color instead of ink.
+| Token | Offset | Color | Tier = who gets it |
+|---|---|---|---|
+| `elev-1` | 2px 2px 0 | ink | dense accents: card lock/swap, carousel arrows, card-back stream chips + description panel, RatingBadge, tooltip-chip |
+| `elev-2` | 3px 3px 0 | ink | the CONTROL tier: all buttons (RECOMMEND included — moved down from 5px, its cta color already carries the emphasis), segments, ThemeSwitcher swatch, filter popover |
+| `elev-2-selected` | 3px 3px 0 | **accent** | the one shadow-COLOR rule: a selected/loaded state keeps its tier's DEPTH and swaps ink→accent for the pop (filled mixer slot) |
+| `elev-4` | 5px 5px 0 | ink | surfaces: result cards, pool overlay, mixbar |
+
+**Deleted:** `elev-3`, `elev-5` (no consumers — the masthead inlines its own 8→4px morph lerp as its own distinct tier), and both `-accent` tokens (replaced by the single `-selected` rule). **ZERO shadow by ruling:** the whole header row (flat), tags/chips, tabs/sub-tabs, tab badges, TagCountBadge, empty slots, grip/snap/close. Older sections below that mention `elev-3`/`elev-5`/`elev-3-accent` are historical accounts of the pre-tier state.
 
 ## Z-index scale
 
@@ -726,6 +738,8 @@ The empty-state box holds the Tag Density / Sort filters (`FilterControls`, `lay
 
 **Both filter surfaces render each field label-ON-TOP** (the label stacked above its control, icon to the left centered on the control) — the empty state (`layout="inline"`) *and* the results-header popover (`layout="popover"`). This replaced an earlier label-BESIDE layout that both used at wider widths. Revert points, if label-beside is ever wanted back (recorded in `FilterControls.tsx` too): the empty state used to flip from label-on-top to a beside flex row at **`@min-[530px]`** (that was the inline↔on-top boundary), and the popover was a flat beside row with its label gated to appear at **`min-[434px]`**. The label-on-top field is a 2-col grid (`[icon] [label / control]`, DOM order `[label, icon, control]`): the label's left edge lines up with the *control* (not the icon), and the icon centers on the *control's* row (not the whole label+control column) — placements a single flex axis can't achieve together. The label is always shown now (it no longer participates in the progressive reduction); only the control still collapses expanded→single-select at each layout's own threshold (`@max-[390px]` inline / `max-[369px]` popover).
 
+> **SUPERSEDED in two steps (current state 2026-07-28):** the surfaced **Tag Pool** button and its 561 mirror were removed in search v2 Phase 3 (the header owns pool invocation); the surfaced **Random** mirror was re-bisected with the whole mixbar ladder for the 40 tier and now reads **`@max-[449px]`** (was 481), still the same mirrored-literal mechanism described below. The empty state's inline Tag Density/Sort filters also moved UP to the persistent header (the Filters popover renders in both states now). The mechanism explanation below is still the reference for WHY the mirror works.
+
 **"Knowing" the bar has dropped them is a pure container-query mirror, no JS.** `MixerBar` hides Tag Pool at `@max-[561px]` and Random at `@max-[481px]` (Row 2's own live-bisected rungs, against its controls-row `@container`). The empty-state box is made its own `@container`, and the surfaced row keys off the **same** `@max-[561px]` / `@max-[481px]` literals. This lines up to within a pixel because the two containers are the *same width by construction*: both the box and `MixerBar`'s `cardRef` are the shared `max-w-[1214px]` column minus one `px-[space-2xl]` each side minus a `border-base`, so their content widths — what each `@container` measures — are equal. CDP-verified complementary at every width: exactly one of (in-bar, surfaced) is visible for each button, no gap band and no double-show. The box's `@container` is `inline-size` only, so its own `min-height` / vertical centering is untouched, and `FilterControls` carries its own nested `@container` so it still queries itself, not the box.
 
 **The 561/481 are duplicated static literals at both sites, each with a loud `⚠️ SHARED BREAKPOINT` cross-reference comment naming the other — deliberately not a shared constant.** Same Tailwind-scanner constraint as `--result-card-height` above (a class must appear as complete static text; the scanner can't read a JS constant), compounded here because a container-query *condition* can't read a CSS custom property either — so neither a TS constant nor a CSS var can parameterise these. A Tailwind v4 `@custom-variant` *could* centralise them, but it would mean editing `MixerBar`'s delicately-tuned rung markup to reference the variant, for no behavioural gain; the breakpoints have been stable, so cross-referenced literals (this app's own precedent for coupled magic numbers — the carousel spacer `-ml-[22px]` note) are the lower-risk call. If either rung is re-bisected in `MixerBar`, update it in `RecommendationsBody` too.
@@ -922,6 +936,8 @@ Tapping an *empty* slot or the "+ Tag Pool — tap to add tags" affordance (rend
 
 **The new Filter button (`ResultsFilterButton.tsx`) needed the same outside-click allowlist entry Clear ✕ already had** (`data-results-filter`, mirroring `data-clear-results`) on `MixerBar`'s own click-outside-closes-edit-mode listener — without it, opening or using the Filter popover while Tag Pool's edit mode happened to already be open would close edit mode as an unrelated side effect, since the popover lives in `ResultsHeader`, outside `MixerBar`'s own `cardRef` subtree that the listener otherwise exempts wholesale.
 
+> **SUPERSEDED (header treatment + ladder, 2026-07-27/28):** Clear's two-sibling-forms IDIOM survives, but everything else here changed — both forms are the header treatment now (`variant="header-action"`: ink fill, --bg text, borderless, flat, glow hover; the icon twin is IconButton `size="md"` at the 40 tier, not 30×30 sm), and the flip rung is the header ladder's **H2 `min-[729px]`** (shared with Tag Pool + Filters — all three flip together by ruling), not 480. See "Sizing & header unification pass" below.
+
 **Clear's collapsed (icon-only) form is a second, full sibling button, not the same `ActionButton` swapping its own content — requested directly, so it can match the Filter button's exact size.** `ActionButton`'s sizing is padding-based (`px`/`py` around whatever children it's given), with no fixed box independent of content — swapping its children for just `CloseIcon` narrows the button but doesn't change its height, so it never actually matched `IconButton`'s fixed 30×30 `size="sm"` box the Filter button uses. Fixed the same way `LevelSelector`/`SortSelect`'s own collapsed forms already are: two full sibling elements, `hidden`/shown via the same `min-[480px]` breakpoint the old single-button version used internally, rather than one element with conditional content. Clear's collapsed form is an actual `IconButton size="sm"` now (`border="base"`, no shadow, `backgroundColor="var(--ink)"`/`textColor="var(--bg)"` to keep its own established inverted look) — same box, same border treatment as Filter, just its own colors preserved. `CloseIcon` itself was bumped from 15×15 to 16×16 to match `FilterIcon` exactly, since the two now sit directly beside each other.
 
 **Follow-up, same session: Clear's *full-text* form was asked to match too, not just its collapsed icon form — both of Clear's two states are a flat 30px tall now, matching Filter exactly at every width.** This meant changing `ActionButton`'s own `size="sm"` (`SIZE_CLASSES.sm`, `ActionButton.tsx`) from padding-based (`px-space-lg py-space-md`, rendering 36.5px tall) to a fixed `h-[30px]` with flex centering — a plain padding value can't hit an exact px target the way a fixed height can. Safe to change unconditionally rather than adding a variant: `size="sm"` on `ActionButton` has exactly one caller, this same Clear ✕ button (confirmed by grep, documented in that file's own comment), so there was no second caller's sizing to preserve.
@@ -937,6 +953,8 @@ Tapping an *empty* slot or the "+ Tag Pool — tap to add tags" affordance (rend
 **Only the *open* popover needs to win, not the closed trigger button — requested directly and separated out from the fix above, not folded into one unconditional z-index.** `ResultsFilterButton`'s wrapper now switches between `z-raised` (closed) and `z-popover` (open) based on its own `open` state, rather than sitting at one fixed value. A nested z-index doesn't escape its own ancestor's stacking context, so this had to be the *wrapper's* own z-index that changes, not just the inner popover panel's — the panel itself no longer needs any z-index of its own at all (removed): it renders only while `open` (so it's always inside the now-elevated wrapper already), and `position: absolute` alone already paints it above its own static-positioned trigger-button sibling within that same local context, with no z-index required for that narrower, purely-local ordering. Confirmed live both ways: with the popover closed, MixerBar's expanded panel fully covers the Filter (and Clear, and the title) row, exactly like any other content in its path; with the popover open first and MixerBar's panel then resized to grow over it, the popover — and a control inside it — stayed visible and genuinely clickable (`elementFromPoint` inside the overlap resolved to the popover, not `cardRef`; clicking a control inside it still worked).
 
 **The Filter icon's own shadow was removed in the same round** (`shadow="elev-2"` dropped from its `IconButton` call) — visual-only, requested directly, no functional change.
+
+> **SUPERSEDED (header treatment, 2026-07-27/28):** the Filter trigger is now the header-treatment REFERENCE recipe generalized to `ActionButton variant="header"` — borderless transparent rest with --muted content, glow-host/glow-icon hover, --primary fill + --surface content when open — rendered as a labeled "Filters"+icon form ≥729 (rung H2) with an IconButton twin below, in BOTH results and empty states. The --primary-throughout reasoning below still explains the color choice; the outlined-rest described below is gone (borderless-rest ruling).
 
 **Follow-up: the Filter icon's own colors went through two corrections before landing on the current pairing.** First pass used `--ink`/`--bg` for the active (open) state, matching Clear ✕'s own inverted look — rejected as looking identical to Clear's own color and not theme-adaptive (Konomi/Tide/Newsprint each define their own `--ink`, but it reads as the same dark neutral in every theme, unlike an actual accent token). Second pass moved to `--primary` for the active fill, but the *default* (closed) state still used `--ink` for both icon and border — also corrected, since it's the same "not distinct, not theme-adaptive" problem just for the resting state. **Final: `--primary` throughout, both states** — icon and border are `--primary` by default (outlined, transparent fill), and both invert to `--surface`-on-`--primary` while `open`, the same pairing `LevelSelector`'s own active segment already uses for an "on" state. Deliberately not `--secondary` either, since that's `RecommendButton`'s own accent color (`DEFAULT_ACCENT`, `config.ts`) — reusing it here would make this button read as sharing Recommend's own "primary action" weight instead of its own, smaller one.
 
@@ -1222,6 +1240,8 @@ Two independent breakpoint systems are at work in the controls row, and it's imp
 **Combining the rows meant re-bisecting this row's entire breakpoint ladder from scratch, not reusing the old controls row's own numbers.** Three always-visible slots sharing space with everything that used to have a whole row to itself changes the math completely. This first pass (icon tier only, 793/692/445/1070) was itself superseded one round later by a full unified rebuild, see below.
 
 ### The controls row is one priority-hide chain, not a set of independently-bisected breakpoints
+
+> **THRESHOLDS SUPERSEDED (2026-07-28, rung re-bisect):** the ladder STRUCTURE below (one ordered chain, each rung bisected where the prior rung's fit stops holding) is still exactly the live design — but every NUMBER in this narrative predates the 40 control tier and the bar's Tag Pool removal. Current chain (@container px, in MixerBar.tsx's own Row 2 comment): **862** full form · **580** Min Match collapse · **489** Clear gone · **449** Random gone · slots scroll ~391; RecommendButton's viewport twin is **min-[962px]** (container + 100 — the offset is 100, not the old 96: the card's 2×2px borders were never counted). Also learned in the re-bisect: Tailwind v4 `max-[N]`/`@max-[N]` is STRICT (`< N`), so same-N min/max pairs are exact complements — pair them same-N, never N/N−1.
 
 Requested directly, in a follow-up round: rather than each control picking its own responsive threshold, this row's entire ladder is now ONE ordered sequence, and every rung's own breakpoint is live-bisected to sit exactly where the PREVIOUS rung's own fit stops holding, chained back-to-back, not spaced out by feel. That chaining is the load-bearing part: this round's own first-draft numbers, picked independently per control the way the original icon-tier pass above was, left two real, confirmed dead zones (793-1070px, and later 640-656px) where the row was still wrapping into 2 lines despite something already being hidden, just not enough yet. Re-bisecting each rung against what the PRIOR rung's own content actually measures (not an assumed or reused number) is what closed both gaps and produced a row that's confirmed live to hold single-line continuously from `min-[511px]` up through `min-[1071px]` and beyond, its entire practical range:
 
@@ -2020,3 +2040,118 @@ reorder).
 Motion drag), treemap and circle-pack (`d3-hierarchy`), heatmap (`d3-scale` +
 `d3-scale-chromatic` over a grid). Fill this section in with the real decisions as
 each ships — and revisit whether the starting defaults above held.
+
+## Sizing & header unification pass (2026-07-25 → 28) — tiers, header system, SearchField, responsive ladders
+
+The full batch-by-batch log with every measurement lives in
+`docs/audits/SIZING_AUDIT.md` (batches 4–7); this section is the
+*reference* for what the system now IS. Governing directive (user):
+**variants on shared components, never clone components** — one-offs only
+when a control is genuinely its own kind of thing (SearchField, below).
+
+### What landed (reference state)
+
+- **Two-tier control scale** — `--control-h-md` 40 / `--control-h-sm` 30;
+  tier follows the row; `.touch-44` restores 44pt hit areas (see the
+  Borders/Control-heights table section above).
+- **Shadow tiers** — elev-1 / elev-2 / elev-2-selected / elev-4 + the
+  flat-header-row ruling (see the Shadows table section above).
+- **`--secondary` → `--accent`** + ActionButton `accent`-variant → `cta`
+  (see Colors above; "variant names a ROLE, token names a COLOR").
+- **The header treatment** — a VARIANT AXIS on the shared buttons, the
+  Filter button's recipe generalized:
+  - `ActionButton variant="header"` (+ `engaged` prop): REST =
+    flat/`border-transparent`/transparent bg, `--muted` content,
+    `glow-host` hover; ENGAGED = `--primary` fill + `--surface` content +
+    `--primary` border. Borderless rest is `border-transparent`, never
+    `border-0` — geometry must not shift when the frame appears.
+  - `ActionButton variant="header-action"` (Clear): same flat/borderless/
+    glow family, but a standing **ink fill + `--bg` text** (the
+    pre-restyle inverted pair, user-settled after `--fill` and
+    `--surface` trials) — an always-ready action, not a toggle.
+  - Icon twins are `IconButton size="md"` with the same recipe via its
+    color props. `shadow` prop off = the flat-row rule.
+  - Applied to: Tag Pool (engaged = browse mode), Filters (engaged =
+    popover open; renders in BOTH states since the empty-state inline
+    filters moved up), Clear.
+- **`SearchField.tsx`** — the global search, its OWN contained component
+  BY RULING (it's a text field with focus/query state machinery — not a
+  button variant; scale it by extending IT, never re-implementing):
+  - One `<label>` container, icon INSIDE; engaged = focused OR live
+    query → surface fill + primary border + `--primary` icon; the input
+    is `[outline:none]` — the container frame IS the focus affordance
+    (documented focus-regime deviation).
+  - Hover glow only at REST (an engaged field doesn't re-advertise);
+    label `onMouseDown` preventDefaults when already focused (kills the
+    blur→refocus flicker); label `onClick` = focus + open panel, so the
+    icon behaves exactly like the field.
+  - **Esc ladder v3** (tagPoolNavContext): query → Esc clears
+    (consumed); empty → Esc blurs AND falls through to close the panel —
+    one Esc = the click-out pair.
+  - `onEngagedChange` reports engagement up (ResultsHeader uses it below
+    rung H3).
+
+### The two responsive ladders (bisected 2026-07-28, 40-tier numbers)
+
+**MixerBar (@container px against its controls wrapper; container =
+viewport − 100 below the column cap — 48 gutter + 48 card padding +
+2×2 border; the old "−96" never counted the borders):**
+**862** full form · **580** Min Match collapses · **489** Clear gone ·
+**449** Random gone (mirrored by the empty-state surfaced Random's
+`@max-[449px]` — duplicated literal on purpose, Tailwind can't read a JS
+constant) · slots scroll internally below ~391. RecommendButton's twin is
+a VIEWPORT literal, **min-[962px]**, in THREE places (text span, icon,
+and the `max-[962px]:w/px-0` width pair — miss the width pair and you get
+a 40px button with overflowing text).
+
+**Header (VIEWPORT px — deliberately NOT @container: `container-type`
+implies `contain: layout` → a stacking context on the row, which would
+trap the filter popover's z-popover under the pool overlay, the
+documented P2 regression class; below the column cap row width =
+viewport − 48, so viewport rungs are exact):**
+- **min-[754]** — full form. (Before the ladder, the metadata silently
+  WRAPPED to a second 70px row everywhere in ~480–750.)
+- **max-[754]** — H1: the "new" readout drops its word (icons + counts
+  stay; `title` keeps the word for hover/AT). Lowest-impact first.
+- **max-[729]** — H2: Tag Pool + Filters + Clear ALL flip to icon twins
+  at the same rung (user-ruled: one row never mixes labeled and
+  icon-only action buttons). The filter popover's anchor-to-header-row
+  switch (`max-[729px]:static`) rides the SAME rung by ruling.
+- **max-[529]** — H3: the RESTING search collapses to a magnify icon
+  button (SearchField's own `max-[529px]` overrides: fixed
+  `--control-h-md` square, `gap-0` so the icon truly centers, and a
+  **zero-WIDTH — not `display:none` — input**, because a `display:none`
+  input can't receive focus and focus is exactly how the tap expands
+  it). Engaged lifts every override → the normal active bar. While
+  engaged below H3, Tag Pool + Filters hide for room (INTERIM ruling —
+  re-evaluate the interaction on feel).
+- Floor: the final composition fits to ~367; below that the metadata's
+  flex-wrap remains the last-resort fallback.
+
+**Conventions earned in the bisects (apply to ALL future rungs):**
+1. Tailwind v4 `max-[N]`/`@max-[N]` is **STRICT `< N`** — same-N min/max
+   pairs are exact complements; pairing N with N−1 leaves a 1px
+   mixed-form window (found live on the Min Match label).
+2. Bisect against the WORST-case content state (header: results with all
+   three readouts lit), and measure natural width with shrinkable
+   sub-groups at their `scrollWidth`.
+3. A rung's mirrors move in lockstep or not at all — grep the number
+   before changing it (449 lives in two files; 962 in one file × three
+   literals).
+
+### Subtext registers + focus regime (settled earlier in the pass)
+
+`.text-label` (10px bold tracking-xl uppercase — static control names) ·
+`.text-hint` (11px regular subtext — transient bare helpers) ·
+`.tooltip-chip` (chip container + 11px regular + elev-1 — transient boxed
+messages). Rule: 10 = quiet static labels, 11 = anything that talks to
+you. `.focus-ring-inset` (2px, offset −2, `-webkit-focus-ring-color`) is
+the app-wide focus regime; the two deviation classes are SearchField's
+container-frame affordance and the collapsed single-tap-cycle controls.
+
+### Parked (explicitly OUTSIDE this pass, user-ruled)
+
+Wrap/truncate/hover-overflow policy re-evaluation · app-wide
+hover/transition design (the header glow is the only designed hover
+language so far) · empty-state middle-band re-exploration (sparse at
+desktop since the filters moved up).

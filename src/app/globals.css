@@ -979,7 +979,7 @@
 
    PRESSED ([data-gripping]): every dot deepens to --subtext and radiates a
    purple bloom — a tight bright core plus a wide soft outer halo (two stacked
-   drop-shadows). --subtext, NOT an accent (--primary/--secondary), on purpose:
+   drop-shadows). --subtext, NOT an accent (--primary/--accent), on purpose:
    it's the saturated member of the SAME muted family (globals.css derives it
    straight from --muted), so the glow reads as the affordance's own colour
    intensifying — Konomi's purple in the default theme — rather than a different
@@ -1104,7 +1104,7 @@ html.theme-transitioning *::after {
    while the masthead (.wm-host) is hovered, each letter — KONOMI then
    ミックス, one stagger chain via each group's --i — drains its fill,
    draws its outline (main stroke + the offset echo ghost, the RatingBadge
-   echo language), then floods back with a --secondary flash before
+   echo language), then floods back with a --accent (né --secondary) flash before
    settling to its own fill color. Timing/geometry values arrive as
    --wm-* custom properties set by Masthead.tsx from wordmarkDrawTuning.ts
    (named constants per AGENTS.md) — nothing here is a magic literal.

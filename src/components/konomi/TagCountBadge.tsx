@@ -194,7 +194,7 @@ function bodyRightEdge(bodyW: number, h: number, pointRadius: number, heightFrac
 
 interface TagCountBadgeProps {
   label: string;
-  // Full-match state: --secondary/on-secondary fill instead of the default
+  // Full-match state: --accent/on-accent fill instead of the default
   // --surface/ink. Named after the domain concept (a "perfect" mix result)
   // rather than a generic "variant" prop, matching how ResultCard already
   // thinks about this state elsewhere.
