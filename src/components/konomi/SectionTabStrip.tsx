@@ -266,7 +266,24 @@ export function SectionTabStrip({
                       size === "primary" ? "h-[20px] px-[var(--space-sm)]" : "h-[14px] px-[var(--space-xs)]",
                     ].join(" ")}
                   >
-                    {section.selectedCount}
+                    {/* Inner BLOCK span carries text-box trimming — digits
+                        have no descenders, but the mono font's line box
+                        reserves a descent zone anyway, so the ink sat
+                        visibly high of the badge's center (pixel-scanned
+                        2026-07-26: 6px above vs 8px below on the primary;
+                        user-spotted). text-box trims the line box to
+                        cap-height ink, so the badge's flex centering
+                        centers the GLYPHS, not the font's empty metrics —
+                        the measure-ink-not-boxes lesson fixed with the
+                        purpose-built property, not a half-pixel nudge.
+                        On an inner `block` span, NOT the badge itself:
+                        text-box applies to block containers, and the
+                        badge is a flex container whose bare text child
+                        doesn't get trimmed (confirmed live — the property
+                        computed but changed nothing there). Engines
+                        without text-box keep the old, slightly-high
+                        rendering — harmless. */}
+                    <span className="block [text-box:trim-both_cap_alphabetic]">{section.selectedCount}</span>
                   </span>
                 )}
               </span>

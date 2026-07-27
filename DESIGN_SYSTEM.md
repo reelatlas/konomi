@@ -164,7 +164,7 @@ Tailwind v4 generates its three built-in font-family utilities (`font-sans`, `fo
 
 ## Dashed borders: iOS WebKit clips them — accepted, not fixed
 
-iOS WebKit drops the left/right segments of `border-dashed` on empty states (`TagSlot`'s empty tag slots, `RecommendationsBody`'s "MIX TAGS" placeholder) — not reproducible in desktop Chrome emulation, only confirmed live on-device. Investigated fully — outline-dashed also clips; SVG stroke-dasharray renders correctly but its continuous perimeter path slides/gaps at corners on resize. Accepted the cosmetic clip as the best trade (empty-states only, ~half of mobile traffic, no functional impact). Don't re-litigate.
+**RESOLVED 2026-07-26, by accident:** iOS WebKit's dashed-border clip (left/right segments never painted on empty states) was caused by the FRACTIONAL border width — when the border scale collapsed 2.5px → 2px (sizing unification batch 3), iOS's dash rasterizer started painting the full perimeter; user-confirmed on-device, first time since the earliest versions. History, kept for the record: outline-dashed also clipped; SVG stroke-dasharray corners slid on resize; the clip was accepted as unfixable for months. The real lesson joins the border-collapse verdict: fractional border widths are rendering coin-flips — avoid them.
 
 ## A visual gap has to match the other gap's *rendered* distance, not just reuse its token — and rotated ancestors make `getBoundingClientRect()` lie about that distance
 

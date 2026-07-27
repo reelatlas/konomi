@@ -599,6 +599,12 @@ export function RecommendationsBody({
         // results block and stop, NOT swallow the leftover space above MixerBar
         // (that gap is present in both states on a tall viewport, by design).
         // flex/items-center/justify-center centers the content in that box.
+        // FIXED BY ACCIDENT 2026-07-26: the long-accepted iOS dashed-border
+        // clip (left/right edges never painted on-device) disappeared when
+        // the border scale collapsed 2.5px → 2px — the FRACTIONAL width was
+        // what broke iOS's dash rasterizer all along. User-confirmed live:
+        // the full dashed perimeter now renders on mobile for the first
+        // time. The old note below is kept as history of what was tried.
         // border-dashed clips its left/right edges on iOS WebKit (all iOS
         // browsers) — cosmetic, empty-state only. Accepted. Do not "fix"
         // by swapping to outline-dashed (also clips) or SVG stroke

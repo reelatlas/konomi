@@ -328,3 +328,17 @@ anything that talks to you. Verified live: label 10/700, tooltip
 stale CSS through TWO restarts — the second "restart" raced the dying
 listener (port never freed, new server EADDRINUSE'd silently, old one
 kept serving). Kill → wait for port free → rm -rf .next → start.
+
+**Batch 3b (2026-07-26) — badge ink centering + a windfall recorded.**
+User spotted badge digits sitting high; pixel-scanned: ink 6px above /
+8px below center (primary), 3/5 (secondary) — the mono font reserves a
+descent zone digits never use, so flex centered the line box, not the
+ink. Fixed with the purpose-built property: `text-box: trim-both cap
+alphabetic` on an inner block span (the property applies to block
+containers — on the flex badge itself it computes but trims nothing,
+confirmed live). Post-fix pixel scan: 7/7 and 4/4 exactly. Engines
+without text-box keep the old half-pixel-high look. Windfall: the
+border collapse (2.5 → 2) FIXED the long-accepted iOS dashed-border
+clip — the fractional width was the culprit; the empty state's full
+dashed perimeter now renders on mobile for the first time
+(user-confirmed; both "accepted, don't fix" notes updated to resolved).
