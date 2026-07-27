@@ -278,3 +278,14 @@ pass size="small") — dead-variant candidate. Inventory diff vs 2a:
 exactly the 6 intended chip deltas (h/font/padding × pool + card), zero
 collateral; card measured at its 445 ceiling with tag-area token
 resolving to the new clamp. All suites green.
+
+**Batch 2c (2026-07-26) — chip length-tiered downsizing.** TagSlot's
+fontSizeClassFor precedent extended to small chips (user-ruled): names
+>24ch step to 10px, >32ch to 9px, so a wrap inside the fixed 30 box
+stays smooth (two 9px lines fit). Deliberate aesthetic-over-strict-a11y
+compromise for the long tail, documented at the helper. Thresholds sized
+to the result card's ~196px tag area (the one width-constrained chip
+surface). User notes banked: the 14px reading size + 11px chips are a
+"huge improvement" on mobile (likely keep; final call at end-of-migration
+review with everything else); iOS focus-zoom fix confirmed working
+on-device.

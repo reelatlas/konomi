@@ -88,7 +88,7 @@ const registry = [
   R({ id: "panel/chip-small", component: "TagChip small", file: "src/components/konomi/TagChip.tsx",
       selector: '[id^="tagpool-panel-"] div.flex.flex-wrap > button',
       authored: { height: { v: "--control-h-sm 30px (fixed)", kind: "token" },
-        font: { v: "--text-xs 11px", kind: "token" }, border: { v: "--border-thin 2px", kind: "token" }, radius: { v: "--radius-chip 2px", kind: "token" } },
+        font: { v: "length-tiered xs 11 → 2xs 10 (>24ch) → 3xs 9 (>32ch), smallChipSizeClass — TagSlot precedent, user-ruled", kind: "token" }, border: { v: "--border-thin 2px", kind: "token" }, radius: { v: "--radius-chip 2px", kind: "token" } },
       verify: ["h-[var(--control-h-sm)] border-[length:var(--border-thin)]"], states: ["hover", "focus", "active"] }),
   R({ id: "panel/icon-btn", component: "IconButton sm border=none (snap/close/grip)", file: "src/components/konomi/TagPoolOverlay.tsx",
       selector: '[data-tagpool-overlay] button[aria-label="Close"]',

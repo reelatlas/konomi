@@ -8,6 +8,25 @@ interface TagChipProps {
   onToggle: (tagId: string) => void;
 }
 
+// Length-tiered downsizing for the small (dense-tier) chip — TagSlot's
+// fontSizeClassFor precedent extended to chips (user-ruled 2026-07-26):
+// a super-long name steps down so any wrap inside the fixed
+// --control-h-sm box stays smooth (two 9px lines fit the 30px box with
+// room), maintaining aesthetic over strict type-size accessibility for
+// the long tail — a documented, deliberate compromise ("it's okay if
+// users have to squint every now and then"). Thresholds are sized to
+// the RESULT CARD's ~196px tag area, the one place chips actually hit a
+// width limit (the pool is wide): ~26 chars of 11px mono fit one line
+// there, so the first step-down lands just before wrapping would start,
+// and anything long enough to wrap even at 10px drops to 9px so the
+// two-line form fits the fixed box.
+function smallChipSizeClass(name: string): string {
+  const len = name.length;
+  if (len <= 24) return "text-[length:var(--text-xs)]";
+  if (len <= 32) return "text-[length:var(--text-2xs)]";
+  return "text-[length:var(--text-3xs)]";
+}
+
 export function TagChip({ id, name, active, size = "base", onToggle }: TagChipProps) {
   const isBase = size === "base";
 
@@ -41,7 +60,7 @@ export function TagChip({ id, name, active, size = "base", onToggle }: TagChipPr
         // candidate logged in SIZING_AUDIT.md; not removed here.
         isBase
           ? "text-[length:var(--text-sm)] tracking-[var(--tracking-md)] px-[var(--space-lg)] py-[var(--space-md)]"
-          : "h-[var(--control-h-sm)] border-[length:var(--border-thin)] text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] px-[var(--space-md)]",
+          : `h-[var(--control-h-sm)] border-[length:var(--border-thin)] ${smallChipSizeClass(name)} tracking-[var(--tracking-sm)] px-[var(--space-md)]`,
         active ? "bg-[var(--primary)] text-[var(--surface)]" : isBase ? "bg-[var(--surface)] text-[var(--ink)]" : "bg-[var(--fill)] text-[var(--ink)]",
         isBase ? (active ? "shadow-[var(--elev-2-accent)]" : "shadow-[var(--elev-2)]") : "",
       ].join(" ")}

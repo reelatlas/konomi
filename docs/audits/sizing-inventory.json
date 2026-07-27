@@ -1,7 +1,7 @@
 {
  "meta": {
-  "generated": "2026-07-27T03:24:42.750Z",
-  "commit": "2334563",
+  "generated": "2026-07-27T03:51:58.452Z",
+  "commit": "981f0e2",
   "treeDirty": true,
   "url": "http://localhost:3000/film",
   "primaryCapture": {
@@ -971,7 +971,7 @@
      "kind": "token"
     },
     "font": {
-     "v": "--text-xs 11px",
+     "v": "length-tiered xs 11 → 2xs 10 (>24ch) → 3xs 9 (>32ch), smallChipSizeClass — TagSlot precedent, user-ruled",
      "kind": "token"
     },
     "border": {
@@ -2149,8 +2149,8 @@
     "text-base": 3,
     "text-sm": 6,
     "text-xs": 20,
-    "text-2xs": 15,
-    "text-3xs": 4
+    "text-2xs": 16,
+    "text-3xs": 5
    }
   },
   {
