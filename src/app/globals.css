@@ -83,7 +83,13 @@
      (box - icon)/2 offset is a whole number and lands on the device-pixel
      grid — see AGENTS.md whole-pixel-geometry. Single source: never re-author
      the literal in a component. */
-  --control-h-md: 44px;
+  /* 40, down from 44 (user-ruled TRIAL 2026-07-27 after a 44-vs-40
+     comparison): the offset shadows add 2-5px of visual weight beyond the
+     box, so 44 read heavier than intended. The iOS/Android 44pt touch
+     minimum is met by the .touch-44 hit-area utility below instead of by
+     box size — a documented deliberate trade. Revert = this one line +
+     dropping .touch-44 call sites. */
+  --control-h-md: 40px;
   /* The dense tier's box (chips, section tabs, card lock/swap, the pool
      panel's icon controls). Minted in the sizing unification (ruled
      2026-07-26, docs/audits/SIZING_AUDIT.md §6) — 30 was previously a raw
@@ -783,6 +789,23 @@
    Color: -webkit-focus-ring-color keeps the familiar engine accent
    (Chromium + WebKit; the token line is the fallback). A designed focus
    token can swap in here later — one rule to edit. */
+/* Invisible 44pt touch expansion for the 40px control tier (shadow-weight
+   trial, 2026-07-27): a transparent ::after extends the HIT AREA 2px on
+   every side (40 + 2×2 = 44) without touching layout or visuals — the
+   shared utility the touch-target ruling asked for, so it can't drift
+   per-component. −2 pairs with the 40 tier; re-derive if the tier moves.
+   Host must be positioned (the utility sets relative; harmless when
+   already positioned). KNOWN LIMITS, accepted: clip ancestors clip hit
+   areas exactly like they clip focus rings (slots at the scroll edges);
+   native <input>/<select> don't render pseudo-elements, so the search
+   field and Sort select stay at their real 40px box. */
+.touch-44 { position: relative; }
+.touch-44::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+}
+
 .focus-ring-inset:focus-visible {
   outline: 2px solid var(--primary-deep);
   outline: 2px solid -webkit-focus-ring-color;

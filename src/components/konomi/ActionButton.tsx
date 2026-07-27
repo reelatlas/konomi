@@ -52,7 +52,8 @@ const SIZE_CLASSES: Record<ActionButtonSize, string> = {
   // mode. inline-flex baked in here (unlike sm) since no current `md`
   // caller needs to externally toggle its own display value the way
   // ResultsHeader.tsx's sm-sized Clear button does.
-  md: "inline-flex h-[var(--control-h-md)] items-center justify-center px-[var(--space-xl)]",
+  // touch-44: the 40px tier keeps a 44pt hit area (globals.css).
+  md: "touch-44 inline-flex h-[var(--control-h-md)] items-center justify-center px-[var(--space-xl)]",
   // Only Clear ✕ (Recommendations tab) uses this smaller size — confirmed
   // against the original markup, not a guess. Fixed h-[30px] + flex
   // centering, not py-based like md above: requested directly, so this

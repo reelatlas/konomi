@@ -176,8 +176,10 @@ export function IconButton({
         // too, purely as a side effect of layout plumbing that has nothing
         // to do with this button's own intended behavior.
         // focus-ring-inset: the app's one keyboard-focus regime — see
-        // ActionButton's identical note.
+        // ActionButton's identical note. touch-44 on the md tier only:
+        // the 40px box keeps a 44pt hit area (globals.css).
         "focus-ring-inset pointer-events-auto flex-none items-center justify-center p-0",
+        size === "md" ? "touch-44" : "",
         display,
         BORDER_CLASSES[border],
         shape === "circle" ? "rounded-full" : "",

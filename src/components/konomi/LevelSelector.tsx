@@ -199,7 +199,7 @@ export function LevelSelector({ value, onChange, collapsed }: LevelSelectorProps
               // FIXED control-tier height (wrapper h-[--control-h-md], flex
               // stretch + centering), replacing the emergent py+leading box —
               // see MatchSelector's identical comment / SIZING_AUDIT.md §4.
-              "focus-ring-inset flex-1 inline-flex items-center justify-center leading-[16px] px-[var(--space-lg)] border-0 cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] whitespace-nowrap",
+              "touch-44 focus-ring-inset flex-1 inline-flex items-center justify-center leading-[16px] px-[var(--space-lg)] border-0 cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)] whitespace-nowrap",
               i > 0 ? "border-l-[length:var(--border-base)] border-l-[var(--ink)]" : "",
               active ? "bg-[var(--primary)] text-[var(--surface)]" : "bg-[var(--surface)] text-[var(--ink)]",
             ].join(" ")}

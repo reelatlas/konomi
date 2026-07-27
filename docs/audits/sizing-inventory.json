@@ -1,7 +1,7 @@
 {
  "meta": {
-  "generated": "2026-07-27T06:45:18.011Z",
-  "commit": "6bfdcfe",
+  "generated": "2026-07-27T07:11:55.435Z",
+  "commit": "3154b8b",
   "treeDirty": true,
   "url": "http://localhost:3000/film",
   "primaryCapture": {
@@ -21,7 +21,7 @@
    "file": "src/components/konomi/LevelSelector.tsx",
    "authored": {
     "height": {
-     "v": "--control-h-md 44px (wrapper, fixed)",
+     "v": "--control-h-md 40px (wrapper, fixed)",
      "kind": "token"
     },
     "font": {
@@ -39,8 +39,8 @@
    },
    "measured": {
     "resting": {
-     "w": 331.84,
-     "h": 44,
+     "w": 264.17,
+     "h": 40,
      "fontSize": "16px",
      "fontFamily": "Zen Kaku Gothic New",
      "fontWeight": "400",
@@ -81,8 +81,8 @@
    },
    "measured": {
     "resting": {
-     "w": 117.27,
-     "h": 40,
+     "w": 85.39,
+     "h": 36,
      "fontSize": "11px",
      "fontFamily": "IBM Plex Mono",
      "fontWeight": "700",
@@ -106,8 +106,8 @@
     "contrast": 17.55,
     "states": {
      "hover": {
-      "w": 117.27,
-      "h": 40,
+      "w": 85.39,
+      "h": 36,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "700",
@@ -129,8 +129,8 @@
       "iconLabelGap": null
      },
      "focusVisible": {
-      "w": 117.27,
-      "h": 40,
+      "w": 85.39,
+      "h": 36,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "700",
@@ -152,8 +152,8 @@
       "iconLabelGap": null
      },
      "active": {
-      "w": 117.27,
-      "h": 40,
+      "w": 85.39,
+      "h": 36,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "700",
@@ -183,7 +183,7 @@
    "file": "src/components/konomi/SortSelect.tsx",
    "authored": {
     "height": {
-     "v": "--control-h-md 44px (fixed)",
+     "v": "--control-h-md 40px (fixed)",
      "kind": "token"
     },
     "font": {
@@ -201,8 +201,8 @@
    },
    "measured": {
     "resting": {
-     "w": 135,
-     "h": 44,
+     "w": 102,
+     "h": 40,
      "fontSize": "11px",
      "fontFamily": "IBM Plex Mono",
      "fontWeight": "700",
@@ -226,8 +226,8 @@
     "contrast": 17.55,
     "states": {
      "hover": {
-      "w": 135,
-      "h": 44,
+      "w": 102,
+      "h": 40,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "700",
@@ -249,8 +249,8 @@
       "iconLabelGap": null
      },
      "focusVisible": {
-      "w": 135,
-      "h": 44,
+      "w": 102,
+      "h": 40,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "700",
@@ -280,7 +280,7 @@
    "file": "src/components/konomi/ResultsHeader.tsx",
    "authored": {
     "height": {
-     "v": "--control-h-md 44px",
+     "v": "--control-h-md 40px",
      "kind": "token"
     },
     "width": {
@@ -304,7 +304,7 @@
    "measured": {
     "resting": {
      "w": 200,
-     "h": 44,
+     "h": 40,
      "fontSize": "12px",
      "fontFamily": "IBM Plex Mono",
      "fontWeight": "400",
@@ -329,7 +329,7 @@
     "states": {
      "hover": {
       "w": 200,
-      "h": 44,
+      "h": 40,
       "fontSize": "12px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "400",
@@ -352,7 +352,7 @@
      },
      "focusVisible": {
       "w": 200,
-      "h": 44,
+      "h": 40,
       "fontSize": "12px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "400",
@@ -382,7 +382,7 @@
    "file": "src/components/konomi/ActionButton.tsx",
    "authored": {
     "height": {
-     "v": "--control-h-md 44px",
+     "v": "--control-h-md 40px",
      "kind": "token",
      "src": "SIZE_CLASSES.md"
     },
@@ -405,8 +405,8 @@
    },
    "measured": {
     "resting": {
-     "w": 141.84,
-     "h": 44,
+     "w": 120.09,
+     "h": 40,
      "fontSize": "11px",
      "fontFamily": "IBM Plex Mono",
      "fontWeight": "700",
@@ -430,8 +430,8 @@
     "contrast": 13.27,
     "states": {
      "hover": {
-      "w": 141.84,
-      "h": 44,
+      "w": 120.09,
+      "h": 40,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "700",
@@ -453,8 +453,8 @@
       "iconLabelGap": "6px"
      },
      "focusVisible": {
-      "w": 141.84,
-      "h": 44,
+      "w": 120.09,
+      "h": 40,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "700",
@@ -476,8 +476,8 @@
       "iconLabelGap": "6px"
      },
      "active": {
-      "w": 141.84,
-      "h": 44,
+      "w": 120.09,
+      "h": 40,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "700",
@@ -507,7 +507,7 @@
    "file": "src/components/konomi/IconButton.tsx",
    "authored": {
     "height": {
-     "v": "--control-h-md 44px",
+     "v": "--control-h-md 40px",
      "kind": "token",
      "src": "SIZE_PX.md"
     },
@@ -527,8 +527,8 @@
    },
    "measured": {
     "resting": {
-     "w": 44,
-     "h": 44,
+     "w": 40,
+     "h": 40,
      "fontSize": "16px",
      "fontFamily": "Zen Kaku Gothic New",
      "fontWeight": "400",
@@ -552,8 +552,8 @@
     "contrast": 15.12,
     "states": {
      "hover": {
-      "w": 44,
-      "h": 44,
+      "w": 40,
+      "h": 40,
       "fontSize": "16px",
       "fontFamily": "Zen Kaku Gothic New",
       "fontWeight": "400",
@@ -575,8 +575,8 @@
       "iconLabelGap": null
      },
      "focusVisible": {
-      "w": 44,
-      "h": 44,
+      "w": 40,
+      "h": 40,
       "fontSize": "16px",
       "fontFamily": "Zen Kaku Gothic New",
       "fontWeight": "400",
@@ -598,8 +598,8 @@
       "iconLabelGap": null
      },
      "active": {
-      "w": 44,
-      "h": 44,
+      "w": 40,
+      "h": 40,
       "fontSize": "16px",
       "fontFamily": "Zen Kaku Gothic New",
       "fontWeight": "400",
@@ -629,7 +629,7 @@
    "file": "src/components/konomi/ResultsHeader.tsx",
    "authored": {
     "height": {
-     "v": "--control-h-md 44px",
+     "v": "--control-h-md 40px",
      "kind": "token",
      "src": "SIZE_CLASSES.md"
     },
@@ -644,8 +644,8 @@
    },
    "measured": {
     "resting": {
-     "w": 102.47,
-     "h": 44,
+     "w": 86.84,
+     "h": 40,
      "fontSize": "11px",
      "fontFamily": "IBM Plex Mono",
      "fontWeight": "700",
@@ -669,8 +669,8 @@
     "contrast": 15.12,
     "states": {
      "hover": {
-      "w": 102.47,
-      "h": 44,
+      "w": 86.84,
+      "h": 40,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "700",
@@ -692,8 +692,8 @@
       "iconLabelGap": null
      },
      "focusVisible": {
-      "w": 102.47,
-      "h": 44,
+      "w": 86.84,
+      "h": 40,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "700",
@@ -733,7 +733,7 @@
    },
    "measured": {
     "resting": {
-     "w": 30.67,
+     "w": 29.05,
      "h": 18,
      "fontSize": "11px",
      "fontFamily": "IBM Plex Mono",
@@ -758,7 +758,7 @@
     "contrast": 2.44,
     "states": {
      "hover": {
-      "w": 30.67,
+      "w": 29.05,
       "h": 18,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -888,7 +888,7 @@
    },
    "measured": {
     "resting": {
-     "w": 88.86,
+     "w": 65.56,
      "h": 16,
      "fontSize": "16px",
      "fontFamily": "Zen Kaku Gothic New",
@@ -913,7 +913,7 @@
     "contrast": 17.55,
     "states": {
      "hover": {
-      "w": 88.86,
+      "w": 65.56,
       "h": 16,
       "fontSize": "16px",
       "fontFamily": "Zen Kaku Gothic New",
@@ -936,7 +936,7 @@
       "iconLabelGap": "6px"
      },
      "focusVisible": {
-      "w": 88.86,
+      "w": 65.56,
       "h": 16,
       "fontSize": "16px",
       "fontFamily": "Zen Kaku Gothic New",
@@ -985,7 +985,7 @@
    },
    "measured": {
     "resting": {
-     "w": 95.02,
+     "w": 101.84,
      "h": 30,
      "fontSize": "11px",
      "fontFamily": "IBM Plex Mono",
@@ -1010,7 +1010,7 @@
     "contrast": 13.27,
     "states": {
      "hover": {
-      "w": 95.02,
+      "w": 101.84,
       "h": 30,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -1033,7 +1033,7 @@
       "iconLabelGap": null
      },
      "focusVisible": {
-      "w": 95.02,
+      "w": 101.84,
       "h": 30,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -1056,7 +1056,7 @@
       "iconLabelGap": null
      },
      "active": {
-      "w": 95.02,
+      "w": 101.84,
       "h": 30,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -1180,7 +1180,7 @@
    "file": "src/components/konomi/TagSlot.tsx",
    "authored": {
     "height": {
-     "v": "--control-h-md 44px",
+     "v": "--control-h-md 40px",
      "kind": "token"
     },
     "width": {
@@ -1204,7 +1204,7 @@
    "measured": {
     "resting": {
      "w": 78,
-     "h": 44,
+     "h": 40,
      "fontSize": "16px",
      "fontFamily": "Zen Kaku Gothic New",
      "fontWeight": "400",
@@ -1229,7 +1229,7 @@
     "states": {
      "hover": {
       "w": 78,
-      "h": 44,
+      "h": 40,
       "fontSize": "16px",
       "fontFamily": "Zen Kaku Gothic New",
       "fontWeight": "400",
@@ -1259,7 +1259,7 @@
    "file": "src/components/konomi/MixerBar.tsx",
    "authored": {
     "height": {
-     "v": "--control-h-md 44px",
+     "v": "--control-h-md 40px",
      "kind": "token"
     },
     "font": {
@@ -1285,8 +1285,8 @@
    },
    "measured": {
     "resting": {
-     "w": 114.66,
-     "h": 44,
+     "w": 98.31,
+     "h": 40,
      "fontSize": "11px",
      "fontFamily": "IBM Plex Mono",
      "fontWeight": "700",
@@ -1310,8 +1310,8 @@
     "contrast": 17.55,
     "states": {
      "hover": {
-      "w": 114.66,
-      "h": 44,
+      "w": 98.31,
+      "h": 40,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "700",
@@ -1333,8 +1333,8 @@
       "iconLabelGap": "6px"
      },
      "focusVisible": {
-      "w": 114.66,
-      "h": 44,
+      "w": 98.31,
+      "h": 40,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "700",
@@ -1356,8 +1356,8 @@
       "iconLabelGap": "6px"
      },
      "active": {
-      "w": 114.66,
-      "h": 44,
+      "w": 98.31,
+      "h": 40,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "700",
@@ -1387,7 +1387,7 @@
    "file": "src/components/konomi/MatchSelector.tsx",
    "authored": {
     "height": {
-     "v": "--control-h-md 44px (wrapper, fixed)",
+     "v": "--control-h-md 40px (wrapper, fixed)",
      "kind": "token"
     },
     "border": {
@@ -1401,8 +1401,8 @@
    },
    "measured": {
     "resting": {
-     "w": 105.36,
-     "h": 44,
+     "w": 100.48,
+     "h": 40,
      "fontSize": "16px",
      "fontFamily": "Zen Kaku Gothic New",
      "fontWeight": "400",
@@ -1433,7 +1433,7 @@
    "file": "src/components/konomi/MixerBar.tsx",
    "authored": {
     "height": {
-     "v": "--control-h-md 44px",
+     "v": "--control-h-md 40px",
      "kind": "token"
     },
     "shadow": {
@@ -1447,8 +1447,8 @@
    },
    "measured": {
     "resting": {
-     "w": 131.75,
-     "h": 44,
+     "w": 105.56,
+     "h": 40,
      "fontSize": "11px",
      "fontFamily": "IBM Plex Mono",
      "fontWeight": "700",
@@ -1472,8 +1472,8 @@
     "contrast": 13.27,
     "states": {
      "hover": {
-      "w": 131.75,
-      "h": 44,
+      "w": 105.56,
+      "h": 40,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "700",
@@ -1495,8 +1495,8 @@
       "iconLabelGap": "6px"
      },
      "focusVisible": {
-      "w": 131.75,
-      "h": 44,
+      "w": 105.56,
+      "h": 40,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "700",
@@ -1518,8 +1518,8 @@
       "iconLabelGap": "6px"
      },
      "active": {
-      "w": 131.75,
-      "h": 44,
+      "w": 105.56,
+      "h": 40,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "700",
@@ -1549,7 +1549,7 @@
    "file": "src/components/konomi/RecommendButton.tsx",
    "authored": {
     "height": {
-     "v": "--control-h-md 44px",
+     "v": "--control-h-md 40px",
      "kind": "token"
     },
     "shadow": {
@@ -1563,8 +1563,8 @@
    },
    "measured": {
     "resting": {
-     "w": 151.88,
-     "h": 44,
+     "w": 115.89,
+     "h": 40,
      "fontSize": "11px",
      "fontFamily": "IBM Plex Mono",
      "fontWeight": "700",
@@ -1588,8 +1588,8 @@
     "contrast": 15.13,
     "states": {
      "hover": {
-      "w": 151.88,
-      "h": 44,
+      "w": 115.89,
+      "h": 40,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "700",
@@ -1611,8 +1611,8 @@
       "iconLabelGap": null
      },
      "focusVisible": {
-      "w": 151.88,
-      "h": 44,
+      "w": 115.89,
+      "h": 40,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "700",
@@ -1634,8 +1634,8 @@
       "iconLabelGap": null
      },
      "disabled": {
-      "w": 151.88,
-      "h": 44,
+      "w": 115.89,
+      "h": 40,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
       "fontWeight": "700",
@@ -1671,7 +1671,7 @@
    },
    "measured": {
     "resting": {
-     "w": 84.73,
+     "w": 54.11,
      "h": 30,
      "fontSize": "11px",
      "fontFamily": "IBM Plex Mono",
@@ -1696,7 +1696,7 @@
     "contrast": 13.27,
     "states": {
      "hover": {
-      "w": 84.73,
+      "w": 54.11,
       "h": 30,
       "fontSize": "11px",
       "fontFamily": "IBM Plex Mono",
@@ -1998,11 +1998,11 @@
  "mobileSpotPass": {
   "searchField": {
    "w": 156,
-   "h": 44
+   "h": 40
   },
   "headerTagPoolIconForm": {
-   "w": 44,
-   "h": 44
+   "w": 40,
+   "h": 40
   },
   "mixbarClearIconForm": {
    "hidden": true
@@ -2011,20 +2011,20 @@
    "hidden": true
   },
   "minMatchCollapsed": {
-   "w": 36.5,
-   "h": 44
+   "w": 34.8,
+   "h": 40
   },
   "recommend": {
-   "w": 44,
-   "h": 44
+   "w": 40,
+   "h": 40
   },
   "slot": {
    "w": 78,
-   "h": 44
+   "h": 40
   },
   "surfacedRandom": {
-   "w": 127.8,
-   "h": 44
+   "w": 101.6,
+   "h": 40
   }
  },
  "borderRasterizationDevicePx": {

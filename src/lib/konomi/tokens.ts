@@ -71,7 +71,7 @@ export const BORDERS = {
 // buttons). Fixed heights always — padding-derived control boxes are
 // banned (the ActionButton glyph-metrics lesson).
 export const CONTROL_H = {
-  md: "44px",
+  md: "40px", // TRIAL 44→40 (2026-07-27): shadow weight read heavy; touch via .touch-44
   sm: "30px",
 } as const;
 

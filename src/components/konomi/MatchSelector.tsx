@@ -206,7 +206,7 @@ export function MatchSelector({ value, onChange, collapsed }: MatchSelectorProps
               // stretch + centering), replacing the emergent 36px
               // py+leading box that was authored nowhere — SIZING_AUDIT.md
               // §4/§6. leading-[16px] kept for stable text metrics.
-              "focus-ring-inset flex-1 inline-flex items-center justify-center leading-[16px] px-[var(--space-lg)] border-0 cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)]",
+              "touch-44 focus-ring-inset flex-1 inline-flex items-center justify-center leading-[16px] px-[var(--space-lg)] border-0 cursor-pointer uppercase font-mono font-bold text-[length:var(--text-xs)] tracking-[var(--tracking-sm)]",
               i > 0 ? "border-l-[length:var(--border-base)] border-l-[var(--ink)]" : "",
               active ? "bg-[var(--primary)] text-[var(--surface)]" : "bg-[var(--surface)] text-[var(--ink)]",
             ].join(" ")}

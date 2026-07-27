@@ -401,3 +401,20 @@ computed colors verified identical (RECOMMEND lime bg, slot selected
 shadow lime, --accent #e4f46f). Tooltip-chip back to **elev-1**
 (user re-ruled after living with zero: "feels weird without it") —
 joins the dense-accent tier.
+
+**Batch 5 (2026-07-27) — the 40 trial.** `--control-h-md` 44 → **40**
+(user-ruled after a rendered 44-vs-40 comparison: the 2-5px offset
+shadows add visual weight beyond the box, so 44 read heavier than
+intended). The 44pt touch minimum is now met by **`.touch-44`** — a
+shared transparent `::after` expanding every control-tier hit area 2px
+per side (ActionButton md, IconButton md, TagSlot, segment option
+buttons) — instead of by box size; documented limits: clip ancestors
+clip hit areas (slots at scroll edges), and native input/select render
+no pseudo-elements (search field + Sort select stay at their real 40px
+box). RECOMMEND's star composition verified intact at 40; slot 2-line
+wrap verified. Inventory diff: exactly the 12 tier-height deltas
+(44→40 everywhere; level options 40→36 wrapper-stretch), zero
+collateral. Rung note: the icon forms narrowed 4px, which makes the
+already-conservative post-Tag-Pool rungs MORE conservative — safe
+without re-bisection (still parked for last). Revert = one token line +
+dropping .touch-44 call sites. TRIAL status: user evaluating on mobile.

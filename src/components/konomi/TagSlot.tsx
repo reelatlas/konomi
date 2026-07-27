@@ -113,7 +113,9 @@ export function TagSlot({ index, tag, label, isDragOver, onDragOver, onDragLeave
         // real tag name, not the primary mechanism: that tier is already
         // sized to fit the real catalog's longest name (see its own
         // comment) within this exact height.
-        "w-[78px] h-[var(--control-h-md)] px-[var(--space-sm)] overflow-hidden",
+        // touch-44: 44pt vertical hit area on the 40px box (globals.css;
+        // clipped at the slots-row scroll edges — accepted limit).
+        "touch-44 w-[78px] h-[var(--control-h-md)] px-[var(--space-sm)] overflow-hidden",
         "flex items-center justify-center transition-transform duration-75",
         filled ? "cursor-grab active:cursor-grabbing" : "cursor-pointer",
         "border-[length:var(--border-base)]",
