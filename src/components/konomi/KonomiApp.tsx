@@ -1,12 +1,13 @@
 "use client";
 
 import { animate, useMotionValue, type AnimationPlaybackControls } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { unpackCatalog, type WireCatalog } from "@/lib/konomi/catalogWire";
 import { DOMAINS, type DomainKey } from "@/lib/konomi/domains";
 import { visiblePoolTagIds } from "@/lib/konomi/tagPool";
 import { isThemeKey, THEME_STORAGE_KEY } from "@/lib/konomi/themes";
 import { THEME_TRANSITION } from "@/lib/konomi/themeTransitionTuning";
-import type { LevelKey, Series, TagInfo } from "@/lib/konomi/types";
+import type { LevelKey } from "@/lib/konomi/types";
 import { useKonomi } from "@/lib/konomi/useKonomi";
 import { DomainProvider } from "./domainContext";
 import { Masthead } from "./Masthead";
@@ -23,8 +24,9 @@ interface KonomiAppProps {
   // component (each side's page.tsx) can't pass across the client boundary.
   // Resolved via DOMAINS below.
   side: DomainKey;
-  initialSeries: Series[];
-  initialTags: TagInfo[];
+  // The packed catalog (see catalogWire.ts) — unpacked once below into the
+  // Series[]/TagInfo[] the reducer has always taken.
+  catalog: WireCatalog;
 }
 
 // Read live (not cached) so a change to the OS setting mid-session is honored,
@@ -52,9 +54,10 @@ const MASTHEAD_SETTLE_DURATION_S = 0.7;
 const MASTHEAD_SCRUB_DISTANCE_PX = 120;
 const MASTHEAD_FLICK_PROJECTION_MS = 120;
 
-export function KonomiApp({ side, initialSeries, initialTags }: KonomiAppProps) {
+export function KonomiApp({ side, catalog }: KonomiAppProps) {
   const domain = DOMAINS[side];
-  const k = useKonomi(initialSeries, initialTags);
+  const { series, tags } = useMemo(() => unpackCatalog(catalog), [catalog]);
+  const k = useKonomi(series, tags);
   const level = useLevel(domain.storagePrefix);
   // Mirrors `side` onto <html> as data-side, alongside the data-theme the
   // theme effect below manages — side is catalog partition, theme is user
