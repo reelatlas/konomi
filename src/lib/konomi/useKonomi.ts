@@ -3,7 +3,7 @@ import { DEFAULT_RESULT_COUNT, SLOT_COUNT } from "./config";
 import { scorePool, scoreSeries } from "./scoring";
 import type { MatchKey, MixerError, ResultEntry, Series, Slot, TagInfo, ThemeKey } from "./types";
 
-interface KonomiState {
+export interface KonomiState {
   series: Series[];
   tags: TagInfo[];
   slots: Slot[];
@@ -82,7 +82,7 @@ interface KonomiState {
 // useKonomi() is called (fetched server-side, passed in as props), so the
 // initial state can't be a static module-level constant the way it used to
 // be when series/tags were hardcoded imports.
-function createInitialState(catalog: { series: Series[]; tags: TagInfo[] }): KonomiState {
+export function createInitialState(catalog: { series: Series[]; tags: TagInfo[] }): KonomiState {
   return {
     series: catalog.series,
     tags: catalog.tags,
@@ -103,7 +103,7 @@ function createInitialState(catalog: { series: Series[]; tags: TagInfo[] }): Kon
   };
 }
 
-type Action =
+export type Action =
   | { type: "TOGGLE_TAG"; tagId: string }
   | { type: "PLACE_IN_SLOT"; index: number; tagId: string }
   | { type: "CLEAR_SLOT"; index: number }
@@ -380,7 +380,7 @@ function randomTags(state: KonomiState, visible: string[]): KonomiState {
   return { ...state, slots, error: clearErrorForTagChange(state, slots) };
 }
 
-function reducer(state: KonomiState, action: Action): KonomiState {
+export function reducer(state: KonomiState, action: Action): KonomiState {
   switch (action.type) {
     case "TOGGLE_TAG": {
       const s = [...state.slots];

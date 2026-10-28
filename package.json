@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "import:anilist": "tsx --env-file=.env.local scripts/import-anilist.ts",
     "import:tmdb": "tsx --env-file=.env.local scripts/import-tmdb.ts",
     "promote:tmdb": "tsx --env-file=.env.local scripts/promote-tmdb.ts",
@@ -33,7 +35,7 @@
     "@types/d3-scale": "^4.0.9",
     "@types/d3-scale-chromatic": "^3.1.0",
     "@types/d3-shape": "^3.1.8",
-    "@types/node": "^20",
+    "@types/node": "^24.19.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
@@ -41,6 +43,7 @@
     "playwright-core": "^1.62.0",
     "tailwindcss": "^4",
     "tsx": "^4.22.4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^5.0.5"
   }
 }
