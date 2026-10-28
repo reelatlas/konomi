@@ -3,8 +3,26 @@ import { DEFAULT_RESULT_COUNT, SLOT_COUNT } from "./config";
 import { scorePool, scoreSeries } from "./scoring";
 import type { MatchKey, MixerError, ResultEntry, Series, Slot, TagInfo, ThemeKey } from "./types";
 
+// The remote pool (film side): what recommend_films answered for one
+// exact mix-and-screen `key` (see poolKey below) — how many films qualify
+// off-screen, and a random sample of them, already adapted to Series.
+// KonomiApp prefetches it whenever the key changes and dispatches SET_POOL;
+// the reducer only ever reads it when `key` equals the CURRENT key, so a
+// late response for an old mix can't leak into a roll.
+export interface Pool {
+  key: string;
+  total: number;
+  sample: Series[];
+}
+
 export interface KonomiState {
-  series: Series[];
+  // LOCAL mode (anime, the tests): the whole catalog, scored in the
+  // browser by scorePool/scoreSeries. REMOTE mode (film): null — the page
+  // ships tags only, and the fresh tier comes from `pool` instead. Every
+  // other tier and error branch reads the on-screen results, which carry
+  // full membership ids in both modes, so nothing else changes.
+  series: Series[] | null;
+  pool: Pool | null;
   tags: TagInfo[];
   slots: Slot[];
   results: ResultEntry[];
@@ -82,9 +100,10 @@ export interface KonomiState {
 // useKonomi() is called (fetched server-side, passed in as props), so the
 // initial state can't be a static module-level constant the way it used to
 // be when series/tags were hardcoded imports.
-export function createInitialState(catalog: { series: Series[]; tags: TagInfo[] }): KonomiState {
+export function createInitialState(catalog: { series: Series[] | null; tags: TagInfo[] }): KonomiState {
   return {
     series: catalog.series,
+    pool: null,
     tags: catalog.tags,
     slots: Array<Slot>(SLOT_COUNT).fill(null),
     results: [],
@@ -119,10 +138,35 @@ export type Action =
   | { type: "UNLOCK_ALL" }
   | { type: "TOGGLE_FLIP"; id: string }
   | { type: "SET_THEME"; theme: ThemeKey }
-  | { type: "PRUNE_TAGS"; visible: Set<string> };
+  | { type: "PRUNE_TAGS"; visible: Set<string> }
+  | { type: "SET_POOL"; pool: Pool };
 
 function selectedTagIds(slots: Slot[]): string[] {
   return slots.filter((s): s is string => Boolean(s));
+}
+
+// Identity of a remote pool: the mix (selected ids, MIN MATCH) and what is
+// on screen (every shown id is excluded from the fresh tier — the two-tier
+// rule in recommend() below). Sorted, so slot order and card order don't
+// make distinct keys for the same question. JSON rather than a joined
+// string so KonomiApp can parse the key straight back into the request
+// and the fetch can never disagree with the key it is stored under.
+export function poolKey(slots: Slot[], minMatch: MatchKey, results: ResultEntry[]): string {
+  return JSON.stringify([
+    [...selectedTagIds(slots)].sort(),
+    minMatch,
+    results.map((r) => r.series.id).sort(),
+  ]);
+}
+
+// REMOTE mode's fresh tier: the prefetched sample when it is for the
+// current key, else `null` for "no pool yet" (distinct from an EMPTY
+// sample, which is a real answer: total === 0). Shown ids are filtered
+// again defensively — the key already excludes them server-side.
+function remoteFresh(state: KonomiState, shownIds: Set<string>): ResultEntry[] | null {
+  const pool = state.pool;
+  if (!pool || pool.key !== poolKey(state.slots, state.minMatch, state.results)) return null;
+  return pool.sample.filter((s) => !shownIds.has(s.id)).map((series) => ({ series }));
 }
 
 // The only place `error` is ever SET — every other reducer branch below only
@@ -164,7 +208,12 @@ function recommend(state: KonomiState): KonomiState {
   // tier can't fill every slot — so a short pool degrades to "all the fresh
   // ones first, then repeats", never to an artificially short row.
   const shownIds = new Set(state.results.map((r) => r.series.id));
-  const freshPool = scorePool(state.series, sel, min, shownIds);
+  // Remote mode with no pool for this exact key: nothing to roll from yet.
+  // State unchanged (no error — RECOMMEND is disabled while the pool is
+  // pending, so this is only reachable by a race, and silently waiting is
+  // the right answer to one).
+  const freshPool = state.series ? scorePool(state.series, sel, min, shownIds) : remoteFresh(state, shownIds);
+  if (!freshPool) return state;
   const fallbackPool = scorePool(state.results.map((r) => r.series), sel, min, keptIds);
   // Zero fresh picks possible → error with results untouched, never a pure
   // no-op reshuffle (tested: an invisible "success" reads as a dead button).
@@ -310,8 +359,8 @@ function replaceCard(state: KonomiState, id: string): KonomiState {
   if (!sel.length) return state;
   const min = Number(state.minMatch);
   const shown = new Set(state.results.map((r) => r.series.id));
-  const pool = scorePool(state.series, sel, min, shown);
-  if (!pool.length) return state;
+  const pool = state.series ? scorePool(state.series, sel, min, shown) : remoteFresh(state, shown);
+  if (!pool?.length) return state;
   const res = [...state.results];
   res[index] = pool[0];
   const locked = { ...state.locked };
@@ -489,6 +538,10 @@ export function reducer(state: KonomiState, action: Action): KonomiState {
       return { ...state, theme: action.theme };
     case "PRUNE_TAGS":
       return pruneTags(state, action.visible);
+    // Stored whatever its key — the readers (remoteFresh, canSwap) check the
+    // key against the current one, so a stale pool is inert, not harmful.
+    case "SET_POOL":
+      return { ...state, pool: action.pool };
     default:
       return state;
   }
@@ -501,7 +554,10 @@ export function reducer(state: KonomiState, action: Action): KonomiState {
 // fetched once server-side and passed in here rather than imported from a
 // static module — everything downstream (scoring, the reducer) stays
 // synchronous and unchanged either way.
-export function useKonomi(initialSeries: Series[], initialTags: TagInfo[]) {
+// `initialSeries` null = REMOTE mode (see KonomiState.series): the catalog
+// size the pool UI needs (level gates, counts) then comes from
+// `remoteTotal`, since there is no series array to measure.
+export function useKonomi(initialSeries: Series[] | null, initialTags: TagInfo[], remoteTotal = 0) {
   const [state, dispatch] = useReducer(reducer, { series: initialSeries, tags: initialTags }, createInitialState);
 
   // Mirrors `state` for `actions.recommend` below to read synchronously —
@@ -525,10 +581,23 @@ export function useKonomi(initialSeries: Series[], initialTags: TagInfo[]) {
 
   const shownIds = useMemo(() => new Set(state.results.map((r) => r.series.id)), [state.results]);
 
+  const currentPoolKey = useMemo(() => poolKey(state.slots, state.minMatch, state.results), [state.slots, state.minMatch, state.results]);
+  // Remote mode only: true from the moment the key changes until the pool
+  // for it lands. RecommendButton follows it exactly like `error` (disabled,
+  // no new visual state) — usually already over by the time the hand
+  // reaches the button (see poolTuning.ts). Always false in local mode.
+  const poolPending = state.series === null && filledCount > 0 && state.pool?.key !== currentPoolKey;
+
   const canSwap = useMemo(() => {
     if (filledCount === 0) return false;
+    // Remote: the latest pool's count, even while a newer key is in flight
+    // — the previous answer is the best estimate and keeps the swap
+    // affordance from flickering off after every roll; replaceCard itself
+    // still requires an exact key match, so a stale yes is a no-op click,
+    // never a wrong swap.
+    if (state.series === null) return (state.pool?.total ?? 0) > 0;
     return state.series.some((s) => !shownIds.has(s.id) && scoreSeries(s, sel) >= minNum);
-  }, [filledCount, shownIds, sel, minNum, state.series]);
+  }, [filledCount, shownIds, sel, minNum, state.series, state.pool]);
 
   // name -> TagInfo lookup so result cards can merge a series' tags and
   // genres into one list, then level-filter and sort it exactly like the
@@ -584,6 +653,7 @@ export function useKonomi(initialSeries: Series[], initialTags: TagInfo[]) {
       toggleFlip: (id: string) => dispatch({ type: "TOGGLE_FLIP", id }),
       setTheme: (theme: ThemeKey) => dispatch({ type: "SET_THEME", theme }),
       pruneTags: (visible: Set<string>) => dispatch({ type: "PRUNE_TAGS", visible }),
+      setPool: (pool: Pool) => dispatch({ type: "SET_POOL", pool }),
     }),
     [],
   );
@@ -598,7 +668,9 @@ export function useKonomi(initialSeries: Series[], initialTags: TagInfo[]) {
     theme: state.theme,
     allTags: state.tags,
     tagInfoById,
-    totalSeriesCount: state.series.length,
+    totalSeriesCount: state.series ? state.series.length : remoteTotal,
+    poolKey: currentPoolKey,
+    poolPending,
     selectedTagIds: sel,
     filledCount,
     minNum,

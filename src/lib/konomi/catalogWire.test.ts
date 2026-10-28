@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { catalog, series, tags, T } from "./__fixtures__/catalog";
-import { packCatalog, unpackCatalog, WIRE_VERSION } from "./catalogWire";
+import { packCatalog, packTags, unpackCatalog, unpackTags, WIRE_VERSION } from "./catalogWire";
 
 describe("catalogWire", () => {
   it("round-trips an anime catalog exactly", () => {
@@ -21,7 +21,21 @@ describe("catalogWire", () => {
     ];
     const out = unpackCatalog(packCatalog({ series: rich, tags }));
     expect(out.series).toEqual(rich);
-    expect(out.tags).toBe(tags);
+    expect(out.tags).toEqual(tags);
+  });
+
+  it("round-trips tags, sharing categories and keeping minLevel absent where it was", () => {
+    const filmTags = [
+      { ...tags[2], id: "tmdb-tag:person:actor:1", category: "People-Actors", minLevel: "2" as const },
+      { ...tags[3], id: "tmdb-tag:person:actor:2", category: "People-Actors", minLevel: "2" as const },
+      { ...tags[0], id: "tmdb-genre:Action" },
+    ];
+    const wire = packTags([...tags, ...filmTags]);
+    expect(wire.categories).toEqual(["Theme-Sci-Fi-Mecha", "Setting-Scene", "Setting-Universe", "Theme-Other", "People-Actors"]);
+    const out = unpackTags(wire);
+    expect(out).toEqual([...tags, ...filmTags]);
+    expect("minLevel" in out[0]).toBe(false);
+    expect("minLevel" in out[6]).toBe(true);
   });
 
   it("round-trips film optionals and keeps them absent on anime items", () => {

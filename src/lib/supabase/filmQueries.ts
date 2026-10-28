@@ -71,7 +71,11 @@ const decadeTagName = (d: string) => `${d} release`;
 const languageTagName = (code: string) => `in ${languageName(code)}`;
 const certTagName = (cert: string) => `rated ${cert}`;
 
-interface RawFilmRow {
+// The films columns every consumer adapts. getFilmCatalog selects all of
+// them with the links embedded; recommend_films (migration 0013) returns
+// the same set plus the linked keys as a flat array; getFilmTags reads only
+// the RawFilmSynthRow subset.
+export interface RawFilmRow {
   tmdb_id: number;
   title: string;
   year: number | null;
@@ -88,6 +92,15 @@ interface RawFilmRow {
   poster_path: string | null;
   watch_providers: { name: string; logo_path: string | null }[] | null;
   watch_link: string | null;
+}
+
+// The columns the synthesized tags are derived from — all a tag list needs
+// from the films table, so the page can count them without the links join.
+type RawFilmSynthRow = Pick<RawFilmRow, "genres" | "reception" | "certification" | "original_language" | "countries" | "decade">;
+
+// PostgREST resource embedding (film_tag_links -> film_tags), the shape
+// the full catalog fetch gets its linked keys in.
+interface RawFilmRowWithLinks extends RawFilmRow {
   film_tag_links: { film_tags: { key: string } | null }[] | null;
 }
 
@@ -140,26 +153,83 @@ async function fetchAllPaged<T>(table: string, select: string, orderCol: string,
   return pages.flat();
 }
 
-export async function getFilmCatalog(): Promise<Catalog> {
-  // Stored tags (~15k rows) and films-with-linked-tag-names (the anime-side
-  // resource-embedding pattern) — the two fetches are independent of each
-  // other too, so they also run concurrently. film_count/min_level are
-  // already computed by the promote script, so no client-side stat pass is
-  // needed the way the anime side derives seriesCount/avgRank.
-  const [tagRows, rows] = await Promise.all([
-    fetchAllPaged<RawFilmTagRow>("film_tags", "key, type, name, section, film_count, min_level", "id", 1000),
-    // Ordered by tmdb_id, not title: range pagination needs a UNIQUE sort
-    // column or rows can straddle page boundaries on ties (duplicate
-    // titles genuinely exist — remakes), silently duplicating/dropping
-    // films. Series order doesn't matter downstream (scorePool shuffles).
-    fetchAllPaged<RawFilmRow>(
-      "films",
-      "tmdb_id, title, year, runtime, rating, genres, reception, certification, original_language, countries, decade, saga_name, overview, poster_path, watch_providers, watch_link, film_tag_links(film_tags(key))",
-      "tmdb_id",
-      PAGE,
-    ),
-  ]);
 
+// The raw column values a film's synthesized ids come from, normalized
+// once here so membership (adaptFilmRow) and the tag counts (buildFilmTags)
+// read the SAME values and can't drift: nulls become empties, and
+// certification is trimmed — one raw row carries "PG-13 " with a trailing
+// space, the same class of raw-data quirk the promote script trims on
+// keywords. recommend_films (0013) mirrors these exact normalizations.
+function synthValues(row: RawFilmSynthRow) {
+  return {
+    genres: row.genres ?? [],
+    reception: row.reception ?? [],
+    decade: row.decade || null,
+    countries: row.countries ?? [],
+    language: row.original_language || null,
+    cert: row.certification?.trim() || null,
+  };
+}
+
+// One film row -> the shared Series shape. `linkedKeys` are the film's
+// film_tags.key values, however the caller got them (the embedded join in
+// getFilmCatalog, the tag_keys array from recommend_films) — the one place
+// a film's membership ids are minted, so the page query and the pool route
+// agree by construction.
+export function adaptFilmRow(row: RawFilmRow, linkedKeys: string[]): Series {
+  const v = synthValues(row);
+  // Synthesized membership IDS for this film (Phase 3a) — they join
+  // `tags` so scoring matches them exactly like stored tags.
+  const synthesized: string[] = [];
+  for (const r of v.reception) synthesized.push(`tmdb-synth:reception:${r}`);
+  if (v.decade) synthesized.push(`tmdb-synth:decade:${v.decade}`);
+  for (const c of v.countries) synthesized.push(`tmdb-synth:country:${c}`);
+  if (v.language) synthesized.push(`tmdb-synth:language:${v.language}`);
+  if (v.cert) synthesized.push(`tmdb-synth:cert:${v.cert}`);
+
+  return {
+    id: `tmdb:${row.tmdb_id}`,
+    title: row.title,
+    year: row.year,
+    eps: null,
+    // Set-dedupe: one person credited in multiple roles on the SAME film
+    // (Tom Six directs AND produces) links two same-named tags, and the
+    // duplicate name reaching the card's tag row was a real React
+    // duplicate-key error (confirmed live). A film's tag list is
+    // conceptually a set; scoring (includes-based) is unaffected.
+    tags: [...new Set([...linkedKeys.map((k) => `tmdb-tag:${k}`), ...synthesized, ...v.genres.map((g) => `tmdb-genre:${g}`)])],
+    coverImageUrl: row.poster_path ? `${TMDB_IMG}/w500${row.poster_path}` : null,
+    genres: v.genres,
+    // ×10: TMDB's 0-10 vote_average onto the shared 0-100 scale — see
+    // Series.averageScore in types.ts.
+    averageScore: row.rating != null ? Math.round(row.rating * 10) : null,
+    description: row.overview,
+    // Every provider links to the film's one JustWatch-powered TMDB watch
+    // page (per-provider deep links aren't in the data) — the chips are
+    // "what's streaming it", the click goes to the picker. icon stays
+    // null DELIBERATELY: the chip renders icons as a CSS alpha-mask
+    // (built for AniList's transparent white-glyph PNGs — see
+    // ResultCard's own comment), and TMDB provider logos are opaque
+    // JPGs, which mask to a solid square. Label-only chips until a
+    // plain-<img> render mode is worth adding; the logo URL would be
+    // `${TMDB_IMG}/w92${p.logo_path}` when it is.
+    streamingServices: row.watch_link
+      ? (row.watch_providers ?? []).map((p) => ({
+          name: p.name,
+          url: row.watch_link as string,
+          icon: null,
+          color: null,
+        }))
+      : [],
+    runtimeMin: row.runtime,
+    certification: v.cert,
+    sagaName: row.saga_name,
+  };
+}
+
+// The side's whole TagInfo list: stored film_tags rows plus the tags
+// synthesized from films columns, counted over every film.
+function buildFilmTags(tagRows: RawFilmTagRow[], films: RawFilmSynthRow[]): TagInfo[] {
   const storedTags: TagInfo[] = tagRows.map((t) => ({
     id: `tmdb-tag:${t.key}`, // minted from the DB key, never the display name (THE IDENTITY CONTRACT, types.ts)
     name: t.name,
@@ -182,79 +252,15 @@ export async function getFilmCatalog(): Promise<Catalog> {
     cert: new Map<string, number>(),
   };
   const bump = (m: Map<string, number>, k: string) => m.set(k, (m.get(k) ?? 0) + 1);
-
-  const series: Series[] = rows.map((row) => {
-    const linked = (row.film_tag_links ?? [])
-      .map((l) => (l.film_tags?.key ? `tmdb-tag:${l.film_tags.key}` : null))
-      .filter((n): n is string => Boolean(n));
-
-    // Synthesized membership IDS for this film (Phase 3a) — they join
-    // `tags` so scoring matches them exactly like stored tags.
-    const synthesized: string[] = [];
-    for (const r of row.reception ?? []) {
-      synthesized.push(`tmdb-synth:reception:${r}`);
-      bump(counts.reception, r);
-    }
-    if (row.decade) {
-      synthesized.push(`tmdb-synth:decade:${row.decade}`);
-      bump(counts.decade, row.decade);
-    }
-    for (const c of row.countries ?? []) {
-      synthesized.push(`tmdb-synth:country:${c}`);
-      bump(counts.country, c);
-    }
-    if (row.original_language) {
-      synthesized.push(`tmdb-synth:language:${row.original_language}`);
-      bump(counts.language, row.original_language);
-    }
-    // One raw row carries "PG-13 " with a trailing space — trim on read,
-    // same class of raw-data quirk the promote script trims on keywords.
-    const cert = row.certification?.trim() || null;
-    if (cert) {
-      synthesized.push(`tmdb-synth:cert:${cert}`);
-      bump(counts.cert, cert);
-    }
-    for (const g of row.genres ?? []) bump(counts.genre, g);
-
-    return {
-      id: `tmdb:${row.tmdb_id}`,
-      title: row.title,
-      year: row.year,
-      eps: null,
-      // Set-dedupe: one person credited in multiple roles on the SAME film
-      // (Tom Six directs AND produces) links two same-named tags, and the
-      // duplicate name reaching the card's tag row was a real React
-      // duplicate-key error (confirmed live). A film's tag list is
-      // conceptually a set; scoring (includes-based) is unaffected.
-      tags: [...new Set([...linked, ...synthesized, ...(row.genres ?? []).map((g) => `tmdb-genre:${g}`)])],
-      coverImageUrl: row.poster_path ? `${TMDB_IMG}/w500${row.poster_path}` : null,
-      genres: row.genres ?? [],
-      // ×10: TMDB's 0-10 vote_average onto the shared 0-100 scale — see
-      // Series.averageScore in types.ts.
-      averageScore: row.rating != null ? Math.round(row.rating * 10) : null,
-      description: row.overview,
-      // Every provider links to the film's one JustWatch-powered TMDB watch
-      // page (per-provider deep links aren't in the data) — the chips are
-      // "what's streaming it", the click goes to the picker. icon stays
-      // null DELIBERATELY: the chip renders icons as a CSS alpha-mask
-      // (built for AniList's transparent white-glyph PNGs — see
-      // ResultCard's own comment), and TMDB provider logos are opaque
-      // JPGs, which mask to a solid square. Label-only chips until a
-      // plain-<img> render mode is worth adding; the logo URL would be
-      // `${TMDB_IMG}/w92${p.logo_path}` when it is.
-      streamingServices: row.watch_link
-        ? (row.watch_providers ?? []).map((p) => ({
-            name: p.name,
-            url: row.watch_link as string,
-            icon: null,
-            color: null,
-          }))
-        : [],
-      runtimeMin: row.runtime,
-      certification: cert,
-      sagaName: row.saga_name,
-    };
-  });
+  for (const row of films) {
+    const v = synthValues(row);
+    for (const r of v.reception) bump(counts.reception, r);
+    if (v.decade) bump(counts.decade, v.decade);
+    for (const c of v.countries) bump(counts.country, c);
+    if (v.language) bump(counts.language, v.language);
+    if (v.cert) bump(counts.cert, v.cert);
+    for (const g of v.genres) bump(counts.genre, g);
+  }
 
   // Synthesized TagInfo entries. Level gates per adapter-config.json:
   // reception ships at every level (moviegoer included); origin +
@@ -290,9 +296,57 @@ export async function getFilmCatalog(): Promise<Catalog> {
   // selecting actor-De Niro matches only his acting credits. Identical
   // display names within one sub-tab are a KNOWN interim state until the
   // multi-role/disambiguation UX (Phase 3b, DESIGN_SYSTEM parking lot).
-  const tags = [...storedTags, ...synthTags, ...genreTags].sort((a, b) => a.name.localeCompare(b.name));
+  return [...storedTags, ...synthTags, ...genreTags].sort((a, b) => a.name.localeCompare(b.name));
+}
 
-  return { series, tags };
+const FILM_TAG_SELECT = "key, type, name, section, film_count, min_level";
+const FILM_SYNTH_SELECT = "genres, reception, certification, original_language, countries, decade";
+
+// What /film ships now: the tag list and the film count, with no series
+// and no film_tag_links join — the join (18 pages × a 177k-row table) was
+// the slow, heavy part of the full fetch, and the page no longer needs
+// memberships since recommend_films scores in the database. The synth tags
+// still need every film's columns for their counts; that is a flat 8.5k-row
+// read of six small columns.
+export async function getFilmTags(): Promise<{ tags: TagInfo[]; total: number }> {
+  const [tagRows, films] = await Promise.all([
+    fetchAllPaged<RawFilmTagRow>("film_tags", FILM_TAG_SELECT, "id", 1000),
+    fetchAllPaged<RawFilmSynthRow>("films", `tmdb_id, ${FILM_SYNTH_SELECT}`, "tmdb_id", 1000),
+  ]);
+  return { tags: buildFilmTags(tagRows, films), total: films.length };
+}
+
+// The full catalog, memberships included — the shape the anime side's
+// getCatalog() gives. No longer on the page's path (see getFilmTags); kept
+// for scripts and for the server-vs-client scoring cross-check.
+export async function getFilmCatalog(): Promise<Catalog> {
+  // Stored tags (~15k rows) and films-with-linked-tag-names (the anime-side
+  // resource-embedding pattern) — the two fetches are independent of each
+  // other too, so they also run concurrently. film_count/min_level are
+  // already computed by the promote script, so no client-side stat pass is
+  // needed the way the anime side derives seriesCount/avgRank.
+  const [tagRows, rows] = await Promise.all([
+    fetchAllPaged<RawFilmTagRow>("film_tags", FILM_TAG_SELECT, "id", 1000),
+    // Ordered by tmdb_id, not title: range pagination needs a UNIQUE sort
+    // column or rows can straddle page boundaries on ties (duplicate
+    // titles genuinely exist — remakes), silently duplicating/dropping
+    // films. Series order doesn't matter downstream (scorePool shuffles).
+    fetchAllPaged<RawFilmRowWithLinks>(
+      "films",
+      "tmdb_id, title, year, runtime, rating, genres, reception, certification, original_language, countries, decade, saga_name, overview, poster_path, watch_providers, watch_link, film_tag_links(film_tags(key))",
+      "tmdb_id",
+      PAGE,
+    ),
+  ]);
+
+  const series: Series[] = rows.map((row) =>
+    adaptFilmRow(
+      row,
+      (row.film_tag_links ?? []).map((l) => l.film_tags?.key).filter((k): k is string => Boolean(k)),
+    ),
+  );
+
+  return { series, tags: buildFilmTags(tagRows, rows) };
 }
 
 function tagInfo(id: string, name: string, category: string, seriesCount: number, minLevel: LevelKey): TagInfo {

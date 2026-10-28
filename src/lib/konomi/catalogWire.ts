@@ -1,4 +1,4 @@
-import type { Series, TagInfo } from "./types";
+import type { LevelKey, Series, TagInfo } from "./types";
 
 // The server → client wire format for a catalog. The pages prerender the
 // whole catalog as props to KonomiApp, and at film scale the plain
@@ -17,7 +17,10 @@ import type { Series, TagInfo } from "./types";
 // bundle reading a newer prerender degrades to "missing field", not a
 // shifted one. Bump `v` only when a position changes meaning.
 
-export const WIRE_VERSION = 1;
+// v2: tags packed as tuples too (packTags) — at film scale the 15k TagInfo
+// objects were the last 2 MB left on the page once series stopped
+// shipping (server-side recommend, 2026-10-28).
+export const WIRE_VERSION = 2;
 
 // [name, urlIndex, icon, color]
 type WireStream = [string, number, string | null, string | null];
@@ -55,9 +58,23 @@ const enum W {
   Saga,
 }
 
+// [id, name, categoryIndex | null, seriesCount, avgRank, isGenre, minLevel?]
+// minLevel is only present (a 7th element) when the TagInfo has it — film
+// tags do, anime tags don't, and the unpack keeps that difference so
+// `"minLevel" in tag` stays truthful per side.
+export type WireTag = [string, string, number | null, number, number | null, 0 | 1] | [string, string, number | null, number, number | null, 0 | 1, LevelKey];
+
+export interface WireTags {
+  v: typeof WIRE_VERSION;
+  // Shared string table: category paths repeat per section ("People-Actors"
+  // is on 13k of the film side's tags).
+  categories: string[];
+  tags: WireTag[];
+}
+
 export interface WireCatalog {
   v: typeof WIRE_VERSION;
-  tags: TagInfo[];
+  tags: WireTags;
   // Shared string tables: stream URLs and poster-URL prefixes.
   urls: string[];
   prefixes: string[];
@@ -82,6 +99,32 @@ class Table {
     this.index.set(value, id);
     return id;
   }
+}
+
+export function packTags(tags: TagInfo[]): WireTags {
+  const categories = new Table();
+  const packed: WireTag[] = tags.map((t) => {
+    const base: WireTag = [t.id, t.name, t.category === null ? null : categories.id(t.category), t.seriesCount, t.avgRank, t.isGenre ? 1 : 0];
+    return t.minLevel === undefined ? base : [...base, t.minLevel];
+  });
+  return { v: WIRE_VERSION, categories: categories.values, tags: packed };
+}
+
+export function unpackTags(wire: WireTags): TagInfo[] {
+  if (wire.v !== WIRE_VERSION) throw new Error(`Unsupported catalog wire version ${String(wire.v)}`);
+  const { categories } = wire;
+  return wire.tags.map((w) => {
+    const tag: TagInfo = {
+      id: w[0],
+      name: w[1],
+      category: w[2] === null ? null : (categories[w[2]] ?? null),
+      seriesCount: w[3],
+      avgRank: w[4],
+      isGenre: w[5] === 1,
+    };
+    if (w.length > 6) tag.minLevel = w[6];
+    return tag;
+  });
 }
 
 export function packCatalog(catalog: { series: Series[]; tags: TagInfo[] }): WireCatalog {
@@ -119,12 +162,13 @@ export function packCatalog(catalog: { series: Series[]; tags: TagInfo[] }): Wir
       s.sagaName,
     ];
   });
-  return { v: WIRE_VERSION, tags: catalog.tags, urls: urls.values, prefixes: prefixes.values, series };
+  return { v: WIRE_VERSION, tags: packTags(catalog.tags), urls: urls.values, prefixes: prefixes.values, series };
 }
 
 export function unpackCatalog(wire: WireCatalog): { series: Series[]; tags: TagInfo[] } {
   if (wire.v !== WIRE_VERSION) throw new Error(`Unsupported catalog wire version ${String(wire.v)}`);
-  const { tags, urls, prefixes } = wire;
+  const { urls, prefixes } = wire;
+  const tags = unpackTags(wire.tags);
   const series: Series[] = wire.series.map((w) => {
     const base: Series = {
       id: w[W.Id],

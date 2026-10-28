@@ -20,5 +20,5 @@ export default async function AnimePage() {
 
   // Packed on the server (catalogWire.ts): the same catalog, a fraction of
   // the prerendered bytes; KonomiApp unpacks it once on the client.
-  return <KonomiApp side="anime" catalog={packCatalog(catalog)} />;
+  return <KonomiApp side="anime" data={{ kind: "local", catalog: packCatalog(catalog) }} />;
 }

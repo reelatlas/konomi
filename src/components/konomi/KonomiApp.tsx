@@ -2,12 +2,13 @@
 
 import { animate, useMotionValue, type AnimationPlaybackControls } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { unpackCatalog, type WireCatalog } from "@/lib/konomi/catalogWire";
+import { unpackCatalog, unpackTags, type WireCatalog, type WireTags } from "@/lib/konomi/catalogWire";
 import { DOMAINS, type DomainKey } from "@/lib/konomi/domains";
 import { visiblePoolTagIds } from "@/lib/konomi/tagPool";
 import { isThemeKey, THEME_STORAGE_KEY } from "@/lib/konomi/themes";
+import { POOL_PREFETCH_DEBOUNCE_MS } from "@/lib/konomi/poolTuning";
 import { THEME_TRANSITION } from "@/lib/konomi/themeTransitionTuning";
-import type { LevelKey } from "@/lib/konomi/types";
+import type { LevelKey, MatchKey, Series } from "@/lib/konomi/types";
 import { useKonomi } from "@/lib/konomi/useKonomi";
 import { DomainProvider } from "./domainContext";
 import { Masthead } from "./Masthead";
@@ -24,9 +25,12 @@ interface KonomiAppProps {
   // component (each side's page.tsx) can't pass across the client boundary.
   // Resolved via DOMAINS below.
   side: DomainKey;
-  // The packed catalog (see catalogWire.ts) — unpacked once below into the
-  // Series[]/TagInfo[] the reducer has always taken.
-  catalog: WireCatalog;
+  // LOCAL: the packed catalog (see catalogWire.ts), unpacked once below
+  // into the Series[]/TagInfo[] the reducer has always taken; scoring runs
+  // in the browser. REMOTE: tags only, plus the film count the pool UI
+  // needs; the fresh tier is prefetched from /api/pool (recommend_films,
+  // migration 0013) by the effect below. See KonomiState.series.
+  data: { kind: "local"; catalog: WireCatalog } | { kind: "remote"; tags: WireTags; totalSeriesCount: number };
 }
 
 // Read live (not cached) so a change to the OS setting mid-session is honored,
@@ -54,11 +58,47 @@ const MASTHEAD_SETTLE_DURATION_S = 0.7;
 const MASTHEAD_SCRUB_DISTANCE_PX = 120;
 const MASTHEAD_FLICK_PROJECTION_MS = 120;
 
-export function KonomiApp({ side, catalog }: KonomiAppProps) {
+export function KonomiApp({ side, data }: KonomiAppProps) {
   const domain = DOMAINS[side];
-  const { series, tags } = useMemo(() => unpackCatalog(catalog), [catalog]);
-  const k = useKonomi(series, tags);
+  const { series, tags, totalSeriesCount } = useMemo(
+    () => (data.kind === "local" ? { ...unpackCatalog(data.catalog), totalSeriesCount: 0 } : { series: null, tags: unpackTags(data.tags), totalSeriesCount: data.totalSeriesCount }),
+    [data],
+  );
+  const k = useKonomi(series, tags, totalSeriesCount);
   const level = useLevel(domain.storagePrefix);
+  // Remote pool prefetch: whenever the pool key changes (a tag, MIN MATCH,
+  // or what is on screen — including right after every roll/swap), ask
+  // /api/pool for the count and a fresh sample under that key. Debounced
+  // (poolTuning.ts) so a burst of chip taps sends one request; an in-flight
+  // request for a superseded key is aborted, and its timer cleared, by the
+  // effect cleanup. The request is parsed straight out of the key (its
+  // JSON holds exactly the sorted ids, min, and shown ids), so the pool
+  // stored under `key` is by construction the answer to `key`. A failed
+  // fetch leaves RECOMMEND disabled for that key (poolPending stays true);
+  // the next key change retries. Nothing to prefetch with no tags: the
+  // button is already disabled by filledCount then.
+  const { poolKey, filledCount, setPool } = k;
+  const remote = data.kind === "remote";
+  useEffect(() => {
+    if (!remote || filledCount === 0) return;
+    const [tagIds, min, exclude] = JSON.parse(poolKey) as [string[], MatchKey, string[]];
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => {
+      // Repeated params (not comma-joined): some keyword ids contain commas.
+      const params = new URLSearchParams([["side", side], ["min", min], ...tagIds.map((t) => ["tags", t]), ...exclude.map((e) => ["exclude", e])]);
+      fetch(`/api/pool?${params}`, { signal: controller.signal })
+        .then((res) => (res.ok ? res.json() : Promise.reject(new Error(`pool ${res.status}`))))
+        .then((body: { total: number; sample: Series[] }) => setPool({ key: poolKey, total: body.total, sample: body.sample }))
+        .catch((err: unknown) => {
+          if (err instanceof DOMException && err.name === "AbortError") return;
+          console.error("pool prefetch failed", err);
+        });
+    }, POOL_PREFETCH_DEBOUNCE_MS);
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [remote, side, poolKey, filledCount, setPool]);
   // Mirrors `side` onto <html> as data-side, alongside the data-theme the
   // theme effect below manages — side is catalog partition, theme is user
   // chrome, two orthogonal axes that must compose (film + Tide is a valid
@@ -747,6 +787,7 @@ export function KonomiApp({ side, catalog }: KonomiAppProps) {
           onClearSlots={k.clearSlots}
           onRecommend={handleRecommend}
           error={k.mixerError}
+          poolPending={k.poolPending}
           // Real editMode again (Phase 3 deleted the bar's own panel
           // machinery wholesale, so nothing here can double-render the
           // pool anymore) — the bar reads it ONLY for the empty-slot tap

@@ -26,6 +26,10 @@ interface MixerBarProps {
   onClearSlots: () => void;
   onRecommend: () => void;
   error: MixerError;
+  // Remote mode: the fresh tier for the current mix hasn't landed yet
+  // (useKonomi's poolPending) — RECOMMEND holds disabled, same treatment
+  // as a live error, no visual of its own.
+  poolPending: boolean;
   // The tag pool overlay's open state + open/close (KonomiApp's editMode).
   // This bar no longer renders or hosts the pool in any form (search v2
   // Phase 3 — the panel lives in TagPoolOverlay, invoked from the
@@ -87,6 +91,7 @@ export function MixerBar({
   onClearSlots,
   onRecommend,
   error,
+  poolPending,
   editMode,
   onOpenEditMode,
   onCloseEditMode,
@@ -443,7 +448,7 @@ export function MixerBar({
                   ("match the rendered distance, not just the token" —
                   DESIGN_SYSTEM.md). */}
               <div className="hidden @min-[862px]:block ml-[3px] w-[length:var(--border-base)] h-[32px] bg-[var(--ink)]" />
-              <RecommendButton filledCount={filledCount} onRecommend={onRecommend} error={error} />
+              <RecommendButton filledCount={filledCount} onRecommend={onRecommend} error={error} poolPending={poolPending} />
             </div>
           </div>
         </div>

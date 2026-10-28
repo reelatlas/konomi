@@ -33,10 +33,14 @@ interface RecommendButtonProps {
   filledCount: number;
   onRecommend: () => void;
   error: MixerError;
+  // Disables exactly like `error` does, with no state of its own: the
+  // remote pool for this mix is still in flight (see useKonomi's
+  // poolPending). Usually already false by the time a hand gets here.
+  poolPending?: boolean;
 }
 
-export function RecommendButton({ filledCount, onRecommend, error }: RecommendButtonProps) {
-  const enabled = filledCount > 0 && !error;
+export function RecommendButton({ filledCount, onRecommend, error, poolPending = false }: RecommendButtonProps) {
+  const enabled = filledCount > 0 && !error && !poolPending;
   const accent = DEFAULT_ACCENT;
 
   return (

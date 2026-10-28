@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { catalog, tags, T } from "./__fixtures__/catalog";
 import { DEFAULT_RESULT_COUNT, SLOT_COUNT } from "./config";
-import { createInitialState, reducer, type Action, type KonomiState } from "./useKonomi";
+import type { Series } from "./types";
+import { createInitialState, poolKey, reducer, type Action, type KonomiState } from "./useKonomi";
 
 // Drives the pure reducer directly — no React, no DOM — which is the whole
 // point of useKonomi's "framework-light" design. Where scorePool shuffles,
@@ -143,5 +144,75 @@ describe("REPLACE_CARD and CLEAR_RECS", () => {
     expect(s.results).toEqual([]);
     expect(s.generated).toBe(false);
     expect(s.clearGen).toBe(2);
+  });
+});
+
+// REMOTE mode (series: null — the film side): the fresh tier is the
+// prefetched pool for the current key, everything else is unchanged.
+describe("remote pool mode", () => {
+  const remote = () => createInitialState({ series: null, tags });
+  const poolFor = (s: KonomiState, sample: Series[], total = sample.length): Action => ({
+    type: "SET_POOL",
+    pool: { key: poolKey(s.slots, s.minMatch, s.results), total, sample },
+  });
+
+  it("RECOMMEND is a no-op without a pool for the current key", () => {
+    const s = run(select(T.action), remote());
+    const stale: Action = { type: "SET_POOL", pool: { key: "other", total: 3, sample: catalog } };
+    const after = run([stale, { type: "RECOMMEND" }], s);
+    expect(after.results).toEqual([]);
+    expect(after.generated).toBe(false);
+    expect(after.error).toBeNull();
+    expect(after.pool?.key).toBe("other"); // stored, just not read
+  });
+  it("RECOMMEND rolls from a matching pool with local compaction semantics", () => {
+    let s = run(select(T.action), remote());
+    s = run([poolFor(s, catalog.slice(0, 3)), { type: "RECOMMEND" }], s);
+    expect(resultIds(s).sort()).toEqual(["anilist:1", "anilist:2", "anilist:3"]);
+    expect(s.error).toBeNull();
+    expect(s.recommendGen).toBe(1);
+    expect(s.firstNewIndex).toBe(0);
+    // The screen changed, so the key changed: the old pool no longer applies.
+    expect(reducer(s, { type: "RECOMMEND" })).toBe(s);
+    // Lock one, refresh the pool for the new key with one fresh title: the
+    // lock compacts to the front, the fresh pick lands after it.
+    const lockedId = resultIds(s)[1];
+    s = reducer(s, { type: "TOGGLE_LOCK", id: lockedId });
+    s = run([poolFor(s, [catalog[3]]), { type: "RECOMMEND" }], s);
+    expect(resultIds(s)[0]).toBe(lockedId);
+    expect(resultIds(s)).toContain("anilist:4");
+    expect(s.newIds).toEqual(["anilist:4"]);
+    expect(s.firstNewIndex).toBe(resultIds(s).length - 1);
+  });
+  it("an empty pool (total 0) takes the same error branches as local", () => {
+    let s = run(select(T.action), remote());
+    s = run([poolFor(s, [], 0), { type: "RECOMMEND" }], s);
+    expect(s.error).toBe("no-match");
+    expect(s.results).toEqual([]);
+    // Cards on screen that still qualify, nothing fresh → no-new-matches.
+    s = run(select(T.action), remote());
+    s = run([poolFor(s, catalog.slice(0, 3)), { type: "RECOMMEND" }], s);
+    s = run([poolFor(s, [], 0), { type: "RECOMMEND" }], s);
+    expect(s.error).toBe("no-new-matches");
+    expect(resultIds(s).sort()).toEqual(["anilist:1", "anilist:2", "anilist:3"]);
+  });
+  it("impossible-min is checked before the pool is consulted", () => {
+    const s = run([...select(T.action), { type: "SET_MIN_MATCH", key: "2" }, { type: "RECOMMEND" }], remote());
+    expect(s.error).toBe("impossible-min");
+  });
+  it("REPLACE_CARD swaps from the pool and is a no-op without one", () => {
+    let s = run(select(T.drama), remote());
+    s = run([poolFor(s, [catalog[2]]), { type: "RECOMMEND" }], s);
+    expect(resultIds(s)).toEqual(["anilist:3"]);
+    expect(reducer(s, { type: "REPLACE_CARD", id: "anilist:3" })).toBe(s);
+    s = run([poolFor(s, [catalog[3]]), { type: "REPLACE_CARD", id: "anilist:3" }], s);
+    expect(resultIds(s)).toEqual(["anilist:4"]);
+  });
+  it("poolKey ignores slot and card order but not min-match or the screen", () => {
+    const a = run(select(T.action, T.drama), remote());
+    const b = run(select(T.drama, T.action), remote());
+    expect(poolKey(a.slots, a.minMatch, a.results)).toBe(poolKey(b.slots, b.minMatch, b.results));
+    expect(poolKey(a.slots, "2", a.results)).not.toBe(poolKey(a.slots, "1", a.results));
+    expect(poolKey(a.slots, "1", [{ series: catalog[0] }])).not.toBe(poolKey(a.slots, "1", []));
   });
 });
