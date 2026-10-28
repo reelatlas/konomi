@@ -1,7 +1,7 @@
 # Server-side recommend for the film side
 
-Status: proposed 2026-10-28. Needs: a migration on the Supabase project
-(Sean's go), ~1–2 days.
+Status: shipped 2026-10-28 (same day; see Result below). Migration 0013
+applied to the linked project.
 
 ## Why
 
@@ -64,3 +64,71 @@ screen", and five of them.
   out caching 14 MB.
 - Lazy card details (description/streaming fetched after the roll): fixes
   2.1 MB but adds an async card-back state for a partial win.
+
+## Result (2026-10-28)
+
+Shipped as proposed, with three departures noted below.
+
+| Prerendered file          | Before (wire v1) | After          |
+| ------------------------- | ---------------- | -------------- |
+| `.next/server/app/film.html` | 8.6 MB           | 1.20 MB (241 KB gzip) |
+| `.next/server/app/film.rsc`  | 8.0 MB           | 1.01 MB (220 KB gzip) |
+| `.next/server/app/anime.html` | 0.76 MB          | 0.74 MB        |
+
+What is on the film page now: the 15,196 tags (People included, 13k of
+them) packed as tuples with a shared category table (`packTags`, wire v2),
+and the film count. No series. The first roll's five cards arrive from
+`/api/pool` (`recommend_films`, migration 0013), prefetched the moment a
+tag is placed.
+
+**Verification.** A one-off script fetched the full catalog with
+`getFilmCatalog()`, drew 25 random mixes (1–3 ids across tag/genre/synth
+kinds, min 1–3, up to 4 exclusions, 3 of them deliberately qualifying),
+and compared: the function's `total` equalled the client's
+`scorePool(...).length` on 25/25 (totals from 0 to 4,696), every sampled id
+was in the client pool, and every sampled row's `tag_keys` reproduced the
+client's `tmdb-tag:` memberships exactly. Round trip from the script:
+145–610 ms per call. Live on `npm run dev`: smoke and lockflow scenarios
+pass on `/film`; a swap replaced one card with an off-screen title; a second
+roll served five titles none of which were on screen; one `/api/pool`
+request per key change (4 for Random → roll → swap → roll).
+
+**Departures from the proposal.**
+
+- `tagInfos` is not in the response: the page still ships every tag
+  (People included) because the pool UI, Random, and the card tag rows all
+  read `tagInfoById` synchronously. Packing tags as tuples (wire v2) made
+  that cheap enough (2.0 MB → ~0.9 MB of the page) that lazy People tags
+  became a separate decision rather than a prerequisite.
+- The function returns `total` on every row plus the film columns and a
+  `tag_keys text[]`, not `(total, films jsonb)`: PostgREST then hands
+  supabase-js typed rows that go through the same `adaptFilmRow` the page
+  query uses, so there is one adapter, not a JSON twin of it.
+- Query params are repeated (`tags=a&tags=b`), not comma-joined: two
+  keyword ids contain commas ("kw:based on song, poem or rhyme"), found by
+  the cross-check script's comma scan.
+
+**Learnings.**
+
+- Scoring parity needed one pre-aggregation (hits over `film_tag_links`
+  for the selected keys only, on the 0012 `tag_id` index) plus
+  null-safe column checks (`exists`, `count(distinct …)`), and matched on
+  the first run. The two things that would have silently diverged were
+  the trailing-space certification and a duplicate genre in an array —
+  both are handled by a shared `synthValues()` on the client and mirrored
+  in the SQL comment, so the next column-derived tag has a checklist.
+- `canSwap` reads the LATEST pool even while the next key is in flight;
+  otherwise the swap affordance flickers off after every roll. The swap
+  itself still requires an exact key match, so a stale yes is a no-op
+  click, never a wrong card.
+- The reducer stayed pure: a pool miss returns the state unchanged, and
+  `actions.recommend()`'s synchronous error return keeps working because
+  the pool lives in state and is read through `stateRef`.
+- `getFilmTags()` (no links join) made `/film`'s build-time fetch a flat
+  read of six small columns; the full `getFilmCatalog()` stays for scripts
+  and the cross-check.
+
+**Open.** Lazy People tags (fetch on People section open / search) would
+take the page to ~0.3 MB; the anime side could move to the same pool
+interface with a local provider so the reducer has one code path — both
+are now independent decisions, neither is blocking.
