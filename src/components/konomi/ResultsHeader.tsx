@@ -136,7 +136,7 @@ export function ResultsHeader({ hasResults, editMode, onOpenEditMode, onCloseEdi
   // chosen option, LevelSelector.tsx). Each readout colours off its OWN count.
   // The locked readout follows the same rule; its hover glow (globals.css) is a
   // separate accent layered on top when interactive.
-  const metaColor = (n: number) => (n > 0 ? "text-[var(--primary)]" : "text-[var(--muted)]");
+  const metaColor = (n: number) => (n > 0 ? "text-[var(--primary)]" : "text-[var(--subtext)]");
   return (
     // Always flex-row, never flex-col — this row must never wrap to two
     // lines: wrapping would push the card row's own spawn position down,

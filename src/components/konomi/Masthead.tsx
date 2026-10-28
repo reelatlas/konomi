@@ -351,7 +351,7 @@ export function Masthead({ theme, onThemeChange, collapsed }: MastheadProps) {
                 tabIndex={collapsed ? -1 : undefined}
                 aria-label={`switch to the ${otherSide.label.toLowerCase()} side`}
                 className={[
-                  "glow-host group/sideswitch inline-flex items-center gap-[var(--space-xs)] font-mono text-[length:var(--text-xs)] tracking-[var(--tracking-lg)] lowercase text-[var(--muted)] hover:text-[var(--primary)] focus-visible:text-[var(--primary)] transition-colors duration-200 whitespace-nowrap",
+                  "glow-host group/sideswitch inline-flex items-center gap-[var(--space-xs)] font-mono text-[length:var(--text-xs)] tracking-[var(--tracking-lg)] lowercase text-[var(--subtext)] hover:text-[var(--primary)] focus-visible:text-[var(--primary)] transition-colors duration-200 whitespace-nowrap",
                   collapsed ? "pointer-events-none" : "",
                 ].join(" ")}
               >

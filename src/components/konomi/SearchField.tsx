@@ -131,7 +131,7 @@ export function SearchField({ editMode, onOpenEditMode, onEngagedChange }: Searc
         autoCapitalize="none"
         autoCorrect="off"
         className={[
-          "flex-1 min-w-0 bg-transparent [outline:none] font-mono text-[length:var(--text-sm)] text-[var(--ink)] placeholder:text-[var(--muted)]",
+          "flex-1 min-w-0 bg-transparent [outline:none] font-mono text-[length:var(--text-sm)] text-[var(--ink)] placeholder:text-[var(--subtext)]",
           engaged ? "" : "max-[529px]:w-0 max-[529px]:flex-none max-[529px]:p-0",
         ].join(" ")}
       />

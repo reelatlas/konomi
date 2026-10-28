@@ -243,7 +243,7 @@ export function SectionTabStrip({
                     size === "primary"
                       ? "font-display text-[length:var(--text-lg)] uppercase tracking-[var(--tracking-sm)]"
                       : "font-mono font-bold text-[length:var(--text-xs)] leading-[16px] uppercase tracking-[var(--tracking-xl)]",
-                    active ? "text-[var(--ink)]" : "text-[var(--muted)]",
+                    active ? "text-[var(--ink)]" : "text-[var(--subtext)]",
                   ].join(" ")}
                 >
                   {section.label}

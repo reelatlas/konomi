@@ -646,7 +646,7 @@ export function RecommendationsBody({
               than stealing height from the others. */}
           {/* TOP: hero + instruction. */}
           <div className="flex flex-col items-center justify-center gap-[var(--space-md)]">
-          <div className="font-display text-[length:var(--text-2xl)] text-[var(--muted)] uppercase">
+          <div className="font-display text-[length:var(--text-2xl)] text-[var(--subtext)] uppercase">
             {EMPTY_STATE_COPY[emptyStateIndex].headline}
           </div>
           {/* Deliberately NOT styled like the payoff below — the payoff is

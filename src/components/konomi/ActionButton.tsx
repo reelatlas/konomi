@@ -115,7 +115,7 @@ export function ActionButton({ variant, ctaColor, engaged, size = "md", shadow =
             : "bg-[var(--primary)] text-[var(--on-primary)] cursor-pointer",
         header: engaged
           ? "bg-[var(--primary)] text-[var(--surface)] cursor-pointer"
-          : "bg-transparent text-[var(--muted)] glow-host cursor-pointer",
+          : "bg-transparent text-[var(--subtext)] glow-host cursor-pointer",
         // header-action (user-ruled 2026-07-27): a header-row button that
         // IS a ready action rather than a toggle (Clear) — filled --fill
         // like the app's other take-an-action buttons — settled on the
