@@ -162,3 +162,31 @@ notices. See `AGENTS.md` `nextjs-agent-rules`.
 - Do NOT read, scan, or reference `_sandbox/` unless I explicitly ask.
 - When I DO ask, experiments MAY import from the real app (`src/...`, tokens, components) — that's intended, so ideas use real Konomi code.
 - `_sandbox/` code is never graduated into `src/` or referenced by real app code unless I explicitly confirm the idea. It may freely reuse the app's tokens/styles/formats/guidance or explore freely.
+## Profile (read by the global skills)
+
+Global skills come from the kit (`~/Projects/claude-kit`,
+github.com/reelatlas/claude-kit): `orchestrate`, `tidy`, `ship`, `save`,
+`research-practice`, `sandbox-animation`, `sandbox-dataviz`, `sandbox-ux`.
+The project copies of the sandbox skills in `.claude/skills/` win while they
+exist; `run-konomi` stays a project skill.
+
+```
+gate: npx tsc --noEmit && npm run lint && npm test && npm run build
+deploy: push main deploys production (Vercel); a branch push builds a preview
+branch: wip-2026-10 until Sean merges. Local main holds that work, 167 ahead of origin/main (2026-10-28): push with `git push origin HEAD:wip-2026-10`, never a bare push
+commits: Conventional Commits; a visual change ships in its own commit so one revert removes it
+scratch: _sandbox/
+graduations: SANDBOX_GRADUATIONS.md
+homes:
+  design: DESIGN_SYSTEM.md
+  learnings: DESIGN_SYSTEM.md (lessons live in its logs; no separate file yet)
+  state: CLAUDE.md "Pick up here" (created by the first save)
+  research: docs/proposals/
+tokens: src/lib/konomi/tokens.ts, src/lib/konomi/themes.ts, src/app/globals.css
+authorities:
+  animation: Motion MCP (motion/react, never framer-motion)
+  dataviz: AGENTS.md's locked d3 stack (scales and layout only; React owns the DOM)
+  ux: the figma-* skills
+platform-notes: DESIGN_SYSTEM.md's WebKit/Safari motion lore; judge motion on the iPhone before graduation
+run: run-konomi
+```
