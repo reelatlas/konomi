@@ -1,13 +1,15 @@
 name: CI
 
-# Runs on every push and pull request. The build step needs the two PUBLIC
-# Supabase values (NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY)
-# because the pages prerender against the live catalog; add them as
-# repository secrets and the build gate turns on. Until then typecheck,
-# lint, and tests still gate every push.
+# Started by hand only (Actions → Run workflow, or `gh workflow run CI`).
+# Policy (Sean, 2026-10-28, same as bigsmall since 2026-10-18): gates run
+# locally before every push (`npx tsc --noEmit && npm run lint && npm test
+# && npm run build`); a push deploys when Vercel's own build finishes. The
+# account's 2,000 shared Actions minutes don't stretch to a job per push at
+# ~40 commits an active day for a solo repo. Revisit with a second
+# contributor. The build step needs the two PUBLIC Supabase values as
+# repository secrets; without them it is skipped and the rest still runs.
 on:
-  push:
-  pull_request:
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
