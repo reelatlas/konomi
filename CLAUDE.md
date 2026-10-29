@@ -173,7 +173,7 @@ exist; `run-konomi` stays a project skill.
 ```
 gate: npx tsc --noEmit && npm run lint && npm test && npm run build
 deploy: push main deploys production (Vercel); a branch push builds a preview
-branch: wip-2026-10 until Sean merges. Local main holds that work, 167 ahead of origin/main (2026-10-28): push with `git push origin HEAD:wip-2026-10`, never a bare push
+branch: wip-2026-10 until Sean merges; local main tracks origin/main again (2026-10-28). Push with `git push origin HEAD:wip-2026-10`, never a bare push from main
 commits: Conventional Commits; a visual change ships in its own commit so one revert removes it
 scratch: _sandbox/
 graduations: SANDBOX_GRADUATIONS.md
